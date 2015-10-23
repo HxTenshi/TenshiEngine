@@ -1,0 +1,5 @@
+
+LIBRARY ScriptComponent
+EXPORTS
+  CreateInstance @1
+  ReleseInstance @2
