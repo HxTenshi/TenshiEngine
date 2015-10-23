@@ -1,0 +1,34 @@
+#pragma once
+
+using System::IntPtr;
+using System::STAThreadAttribute;
+using System::String;
+using System::ComponentModel::INotifyPropertyChanged;
+using System::ComponentModel::PropertyChangedEventArgs;
+using System::ComponentModel::PropertyChangedEventHandler;
+using System::IO::StringReader;
+using System::Object;
+using System::Windows::Application;
+using System::Windows::Window;
+using System::Windows::FrameworkElement;
+using namespace System::Windows::Media;
+using System::Windows::Controls::Border;
+using System::Windows::Controls::Slider;
+using System::Windows::Controls::TextBlock;
+using System::Windows::Controls::TextBox;
+using System::Windows::Controls::Button;
+using System::Windows::Controls::Panel;
+using System::Windows::Controls::DockPanel;
+using System::Windows::Controls::StackPanel;
+using System::Windows::Controls::TreeView;
+using System::Windows::Controls::TreeViewItem;
+using System::Windows::Controls::ItemCollection;
+using System::Windows::Media::Brushes;
+using System::Xaml::XamlObjectWriter;
+using System::Xaml::XamlXmlReader;
+using System::Windows::Interop::HwndSource;
+using System::Windows::Forms::Integration::WindowsFormsHost;
+using namespace System::Collections::ObjectModel;
+using System::Collections::Generic::List;
+using System::Windows::MessageBox;
+using System::Windows::Data::BindingMode;
