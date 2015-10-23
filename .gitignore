@@ -1,0 +1,48 @@
+# シャープで始めるとコメント行になる
+ 
+# tmp フォルダまるごと無視したい
+#tmp/
+ 
+# 下階層全てのフォルダ内で ".DS_Store" ファイルを無視したい
+#*/.DS_Store
+ 
+# 下階層全てのフォルダ内で拡張子が .psd のファイルを無視したい
+#*/*.psd
+ 
+# トップ階層の .exe ファイルのみを無視したい
+# ただしサブフォルダ内の .exe ファイルは無視しない
+#/*.exe
+ 
+# img フォルダをまるごと無視したい
+# だけど .png だけは無視したくない
+#img/*.*
+#!.png
+
+Tutorial07/Debug/
+Tutorial07/Release/
+*.sdf
+*.suo
+Tutorial07/icph/
+*.vcxproj.user
+
+Tutorial07/anim/
+Tutorial07/model/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
