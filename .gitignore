@@ -22,7 +22,7 @@ Debug/
 Release/
 *.sdf
 *.suo
-icph/
+ipch/
 *.vcxproj.user
 
 Tutorial07/anim/
