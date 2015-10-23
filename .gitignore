@@ -1,0 +1,59 @@
+﻿# �V���[�v�Ŏn�߂�ƃR�����g�s�ɂȂ�
+ 
+# tmp �t�H���_�܂邲�Ɩ���������
+#tmp/
+ 
+# ���K�w�S�Ẵt�H���_��� ".DS_Store" �t�@�C���𖳎�������
+#*/.DS_Store
+ 
+# ���K�w�S�Ẵt�H���_��Ŋg���q�� .psd �̃t�@�C���𖳎�������
+#*/*.psd
+ 
+# �g�b�v�K�w�� .exe �t�@�C���݂̂𖳎�������
+# �������T�u�t�H���_��� .exe �t�@�C���͖������Ȃ�
+#/*.exe
+ 
+# img �t�H���_��܂邲�Ɩ���������
+# ������ .png �����͖����������Ȃ�
+#img/*.*
+#!.png
+
+Debug/
+Release/
+ExeCompile/
+*.sdf
+*.suo
+ipch/
+*.vcxproj.user
+
+����/
+Assets/
+Scenes/
+DustBox/
+DB/
+Release_/
+Temp/
+
+*.cpp
+TenshiEngine/CustomControls/
+TenshiEngine/CppWPFdll/
+TenshiEngine/DirectXTex/
+TenshiEngine/Manual/
+TenshiEngine/lib/
+TenshiEngine/Resource/
+*.opensdf
+TenshiEngine.sln
+TenshiEngine.vcxproj
+
+
+
+
+
+
+
+
+
+
+
+*.opensdf
+TenshiEngine/lib/DirectShow/
