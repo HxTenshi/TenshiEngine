@@ -1,0 +1,50 @@
+#pragma once
+
+#include "ShaderFile.h"
+
+class PixelShader : public ShaderFile{
+public:
+	PixelShader()
+		: mpPixelShader(NULL)
+	{
+
+	}
+	~PixelShader()
+	{
+
+	}
+	HRESULT Create(const char* FileName){
+		return Create(FileName, "PS");
+	}
+	HRESULT Create(const char* FileName, const char* FuncName){
+		HRESULT hr = S_OK;
+		// Compile the pixel shader
+		ID3DBlob* pPSBlob = NULL;
+		hr = CompileShaderFromFile(FileName, FuncName, "ps_4_0", &pPSBlob);
+		if (FAILED(hr))
+		{
+			MessageBox(NULL,
+				"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. PS", "Error", MB_OK);
+			return hr;
+		}
+
+		// Create the pixel shader
+		hr = Device::mpd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &mpPixelShader);
+		pPSBlob->Release();
+		if (FAILED(hr))
+			return hr;
+
+		return S_OK;
+	}
+
+	void SetShader() const{
+		Device::mpImmediateContext->PSSetShader(mpPixelShader, NULL, 0);
+	}
+
+	void Release(){
+
+		if (mpPixelShader) mpPixelShader->Release();
+	}
+private:
+	ID3D11PixelShader*	mpPixelShader;
+};

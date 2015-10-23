@@ -1,0 +1,111 @@
+
+#include "DirectX11Device.h"
+
+#include "Window/Window.h"
+
+//static
+D3D_DRIVER_TYPE			Device::mDriverType = D3D_DRIVER_TYPE_NULL;
+D3D_FEATURE_LEVEL		Device::mFeatureLevel = D3D_FEATURE_LEVEL_11_0;
+ID3D11Device*			Device::mpd3dDevice = NULL;
+ID3D11DeviceContext*	Device::mpImmediateContext = NULL;
+IDXGISwapChain*			Device::mpSwapChain = NULL;
+
+//static
+HRESULT Device::Init(const Window& window)
+{
+
+	HRESULT hr = S_OK;
+
+	RECT rc;
+	GetClientRect(window.GetGameScreenHWND(), &rc);
+	UINT width = rc.right - rc.left;
+	UINT height = rc.bottom - rc.top;
+
+
+	//UINT createDeviceFlags = 0;
+	UINT createDeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+#ifdef _DEBUG
+	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+	D3D_DRIVER_TYPE driverTypes[] =
+	{
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE,
+	};
+	UINT numDriverTypes = ARRAYSIZE(driverTypes);
+
+	D3D_FEATURE_LEVEL featureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0,
+	};
+	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+
+	DXGI_SWAP_CHAIN_DESC sd;
+	ZeroMemory(&sd, sizeof(sd));
+	sd.BufferCount = 1;
+	sd.BufferDesc.Width = width;
+	sd.BufferDesc.Height = height;
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sd.BufferDesc.RefreshRate.Numerator = 60;
+	sd.BufferDesc.RefreshRate.Denominator = 1;
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sd.OutputWindow = window.GetGameScreenHWND();
+	sd.SampleDesc.Count = 1;
+	sd.SampleDesc.Quality = 0;
+	sd.Windowed = TRUE;
+	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	sd.Flags = 0;
+
+
+	//フォント表示用にhDCを取得するための設定（DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLEが重要）上の設定だとうまくいかないFAILED(hr)
+	//DXGI_SWAP_CHAIN_DESC sd;
+	//ZeroMemory(&sd, sizeof(sd));
+	//sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // BGR type specified in the docs
+	//sd.BufferDesc.RefreshRate.Numerator = 60;
+	//sd.BufferDesc.RefreshRate.Denominator = 1;
+	//sd.SampleDesc.Count = 1;
+	//sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	//sd.BufferCount = 1;
+	//sd.OutputWindow = window.GetGameScreenHWND();
+	//sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	//sd.Windowed = TRUE;
+	//sd.Flags = DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE;
+
+
+	//有効なドライバータイプでブレイク
+	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
+	{
+		mDriverType = driverTypes[driverTypeIndex];
+		hr = D3D11CreateDeviceAndSwapChain(NULL, mDriverType, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
+			D3D11_SDK_VERSION, &sd, &mpSwapChain, &mpd3dDevice, &mFeatureLevel, &mpImmediateContext);
+		if (SUCCEEDED(hr))
+			break;
+	}
+	if (FAILED(hr))
+		return hr;
+
+	//hr = mpSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE);
+	//DXGI_SWAP_CHAIN_FLAG;
+	//hr = mpSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+	//if (SUCCEEDED(hr))
+	//{
+	//	int a = 0;
+	//}
+
+	return S_OK;
+}
+
+
+//static
+void Device::CleanupDevice()
+{
+	if (mpImmediateContext) mpImmediateContext->ClearState();
+
+	if (mpSwapChain) mpSwapChain->Release();
+	if (mpImmediateContext) mpImmediateContext->Release();
+	if (mpd3dDevice) mpd3dDevice->Release();
+}
