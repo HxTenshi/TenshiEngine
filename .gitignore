@@ -18,15 +18,16 @@
 #img/*.*
 #!.png
 
-Tutorial07/Debug/
-Tutorial07/Release/
+Debug/
+Release/
 *.sdf
 *.suo
-Tutorial07/icph/
+icph/
 *.vcxproj.user
 
 Tutorial07/anim/
 Tutorial07/model/
+Tutorial07/EngineResource/
 
 
 
