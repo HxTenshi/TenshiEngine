@@ -108,6 +108,25 @@ public:
 
 	}
 };
+ref class BoolViewModel : public ViewModel<bool, BoolCollback> {
+public:
+
+	BoolViewModel(bool *fp, BoolCollback collback)
+		:ViewModel(fp, collback){
+	}
+	property String^ Value {
+
+		String^ get() {
+			return System::Convert::ToString(_dataModel->get());
+		}
+
+		void set(String^ value) {
+			if (_dataModel->set(System::Convert::ToBoolean(value)))
+				NotifyPropertyChanged("Value");
+		}
+
+	}
+};
 
 #include < vcclr.h >
 ref class StringViewModel : public ViewModel<std::string, StringCollback> {

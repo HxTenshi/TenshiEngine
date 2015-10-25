@@ -89,6 +89,11 @@ void BindingInspectorFloat(Slider^ slide, float min, float max, float* pf, Float
 	slide->Minimum = min;
 	slide->Maximum = max;
 }
+void BindingInspectorBool(CheckBox^ textbox, bool* pf, BoolCollback collback){
+	auto vm = gcnew BoolViewModel(pf, collback);
+	textbox->DataContext = vm;
+	textbox->SetBinding(CheckBox::IsCheckedProperty, "Value");
+}
 void CreateInspectorTextBlock(DockPanel^ dockPanel, String ^text){
 	auto com = gcnew TextBlock();
 	com->Text = text;
@@ -110,6 +115,14 @@ void CreateInspectorFloat(DockPanel^ dockPanel, String^ text, float* p, FloatCol
 	auto tb = (TextBlock^)com->FindName("FloatName");
 	if (tb)tb->Text = text;
 	BindingInspectorFloat((TextBox^)com->FindName("Value"), p,collback);
+}
+void CreateInspectorBool(DockPanel^ dockPanel, String^ text, bool* p, BoolCollback collback){
+	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_CHECKBOX);
+	dockPanel->Children->Add(com);
+	DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
+	auto tb = (TextBlock^)com->FindName("FloatName");
+	if (tb)tb->Text = text;
+	BindingInspectorBool((CheckBox^)com->FindName("Value"), p, collback);
 }
 void CreateInspectorFloatSlideBar(DockPanel^ dockPanel, String^ text,float min, float max, float* p, FloatCollback collback){
 	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_SLIDEBAR);
@@ -193,6 +206,22 @@ public:
 private:
 	InspectorFloatDataSet *m_data;
 };
+ref class InspectorBool : public InspectorData{
+public:
+	InspectorBool(InspectorBoolDataSet* data)
+		:m_data(data){
+	}
+	~InspectorBool(){
+		this->!InspectorBool();
+	}
+	!InspectorBool(){
+		delete m_data;
+	}
+
+	void CreateInspector(DockPanel^ dockPanel) override;
+private:
+	InspectorBoolDataSet *m_data;
+};
 ref class InspectorVector3 : public InspectorData{
 public:
 	InspectorVector3(InspectorVector3DataSet* data)
@@ -218,6 +247,9 @@ void InspectorString::CreateInspector(DockPanel^ dockPanel){
 }
 void InspectorFloat::CreateInspector(DockPanel^ dockPanel){
 	CreateInspectorFloat(dockPanel, gcnew String(m_data->Text.c_str()), m_data->data, m_data->collBack);
+}
+void InspectorBool::CreateInspector(DockPanel^ dockPanel){
+	CreateInspectorBool(dockPanel, gcnew String(m_data->Text.c_str()), m_data->data, m_data->collBack);
 }
 void InspectorFloatSlideBar::CreateInspector(DockPanel^ dockPanel){
 	CreateInspectorFloatSlideBar(dockPanel, gcnew String(m_data->Text.c_str()), m_data->_min, m_data->_max, m_data->data, m_data->collBack);
@@ -404,6 +436,9 @@ namespace Test {
 				}
 				if (d.format == InspectorDataFormat::Float){
 					a[0][i] = gcnew InspectorFloat((InspectorFloatDataSet*)d.data);
+				}
+				if (d.format == InspectorDataFormat::Bool){
+					a[0][i] = gcnew InspectorBool((InspectorBoolDataSet*)d.data);
 				}
 				if (d.format == InspectorDataFormat::Vector3){
 					a[0][i] = gcnew InspectorVector3((InspectorVector3DataSet*)d.data);

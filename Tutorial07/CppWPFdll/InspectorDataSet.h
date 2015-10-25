@@ -4,12 +4,14 @@
 #include <functional>
 typedef std::function<void(float)> FloatCollback;
 typedef std::function<void(std::string)> StringCollback;
+typedef std::function<void(bool)> BoolCollback;
 
 enum class InspectorDataFormat{
 	Label,
 	String,
 	Float,
 	Vector3,
+	Bool,
 	SlideBar,
 	Count,
 };
@@ -27,6 +29,12 @@ struct InspectorFloatDataSet{
 	const std::string Text;
 	float* data;
 	FloatCollback collBack;
+};
+struct InspectorBoolDataSet{
+	InspectorBoolDataSet(std::string t, bool* d, BoolCollback collback) :Text(t), data(d), collBack(collback){}
+	const std::string Text;
+	bool* data;
+	BoolCollback collBack;
 };
 struct InspectorStringDataSet{
 	InspectorStringDataSet(std::string t, std::string* d, StringCollback collback) :Text(t), data(d), collBack(collback){}

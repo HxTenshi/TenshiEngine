@@ -17,6 +17,7 @@ using System::Windows::Controls::Slider;
 using System::Windows::Controls::TextBlock;
 using System::Windows::Controls::TextBox;
 using System::Windows::Controls::Button;
+using System::Windows::Controls::CheckBox;
 using System::Windows::Controls::Panel;
 using System::Windows::Controls::DockPanel;
 using System::Windows::Controls::StackPanel;

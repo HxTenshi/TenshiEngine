@@ -157,6 +157,9 @@ public:
 	static void AddInspector(InspectorFloatDataSet* dataset, std::vector<InspectorDataSet>& data){
 		data.push_back(InspectorDataSet(InspectorDataFormat::Float, dataset));
 	}
+	static void AddInspector(InspectorBoolDataSet* dataset, std::vector<InspectorDataSet>& data){
+		data.push_back(InspectorDataSet(InspectorDataFormat::Bool, dataset));
+	}
 	static void AddInspector(InspectorVector3DataSet* dataset, std::vector<InspectorDataSet>& data){
 		data.push_back(InspectorDataSet(InspectorDataFormat::Vector3, dataset));
 	}

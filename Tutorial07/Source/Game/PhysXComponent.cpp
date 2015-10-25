@@ -5,6 +5,10 @@ PhysXComponent::PhysXComponent(){
 
 	mChengeTransform = true;
 	mRigidActor = Game::CreateRigitBody();
+	auto r = (PxRigidDynamic*)mRigidActor;
+	auto flag = r->getRigidDynamicFlags();
+	mIsKinematic = flag & PxRigidDynamicFlag::eKINEMATIC;
+
 }
 
 PhysXComponent::~PhysXComponent(){
@@ -16,6 +20,7 @@ void PhysXComponent::Initialize(){
 	t.p = physx::PxVec3(position.x, position.y, position.z);
 	mRigidActor->setGlobalPose(t);
 
+	SetKinematic(mIsKinematic);
 }
 
 #include "Actor.h"
@@ -42,16 +47,30 @@ void PhysXComponent::Update(){
 }
 
 void PhysXComponent::CreateInspector() {
+
+	std::function<void(bool)> collback = [&](bool value){
+		SetKinematic(value);
+	};
+
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new InspectorLabelDataSet("PhysX"), data);
+	Window::AddInspector(new InspectorBoolDataSet("Kinematic", &mIsKinematic, collback), data);
 	Window::ViewInspector(data);
 }
 
 void PhysXComponent::ExportData(File& f) {
 	ExportClassName(f);
+	f.Out(mIsKinematic);
 }
 void PhysXComponent::ImportData(File& f) {
 
+	f.In(&mIsKinematic);
+}
+
+void PhysXComponent::SetKinematic(bool flag){
+	mIsKinematic = flag;
+	auto r = (PxRigidDynamic*)mRigidActor;
+	r->setRigidDynamicFlag(PxRigidDynamicFlag::eKINEMATIC, mIsKinematic);
 }
 
 void PhysXComponent::AddForce(XMVECTOR& force){

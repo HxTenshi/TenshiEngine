@@ -28,9 +28,12 @@ public:
 		mChengeTransform = true;
 	}
 
+	void SetKinematic(bool flag);
+
 	void AddForce(XMVECTOR& force);
 
 private:
 	physx::PxRigidActor* mRigidActor;
 	bool mChengeTransform;
+	bool mIsKinematic;
 };
