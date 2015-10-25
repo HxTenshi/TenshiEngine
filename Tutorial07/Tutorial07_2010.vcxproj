@@ -404,6 +404,7 @@
     <ClCompile Include="Source\Game\Actor.cpp" />
     <ClCompile Include="Source\Game\Component.cpp" />
     <ClCompile Include="Source\Game\Game.cpp" />
+    <ClCompile Include="Source\Game\PhysXColliderComponent.cpp" />
     <ClCompile Include="Source\Game\PhysXComponent.cpp" />
     <ClCompile Include="Source\Game\TransformComponent.cpp" />
     <ClCompile Include="Source\Graphic\Font\Font.cpp" />
@@ -455,6 +456,7 @@
     <ClInclude Include="Source\Game\Game.h" />
     <ClInclude Include="Source\Game\IComponent.h" />
     <ClInclude Include="Source\Game\Lua.h" />
+    <ClInclude Include="Source\Game\PhysXColliderComponent.h" />
     <ClInclude Include="Source\Game\PhysXComponent.h" />
     <ClInclude Include="Source\Game\TransformComponent.h" />
     <ClInclude Include="Source\Graphic\Font\Font.h" />
