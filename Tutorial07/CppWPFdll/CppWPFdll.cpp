@@ -386,6 +386,7 @@ namespace Test {
 	//delegate void MyDelegateI(IntViewModel ^);
 	delegate void MyDelegateF(array<InspectorData^>^);
 	delegate void MyDelegateITEM(String^, IntPtr);
+	delegate void MyDelegateI2(IntPtr, IntPtr);
 	void NativeFraction::CreateComponentWindow(std::vector<InspectorDataSet>& data){
 		if (ViewData::window!=nullptr){
 			auto del = gcnew MyDelegateF(ViewData::window, &View::CreateComponent);
@@ -417,6 +418,14 @@ namespace Test {
 
 		}
 	}
+
+	void NativeFraction::ChangeTreeViewName(void* ptr, std::string& name){
+		if (ViewData::window != nullptr){
+			auto del = gcnew MyDelegateITEM(ViewData::window, &View::ChangeTreeViewName);
+			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(name.c_str()), (IntPtr)ptr);
+		}
+	}
+
 	void NativeFraction::ClearAllComponentWindow(){
 		if (ViewData::window != nullptr){
 			ViewData::window->Dispatcher->BeginInvoke(gcnew MyDelegate(ViewData::window, &View::ClearAllComponent));
@@ -436,6 +445,12 @@ namespace Test {
 
 		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddItem);
 		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
+	}
+	void NativeFraction::SetParentTreeViewItem(void* parent, void* child){
+		if (ViewData::window == nullptr)return;
+
+		auto del = gcnew MyDelegateI2(ViewData::window, &View::SetParent);
+		ViewData::window->Dispatcher->BeginInvoke(del, (IntPtr)parent, (IntPtr)child);
 	}
 
 	void NativeFraction::SetMouseEvents(bool* l, bool* r, int* x, int* y){

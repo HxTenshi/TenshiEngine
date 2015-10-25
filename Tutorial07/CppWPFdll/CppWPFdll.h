@@ -40,11 +40,13 @@ public:
 	void Initialize();
 	void Release();
 
+	void ChangeTreeViewName(void* ptr, std::string& name);
 	void CreateComponentWindow(std::vector<InspectorDataSet>& data);
 	void ClearAllComponentWindow();
 	void UpdateComponentWindow();
 
 	void AddTreeViewItem(std::string& Name, void* ptr);
+	void SetParentTreeViewItem(void* parent, void* child);
 
 	void SetMouseEvents(bool* l, bool* r, int* x, int* y);
 	

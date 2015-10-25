@@ -136,6 +136,13 @@ public:
 	static void AddTreeViewItem(std::string& name, void* ptr){
 		mMainWindow_WPF.AddTreeViewItem(name, ptr);
 	}
+	static void SetParentTreeViewItem(void* parent, void* child){
+		mMainWindow_WPF.SetParentTreeViewItem(parent, child);
+	}
+	
+	static void ChangeTreeViewName(void* ptr, std::string& name){
+		mMainWindow_WPF.ChangeTreeViewName(ptr, name);
+	}
 
 	static void ClearInspector(){
 		mMainWindow_WPF.ClearAllComponentWindow();

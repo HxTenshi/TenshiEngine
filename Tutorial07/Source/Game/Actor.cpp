@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "MySTL/File.h"
 #include "../MySTL/ptr.h"
+#include "Game.h"
 
 unsigned char operator & (const unsigned char& bit, const DrawBit& bit2){
 	return (unsigned char)bit&(unsigned char)bit2;
@@ -41,6 +42,7 @@ static UniqueIDGenerator gUniqueIDGenerator("./UniqueID.txt");
 
 Actor::Actor()
 	:mComponents(this)
+	, mTreeViewPtr(NULL)
 {
 	mName = "new Object";
 	mTransform = shared_ptr<TransformComponent>(new TransformComponent());
@@ -58,6 +60,11 @@ void Actor::UpdateComponent(float deltaTime){
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->Update();
 	}
+
+	for (auto child : mTransform->Children()){
+		child->UpdateComponent(deltaTime);
+	}
+	
 }
 void Actor::Update(float deltaTime){
 	(void)deltaTime;
@@ -66,6 +73,10 @@ void Actor::Draw(DrawBit drawbit)const{
 	if (!(mDrawBit&drawbit))return;
 	for (const auto& cmp : mComponents.mDrawComponent){
 		cmp.second->Update();
+	}
+
+	for (auto child : mTransform->Children()){
+		child->Draw(drawbit);
 	}
 }
 
@@ -90,6 +101,14 @@ bool Actor::ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect){
 
 
 void Actor::CreateInspector(){
+	std::function<void(std::string)> collback = [&](std::string name){
+		mName = name;
+		if (mTreeViewPtr)
+			Window::ChangeTreeViewName(mTreeViewPtr,name);
+	};
+	auto data = Window::CreateInspector();
+	Window::AddInspector(new InspectorStringDataSet("Name", &mName, collback), data);
+	Window::ViewInspector(data);
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->CreateInspector();
 	}
@@ -121,6 +140,13 @@ void Actor::ExportData(const std::string& pass){
 
 	f.Out(name);
 
+	if (mTransform->GetParent()){
+		f.Out(mTransform->GetParent()->GetUniqueID());
+	}
+	else{
+		f.Out(NULL);
+	}
+
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->ExportData(f);
 	}
@@ -143,6 +169,9 @@ void Actor::ImportData(const std::string& fileName){
 		ioc = mName.find("$");
 	}
 
+	UINT uid;
+	f.In(&uid);
+	
 	std::string temp;
 
 	mComponents.mComponent.clear();
@@ -168,6 +197,13 @@ void Actor::ImportData(const std::string& fileName){
 
 	for (const auto& cmp : mComponents.mDrawComponent){
 		cmp.second->Initialize();
+	}
+
+	if (uid){
+		auto par = Game::FindUID(uid);
+		if (par){
+			mTransform->SetParent(par);
+		}
 	}
 }
 

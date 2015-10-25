@@ -4,14 +4,25 @@
 #include "Window/InspectorWindow.h"
 
 #include "Actor.h"
+#include "Game.h"
 
 TransformComponent::TransformComponent()
-	:mFixMatrixFlag(true){
+	:mFixMatrixFlag(true)
+	, mParent(NULL){
 	mMatrix = XMMatrixIdentity();
 	mScale = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	mRotate = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 	mPosition = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 
+}
+
+TransformComponent::~TransformComponent(){
+	if (mParent)
+		mParent->mTransform->Children().remove(gameObject);
+	while (mChildren.size()){
+		Actor* child = Children().front();
+		Game::DestroyObject(child);
+	}
 }
 
 const XMVECTOR& TransformComponent::Scale() const{
@@ -53,6 +64,9 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 		//テスクチャー用（仮）
 		mMatrix._44 = mPosition.w;
 		mFixMatrixFlag = true;
+
+		if (mParent)
+			mMatrix = XMMatrixMultiply(mMatrix, mParent->mTransform->GetMatrix());
 	}
 	return mMatrix;
 }
@@ -158,4 +172,18 @@ void TransformComponent::AddForce(XMVECTOR& force){
 	auto c = gameObject->GetComponent<PhysXComponent>();
 	if (c)
 		c->AddForce(force);
+}
+
+std::list<Actor*>& TransformComponent::Children(){
+	return mChildren;
+}
+Actor* TransformComponent::GetParent(){
+	return mParent;
+}
+void TransformComponent::SetParent(Actor* parent){
+	if (mParent)
+		mParent->mTransform->Children().remove(gameObject);
+	mParent = parent;
+	if (parent)
+		parent->mTransform->Children().push_back(gameObject);
 }

@@ -4,6 +4,8 @@
 #include "../Tutorial07/CppWPFdll/Using.h"
 //#include "../Tutorial07/CppWPFdll/Stdafx.h"
 
+#include <vcclr.h>
+
 #define _EXPORTING
 #ifdef _EXPORTING
 #define CLASS_DECLSPEC    __declspec(dllexport)
@@ -85,18 +87,39 @@ namespace TestContent{
 	CLASS_DECLSPEC public ref class Person : public _NofityPropertyChanged
 	{
 	public:
-		Person(String ^name, MyList ^child) :mName(name), mChildren(child), mDataPtr(NULL){}
+		Person(String ^name, MyList ^child) :mName(name), mChildren(child), mDataPtr(NULL), mParent(nullptr), mThisIntPtr(NULL)
+		{
+			mThisIntPtr = new gcroot<Person^>(this);
+		}
+	private:
+		~Person(){
+			this->!Person();
+		}
+		!Person(){
+			delete mThisIntPtr;
+		}
+	public:
 		property String^ Name{ String^ get(){ return mName; } void set(String^ s){ mName = s; NotifyPropertyChanged("Name"); } }
 		property ObservableCollection<Person^>^ Children{ ObservableCollection<Person^>^ get(){ return mChildren->list; } void set(ObservableCollection<Person^>^ s){ mChildren->list = s; NotifyPropertyChanged("Children"); } }
 		property IntPtr DataPtr{ IntPtr get(){ return mDataPtr; } void set(IntPtr ptr){ mDataPtr = ptr; } }
-
+		property IntPtr ThisIntPtr{ IntPtr get(){ return (IntPtr)mThisIntPtr; } }
 		void Add(Person^ item){
+			if (item->mParent)
+				item->mParent->Children->Remove(item);
 			Children->Add(item);
+			item->mParent = this;
 			//NotifyPropertyChanged("Children");
+		}
+		void RemoveSelf(){
+			if (mParent)
+				mParent->Children->Remove(this);
+			delete this;
 		}
 	private:
 		String ^mName;
 		MyList ^mChildren;
 		IntPtr mDataPtr;
+		Person ^mParent;
+		gcroot<Person^> *mThisIntPtr;
 	};
 }

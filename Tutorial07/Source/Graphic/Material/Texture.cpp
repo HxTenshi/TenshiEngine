@@ -29,7 +29,7 @@ Texture::Texture()
 	mTexturePtr = shared_ptr<TextureData>(new TextureData());
 	if (!mNullTexture.mTexturePtr->mpTextureRV){
 		//‚Q‰ñŒÄ‚Î‚ê‚Ä‚éH
-		mNullTexture.Create("null.png");
+		mNullTexture.Create("EngineResource/null.png");
 	}
 }
 Texture::~Texture()

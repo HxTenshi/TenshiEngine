@@ -6,7 +6,7 @@
 
 #include "Graphic/Model/Model.h"
 #include "Graphic/Font/Font.h"
-#include <list>
+#include <map>
 #include "Device/DirectX11Device.h"
 #include "Graphic/RenderTarget/RenderTarget.h"
 #include "Window/TreeViewWIndow.h"
@@ -138,7 +138,8 @@ public:
 		mCBBillboard.GSSetConstantBuffers();
 	}
 
-	void Draw(const std::list<Actor*>& mActors)const{
+	//void Draw(const std::list<Actor*>& mActors)const{
+	void Draw(Actor* mActor)const{
 
 		VSSetConstantBuffers();
 		GSSetConstantBuffers();
@@ -158,9 +159,10 @@ public:
 		const RenderTarget* r[1] = { &mRenderTarget };
 		RenderTarget::SetRendererTarget((UINT)1, r[0], &mRenderTargetBack);
 
-		for (Actor* p : mActors){
-			p->Draw(DrawBit::Depth);
-		}
+		//for (Actor* p : mActors){
+		//	p->Draw(DrawBit::Depth);
+		//}
+		mActor->Draw(DrawBit::Depth);
 
 		mRenderTargetBack.ClearView();
 		mRenderTargetBack.SetRendererTarget();
@@ -210,9 +212,10 @@ public:
 
 		Device::mpImmediateContext->RSSetState(NULL);
 
-		for (Actor* p : mActors){
-			p->Draw(DrawBit::Diffuse);
-		}
+		//for (Actor* p : mActors){
+		//	p->Draw(DrawBit::Diffuse);
+		//}
+		mActor->Draw(DrawBit::Diffuse);
 
 		Device::mpImmediateContext->RSSetState(NULL);
 		if (pRS)pRS->Release();
@@ -824,9 +827,10 @@ public:
 	~Game();
 
 	static void AddObject(Actor* actor);
-	static void DeleteObject(Actor* actor);
+	static void DestroyObject(Actor* actor);
 	static PxRigidActor* CreateRigitBody();
 	static void RemovePhysXActor(PxActor* act);
+	static Actor* FindUID(UINT uid);
 
 	float GetDeltaTime(){
 		float deltaTime;
@@ -863,6 +867,16 @@ public:
 
 			AddObject(new Box(point));
 		}
+		if (Input::Trigger(KeyCoord::Key_X)){
+			int x, y;
+			Input::MousePosition(&x, &y);
+			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
+			point = mCamera.ScreenToWorldPoint(point);
+			auto act = (new Box(point));
+			AddObject(act);
+			auto par = mSelectActor.GetSelect();
+			if (par)act->mTransform->SetParent(par);
+		}
 		if (Input::Trigger(MouseCoord::Left)){
 			int x, y;
 			Input::MousePosition(&x, &y);
@@ -871,10 +885,10 @@ public:
 			XMVECTOR pos = mCamera.GetPosition();
 		
 			mSelectActor.ChackHitRay(pos, vect);
-			for (Actor* p : mList){
-				if (p->ChackHitRay(pos, vect)){
-					mSelectActor.SetSelect(p);
-					mMouse.CatchComponent(p);
+			for (auto& p : mList){
+				if (p.second->ChackHitRay(pos, vect)){
+					mSelectActor.SetSelect(p.second);
+					mMouse.CatchComponent(p.second);
 				}
 			}
 		}
@@ -886,9 +900,9 @@ public:
 			XMVECTOR pos = mCamera.GetPosition();
 		
 			mSelectActor.ChackHitRay(pos, vect);
-			for (Actor* p : mList){
-				if (p->ChackHitRay(pos, vect)){
-					mMouse.InsertComponent(p);
+			for (auto& p : mList){
+				if (p.second->ChackHitRay(pos, vect)){
+					mMouse.InsertComponent(p.second);
 				}
 			}
 		}
@@ -896,9 +910,11 @@ public:
 		mSelectActor.Update(deltaTime);
 
 
-		for (Actor* p : mList){
-			p->UpdateComponent(deltaTime);
-		}
+		//for (Actor* p : mList){
+		//	p->UpdateComponent(deltaTime);
+		//}
+
+		mRootObject->UpdateComponent(deltaTime);
 
 
 
@@ -908,7 +924,7 @@ public:
 	}
 	void Draw(){		
 	
-		mCamera.Draw(mList);
+		mCamera.Draw(mRootObject);
 
 		mSelectActor.Draw();
 		
@@ -916,7 +932,8 @@ public:
 
 	}
 private:
-	std::list<Actor*> mList;
+	std::map<UINT,Actor*> mList;
+	static Actor* mRootObject;
 
 	SelectActor mSelectActor;
 

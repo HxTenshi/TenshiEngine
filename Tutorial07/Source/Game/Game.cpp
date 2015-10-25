@@ -1,9 +1,13 @@
 #include "Game.h"
 #include "Component.h"
 
+#include <stack>
+static std::stack<int> gIntPtrStack;
 
-static std::list<Actor*>* gpList;
+static std::map<UINT,Actor*>* gpList;
 static PhysX3Main* gpPhysX3Main;
+//
+Actor* Game::mRootObject;
 
 #include <algorithm>
 #include <filesystem>
@@ -27,6 +31,8 @@ Game::Game()
 	:mWorldGrid(1.0f){
 
 	gpList = &mList;
+
+	mRootObject = new Actor();
 
 	HRESULT hr = S_OK;
 	hr = mCamera.Init();
@@ -58,6 +64,20 @@ Game::Game()
 
 	
 	mSoundPlayer.Play();
+	
+	Window::SetWPFCollBack(MyWindowMessage::StackIntPtr, [&](void* p)
+	{
+		gIntPtrStack.push((int)p);
+	});
+	Window::SetWPFCollBack(MyWindowMessage::ReturnTreeViewIntPtr, [&](void* p)
+	{
+		int intptr = gIntPtrStack.top();
+		((Actor*)intptr)->mTreeViewPtr = p;
+		gIntPtrStack.pop();
+		if (auto par = ((Actor*)intptr)->mTransform->GetParent())
+			if (par->mTreeViewPtr)
+				Window::SetParentTreeViewItem(par->mTreeViewPtr, ((Actor*)intptr)->mTreeViewPtr);
+	});
 
 	Window::SetWPFCollBack(MyWindowMessage::SelectActor, [&](void* p)
 	{
@@ -66,7 +86,7 @@ Game::Game()
 	});
 	Window::SetWPFCollBack(MyWindowMessage::ActorDestroy, [&](void* p)
 	{
-		DeleteObject((Actor*)p);
+		Game::DestroyObject((Actor*)p);
 		mSelectActor.SetSelect(NULL);
 	});
 
@@ -103,10 +123,12 @@ Game::Game()
 Game::~Game(){
 
 	mSoundPlayer.Stop();
-	for (Actor* p : mList){
-		p->ExportData("./Scene");
-		delete p;
+	for (auto& p : mList){
+		p.second->ExportData("./Scene");
+		//delete p;
 	}
+
+	delete mRootObject;
 
 	mCamera.Release();
 
@@ -114,16 +136,20 @@ Game::~Game(){
 	mPhysX3Main = NULL;
 	gpPhysX3Main = NULL;
 
+
 }
 //static
 void Game::AddObject(Actor* actor){
-	gpList->push_back(actor);
+	gpList->insert(std::pair<UINT, Actor*>(actor->GetUniqueID(), actor));
 	Window::GetTreeViewWindow()->AddItem(actor);
+	if (!actor->mTransform->GetParent()){
+		actor->mTransform->SetParent(mRootObject);
+	}
 }
 //static
-void Game::DeleteObject(Actor* actor){
+void Game::DestroyObject(Actor* actor){
 	if (!actor)return;
-	gpList->remove(actor);
+	gpList->erase(actor->GetUniqueID());
 	Window::GetTreeViewWindow()->DeleteItem(actor);
 	Window::GetInspectorWindow()->InsertConponentData(NULL);
 	delete actor;
@@ -135,4 +161,8 @@ PxRigidActor* Game::CreateRigitBody(){
 }
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
+}
+
+Actor* Game::FindUID(UINT uid){
+	return (*gpList)[uid];
 }

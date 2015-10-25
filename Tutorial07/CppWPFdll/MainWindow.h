@@ -222,6 +222,14 @@ public:
 		auto item = gcnew TestContent::Person(Name, gcnew TestContent::MyList());
 		item->DataPtr = ptr;
 		m_TreeViewItemRoot->Add(item);
+		Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)item->DataPtr);
+		Data::MyPostMessage(MyWindowMessage::ReturnTreeViewIntPtr, (void*)item->ThisIntPtr);
+	}
+
+	void SetParent(IntPtr parent, IntPtr child){
+		auto p = (gcroot<TestContent::Person^>*)(void*)parent;
+		auto c = (gcroot<TestContent::Person^>*)(void*)child;
+		(*p)->Add(*c);
 	}
 
 	//更新イベント
@@ -253,6 +261,10 @@ public:
 
 
 	}
+	void ChangeTreeViewName(String^ name, IntPtr treeviewptr){
+		auto i = (gcroot<TestContent::Person^>*)(void*)treeviewptr;
+		(*i)->Name = name;
+	}
 
 private:
 	//ツリービュー作成
@@ -265,11 +277,11 @@ private:
 
 		//アイテムリスト作成
 		auto list = gcnew TestContent::MyList();//gcnew List<TestContent::Person^>();
-		list->list->Add(gcnew TestContent::Person
-			("U", gcnew TestContent::MyList(
-					gcnew TestContent::Person("UNK", gcnew TestContent::MyList())
-			))
-		);
+		//list->list->Add(gcnew TestContent::Person
+		//	("U", gcnew TestContent::MyList(
+		//			gcnew TestContent::Person("UNK", gcnew TestContent::MyList())
+		//	))
+		//);
 		//アイテムリストのルートを作成
 		auto root = gcnew TestContent::Person("root", list);
 		treeView->DataContext = root;
@@ -367,13 +379,14 @@ private:
 			{
 				if (m_TreeView->SelectedItem == nullptr)return;
 				auto i = (TestContent::Person^)m_TreeView->SelectedItem;
-				i->Name = "死んだ";
-				m_TreeViewItemRoot->Children->Remove(i);
+				//i->Name = "死んだ";
+				//m_TreeViewItemRoot->Children->Remove(i);
 				Data::MyPostMessage(MyWindowMessage::ActorDestroy, (void*)i->DataPtr);
 				//((IntViewModel^)m_ActorIntPtrDataBox->DataContext)->Value = "0";
 				//m_ActorIntPtrDataBox->Text = "0";
 				//((TestContent::Person^)m_TreeView->SelectedItem)->DataPtr = (IntPtr)0;
 
+				i->RemoveSelf();
 
 				//要素があるときのみ
 				if (m_TreeViewItemRoot->Children->Count != 0){
@@ -385,6 +398,7 @@ private:
 			}
 	}
 
+#pragma region MenuContext
 	void PostMessageRemoveComponent(const char* t){
 		if (m_TreeView->SelectedItem == nullptr)return;
 		Data::MyPostMessage(MyWindowMessage::RemoveComponent, (void*)t);
@@ -410,6 +424,9 @@ private:
 		PostMessageRemoveComponent("PhysX");
 		e->Handled = true;
 	}
+//MenuContext
+#pragma endregion 
+
 protected:
 	void OnSourceInitialized(System::EventArgs ^e) override
 	{

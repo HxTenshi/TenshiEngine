@@ -3,9 +3,12 @@
 #include <d3d11.h>
 #include <xnamath.h>
 #include <String>
+#include <list>
 #include "MySTL/File.h"
 #include "PhysXComponent.h"
 #include "IComponent.h"
+
+class Actor;
 
 class ITransformComponent :public Component{
 public:
@@ -23,11 +26,16 @@ public:
 
 	virtual void AddForce(XMVECTOR& force) = 0;
 	virtual const XMMATRIX& GetMatrix() const = 0;
+
+	virtual std::list<Actor*>& Children() = 0;
+	virtual Actor* GetParent() = 0;
+	virtual void SetParent(Actor* parent) = 0;
 };
 
 class TransformComponent :public ITransformComponent{
 public:
 	TransformComponent();
+	~TransformComponent();
 
 	const XMVECTOR& Scale() const override;
 	const XMVECTOR& Rotate() const override;
@@ -57,10 +65,16 @@ public:
 		return !mFixMatrixFlag;
 	}
 
+	std::list<Actor*>& Children() override;
+	Actor* GetParent() override;
+	void SetParent(Actor* parent) override;
+
 private:
 	XMVECTOR mScale;
 	XMVECTOR mRotate;
 	XMVECTOR mPosition;
 	mutable bool mFixMatrixFlag;
 	mutable XMMATRIX mMatrix;
+	std::list<Actor*> mChildren;
+	Actor* mParent;
 };

@@ -49,6 +49,10 @@ public:
 	std::string Name(){return mName;}
 	void Name(std::string name){mName = name;}
 
+	UINT GetUniqueID(){
+		return mUniqueID;
+	}
+
 	void ExportData(const std::string& pass);
 	void ImportData(const std::string& fileName);
 
@@ -58,7 +62,7 @@ public:
 	//PhysXテスト用
 	void SetTransform(physx::PxTransform* t);
 
-
+	void* mTreeViewPtr;
 
 protected:
 	ComponentList mComponents;
