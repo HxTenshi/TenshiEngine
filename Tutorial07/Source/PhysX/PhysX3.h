@@ -77,6 +77,8 @@ public:
 
 	void RemoveActor(PxActor* act);
 
+	PxShape* CreateShape();
+
 private:
 	void getColumnMajor(PxMat33& m, PxVec3& t, float* mat);
 

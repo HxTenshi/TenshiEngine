@@ -8,6 +8,7 @@
 
 namespace physx{
 	class PxRigidActor;
+	class PxShape;
 }
 class PhysXComponent :public Component{
 public:
@@ -28,6 +29,8 @@ public:
 		mChengeTransform = true;
 	}
 
+	void AddShape(physx::PxShape& shape);
+	void RemoveShape(physx::PxShape& shape);
 	void SetKinematic(bool flag);
 
 	void AddForce(XMVECTOR& force);

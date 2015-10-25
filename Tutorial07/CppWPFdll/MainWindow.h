@@ -345,6 +345,18 @@ private:
 			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePhysXComponent);
 			cm->Items->Add(mitem);
 		}
+		{//コンテキストメニューの要素作成
+			auto mitem = gcnew System::Windows::Controls::MenuItem();
+			mitem->Header = "AddPhysXColliderComponent";
+			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_AddPhysXColliderComponent);
+			cm->Items->Add(mitem);
+		}
+		{//コンテキストメニューの要素作成
+			auto mitem = gcnew System::Windows::Controls::MenuItem();
+			mitem->Header = "RemovePhysXColliderComponent";
+			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePhysXColliderComponent);
+			cm->Items->Add(mitem);
+		}
 		//ツリービューに反映
 		m_TreeView->ContextMenu = cm;
 
@@ -422,6 +434,15 @@ private:
 	}
 	void MenuItem_Click_RemovePhysXComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
 		PostMessageRemoveComponent("PhysX");
+		e->Handled = true;
+	}
+
+	void MenuItem_Click_AddPhysXColliderComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		PostMessageAddComponent("Collider");
+		e->Handled = true;
+	}
+	void MenuItem_Click_RemovePhysXColliderComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		PostMessageRemoveComponent("Collider");
 		e->Handled = true;
 	}
 //MenuContext

@@ -16,6 +16,7 @@
 
 #include "IComponent.h"
 #include "TransformComponent.h"
+#include "PhysXColliderComponent.h"
 
 class ModelComponent :public Component{
 public:
@@ -626,6 +627,7 @@ private:
 		_NewFunc<ParticleComponent>();
 		_NewFunc<ScriptComponent>();
 		_NewFunc<PhysXComponent>();
+		_NewFunc<PhysXColliderComponent>();
 		mIsInit = true;
 	}
 

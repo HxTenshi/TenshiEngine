@@ -39,11 +39,19 @@ void PhysXComponent::Update(){
 		auto position = gameObject->mTransform->Position();
 		t.p = physx::PxVec3(position.x, position.y, position.z);
 		mRigidActor->setGlobalPose(t);
+
 		mChengeTransform = false;
 	}
 	auto t = mRigidActor->getGlobalPose();
 	gameObject->SetTransform(&t);
 	mChengeTransform = false;
+}
+
+void PhysXComponent::AddShape(physx::PxShape& shape){
+	mRigidActor->attachShape(shape);
+}
+void PhysXComponent::RemoveShape(physx::PxShape& shape){
+	mRigidActor->detachShape(shape);
 }
 
 void PhysXComponent::CreateInspector() {

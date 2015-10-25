@@ -829,6 +829,7 @@ public:
 	static void AddObject(Actor* actor);
 	static void DestroyObject(Actor* actor);
 	static PxRigidActor* CreateRigitBody();
+	static PxShape* CreateShape();
 	static void RemovePhysXActor(PxActor* act);
 	static Actor* FindUID(UINT uid);
 

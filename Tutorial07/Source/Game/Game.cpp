@@ -96,6 +96,7 @@ Game::Game()
 		if (auto actor = mSelectActor.GetSelect()){
 			if (s == "Script")actor->AddComponent(shared_ptr<ScriptComponent>(new ScriptComponent()));
 			if (s == "PhysX")actor->AddComponent(shared_ptr<PhysXComponent>(new PhysXComponent()));
+			if (s == "Collider")actor->AddComponent(shared_ptr<PhysXColliderComponent>(new PhysXColliderComponent()));
 			Window::ClearInspector();
 			actor->CreateInspector();
 		}
@@ -106,6 +107,7 @@ Game::Game()
 		if (auto actor = mSelectActor.GetSelect()){
 			if (s == "Script")actor->RemoveComponent<ScriptComponent>();
 			if (s == "PhysX")actor->RemoveComponent<PhysXComponent>();
+			if (s == "Collider")actor->RemoveComponent<PhysXColliderComponent>();
 			Window::ClearInspector();
 			actor->CreateInspector();
 		}
@@ -158,6 +160,9 @@ void Game::DestroyObject(Actor* actor){
 //static
 PxRigidActor* Game::CreateRigitBody(){
 	return gpPhysX3Main->createBox();
+}
+PxShape* Game::CreateShape(){
+	return gpPhysX3Main->CreateShape();
 }
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);

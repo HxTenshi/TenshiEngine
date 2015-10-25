@@ -120,9 +120,10 @@ PxRigidActor* PhysX3Main::createBox(){
 	//2) Create cube  
 	PxReal density = 1.0f;
 	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
-	PxVec3 dimensions(0.5, 0.5, 0.5);
-	PxBoxGeometry geometry(dimensions);
-	PxRigidDynamic *actor = PxCreateDynamic(*gPhysicsSDK, transform, geometry, *mMaterial, density);
+	//PxVec3 dimensions(0.5, 0.5, 0.5);
+	//PxBoxGeometry geometry(dimensions);
+	PxRigidDynamic *actor = gPhysicsSDK->createRigidDynamic(transform);
+	//PxRigidDynamic *actor = PxCreateDynamic(*gPhysicsSDK, transform, geometry, *mMaterial, density);
 	actor->setAngularDamping(0.75);
 	actor->setLinearVelocity(PxVec3(0, 0, 0));
 	if (!actor)
@@ -131,6 +132,15 @@ PxRigidActor* PhysX3Main::createBox(){
 
 	PxRigidActor* act = actor;
 	return act;
+}
+
+
+PxShape* PhysX3Main::CreateShape(){
+	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
+	PxVec3 dimensions(1, 1, 1);
+	PxBoxGeometry geometry(dimensions);
+	return gPhysicsSDK->createShape(geometry, *mMaterial,PxShapeFlag::eSIMULATION_SHAPE);
+
 }
 
 static int mCount=0;
@@ -208,9 +218,9 @@ void PhysX3Main::DrawShape(PxShape* shape, PxRigidActor* actor)
 	}
 }
 
-static PxShape** shapes = new PxShape*[256];
 void PhysX3Main::DrawActor(PxRigidActor* actor)
 {
+	static PxShape* shapes[256];
 	PxU32 nShapes = actor->getNbShapes();
 	//PxShape** shapes = new PxShape*[nShapes];
 
@@ -258,7 +268,6 @@ void PhysX3Main::ShutdownPhysX() {
 	mMaterial->release();
 	mCpuDispatcher->release();
 	gScene->release();
-	delete[] shapes;
 	mFoundation->release();
 	gPhysicsSDK->release();//ƒƒ‚ƒŠ[ƒŠ[ƒN
 	mProfileZoneManager->release();
