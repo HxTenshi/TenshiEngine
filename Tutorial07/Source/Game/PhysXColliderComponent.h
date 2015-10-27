@@ -23,6 +23,8 @@ public:
 	void ExportData(File& f) override;
 	void ImportData(File& f) override;
 
+	void ChangeShape();
+
 	physx::PxShape* GetShape();
 private:
 	void UpdatePose();
@@ -30,4 +32,6 @@ private:
 	weak_ptr<PhysXComponent> mAttachPhysXComponent;
 
 	bool mIsParentPhysX;
+
+	bool mIsSphere;
 };

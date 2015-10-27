@@ -25,6 +25,7 @@ public:
 	virtual void Position(const XMVECTOR& position) = 0;
 
 	virtual void AddForce(XMVECTOR& force) = 0;
+	virtual void AddTorque(XMVECTOR& force) = 0;
 	virtual const XMMATRIX& GetMatrix() const = 0;
 
 	virtual std::list<Actor*>& Children() = 0;
@@ -39,19 +40,15 @@ public:
 
 	const XMVECTOR& Scale() const override;
 	const XMVECTOR& Rotate() const override;
-	const XMVECTOR& Position() const override{
-		return mPosition;
-	}
-
+	const XMVECTOR& Position() const override;
 	void Scale(const XMVECTOR& scale) override;
 	void Rotate(const XMVECTOR& rotate) override;
-	void Position(const XMVECTOR& position) override{
-		mPosition = position;
-		mFixMatrixFlag = false;
-		UpdatePhysX();
-	}
+	void Position(const XMVECTOR& position) override;
+
+	void Update() override;
 
 	void AddForce(XMVECTOR& force) override;
+	void AddTorque(XMVECTOR& force) override;
 
 	const XMMATRIX& GetMatrix() const override;
 	void CreateInspector() override;

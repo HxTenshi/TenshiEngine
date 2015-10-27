@@ -34,6 +34,7 @@ public:
 	void SetKinematic(bool flag);
 
 	void AddForce(XMVECTOR& force);
+	void AddTorque(XMVECTOR& force);
 
 private:
 	physx::PxRigidActor* mRigidActor;

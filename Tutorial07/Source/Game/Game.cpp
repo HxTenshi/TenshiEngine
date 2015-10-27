@@ -5,6 +5,7 @@
 static std::stack<int> gIntPtrStack;
 
 static std::map<UINT,Actor*>* gpList;
+static std::map<DrawStage, std::list<std::function<void()>>> *gDrawList;
 static PhysX3Main* gpPhysX3Main;
 //
 Actor* Game::mRootObject;
@@ -31,6 +32,7 @@ Game::Game()
 	:mWorldGrid(1.0f){
 
 	gpList = &mList;
+	gDrawList = &mDrawList;
 
 	mRootObject = new Actor();
 
@@ -51,7 +53,6 @@ Game::Game()
 		a->ImportData("./Scene/" + f);
 		AddObject(a);
 	}
-
 
 	//AddObject(new Player());
 	//AddObject(new Tex("texture.png", { 1000, 0 }, { 1200, 200 }));
@@ -164,10 +165,17 @@ PxRigidActor* Game::CreateRigitBody(){
 PxShape* Game::CreateShape(){
 	return gpPhysX3Main->CreateShape();
 }
+PxShape* Game::CreateShapeSphere(){
+	return gpPhysX3Main->CreateShapeSphere();
+}
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
 }
 
 Actor* Game::FindUID(UINT uid){
 	return (*gpList)[uid];
+}
+
+void Game::AddDrawList(DrawStage stage, std::function<void()> func){
+	(*gDrawList)[stage].push_back(func);
 }

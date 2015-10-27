@@ -199,6 +199,7 @@ public:
 			(**mppMaterials)[0].SetTexture(name.c_str(),0);
 			TextureName = name;
 		};
+		TextureName = (**mppMaterials)[0].mTexture[0].mFileName;
 		Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.x, collbackx), data);
 		Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.y, collbacky), data);
 		Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.z, collbackz), data);
@@ -289,35 +290,8 @@ public:
 		:mWriteDepth(true){
 	}
 
-	void Update() override{
+	void Update() override;
 
-		if (!mModel){
-			mModel = gameObject->GetComponent<ModelComponent>();
-			if (!mModel)
-				mModel = gameObject->GetComponent<TextureModelComponent>();
-			if (!mModel)return;
-		}
-		if (!mModel->mModel)return;
-
-		if (!mMaterial){
-			mMaterial = gameObject->GetComponent<MaterialComponent>();
-		}
-		if (!mMaterial)return;
-
-		Model& model = *mModel->mModel;
-		model.VSSetShader();
-		model.PSSetShader();
-		model.IASet();
-
-
-		if (mWriteDepth){
-			model.Draw(mMaterial);
-		}
-		else{
-			NoWriteDepth(model);
-		}
-
-	}
 	void NoWriteDepth(Model& model){
 
 		ID3D11DepthStencilState* pBackDS;

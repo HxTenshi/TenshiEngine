@@ -42,7 +42,7 @@ void DllScriptComponent::Update(Actor* This){
 	//		timer2++;
 	//	}
 	//}
-	float speed = 100.0f;
+	float speed = 0.1f;
 	//if (Input::Down(KeyCoord::Key_LSHIFT)){
 	//	speed = 1.0f;
 	//}
@@ -60,15 +60,37 @@ void DllScriptComponent::Update(Actor* This){
 	//}
 	//This->mTransform->Position(This->mTransform->Position() + XMVectorSet(0.0f, sin(timer2 / 60.0f*3.14f) - This->mTransform->Position().y, 0.0f, 0.0f));
 	//
-	if (Input::Down(KeyCoord::Key_M))This->mTransform->Position(XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));
+
+	//if (Input::Down(KeyCoord::Key_M))This->mTransform->Position(XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));
+	//
+	//if (Input::Down(KeyCoord::Key_A)){
+	//	This->mTransform->AddForce(XMVectorSet(speed, 0.0f, 0.0f, 0.0f));
+	//}
+	//if (Input::Down(KeyCoord::Key_D)){
+	//	This->mTransform->AddForce(XMVectorSet(-speed, 0.0f, 0.0f, 0.0f));
+	//}
+	//if (Input::Down(KeyCoord::Key_T)){
+	//	This->mTransform->AddForce(XMVectorSet(0.0f, speed * 4, 0.0f, 0.0f));
+	//}
 
 	if (Input::Down(KeyCoord::Key_A)){
-		This->mTransform->AddForce(XMVectorSet(speed, 0.0f, 0.0f, 0.0f));
+		auto rotate = This->mTransform->Rotate();
+		rotate.z += speed;
+		This->mTransform->Rotate(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_D)){
-		This->mTransform->AddForce(XMVectorSet(-speed, 0.0f, 0.0f, 0.0f));
+		auto rotate = This->mTransform->Rotate();
+		rotate.z -= speed;
+		This->mTransform->Rotate(rotate);
 	}
-	if (Input::Down(KeyCoord::Key_T)){
-		This->mTransform->AddForce(XMVectorSet(0.0f, speed * 4, 0.0f, 0.0f));
+	if (Input::Down(KeyCoord::Key_W)){
+		auto rotate = This->mTransform->Rotate();
+		rotate.x += speed;
+		This->mTransform->Rotate(rotate);
+	}
+	if (Input::Down(KeyCoord::Key_S)){
+		auto rotate = This->mTransform->Rotate();
+		rotate.x -= speed;
+		This->mTransform->Rotate(rotate);
 	}
 }

@@ -78,6 +78,8 @@ void PhysX3Main::InitializePhysX() {
 	mMaterial = gPhysicsSDK->createMaterial(0.5, 0.5, 0.5);
 
 	createPlane();
+
+	//gScene->simulate(myTimestep);
 }
 PxRigidStatic* p;
 void PhysX3Main::createPlane(){
@@ -137,9 +139,16 @@ PxRigidActor* PhysX3Main::createBox(){
 
 PxShape* PhysX3Main::CreateShape(){
 	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
-	PxVec3 dimensions(1, 1, 1);
+	PxVec3 dimensions(0.5, 0.5, 0.5);
 	PxBoxGeometry geometry(dimensions);
 	return gPhysicsSDK->createShape(geometry, *mMaterial,PxShapeFlag::eSIMULATION_SHAPE);
+
+}
+
+PxShape* PhysX3Main::CreateShapeSphere(){
+	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
+	PxSphereGeometry geometry(0.5);
+	return gPhysicsSDK->createShape(geometry, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE);
 
 }
 
@@ -154,10 +163,11 @@ void PhysX3Main::StepPhysX()
 	//	mNum++;
 	//	createBox();
 	//}
+
 	//シミュレーションするものがないと出力がでる
 	gScene->simulate(myTimestep);
-	
 
+	//シュミレーション中に？作成Shapeを？作成できない
 	//...perform useful work here using previous frame's state data        
 	while (!gScene->fetchResults())
 	{

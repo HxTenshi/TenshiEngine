@@ -38,6 +38,10 @@ void PhysXComponent::Update(){
 		auto t = mRigidActor->getGlobalPose();
 		auto position = gameObject->mTransform->Position();
 		t.p = physx::PxVec3(position.x, position.y, position.z);
+
+		auto rotate = gameObject->mTransform->Rotate();
+		rotate = XMQuaternionRotationRollPitchYawFromVector(rotate);
+		t.q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
 		mRigidActor->setGlobalPose(t);
 
 		mChengeTransform = false;
@@ -84,4 +88,8 @@ void PhysXComponent::SetKinematic(bool flag){
 void PhysXComponent::AddForce(XMVECTOR& force){
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	a->addForce(PxVec3(force.x, force.y, force.z));
+}
+void PhysXComponent::AddTorque(XMVECTOR& force){
+	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
+	a->addTorque(PxVec3(force.x, force.y, force.z));
 }

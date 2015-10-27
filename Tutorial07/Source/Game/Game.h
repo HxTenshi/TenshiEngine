@@ -19,6 +19,15 @@
 
 #include "../PhysX/PhysX3.h"
 
+enum class DrawStage{
+	Diffuse,
+	Depth,
+	Normal,
+	Engine,
+	Count
+};
+typedef void(*DrawFunc)();
+
 class Camera{
 public:
 	Camera()
@@ -139,7 +148,8 @@ public:
 	}
 
 	//void Draw(const std::list<Actor*>& mActors)const{
-	void Draw(Actor* mActor)const{
+	//void Draw(Actor* mActor)const{
+	void Draw(std::map<DrawStage, std::list<std::function<void()>>>* DrawList)const{
 
 		VSSetConstantBuffers();
 		GSSetConstantBuffers();
@@ -162,7 +172,12 @@ public:
 		//for (Actor* p : mActors){
 		//	p->Draw(DrawBit::Depth);
 		//}
-		mActor->Draw(DrawBit::Depth);
+		//mActor->Draw(DrawBit::Depth);
+		auto &list = (*DrawList)[DrawStage::Depth];
+		for (auto& p : list){
+			p();
+		}
+		list.clear();
 
 		mRenderTargetBack.ClearView();
 		mRenderTargetBack.SetRendererTarget();
@@ -215,7 +230,18 @@ public:
 		//for (Actor* p : mActors){
 		//	p->Draw(DrawBit::Diffuse);
 		//}
-		mActor->Draw(DrawBit::Diffuse);
+		//mActor->Draw(DrawBit::Diffuse);
+		auto &list2 = (*DrawList)[DrawStage::Diffuse];
+		for (auto &p : list2){
+			p();
+		}
+		list2.clear();
+
+		auto &list3 = (*DrawList)[DrawStage::Engine];
+		for (auto &p : list3){
+			//p();
+		}
+		list3.clear();
 
 		Device::mpImmediateContext->RSSetState(NULL);
 		if (pRS)pRS->Release();
@@ -269,12 +295,20 @@ public:
 
 	}
 	void Update(float deltaTime){
-		if (Input::Down(KeyCoord::Key_W)){
-			Eye.y += 0.1f;
+		if (Input::Down(KeyCoord::Key_F)){
+			Eye.x += 0.1f;
 			UpdateView();
 		}
-		if (Input::Down(KeyCoord::Key_S)){
-			Eye.y -= 0.1f;
+		if (Input::Down(KeyCoord::Key_H)){
+			Eye.x -= 0.1f;
+			UpdateView();
+		}
+		if (Input::Down(KeyCoord::Key_T)){
+			Eye.z += 0.1f;
+			UpdateView();
+		}
+		if (Input::Down(KeyCoord::Key_G)){
+			Eye.z -= 0.1f;
 			UpdateView();
 		}
 		if (Input::Trigger(MouseCoord::Right)){
@@ -448,16 +482,16 @@ class Mouse{
 public:
 	
 	void CatchComponent(Actor* actor){
-		mCatchComponent = actor->GetComponent<MaterialComponent>();
+		//mCatchComponent = actor->GetComponent<MaterialComponent>();
 	}
 
 	void InsertComponent(Actor* actor){
-		if (mCatchComponent){
-			auto matCmp = actor->GetComponent<MaterialComponent>();
-			if (matCmp){
-				matCmp->SetMaterial(0,mCatchComponent->GetMaterial(0));
-			}
-		}
+		//if (mCatchComponent){
+		//	auto matCmp = actor->GetComponent<MaterialComponent>();
+		//	if (matCmp){
+		//		matCmp->SetMaterial(0,mCatchComponent->GetMaterial(0));
+		//	}
+		//}
 	}
 	
 private:
@@ -517,6 +551,8 @@ public:
 		//	}
 		//}
 		if (!mSelect)return;
+
+		Window::UpdateInspector();
 
 		mVectorBox[0].mTransform->Position(mSelect->mTransform->Position());
 		mVectorBox[1].mTransform->Position(mSelect->mTransform->Position());
@@ -830,8 +866,10 @@ public:
 	static void DestroyObject(Actor* actor);
 	static PxRigidActor* CreateRigitBody();
 	static PxShape* CreateShape();
+	static PxShape* CreateShapeSphere();
 	static void RemovePhysXActor(PxActor* act);
 	static Actor* FindUID(UINT uid);
+	static void AddDrawList(DrawStage stage, std::function<void()> func);
 
 	float GetDeltaTime(){
 		float deltaTime;
@@ -924,16 +962,18 @@ public:
 
 	}
 	void Draw(){		
-	
-		mCamera.Draw(mRootObject);
-
-		mSelectActor.Draw();
 		
+		mRootObject->Draw(DrawBit::Diffuse);
+		mSelectActor.Draw();
+
+		mCamera.Draw(&mDrawList);
+
 		mWorldGrid.Draw();
 
 	}
 private:
-	std::map<UINT,Actor*> mList;
+	std::map<UINT, Actor*> mList;
+	std::map<DrawStage, std::list<std::function<void()>>> mDrawList;
 	static Actor* mRootObject;
 
 	SelectActor mSelectActor;

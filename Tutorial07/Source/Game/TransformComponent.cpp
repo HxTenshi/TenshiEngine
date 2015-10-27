@@ -25,6 +25,9 @@ TransformComponent::~TransformComponent(){
 	}
 }
 
+void TransformComponent::Update(){
+}
+
 const XMVECTOR& TransformComponent::Scale() const{
 	return mScale;
 }
@@ -38,10 +41,19 @@ void TransformComponent::Scale(const XMVECTOR& scale){
 void TransformComponent::Rotate(const XMVECTOR& rotate){
 	mRotate = rotate;
 	mFixMatrixFlag = false;
+	UpdatePhysX();
+}
+
+const XMVECTOR& TransformComponent::Position() const{
+	return mPosition;
+}
+void TransformComponent::Position(const XMVECTOR& position){
+	mPosition = position;
+	mFixMatrixFlag = false;
+	UpdatePhysX();
 }
 
 const XMMATRIX& TransformComponent::GetMatrix() const{
-	Window::UpdateInspector();
 	mFixMatrixFlag = false;
 	if (!mFixMatrixFlag){
 		//クォータニオンで計算
@@ -51,6 +63,7 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 				XMMatrixScalingFromVector(mScale),
 				XMMatrixRotationQuaternion(mRotate)),
 				XMMatrixTranslationFromVector(mPosition));
+
 		}
 		//ロール、ピッチ、ヨウで計算
 		else{
@@ -172,6 +185,11 @@ void TransformComponent::AddForce(XMVECTOR& force){
 	auto c = gameObject->GetComponent<PhysXComponent>();
 	if (c)
 		c->AddForce(force);
+}
+void TransformComponent::AddTorque(XMVECTOR& force){
+	auto c = gameObject->GetComponent<PhysXComponent>();
+	if (c)
+		c->AddTorque(force);
 }
 
 std::list<Actor*>& TransformComponent::Children(){

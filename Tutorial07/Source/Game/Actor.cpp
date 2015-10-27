@@ -207,7 +207,58 @@ void Actor::ImportData(const std::string& fileName){
 	}
 }
 
+//https://github.com/satoruhiga/ofxEulerAngles/blob/master/src/ofxEulerAngles.h
+XMVECTOR toEulerXYZ(const XMMATRIX &m)
+{
+	XMVECTOR v;
+	v.w = 1;
 
+	float &thetaX = v.x;
+	float &thetaY = v.y;
+	float &thetaZ = v.z;
+
+	const float &r00 = m._11;
+	const float &r01 = m._21;
+	const float &r02 = m._31;
+
+	const float &r10 = m._12;
+	const float &r11 = m._22;
+	const float &r12 = m._32;
+
+	const float &r20 = m._13;
+	const float &r21 = m._23;
+	const float &r22 = m._33;
+
+	if (r02 < +1)
+	{
+		if (r02 > -1)
+		{
+			thetaY = asinf(r02);
+			thetaX = atan2f(-r12, r22);
+			thetaZ = atan2f(-r01, r00);
+		}
+		else     // r02 = -1
+		{
+			// Not a unique solution: thetaZ - thetaX = atan2f(r10,r11)
+			thetaY = -XM_PI / 2;
+			thetaX = -atan2f(r10, r11);
+			thetaZ = 0;
+		}
+	}
+	else // r02 = +1
+	{
+		// Not a unique solution: thetaZ + thetaX = atan2f(r10,r11)
+		thetaY = +XM_PI / 2;
+		thetaX = atan2f(r10, r11);
+		thetaZ = 0;
+	}
+
+	//thetaX = ofRadToDeg(thetaX);
+	//thetaY = ofRadToDeg(thetaY);
+	//thetaZ = ofRadToDeg(thetaZ);
+
+	return v;
+}
 
 #include "../PhysX/PhysX3.h"
 #include <xnamath.h>
@@ -219,6 +270,25 @@ void Actor::SetTransform(physx::PxTransform* t){
 	XMVECTOR pos = XMVectorSet(pT.p.x, pT.p.y, pT.p.z,1);
 	mTransform->Position(pos);
 
-	XMVECTOR rot = XMVectorSet(pT.q.x, pT.q.y, pT.q.z, pT.q.w);
-	mTransform->Rotate(rot);
+	auto q = XMVectorSet(pT.q.x, pT.q.y, pT.q.z, pT.q.w);
+	mTransform->Rotate(q);
+	return;
+
+	//float yaw = atan2(2 * gyro.x * gyro.y + 2 * gyro.w * gyro.z, gyro.w * gyro.w + gyro.x * gyro.x - gyro.y * gyro.y - gyro.z * gyro.z);
+	//float pitch = asin(2 * gyro.w * gyro.y - 2 * gyro.x * gyro.z);
+	//float roll = atan2(2 * gyro.y * gyro.z + 2 * gyro.w * gyro.x, -gyro.w * gyro.w + gyro.x * gyro.x + gyro.y * gyro.y - gyro.z * gyro.z);
+	//auto rotate = XMVectorSet(pitch,yaw,roll, 1);
+
+	///float roll = atan2(2 * y*w - 2 * x*z, 1 - 2 * y*y - 2 * z*z);
+	///float pitch = atan2(2 * x*w - 2 * y*z, 1 - 2 * x*x - 2 * z*z);
+	///float yaw = asin(2 * x*y + 2 * z*w);
+	///auto rotate = XMVectorSet(pitch, yaw, roll, 1);
+
+	//XMMatrixRotationRollPitchYawFromVector(,gyro);
+
+	auto rotate = toEulerXYZ(XMMatrixRotationQuaternion(q));
+	
+	//XMMatrixRotationRollPitchYawFromVector
+
+	mTransform->Rotate(rotate);
 }

@@ -200,3 +200,36 @@ void ScriptComponent::Update(){
 			actors.mEndReloadDLL = false;
 		}
 	}
+
+
+#include "Game.h"
+void MeshDrawComponent::Update(){
+
+	if (!mModel){
+		mModel = gameObject->GetComponent<ModelComponent>();
+		if (!mModel)
+			mModel = gameObject->GetComponent<TextureModelComponent>();
+		if (!mModel)return;
+	}
+	if (!mModel->mModel)return;
+
+	if (!mMaterial){
+		mMaterial = gameObject->GetComponent<MaterialComponent>();
+	}
+	if (!mMaterial)return;
+
+	Game::AddDrawList(DrawStage::Diffuse, std::function<void()>([&](){
+		Model& model = *mModel->mModel;
+		model.VSSetShader();
+		model.PSSetShader();
+		model.IASet();
+
+		if (mWriteDepth){
+			model.Draw(mMaterial);
+		}
+		else{
+			NoWriteDepth(model);
+		}
+	}));
+
+}
