@@ -52,10 +52,9 @@ public:
 #endif
 
 	void ExportData(File& f);
+	std::string mFileName;
 
 private:
 	shared_ptr<TextureData> mTexturePtr;
-
-	std::string mFileName;
 	static Texture mNullTexture;
 };
