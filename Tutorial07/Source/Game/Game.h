@@ -351,7 +351,6 @@ class Box : public Actor{
 public:
 
 	Box(){
-		mDrawBit = (DrawBit::Depth | DrawBit::Diffuse);
 		Name("new Box");
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
@@ -363,7 +362,6 @@ public:
 		mTransform->Scale(XMVectorSet(scale, scale, scale, 1.0f));
 	}
 	Box(const XMVECTOR& Position){
-		mDrawBit = (DrawBit::Depth | DrawBit::Diffuse);
 		Name("new Box");
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
@@ -391,7 +389,6 @@ class Tex : public Actor{
 public:
 	Tex(const char* FileName, const XMFLOAT2& TopLeft, const XMFLOAT2& DownRight)
 	{
-		mDrawBit = (unsigned char)DrawBit::Diffuse;
 		Name("new Texture");
 		Texture mTexture;
 		mTexture.Create(FileName);
@@ -431,7 +428,6 @@ public:
 	}
 	Tex(Texture& Tex, const XMFLOAT2& TopLeft ,const XMFLOAT2& DownRight)
 	{
-		mDrawBit = (unsigned char)DrawBit::Diffuse;
 		Name("new Texture");
 
 
@@ -503,8 +499,6 @@ private:
 class Player : public Actor{
 public:
 	Player(){
-
-		mDrawBit = (DrawBit::Depth|DrawBit::Diffuse);
 		Name("new Player");
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
@@ -619,16 +613,6 @@ public:
 			mDragPos = mSelect->mTransform->Position();
 			mDragBox = 2;
 		}
-	}
-
-	void Draw() const{
-		if (!mSelect)return;
-
-		
-		mVectorBox[0].Draw(DrawBit::Diffuse);
-		mVectorBox[1].Draw(DrawBit::Diffuse);
-		mVectorBox[2].Draw(DrawBit::Diffuse);
-
 	}
 private:
 
@@ -814,8 +798,6 @@ class Particle : public Actor{
 public:
 
 	Particle(){
-
-		mDrawBit = (unsigned char)(DrawBit::Diffuse);
 		Name("new Particle");
 
 		Material mTexMaterial;
@@ -983,10 +965,7 @@ public:
 
 
 	}
-	void Draw(){		
-		
-		mRootObject->Draw(DrawBit::Diffuse);
-		mSelectActor.Draw();
+	void Draw(){
 
 		mCamera.Draw(&mDrawList);
 

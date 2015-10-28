@@ -38,22 +38,3 @@ public:
 
 	Actor* gameObject;
 };
-
-class DrawComponent : public Component{
-public:
-	DrawComponent(){
-
-	}
-	virtual ~DrawComponent(){
-
-	}
-	virtual void Update(){
-
-	}
-
-	virtual void CreateInspector(){
-	}
-
-	virtual void ExportData(File& f) = 0;
-	virtual void ImportData(File& f) = 0;
-};

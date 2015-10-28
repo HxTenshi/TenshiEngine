@@ -27,7 +27,6 @@ public:
 	virtual ~Actor();
 	virtual void UpdateComponent(float deltaTime);
 	virtual void Update(float deltaTime);
-	virtual void Draw(DrawBit drawbit)const;
 
 	virtual bool ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect);
 	template<class T>
@@ -66,8 +65,6 @@ public:
 
 protected:
 	ComponentList mComponents;
-
-	unsigned char mDrawBit;
 
 private:
 	std::string mName;

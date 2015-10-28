@@ -4,16 +4,6 @@
 #include "../MySTL/ptr.h"
 #include "Game.h"
 
-unsigned char operator & (const unsigned char& bit, const DrawBit& bit2){
-	return (unsigned char)bit&(unsigned char)bit2;
-}
-unsigned char operator | (const DrawBit& bit, const DrawBit& bit2){
-	return (unsigned char)bit | (unsigned char)bit2;
-}
-unsigned char operator | (const unsigned char& bit, const DrawBit& bit2){
-	return (unsigned char)bit | (unsigned char)bit2;
-}
-
 class UniqueIDGenerator{
 public:
 	UniqueIDGenerator(const char* file)
@@ -47,8 +37,6 @@ Actor::Actor()
 	mName = "new Object";
 	mTransform = shared_ptr<TransformComponent>(new TransformComponent());
 	mComponents.AddComponent<TransformComponent>(mTransform);
-	//mDrawBit = 0x0000;
-	mDrawBit = (DrawBit::Depth | DrawBit::Diffuse);
 	mUniqueID = 0;
 }
 Actor::~Actor()
@@ -68,16 +56,6 @@ void Actor::UpdateComponent(float deltaTime){
 }
 void Actor::Update(float deltaTime){
 	(void)deltaTime;
-}
-void Actor::Draw(DrawBit drawbit)const{
-	if (!(mDrawBit&drawbit))return;
-	for (const auto& cmp : mComponents.mDrawComponent){
-		cmp.second->Update();
-	}
-
-	for (auto child : mTransform->Children()){
-		child->Draw(drawbit);
-	}
 }
 
 bool Actor::ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect){
@@ -110,9 +88,6 @@ void Actor::CreateInspector(){
 	Window::AddInspector(new InspectorStringDataSet("Name", &mName, collback), data);
 	Window::ViewInspector(data);
 	for (const auto& cmp : mComponents.mComponent){
-		cmp.second->CreateInspector();
-	}
-	for (const auto& cmp : mComponents.mDrawComponent){
 		cmp.second->CreateInspector();
 	}
 }
@@ -150,10 +125,6 @@ void Actor::ExportData(const std::string& pass){
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->ExportData(f);
 	}
-
-	for (const auto& cmp : mComponents.mDrawComponent){
-		cmp.second->ExportData(f);
-	}
 }
 void Actor::ImportData(const std::string& fileName){
 	
@@ -175,16 +146,12 @@ void Actor::ImportData(const std::string& fileName){
 	std::string temp;
 
 	mComponents.mComponent.clear();
-	mComponents.mDrawComponent.clear();
 	
 	while (f){
 		f.In(&temp);
 		if (auto p = ComponentFactory::Create(temp)){
 			p->ImportData(f);
-			if (dynamic_cast<DrawComponent*>(p.Get()))
-				mComponents.AddComponent<DrawComponent>(p);
-			else
-				mComponents.AddComponent(p);
+			mComponents.AddComponent(p);
 			if (dynamic_cast<TransformComponent*>(p.Get()))
 				mTransform = p;
 			
@@ -192,10 +159,6 @@ void Actor::ImportData(const std::string& fileName){
 	}
 
 	for (const auto& cmp : mComponents.mComponent){
-		cmp.second->Initialize();
-	}
-
-	for (const auto& cmp : mComponents.mDrawComponent){
 		cmp.second->Initialize();
 	}
 

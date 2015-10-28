@@ -333,7 +333,7 @@ public:
 	weak_ptr<ModelComponent> mModel;
 };
 
-class MeshDrawComponent :public DrawComponent{
+class MeshDrawComponent :public Component{
 public:
 	MeshDrawComponent()
 		:mWriteDepth(true){
@@ -382,7 +382,7 @@ public:
 };
 
 #include "Graphic/Shader/GeometryShader.h"
-class ParticleComponent :public DrawComponent{
+class ParticleComponent :public Component{
 public:
 #define NUM_PARTICLE 200
 	struct ParticleVertex{
