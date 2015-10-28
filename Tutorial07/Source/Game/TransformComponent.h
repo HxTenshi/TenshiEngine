@@ -31,6 +31,8 @@ public:
 	virtual std::list<Actor*>& Children() = 0;
 	virtual Actor* GetParent() = 0;
 	virtual void SetParent(Actor* parent) = 0;
+
+	virtual void SetUndo(const XMVECTOR& pos) = 0;
 };
 
 class TransformComponent :public ITransformComponent{
@@ -61,6 +63,8 @@ public:
 	bool isChangeMatrix(){
 		return !mFixMatrixFlag;
 	}
+
+	void SetUndo(const XMVECTOR& pos) override;
 
 	std::list<Actor*>& Children() override;
 	Actor* GetParent() override;

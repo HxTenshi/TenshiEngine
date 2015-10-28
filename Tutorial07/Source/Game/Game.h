@@ -18,6 +18,7 @@
 #include "Sound/Sound.h"
 
 #include "../PhysX/PhysX3.h"
+#include "Engine/ICommand.h"
 
 enum class DrawStage{
 	Diffuse,
@@ -554,35 +555,45 @@ public:
 
 		Window::UpdateInspector();
 
-		mVectorBox[0].mTransform->Position(mSelect->mTransform->Position());
-		mVectorBox[1].mTransform->Position(mSelect->mTransform->Position());
-		mVectorBox[2].mTransform->Position(mSelect->mTransform->Position());
+		//mVectorBox[0].mTransform->Position(mSelect->mTransform->Position());
+		//mVectorBox[1].mTransform->Position(mSelect->mTransform->Position());
+		//mVectorBox[2].mTransform->Position(mSelect->mTransform->Position());
 
-		mVectorBox[0].mTransform->Position(mSelect->mTransform->Position()+XMVectorSet(3.0f,0.0f,0.0f,0.0f));
-		mVectorBox[1].mTransform->Position(mSelect->mTransform->Position()+XMVectorSet(0.0f,3.0f,0.0f,0.0f));
-		mVectorBox[2].mTransform->Position(mSelect->mTransform->Position()+XMVectorSet(0.0f,0.0f,3.0f,0.0f));
+		mVectorBox[0].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(3.0f, 0.0f, 0.0f, 0.0f));
+		mVectorBox[1].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f));
+		mVectorBox[2].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 0.0f, 3.0f, 0.0f));
 
 		mVectorBox[0].UpdateComponent(deltaTime);
 		mVectorBox[1].UpdateComponent(deltaTime);
 		mVectorBox[2].UpdateComponent(deltaTime);
 
-		if (Input::Up(MouseCoord::Left)){
-			mDragBox = -1;
-		}
-		if (mDragBox != -1){
+		static XMVECTOR vect = XMVectorZero();
+		if (Input::Down(MouseCoord::Left)){
 			int x, y;
 			Input::MouseLeftDragVector(&x, &y);
 			float p = -y*0.05f;
+			vect = mDragPos;
 
-			if (mDragBox==0){
-				mSelect->mTransform->Position(mDragPos + XMVectorSet(p, 0.0f, 0.0f, 0.0f));
+			if (mDragBox == 0){
+				vect += XMVectorSet(p, 0.0f, 0.0f, 0.0f);
 			}
 			if (mDragBox == 1){
-				mSelect->mTransform->Position(mDragPos + XMVectorSet(0.0f, p, 0.0f, 0.0f));
+				vect += XMVectorSet(0.0f, p, 0.0f, 0.0f);
 			}
 			if (mDragBox == 2){
-				mSelect->mTransform->Position(mDragPos + XMVectorSet(0.0f, 0.0f, p, 0.0f));
+				vect += XMVectorSet(0.0f, 0.0f, p, 0.0f);
 			}
+		}
+
+		if (Input::Up(MouseCoord::Left)){
+			if (mDragBox != -1){
+				mSelect->mTransform->Position(vect);
+				mSelect->mTransform->SetUndo(vect);
+			}
+			mDragBox = -1;
+		}
+		if (mDragBox != -1){
+			mSelect->mTransform->Position(vect);
 		}
 	}
 
@@ -870,6 +881,8 @@ public:
 	static void RemovePhysXActor(PxActor* act);
 	static Actor* FindUID(UINT uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
+	static void SetUndo(ICommand* command);
+
 
 	float GetDeltaTime(){
 		float deltaTime;
@@ -898,7 +911,7 @@ public:
 
 		mCamera.Update(deltaTime);
 
-		if (Input::Trigger(KeyCoord::Key_Z)){
+		if (Input::Trigger(KeyCoord::Key_C)){
 			int x, y;
 			Input::MousePosition(&x, &y);
 			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
@@ -946,6 +959,14 @@ public:
 			}
 		}
 
+		if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Z)){
+			mCommandManager.Undo();
+		}
+
+		if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Y)){
+			mCommandManager.Redo();
+		}
+
 		mSelectActor.Update(deltaTime);
 
 
@@ -989,4 +1010,6 @@ private:
 
 
 	PhysX3Main* mPhysX3Main;
+
+	CommandManager mCommandManager;
 };

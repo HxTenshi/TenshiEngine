@@ -450,6 +450,7 @@
     <ClInclude Include="Source\ConstantBuffer\ConstantBufferDif.h" />
     <ClInclude Include="Source\Device\DirectX11Device.h" />
     <CLInclude Include="Resource\resource.h" />
+    <ClInclude Include="Source\Engine\ICommand.h" />
     <ClInclude Include="Source\Game\Actor.h" />
     <ClInclude Include="Source\Game\Component.h" />
     <ClInclude Include="Source\Game\ComponentList.h" />

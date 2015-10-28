@@ -84,18 +84,40 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 	return mMatrix;
 }
 
+
+void TransformComponent::SetUndo(const XMVECTOR& pos){
+	
+	//コンポーネントロード時にやらないとおかしい
+	static XMVECTOR mLastUndoSetPos = mPosition;
+
+	// 外部に動かされた場合の ( 元いた場所 - 現在地 ) をUndoに追加
+	if (!XMVector3NearEqual(mLastUndoSetPos, pos, XMVectorSet(0.1f, 0.1f, 0.1f, 1))){
+		Game::SetUndo(new ChangeParamFuncCommand<XMVECTOR>(mLastUndoSetPos, mPosition, [&](const XMVECTOR& p){this->Position(p); }));
+		mLastUndoSetPos = pos;
+	}
+	// ( 現在地 - 指定した位置 ) をUndoに追加
+	if (!XMVector3NearEqual(pos, mPosition, XMVectorSet(0.01f, 0.01f, 0.01f, 1))){
+		Game::SetUndo(new ChangeParamFuncCommand<XMVECTOR>(mPosition, pos, [&](const XMVECTOR& p){this->Position(p); }));
+		mLastUndoSetPos = pos;
+	}
+}
+
 void TransformComponent::CreateInspector(){
+
 
 	std::function<void(float)> collbackpx = [&](float f){
 		auto pos = this->Position();
+		SetUndo(XMVectorSet(f, pos.x, pos.z, pos.w));
 		this->Position(XMVectorSet(f, pos.y, pos.z, pos.w));
 	};
 	std::function<void(float)> collbackpy = [&](float f){
 		auto pos = this->Position();
+		SetUndo(XMVectorSet(pos.x, f, pos.z, pos.w));
 		this->Position(XMVectorSet(pos.x, f, pos.z, pos.w));
 	};
 	std::function<void(float)> collbackpz = [&](float f){
 		auto pos = this->Position();
+		SetUndo(XMVectorSet(pos.x, pos.y, f, pos.w));
 		this->Position(XMVectorSet(pos.x, pos.y, f, pos.w));
 	};
 	std::function<void(float)> collbackrx = [&](float f){

@@ -7,6 +7,7 @@ static std::stack<int> gIntPtrStack;
 static std::map<UINT,Actor*>* gpList;
 static std::map<DrawStage, std::list<std::function<void()>>> *gDrawList;
 static PhysX3Main* gpPhysX3Main;
+static CommandManager* gCommandManager;
 //
 Actor* Game::mRootObject;
 
@@ -33,6 +34,7 @@ Game::Game()
 
 	gpList = &mList;
 	gDrawList = &mDrawList;
+	gCommandManager = &mCommandManager;
 
 	mRootObject = new Actor();
 
@@ -178,4 +180,8 @@ Actor* Game::FindUID(UINT uid){
 
 void Game::AddDrawList(DrawStage stage, std::function<void()> func){
 	(*gDrawList)[stage].push_back(func);
+}
+
+void Game::SetUndo(ICommand* command){
+	gCommandManager->SetUndo(command);
 }
