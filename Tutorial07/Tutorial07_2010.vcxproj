@@ -473,6 +473,7 @@
     <ClInclude Include="Source\Graphic\Shader\GeometryShader.h" />
     <ClInclude Include="Source\Graphic\Shader\InputLayout.h" />
     <ClInclude Include="Source\Graphic\Shader\PixelShader.h" />
+    <ClInclude Include="Source\Graphic\Shader\Shader.h" />
     <ClInclude Include="Source\Graphic\Shader\ShaderFile.h" />
     <ClInclude Include="Source\Graphic\Shader\VertexShader.h" />
     <ClInclude Include="Source\Input\Input.h" />

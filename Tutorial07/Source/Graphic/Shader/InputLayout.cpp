@@ -57,5 +57,8 @@ void InputLayout::SetInputLayout()const{
 
 void InputLayout::Rerease()
 {
-	if (mpVertexLayout) mpVertexLayout->Release();
+	if (mpVertexLayout){
+		mpVertexLayout->Release();
+		mpVertexLayout = NULL;
+	}
 }

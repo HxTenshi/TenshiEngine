@@ -6,6 +6,7 @@
 #include "Texture.h"
 #include "ConstantBuffer/ConstantBuffer.h"
 #include "ConstantBuffer/ConstantBufferDif.h"
+#include "Graphic/Shader/Shader.h"
 
 class Material{
 public:
@@ -13,6 +14,7 @@ public:
 	~Material();
 
 	HRESULT Create(ConstantBuffer<cbChangesMaterial> const& cbMaterial, ConstantBuffer<cbChangesUseTexture> const& cbUseTexture);
+	void SetShader() const;
 	void PSSetShaderResources() const;
 	void SetTexture(const char* FileName, UINT Slot = 0);
 	void SetTexture(const Texture& Tex, UINT Slot = 0);
@@ -28,6 +30,7 @@ public:
 
 private:
 public:
+	Shader mShader;
 	ConstantBuffer<cbChangesMaterial> mCBMaterial;
 	ConstantBuffer<cbChangesUseTexture> mCBUseTexture;
 	Texture mTexture[4];

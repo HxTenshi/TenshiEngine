@@ -29,9 +29,8 @@ public:
 	Model();
 	virtual ~Model();
 	virtual HRESULT Create(const char* FileName, shared_ptr<MaterialComponent> resultMaterial);
-	void VSSetShader() const;
-	void PSSetShader() const;
 	void Release();
+	void SetConstantBuffer() const;
 	void Update();
 	void IASet() const;
 	void Draw(shared_ptr<MaterialComponent> material) const;
@@ -51,9 +50,6 @@ protected:
 
 	ConstantBuffer<CBChangesEveryFrame> mCBuffer;
 	ConstantBufferArray<cbBoneMatrix> mCBBoneMatrix;
-
-	VertexShader	mVertexShader;
-	PixelShader		mPixelShader;
 
 	vmd mVMD;
 

@@ -359,7 +359,7 @@ public:
 		mComponents.AddComponent<MeshDrawComponent>(shared_ptr<MeshDrawComponent>(new MeshDrawComponent()));
 		t = 0.0f;
 
-		float scale = 0.5f;
+		float scale = 1.0f;
 		mTransform->Scale(XMVectorSet(scale, scale, scale, 1.0f));
 	}
 	Box(const XMVECTOR& Position){
@@ -373,7 +373,7 @@ public:
 		mTransform->Position(Position);
 		t = 0.0f;
 
-		float scale = 0.5f;
+		float scale = 1.0f;
 		mTransform->Scale(XMVectorSet(scale, scale, scale, 1.0f));
 
 	}
@@ -531,6 +531,9 @@ public:
 		, mTreeSelect(NULL)
 	{
 		mDragBox = -1;
+		mVectorBox[0].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
+		mVectorBox[1].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
+		mVectorBox[2].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
 	}
 
 	void SetSelect(Actor* select){
@@ -725,8 +728,6 @@ public:
 
 	}
 	~WorldGrid(){
-		mVertexShader.Release();
-		mPixelShader.Release();
 		mpVertexBuffer->Release();
 		mpIndexBuffer->Release();
 

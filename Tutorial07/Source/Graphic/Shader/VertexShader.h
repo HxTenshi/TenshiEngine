@@ -12,7 +12,7 @@ public:
 	}
 	~VertexShader()
 	{
-
+		Release();
 	}
 	HRESULT Create(const char* FileName){
 		return Create(FileName, "VS");
@@ -77,9 +77,13 @@ public:
 		mInputLayout.SetInputLayout();
 	}
 
+private:
 	void Release(){
 
-		if (mpVertexShader) mpVertexShader->Release();
+		if (mpVertexShader){
+			mpVertexShader->Release();
+			mpVertexShader = NULL;
+		}
 		mInputLayout.Rerease();
 	}
 private:

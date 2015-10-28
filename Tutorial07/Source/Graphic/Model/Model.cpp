@@ -30,24 +30,12 @@ HRESULT Model::Create(const char* FileName,shared_ptr<MaterialComponent> resultM
 	std::string f = FileName;
 	if (f.find(".pmd") != std::string::npos){
 		mModelBuffer = new ModelBufferPMD();
-
-		hr = mVertexShader.Create("Tutorial07.fx", "VS_Skin");
-		if (FAILED(hr))
-			return hr;
 	}
 	else if (f.find(".pmx") != std::string::npos){
 		mModelBuffer = new ModelBufferPMX();
-
-		hr = mVertexShader.Create("Tutorial07.fx", "VS_Skin");
-		if (FAILED(hr))
-			return hr;
 	}
 	else{
 		mModelBuffer = new ModelBuffer();
-
-		hr = mVertexShader.Create("Tutorial07.fx","VS");
-		if (FAILED(hr))
-			return hr;
 	}
 
 	hr = mModelBuffer->Create(FileName, this, resultMaterial);
@@ -57,10 +45,6 @@ HRESULT Model::Create(const char* FileName,shared_ptr<MaterialComponent> resultM
 	mCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
 	if (!mCBuffer.mBuffer)
 		return S_FALSE;
-
-	hr = mPixelShader.Create("Tutorial07.fx");
-	if (FAILED(hr))
-		return hr;
 
 	if (mModelBuffer->mBoneNum){
 		mCBBoneMatrix = ConstantBufferArray<cbBoneMatrix>::create(7, mModelBuffer->mBoneNum);
@@ -75,21 +59,13 @@ HRESULT Model::Create(const char* FileName,shared_ptr<MaterialComponent> resultM
 }
 
 
-void Model::VSSetShader() const
+void Model::SetConstantBuffer() const
 {
-	mVertexShader.SetShader();
-	mCBuffer.VSSetConstantBuffers();
+	if (mCBuffer.mBuffer)mCBuffer.VSSetConstantBuffers();
 	if (mCBBoneMatrix.mBuffer)mCBBoneMatrix.VSSetConstantBuffers();
-}
-void Model::PSSetShader() const
-{
-	mPixelShader.SetShader();
 }
 
 void Model::Release(){
-
-	mVertexShader.Release();
-	mPixelShader.Release();
 
 	mModelBuffer->Release();
 	delete mModelBuffer;
@@ -110,6 +86,9 @@ void Model::IASet() const{
 }
 void Model::Draw(shared_ptr<MaterialComponent> material) const{
 	for (UINT i = 0; i < mMeshs.size(); i++){
+		material->GetMaterial(i).SetShader();
+		IASet();
+		SetConstantBuffer();
 		material->GetMaterial(i).PSSetShaderResources();
 		mMeshs[i].Draw();
 	}
@@ -232,13 +211,6 @@ HRESULT ModelTexture::Create(const char* FileName, shared_ptr<MaterialComponent>
 	mCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
 	if (!mCBuffer.mBuffer)
 		return S_FALSE;
-
-	hr = mVertexShader.Create("texture.fx");
-	if (FAILED(hr))
-		return hr;
-	hr = mPixelShader.Create("texture.fx");
-	if (FAILED(hr))
-		return hr;
 
 	return S_OK;
 }

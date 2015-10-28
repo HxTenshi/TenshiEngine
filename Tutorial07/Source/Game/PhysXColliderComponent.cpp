@@ -57,9 +57,6 @@ void PhysXColliderComponent::Update(){
 		mModel->Update();
 
 		Model& model = *mModel->mModel;
-		model.VSSetShader();
-		model.PSSetShader();
-		model.IASet();
 
 		model.Draw(mMaterial);
 	}));

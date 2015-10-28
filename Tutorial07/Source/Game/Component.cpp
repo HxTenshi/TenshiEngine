@@ -220,9 +220,6 @@ void MeshDrawComponent::Update(){
 
 	Game::AddDrawList(DrawStage::Diffuse, std::function<void()>([&](){
 		Model& model = *mModel->mModel;
-		model.VSSetShader();
-		model.PSSetShader();
-		model.IASet();
 
 		if (mWriteDepth){
 			model.Draw(mMaterial);

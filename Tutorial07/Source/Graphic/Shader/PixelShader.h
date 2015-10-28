@@ -11,7 +11,7 @@ public:
 	}
 	~PixelShader()
 	{
-
+		Release();
 	}
 	HRESULT Create(const char* FileName){
 		return Create(FileName, "PS");
@@ -38,12 +38,17 @@ public:
 	}
 
 	void SetShader() const{
-		Device::mpImmediateContext->PSSetShader(mpPixelShader, NULL, 0);
+		if (mpPixelShader)
+			Device::mpImmediateContext->PSSetShader(mpPixelShader, NULL, 0);
 	}
 
+private:
 	void Release(){
 
-		if (mpPixelShader) mpPixelShader->Release();
+		if (mpPixelShader){
+			mpPixelShader->Release();
+			mpPixelShader = NULL;
+		}
 	}
 private:
 	ID3D11PixelShader*	mpPixelShader;

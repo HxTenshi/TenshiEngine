@@ -153,6 +153,36 @@ public:
 class MaterialComponent :public Component{
 public:
 
+	Material LoadAssetResource(const std::string& path){
+
+		Material material;
+		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
+		auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
+		auto hr = material.Create(cbm, cbt);
+		if (FAILED(hr))
+			return Material();
+		File f(path);
+		if (!f)return Material();
+		std::string name;
+		f.In(&name);
+		int num;
+		f.In(&num);
+		for (int i = 0; i < num; i++){
+			int slot;
+			f.In(&slot);
+			std::string filename;
+			f.In(&filename);
+			int ioc = filename.find("$");
+			while (std::string::npos != ioc){
+				filename.replace(ioc, 1, " ");
+				ioc = filename.find("$");
+			}
+
+			material.SetTexture(filename.c_str(), slot);
+		}
+		return material;
+	}
+
 	MaterialComponent(){
 		mThis = NULL;
 		mMaterials = new std::vector<Material>();
@@ -199,7 +229,12 @@ public:
 			(**mppMaterials)[0].SetTexture(name.c_str(),0);
 			TextureName = name;
 		};
-		TextureName = (**mppMaterials)[0].mTexture[0].mFileName;
+		std::function<void(std::string)> collbackpath = [&](std::string name){
+			mMaterialPath = name;
+			(**mppMaterials)[0] = LoadAssetResource(mMaterialPath);
+			TextureName = (**mppMaterials)[0].mTexture[0].mFileName;
+		};
+		Window::AddInspector(new InspectorStringDataSet("Material", &mMaterialPath, collbackpath), data);
 		Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.x, collbackx), data);
 		Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.y, collbacky), data);
 		Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.z, collbackz), data);
@@ -211,39 +246,53 @@ public:
 		ExportClassName(f);
 		int num = mMaterials->size();
 		f.Out(num);
-		for (auto& m : *mMaterials){
-			m.ExportData(f);
-		}
+		f.Out(mMaterialPath);
+		//for (auto& m : *mMaterials){
+		//	m.ExportData(f);
+		//}
 	}
 	void ImportData(File& f) override{
 		int num;
 		f.In(&num);
 		mMaterials->resize(num);
+		f.In(&mMaterialPath);
 		for (auto& m : *mMaterials){
-			f.In(&num);
-			auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-			auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-			m.Create(cbm, cbt);
-			for (int i = 0; i < num; i++){
-				int slot;
-				f.In(&slot);
-				std::string filename;
-				f.In(&filename);
-				int ioc = filename.find("$");
-				while (std::string::npos != ioc){
-					filename.replace(ioc, 1, " ");
-					ioc = filename.find("$");
-				}
-
-				m.SetTexture(filename.c_str(), slot);
+			m = LoadAssetResource(mMaterialPath);
+			if (!m.mCBUseTexture.mBuffer){
+				auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
+				auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
+				m.Create(cbm, cbt);
+			}
+			else{
+				TextureName = m.mTexture[0].mFileName;
 			}
 		}
+		//for (auto& m : *mMaterials){
+		//	f.In(&num);
+		//	auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
+		//	auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
+		//	m.Create(cbm, cbt);
+		//	for (int i = 0; i < num; i++){
+		//		int slot;
+		//		f.In(&slot);
+		//		std::string filename;
+		//		f.In(&filename);
+		//		int ioc = filename.find("$");
+		//		while (std::string::npos != ioc){
+		//			filename.replace(ioc, 1, " ");
+		//			ioc = filename.find("$");
+		//		}
+		//
+		//		m.SetTexture(filename.c_str(), slot);
+		//	}
+		//}
 	}
 
 	bool mUseDelete;
 	std::vector<Material>** mppMaterials;
 	std::vector<Material>* mMaterials;
 	Actor* mThis;
+	std::string mMaterialPath;
 };
 
 class AnimetionComponent :public Component{
@@ -401,8 +450,6 @@ public:
 	~ParticleComponent(){
 		mGeometryShader0.Release();
 		mGeometryShader1.Release();
-		mVertexShader.Release();
-		mPixelShader.Release();
 		mpSOBuffer[0]->Release();
 		mpSOBuffer[1]->Release();
 	}

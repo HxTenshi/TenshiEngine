@@ -32,8 +32,13 @@ HRESULT Material::Create(const ConstantBuffer<cbChangesMaterial>& cbMaterial,con
 	mCBUseTexture.mParam.UseTexture = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	//mCBUseTexture->UpdateSubresource();
+	mShader.Create("Tutorial07.fx");
 
 	return S_OK;
+}
+
+void Material::SetShader() const{
+	mShader.SetShader();
 }
 
 void Material::PSSetShaderResources() const{
