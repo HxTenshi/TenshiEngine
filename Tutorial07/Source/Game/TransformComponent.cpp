@@ -26,6 +26,10 @@ TransformComponent::~TransformComponent(){
 }
 
 void TransformComponent::Update(){
+	auto physx = gameObject->GetComponent<PhysXComponent>();
+	if (physx){
+		physx->SetTransform();
+	}
 }
 
 const XMVECTOR& TransformComponent::Scale() const{
@@ -75,7 +79,7 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 				XMMatrixTranslationFromVector(mPosition));
 		}
 		//テスクチャー用（仮）
-		mMatrix._44 = mPosition.w;
+		//mMatrix._44 = mPosition.w;
 		mFixMatrixFlag = true;
 
 		if (mParent)

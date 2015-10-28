@@ -29,6 +29,8 @@ public:
 		mChengeTransform = true;
 	}
 
+	void SetTransform();
+
 	void AddShape(physx::PxShape& shape);
 	void RemoveShape(physx::PxShape& shape);
 	void SetKinematic(bool flag);
@@ -38,6 +40,6 @@ public:
 
 private:
 	physx::PxRigidActor* mRigidActor;
-	bool mChengeTransform;
 	bool mIsKinematic;
+	bool mChengeTransform;
 };

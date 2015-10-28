@@ -34,6 +34,21 @@ void PhysXComponent::SetPosition(XMVECTOR& position){
 	mRigidActor->setGlobalPose(t);
 }
 void PhysXComponent::Update(){
+	//if (mChengeTransform){
+	//	auto t = mRigidActor->getGlobalPose();
+	//	auto position = gameObject->mTransform->Position();
+	//	t.p = physx::PxVec3(position.x, position.y, position.z);
+	//
+	//	auto rotate = gameObject->mTransform->Rotate();
+	//	rotate = XMQuaternionRotationRollPitchYawFromVector(rotate);
+	//	t.q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
+	//	mRigidActor->setGlobalPose(t);
+	//
+	//	mChengeTransform = false;
+	//}
+}
+
+void PhysXComponent::SetTransform(){
 	if (mChengeTransform){
 		auto t = mRigidActor->getGlobalPose();
 		auto position = gameObject->mTransform->Position();
@@ -50,7 +65,6 @@ void PhysXComponent::Update(){
 	gameObject->SetTransform(&t);
 	mChengeTransform = false;
 }
-
 void PhysXComponent::AddShape(physx::PxShape& shape){
 	mRigidActor->attachShape(shape);
 }

@@ -45,7 +45,9 @@ Actor::~Actor()
 void Actor::UpdateComponent(float deltaTime){
 	Update(deltaTime);
 
+	mTransform->Update();
 	for (const auto& cmp : mComponents.mComponent){
+		if (cmp.second.Get() == mTransform.Get())continue;
 		cmp.second->Update();
 	}
 
@@ -146,20 +148,17 @@ void Actor::ImportData(const std::string& fileName){
 	std::string temp;
 
 	mComponents.mComponent.clear();
-	
+	mTransform = shared_ptr<TransformComponent>();
+
 	while (f){
-		f.In(&temp);
+		if (!f.In(&temp))break;
 		if (auto p = ComponentFactory::Create(temp)){
 			p->ImportData(f);
 			mComponents.AddComponent(p);
-			if (dynamic_cast<TransformComponent*>(p.Get()))
+			if (dynamic_cast<TransformComponent*>(p.Get())){
 				mTransform = p;
-			
+			}
 		}
-	}
-
-	for (const auto& cmp : mComponents.mComponent){
-		cmp.second->Initialize();
 	}
 
 	if (uid){
@@ -167,6 +166,9 @@ void Actor::ImportData(const std::string& fileName){
 		if (par){
 			mTransform->SetParent(par);
 		}
+	}
+	for (const auto& cmp : mComponents.mComponent){
+		cmp.second->Initialize();
 	}
 }
 

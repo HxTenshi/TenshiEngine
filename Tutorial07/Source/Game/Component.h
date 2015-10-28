@@ -36,14 +36,10 @@ public:
 		}
 	}
 	virtual void Update() override{
-		if (!mTransform){
-			mTransform = gameObject->GetComponent<TransformComponent>();
-			if (!mTransform)return;
-		}
 
 		if (!mModel)return;
 
-		mModel->mWorld = mTransform->GetMatrix();
+		mModel->mWorld = gameObject->mTransform->GetMatrix();
 		mModel->Update();
 	}
 
@@ -82,7 +78,6 @@ public:
 
 	Model* mModel;
 	std::string mFileName;
-	weak_ptr<TransformComponent> mTransform;
 
 };
 

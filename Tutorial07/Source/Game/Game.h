@@ -359,6 +359,9 @@ public:
 		t = 0.0f;
 
 		float scale = 1.0f;
+		//auto t = shared_ptr<TransformComponent>(new TransformComponent());
+		//mTransform = t;
+		//mComponents.AddComponent<TransformComponent>(t);
 		mTransform->Scale(XMVectorSet(scale, scale, scale, 1.0f));
 	}
 	Box(const XMVECTOR& Position){
@@ -535,9 +538,9 @@ public:
 		//mVectorBox[1].mTransform->Position(mSelect->mTransform->Position());
 		//mVectorBox[2].mTransform->Position(mSelect->mTransform->Position());
 
-		mVectorBox[0].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(3.0f, 0.0f, 0.0f, 0.0f));
-		mVectorBox[1].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f));
-		mVectorBox[2].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 0.0f, 3.0f, 0.0f));
+		//mVectorBox[0].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(3.0f, 0.0f, 0.0f, 0.0f));
+		//mVectorBox[1].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f));
+		//mVectorBox[2].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 0.0f, 3.0f, 0.0f));
 
 		mVectorBox[0].UpdateComponent(deltaTime);
 		mVectorBox[1].UpdateComponent(deltaTime);
