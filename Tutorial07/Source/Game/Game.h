@@ -475,27 +475,6 @@ protected:
 	XMFLOAT2 mPixelDownRight;
 };
 
-class Mouse{
-public:
-	
-	void CatchComponent(Actor* actor){
-		//mCatchComponent = actor->GetComponent<MaterialComponent>();
-	}
-
-	void InsertComponent(Actor* actor){
-		//if (mCatchComponent){
-		//	auto matCmp = actor->GetComponent<MaterialComponent>();
-		//	if (matCmp){
-		//		matCmp->SetMaterial(0,mCatchComponent->GetMaterial(0));
-		//	}
-		//}
-	}
-	
-private:
-
-	shared_ptr<MaterialComponent> mCatchComponent;
-};
-
 class Player : public Actor{
 public:
 	Player(){
@@ -632,8 +611,7 @@ public:
 
 	WorldGrid(float GridSize){
 
-		mVertexShader.Create("Line.fx");
-		mPixelShader.Create("Line.fx");
+		mShader.Create("Line.fx");
 
 		const int _lineNum = 100+100+6;
 		XMFLOAT4 v[_lineNum];
@@ -719,8 +697,7 @@ public:
 
 	void Draw()const{
 		Device::mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-		mVertexShader.SetShader();
-		mPixelShader.SetShader();
+		mShader.SetShader();
 		mMaterial.GetMaterial(0).PSSetShaderResources();
 		UINT mStride = sizeof(XMFLOAT4);
 		UINT offset = 0;
@@ -783,8 +760,7 @@ public:
 	}
 
 private:
-	VertexShader	mVertexShader;
-	PixelShader		mPixelShader;
+	Shader mShader;
 
 	ID3D11Buffer*	mpVertexBuffer;
 	ID3D11Buffer*	mpIndexBuffer;
@@ -923,21 +899,6 @@ public:
 			for (auto& p : mList){
 				if (p.second->ChackHitRay(pos, vect)){
 					mSelectActor.SetSelect(p.second);
-					mMouse.CatchComponent(p.second);
-				}
-			}
-		}
-		if (Input::Up(MouseCoord::Left)){
-			int x, y;
-			Input::MousePosition(&x, &y);
-			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
-			XMVECTOR vect = mCamera.PointRayVector(point);
-			XMVECTOR pos = mCamera.GetPosition();
-		
-			mSelectActor.ChackHitRay(pos, vect);
-			for (auto& p : mList){
-				if (p.second->ChackHitRay(pos, vect)){
-					mMouse.InsertComponent(p.second);
 				}
 			}
 		}
@@ -952,14 +913,7 @@ public:
 
 		mSelectActor.Update(deltaTime);
 
-
-		//for (Actor* p : mList){
-		//	p->UpdateComponent(deltaTime);
-		//}
-
 		mRootObject->UpdateComponent(deltaTime);
-
-
 
 		mPhysX3Main->Display();
 
@@ -980,8 +934,6 @@ private:
 	SelectActor mSelectActor;
 
 	EditorCamera mCamera;
-
-	Mouse mMouse;
 
 	WorldGrid mWorldGrid;
 
