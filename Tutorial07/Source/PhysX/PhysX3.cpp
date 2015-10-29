@@ -168,11 +168,17 @@ void PhysX3Main::StepPhysX()
 	gScene->simulate(myTimestep);
 
 	//シュミレーション中に？作成Shapeを？作成できない
-	//...perform useful work here using previous frame's state data        
+	//...perform useful work here using previous frame's state data
+	//gScene->checkResults(false);
+	
 	while (!gScene->fetchResults())
 	{
 		//break;
 		// do something useful        
+	}
+	//while ()
+	{
+		//break;    
 	}
 }
 

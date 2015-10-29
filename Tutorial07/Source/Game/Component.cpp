@@ -219,6 +219,7 @@ void MeshDrawComponent::Update(){
 	if (!mMaterial)return;
 
 	Game::AddDrawList(DrawStage::Diffuse, std::function<void()>([&](){
+		mModel->SetMatrix();
 		Model& model = *mModel->mModel;
 
 		if (mWriteDepth){

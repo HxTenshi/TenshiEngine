@@ -10,13 +10,17 @@ namespace physx{
 	class PxRigidActor;
 	class PxShape;
 }
+
+enum class PhysXChangeTransformFlag{
+	Position	=0x0001,
+	Rotate		=0x0002,
+};
+
 class PhysXComponent :public Component{
 public:
 	PhysXComponent();
 	~PhysXComponent();
 	void Initialize() override;
-
-	void SetPosition(XMVECTOR& position);
 
 	void Update() override;
 
@@ -25,8 +29,8 @@ public:
 	void ExportData(File& f) override;
 	void ImportData(File& f) override;
 
-	void SetChengeTransformFlag(){
-		mChengeTransform = true;
+	void SetChengeTransform(PhysXChangeTransformFlag flag){
+		mChengeTransformFlag |= (char)flag;
 	}
 
 	void SetTransform();
@@ -41,5 +45,5 @@ public:
 private:
 	physx::PxRigidActor* mRigidActor;
 	bool mIsKinematic;
-	bool mChengeTransform;
+	char mChengeTransformFlag;
 };

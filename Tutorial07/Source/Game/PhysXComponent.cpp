@@ -3,7 +3,7 @@
 #include "Game.h"
 PhysXComponent::PhysXComponent(){
 
-	mChengeTransform = true;
+	mChengeTransformFlag = 0xFFFF;
 	mRigidActor = Game::CreateRigitBody();
 	auto r = (PxRigidDynamic*)mRigidActor;
 	auto flag = r->getRigidDynamicFlags();
@@ -27,12 +27,6 @@ void PhysXComponent::Initialize(){
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h>
 
-
-void PhysXComponent::SetPosition(XMVECTOR& position){
-	auto t = mRigidActor->getGlobalPose();
-	t.p = physx::PxVec3(position.x, position.y, position.z);
-	mRigidActor->setGlobalPose(t);
-}
 void PhysXComponent::Update(){
 	//if (mChengeTransform){
 	//	auto t = mRigidActor->getGlobalPose();
@@ -49,21 +43,24 @@ void PhysXComponent::Update(){
 }
 
 void PhysXComponent::SetTransform(){
-	if (mChengeTransform){
-		auto t = mRigidActor->getGlobalPose();
+
+	auto t = mRigidActor->getGlobalPose();
+
+	if (mChengeTransformFlag&(char)PhysXChangeTransformFlag::Position){
 		auto position = gameObject->mTransform->Position();
 		t.p = physx::PxVec3(position.x, position.y, position.z);
-
-		auto rotate = gameObject->mTransform->Rotate();
-		rotate = XMQuaternionRotationRollPitchYawFromVector(rotate);
-		t.q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
-		mRigidActor->setGlobalPose(t);
-
-		mChengeTransform = false;
 	}
-	auto t = mRigidActor->getGlobalPose();
+
+	if (mChengeTransformFlag&(char)PhysXChangeTransformFlag::Rotate){
+		auto rotate = gameObject->mTransform->Rotate();
+		//rotate = XMQuaternionRotationRollPitchYawFromVector(rotate);
+		t.q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
+	}
+	if (mChengeTransformFlag){
+		mRigidActor->setGlobalPose(t);
+	}
 	gameObject->SetTransform(&t);
-	mChengeTransform = false;
+	mChengeTransformFlag = 0x0000;
 }
 void PhysXComponent::AddShape(physx::PxShape& shape){
 	mRigidActor->attachShape(shape);

@@ -45,7 +45,7 @@ void TransformComponent::Scale(const XMVECTOR& scale){
 void TransformComponent::Rotate(const XMVECTOR& rotate){
 	mRotate = rotate;
 	mFixMatrixFlag = false;
-	UpdatePhysX();
+	UpdatePhysX(PhysXChangeTransformFlag::Rotate);
 }
 
 const XMVECTOR& TransformComponent::Position() const{
@@ -54,7 +54,7 @@ const XMVECTOR& TransformComponent::Position() const{
 void TransformComponent::Position(const XMVECTOR& position){
 	mPosition = position;
 	mFixMatrixFlag = false;
-	UpdatePhysX();
+	UpdatePhysX(PhysXChangeTransformFlag::Position);
 }
 
 const XMMATRIX& TransformComponent::GetMatrix() const{
@@ -199,11 +199,11 @@ void TransformComponent::ImportData(File& f){
 	mFixMatrixFlag = false;
 }
 
-void TransformComponent::UpdatePhysX(){
+void TransformComponent::UpdatePhysX(PhysXChangeTransformFlag flag){
 	//Physicsと競合するためポジションを動かした場合コチラを優先
 	auto c = gameObject->GetComponent<PhysXComponent>();
 	if (c)
-		c->SetChengeTransformFlag();
+		c->SetChengeTransform(flag);
 }
 
 

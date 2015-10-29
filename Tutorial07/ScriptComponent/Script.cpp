@@ -72,25 +72,38 @@ void DllScriptComponent::Update(Actor* This){
 	//if (Input::Down(KeyCoord::Key_T)){
 	//	This->mTransform->AddForce(XMVectorSet(0.0f, speed * 4, 0.0f, 0.0f));
 	//}
+	if (Input::Down(KeyCoord::Key_J)){
+		auto rotate = This->mTransform->Position();
+		rotate.x += speed;
+		This->mTransform->Position(rotate);
+	}
+	if (Input::Down(KeyCoord::Key_K)){
+		auto rotate = This->mTransform->Position();
+		rotate.x -= speed;
+		This->mTransform->Position(rotate);
+	}
 
 	if (Input::Down(KeyCoord::Key_A)){
 		auto rotate = This->mTransform->Rotate();
-		rotate.z += speed;
+		rotate = XMQuaternionMultiply(rotate, XMQuaternionRotationRollPitchYaw(0, 0, speed));
 		This->mTransform->Rotate(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_D)){
 		auto rotate = This->mTransform->Rotate();
-		rotate.z -= speed;
+		rotate = XMQuaternionMultiply(rotate, XMQuaternionRotationRollPitchYaw(0, 0, -speed));
 		This->mTransform->Rotate(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_W)){
 		auto rotate = This->mTransform->Rotate();
-		rotate.x += speed;
+		rotate = XMQuaternionMultiply(rotate, XMQuaternionRotationRollPitchYaw(speed, 0, 0));
 		This->mTransform->Rotate(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_S)){
 		auto rotate = This->mTransform->Rotate();
-		rotate.x -= speed;
+		rotate = XMQuaternionMultiply(rotate, XMQuaternionRotationRollPitchYaw(-speed, 0, 0));
 		This->mTransform->Rotate(rotate);
+	}
+	if (Input::Down(KeyCoord::Key_U)){
+		This->mTransform->AddTorque(XMVectorSet(speed*100, 0, 0,1));
 	}
 }

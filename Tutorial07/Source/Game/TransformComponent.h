@@ -58,7 +58,7 @@ public:
 	void ExportData(File& f) override;
 	void ImportData(File& f) override;
 
-	void UpdatePhysX();
+	void UpdatePhysX(PhysXChangeTransformFlag flag);
 
 	bool isChangeMatrix(){
 		return !mFixMatrixFlag;

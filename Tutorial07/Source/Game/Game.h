@@ -530,21 +530,18 @@ public:
 		//		}
 		//	}
 		//}
+
 		if (!mSelect)return;
 
 		Window::UpdateInspector();
-
-		//mVectorBox[0].mTransform->Position(mSelect->mTransform->Position());
-		//mVectorBox[1].mTransform->Position(mSelect->mTransform->Position());
-		//mVectorBox[2].mTransform->Position(mSelect->mTransform->Position());
 
 		//mVectorBox[0].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(3.0f, 0.0f, 0.0f, 0.0f));
 		//mVectorBox[1].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f));
 		//mVectorBox[2].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 0.0f, 3.0f, 0.0f));
 
-		mVectorBox[0].UpdateComponent(deltaTime);
-		mVectorBox[1].UpdateComponent(deltaTime);
-		mVectorBox[2].UpdateComponent(deltaTime);
+		//mVectorBox[0].UpdateComponent(deltaTime);
+		//mVectorBox[1].UpdateComponent(deltaTime);
+		//mVectorBox[2].UpdateComponent(deltaTime);
 
 		static XMVECTOR vect = XMVectorZero();
 		if (Input::Down(MouseCoord::Left)){
@@ -913,6 +910,7 @@ public:
 		if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Y)){
 			mCommandManager.Redo();
 		}
+
 
 		mSelectActor.Update(deltaTime);
 

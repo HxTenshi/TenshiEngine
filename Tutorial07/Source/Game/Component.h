@@ -37,8 +37,10 @@ public:
 	}
 	virtual void Update() override{
 
-		if (!mModel)return;
+	}
 
+	void SetMatrix(){
+		if (!mModel)return;
 		mModel->mWorld = gameObject->mTransform->GetMatrix();
 		mModel->Update();
 	}
