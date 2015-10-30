@@ -33,6 +33,7 @@ public:
 	void SetConstantBuffer() const;
 	void Update();
 	void IASet() const;
+	void Draw(Material material) const;
 	void Draw(shared_ptr<MaterialComponent> material) const;
 	ModelBuffer* GetModelBuffer(){ return mModelBuffer; }
 	void PlayVMD(float time);

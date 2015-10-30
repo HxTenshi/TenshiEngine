@@ -9,12 +9,17 @@
 #include "IComponent.h"
 
 class Actor;
+class TransformComponent;
 
 class ITransformComponent :public Component{
 public:
 	virtual ~ITransformComponent(){
 
 	}
+	//virtual const XMVECTOR& WorldScale() const = 0;
+	//virtual const XMVECTOR& WorldRotate() const = 0;
+	virtual const XMVECTOR& WorldPosition() const = 0;
+
 
 	virtual const XMVECTOR& Scale() const = 0;
 	virtual const XMVECTOR& Rotate() const = 0;
@@ -33,12 +38,21 @@ public:
 	virtual void SetParent(Actor* parent) = 0;
 
 	virtual void SetUndo(const XMVECTOR& pos) = 0;
+
+private:
+	friend TransformComponent;
+	virtual void FlagSetChangeMatrix() = 0;
+
 };
 
 class TransformComponent :public ITransformComponent{
 public:
 	TransformComponent();
 	~TransformComponent();
+
+	//const XMVECTOR& WorldScale() const override;
+	//const XMVECTOR& WorldRotate() const override;
+	const XMVECTOR& WorldPosition() const override;
 
 	const XMVECTOR& Scale() const override;
 	const XMVECTOR& Rotate() const override;
@@ -60,7 +74,8 @@ public:
 
 	void UpdatePhysX(PhysXChangeTransformFlag flag);
 
-	bool isChangeMatrix(){
+	void FlagSetChangeMatrix();
+	bool IsChangeMatrix(){
 		return !mFixMatrixFlag;
 	}
 
@@ -74,8 +89,9 @@ private:
 	XMVECTOR mScale;
 	XMVECTOR mRotate;
 	XMVECTOR mPosition;
-	mutable bool mFixMatrixFlag;
 	mutable XMMATRIX mMatrix;
 	std::list<Actor*> mChildren;
 	Actor* mParent;
+protected:
+	mutable bool mFixMatrixFlag;
 };

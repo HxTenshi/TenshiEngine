@@ -40,26 +40,31 @@ const XMVECTOR& TransformComponent::Rotate() const{
 }
 void TransformComponent::Scale(const XMVECTOR& scale){
 	mScale = scale;
-	mFixMatrixFlag = false;
+	FlagSetChangeMatrix();
 }
 void TransformComponent::Rotate(const XMVECTOR& rotate){
 	mRotate = rotate;
-	mFixMatrixFlag = false;
+	FlagSetChangeMatrix();
 	UpdatePhysX(PhysXChangeTransformFlag::Rotate);
 }
 
+const XMVECTOR& TransformComponent::WorldPosition() const{
+	return GetMatrix().r[3];
+}
 const XMVECTOR& TransformComponent::Position() const{
 	return mPosition;
 }
 void TransformComponent::Position(const XMVECTOR& position){
 	mPosition = position;
-	mFixMatrixFlag = false;
+	FlagSetChangeMatrix();
 	UpdatePhysX(PhysXChangeTransformFlag::Position);
 }
 
 const XMMATRIX& TransformComponent::GetMatrix() const{
-	mFixMatrixFlag = false;
 	if (!mFixMatrixFlag){
+
+		mFixMatrixFlag = true;
+
 		//クォータニオンで計算
 		if (mRotate.w != 1.0f){
 			mMatrix = XMMatrixMultiply(
@@ -80,12 +85,19 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 		}
 		//テスクチャー用（仮）
 		//mMatrix._44 = mPosition.w;
-		mFixMatrixFlag = true;
 
 		if (mParent)
 			mMatrix = XMMatrixMultiply(mMatrix, mParent->mTransform->GetMatrix());
 	}
 	return mMatrix;
+}
+
+void TransformComponent::FlagSetChangeMatrix(){
+	if (!mFixMatrixFlag)return;
+	mFixMatrixFlag = false;
+	for (auto& child : mChildren){
+		child->mTransform->FlagSetChangeMatrix();
+	}
 }
 
 
@@ -196,7 +208,8 @@ void TransformComponent::ImportData(File& f){
 	f.In(&mPosition.y);
 	f.In(&mPosition.z);
 	f.In(&mPosition.w);
-	mFixMatrixFlag = false;
+
+	FlagSetChangeMatrix();
 }
 
 void TransformComponent::UpdatePhysX(PhysXChangeTransformFlag flag){

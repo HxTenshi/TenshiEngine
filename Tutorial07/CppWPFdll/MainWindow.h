@@ -176,8 +176,10 @@ public:
 	void UpdateView(){
 		if (m_ComponentDockPanel == nullptr)return;
 		for (int i = 0; i < m_ComponentDockPanel->Children->Count; i++){
-			auto b = (Border^)m_ComponentDockPanel->Children[i];
-			auto d = (Panel^)b->Child;
+			auto b = dynamic_cast<Border^>(m_ComponentDockPanel->Children[i]);
+			if (b == nullptr)continue;
+			auto d = dynamic_cast<Panel^>(b->Child);
+			if (d == nullptr)continue;
 			ForDockPanelChild(d);
 		}
 	}

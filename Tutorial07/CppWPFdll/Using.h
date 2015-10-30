@@ -21,6 +21,7 @@ using System::Windows::Controls::CheckBox;
 using System::Windows::Controls::Panel;
 using System::Windows::Controls::DockPanel;
 using System::Windows::Controls::StackPanel;
+using System::Windows::Controls::ScrollViewer;
 using System::Windows::Controls::TreeView;
 using System::Windows::Controls::TreeViewItem;
 using System::Windows::Controls::ItemCollection;

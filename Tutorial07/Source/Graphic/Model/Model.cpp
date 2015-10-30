@@ -84,6 +84,16 @@ void Model::Update(){
 void Model::IASet() const{
 	mModelBuffer->IASet();
 }
+void Model::Draw(Material material) const{
+	material.SetShader();
+	IASet();
+	SetConstantBuffer();
+	material.PSSetShaderResources();
+	for (UINT i = 0; i < mMeshs.size(); i++){
+		mMeshs[i].Draw();
+	}
+}
+
 void Model::Draw(shared_ptr<MaterialComponent> material) const{
 	for (UINT i = 0; i < mMeshs.size(); i++){
 		material->GetMaterial(i).SetShader();

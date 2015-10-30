@@ -12,6 +12,31 @@ Material::~Material()
 
 }
 
+HRESULT Material::Create(){
+
+
+	mCBMaterial = ConstantBuffer<cbChangesMaterial>::create(4);
+	HRESULT hr = S_OK;
+	if (!mCBMaterial.mBuffer)
+		return S_FALSE;
+
+
+	mCBMaterial.mParam.Diffuse = mDiffuse;
+	mCBMaterial.mParam.Specular = mSpecular;
+	mCBMaterial.mParam.Ambient = mAmbient;
+
+
+	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
+	if (!mCBUseTexture.mBuffer)
+		return S_FALSE;
+	mCBUseTexture.mParam.UseTexture = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	mShader.Create("Tutorial07.fx");
+
+	return S_OK;
+
+}
+
 HRESULT Material::Create(const ConstantBuffer<cbChangesMaterial>& cbMaterial,const ConstantBuffer<cbChangesUseTexture>& cbUseTexture){
 	HRESULT hr = S_OK;
 	mCBMaterial = cbMaterial.Duplicate();

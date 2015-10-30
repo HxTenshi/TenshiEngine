@@ -13,6 +13,7 @@ public:
 	Material();
 	~Material();
 
+	HRESULT Create();
 	HRESULT Create(ConstantBuffer<cbChangesMaterial> const& cbMaterial, ConstantBuffer<cbChangesUseTexture> const& cbUseTexture);
 	void SetShader() const;
 	void PSSetShaderResources() const;

@@ -28,7 +28,7 @@ public:
 		WAVEFORMATEX wFmt;
 		char *pWaveData = 0;
 		DWORD waveSize = 0;
-		if (!openWave("bgm.wav", wFmt, &pWaveData, waveSize))
+		if (!openWave("EngineResource/bgm.wav", wFmt, &pWaveData, waveSize))
 			return;
 
 		// サウンドデバイス作成

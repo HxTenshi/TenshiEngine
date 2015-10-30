@@ -76,7 +76,7 @@ public:
 		if (!mCBChangeLgiht.mBuffer)
 			return S_FALSE;
 
-		mCBChangeLgiht.mParam.LightVect = XMFLOAT4(0.0f, 0.0f, 1.0f, 0.0f);
+		mCBChangeLgiht.mParam.LightVect = XMFLOAT4(-1.0f, -1.0f, 1.0f, 0.0f);
 		mCBChangeLgiht.mParam.LightColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 		mCBChangeLgiht.UpdateSubresource();
 
@@ -84,8 +84,8 @@ public:
 		if (!mCBChangeLgihtMaterial.mBuffer)
 			return S_FALSE;
 
-		mCBChangeLgihtMaterial.mParam.Diffuse = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-		mCBChangeLgihtMaterial.mParam.Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+		mCBChangeLgihtMaterial.mParam.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		mCBChangeLgihtMaterial.mParam.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 		mCBChangeLgihtMaterial.mParam.Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 
 		mCBChangeLgihtMaterial.UpdateSubresource();

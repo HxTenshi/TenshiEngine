@@ -216,18 +216,6 @@ public:
 		//	pDS->Release();
 		//}
 
-
-		D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-		descRS.CullMode = D3D11_CULL_BACK;
-		descRS.FillMode = D3D11_FILL_WIREFRAME;
-
-		ID3D11RasterizerState* pRS = NULL;
-		Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
-
-		Device::mpImmediateContext->RSSetState(pRS);
-
-		Device::mpImmediateContext->RSSetState(NULL);
-
 		//for (Actor* p : mActors){
 		//	p->Draw(DrawBit::Diffuse);
 		//}
@@ -240,12 +228,10 @@ public:
 
 		auto &list3 = (*DrawList)[DrawStage::Engine];
 		for (auto &p : list3){
-			//p();
+			p();
 		}
 		list3.clear();
 
-		Device::mpImmediateContext->RSSetState(NULL);
-		if (pRS)pRS->Release();
 
 		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
 		if (pDS)pDS->Release();
@@ -504,15 +490,21 @@ class SelectActor{
 public:
 	SelectActor()
 		:mSelect(NULL)
-		, mTreeSelect(NULL)
 	{
 		mDragBox = -1;
 		mVectorBox[0].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
 		mVectorBox[1].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
 		mVectorBox[2].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
+
+		mSelectWireMaterial.mDiffuse.x = 0.95f;
+		mSelectWireMaterial.mDiffuse.y = 0.6f;
+		mSelectWireMaterial.mDiffuse.z = 0.1f;
+		mSelectWireMaterial.Create();
 	}
 
 	void SetSelect(Actor* select){
+		mDragBox = -1;
+
 		mSelect = select;
 		Window::mInspectorWindow.InsertConponentData(mSelect);
 	}
@@ -535,13 +527,13 @@ public:
 
 		Window::UpdateInspector();
 
-		//mVectorBox[0].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(3.0f, 0.0f, 0.0f, 0.0f));
-		//mVectorBox[1].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f));
-		//mVectorBox[2].mTransform->Position(mSelect->mTransform->Position() + XMVectorSet(0.0f, 0.0f, 3.0f, 0.0f));
+		mVectorBox[0].mTransform->Position(mSelect->mTransform->WorldPosition() + XMVectorSet(3.0f, 0.0f, 0.0f, 0.0f));
+		mVectorBox[1].mTransform->Position(mSelect->mTransform->WorldPosition() + XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f));
+		mVectorBox[2].mTransform->Position(mSelect->mTransform->WorldPosition() + XMVectorSet(0.0f, 0.0f, 3.0f, 0.0f));
 
-		//mVectorBox[0].UpdateComponent(deltaTime);
-		//mVectorBox[1].UpdateComponent(deltaTime);
-		//mVectorBox[2].UpdateComponent(deltaTime);
+		mVectorBox[0].UpdateComponent(deltaTime);
+		mVectorBox[1].UpdateComponent(deltaTime);
+		mVectorBox[2].UpdateComponent(deltaTime);
 
 		static XMVECTOR vect = XMVectorZero();
 		if (Input::Down(MouseCoord::Left)){
@@ -571,24 +563,24 @@ public:
 		if (mDragBox != -1){
 			mSelect->mTransform->Position(vect);
 		}
+		SelectActorDraw();
 	}
+
+	void SelectActorDraw();
 
 	void ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect){
 
 		if (!mSelect)return;
 
 		if (mVectorBox[0].ChackHitRay(pos, vect)){
-			//mSelect->mPosition.x += 0.1f;
 			mDragPos = mSelect->mTransform->Position();
 			mDragBox = 0;
 		}
 		if (mVectorBox[1].ChackHitRay(pos, vect)){
-			//mSelect->mPosition.y += 0.1f;
 			mDragPos = mSelect->mTransform->Position();
 			mDragBox = 1;
 		}
 		if (mVectorBox[2].ChackHitRay(pos, vect)){
-			//mSelect->mPosition.z += 0.1f;
 			mDragPos = mSelect->mTransform->Position();
 			mDragBox = 2;
 		}
@@ -596,11 +588,12 @@ public:
 private:
 
 	Actor* mSelect;
-	Actor* mTreeSelect;
 
 	Box mVectorBox[3];
 	int mDragBox;
 	XMVECTOR mDragPos;
+
+	Material mSelectWireMaterial;
 };
 
 class WorldGrid{
@@ -888,20 +881,6 @@ public:
 			auto par = mSelectActor.GetSelect();
 			if (par)act->mTransform->SetParent(par);
 		}
-		if (Input::Trigger(MouseCoord::Left)){
-			int x, y;
-			Input::MousePosition(&x, &y);
-			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
-			XMVECTOR vect = mCamera.PointRayVector(point);
-			XMVECTOR pos = mCamera.GetPosition();
-		
-			mSelectActor.ChackHitRay(pos, vect);
-			for (auto& p : mList){
-				if (p.second->ChackHitRay(pos, vect)){
-					mSelectActor.SetSelect(p.second);
-				}
-			}
-		}
 
 		if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Z)){
 			mCommandManager.Undo();
@@ -913,6 +892,21 @@ public:
 
 
 		mSelectActor.Update(deltaTime);
+
+		if (Input::Trigger(MouseCoord::Left)){
+			int x, y;
+			Input::MousePosition(&x, &y);
+			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
+			XMVECTOR vect = mCamera.PointRayVector(point);
+			XMVECTOR pos = mCamera.GetPosition();
+
+			mSelectActor.ChackHitRay(pos, vect);
+			for (auto& p : mList){
+				if (p.second->ChackHitRay(pos, vect)){
+					mSelectActor.SetSelect(p.second);
+				}
+			}
+		}
 
 		mRootObject->UpdateComponent(deltaTime);
 
