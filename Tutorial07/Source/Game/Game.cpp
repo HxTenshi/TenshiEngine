@@ -182,6 +182,8 @@ Game::~Game(){
 	mPhysX3Main = NULL;
 	gpPhysX3Main = NULL;
 
+	Font::Release();
+
 
 }
 //static

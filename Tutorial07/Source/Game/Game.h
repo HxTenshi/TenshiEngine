@@ -201,9 +201,9 @@ public:
 		//
 		//	//tex->Draw();
 		//
-		//	//Font::TextOutFont(0, 60, 60, "AAAAA", "Comic Sans MS", 0);
-		//	//tex2->Draw();
-		//	//Font::DrawEnd();
+		//Font::TextOutFont(0, 60, 60, "AAAAA", "Comic Sans MS", 0);
+		//
+		//Font::DrawEnd();
 		//
 		//	//Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
 		//	//Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
@@ -231,7 +231,6 @@ public:
 			p();
 		}
 		list3.clear();
-
 
 		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
 		if (pDS)pDS->Release();
@@ -430,9 +429,7 @@ public:
 
 
 		Material mTexMaterial;
-		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-		auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-		mTexMaterial.Create(cbm, cbt);
+		mTexMaterial.Create("texture.fx");
 		mTexMaterial.SetTexture(Tex);
 
 		//if (mModel_.mMaterials.size() > 0){
@@ -913,12 +910,91 @@ public:
 		mPhysX3Main->Display();
 
 
+
+
+		Game::AddDrawList(DrawStage::Engine, [&](){
+			mWorldGrid.Draw();
+		});
+
+
+		static unsigned long time_start = timeGetTime();
+		static int count_frames = 0;
+
+		unsigned long current_time = timeGetTime();
+		float b = (current_time - time_start);
+		if (b == 0.0f){
+			b = 1;
+		}
+		float fps = (float)count_frames / b * 1000;
+		std::string title = "FPS:" + std::to_string(fps) + "だよ～★";
+		count_frames++;
+		if (count_frames > 60){
+			time_start = timeGetTime();
+			count_frames = 1;
+		}
+
+		static Tex tex = Tex(Font::GetFontTexture(), { 0, 0 }, { 1200, 800 });
+		Font::TextOutFont(0, 60, 60, title.c_str(), "Comic Sans MS", 0);
+
+		Game::AddDrawList(DrawStage::Engine,[&](){
+			//// アルファ ブレンディングを有効にする
+			//Device::mpd3dDevice->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE,
+			//	TRUE);
+			//// ソース ブレンド ステートの設定。
+			//lpD3DDevice->SetRenderState(D3DRENDERSTATE_SRCBLEND,
+			//	D3DBLEND_SRCCOLOR);
+			//
+			//// デスティネーション ブレンド ステートの設定。
+			//lpD3DDevice->SetRenderState(D3DRENDERSTATE_DESTBLEND,
+			//	D3DBLEND_INVSRCCOLOR);
+
+
+			tex.UpdateComponent(deltaTime);
+			auto mModel = tex.GetComponent<TextureModelComponent>();
+			if (!mModel)return;
+			Model& model = *mModel->mModel;
+
+			ID3D11DepthStencilState* pBackDS;
+			UINT ref;
+			Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
+
+			D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+			descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+			//descDS.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+			descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
+			ID3D11DepthStencilState* pDS_tex = NULL;
+			Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS_tex);
+			Device::mpImmediateContext->OMSetDepthStencilState(pDS_tex, 0);
+
+			D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+			descRS.CullMode = D3D11_CULL_BACK;
+			descRS.FillMode = D3D11_FILL_SOLID;
+
+			ID3D11RasterizerState* pRS = NULL;
+			Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
+
+			Device::mpImmediateContext->RSSetState(pRS);
+
+			auto material = tex.GetComponent<MaterialComponent>();
+			model.Draw(material);
+
+			Device::mpImmediateContext->RSSetState(NULL);
+			if (pRS)pRS->Release();
+
+			Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+			pDS_tex->Release();
+
+			Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
+			if (pBackDS)pBackDS->Release();
+			Font::DrawEnd();
+		});
+
+
+
 	}
 	void Draw(){
 
 		mCamera.Draw(&mDrawList);
-
-		mWorldGrid.Draw();
 
 	}
 private:

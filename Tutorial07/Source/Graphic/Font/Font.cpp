@@ -15,6 +15,31 @@ template <class T> void SafeRelease(T **ppT)
 }
 
 
+#include < locale.h >
+#include <string>
+
+void init_setlocale(){
+	setlocale(LC_CTYPE, "Japanese");
+}
+
+//ワイド文字列からマルチバイト文字列
+//ロケール依存
+void narrow(const std::wstring &src, std::string &dest) {
+	char *mbs = new char[src.length() * MB_CUR_MAX + 1];
+	wcstombs(mbs, src.c_str(), src.length() * MB_CUR_MAX + 1);
+	dest = mbs;
+	delete[] mbs;
+}
+
+//マルチバイト文字列からワイド文字列
+//ロケール依存
+void widen(const std::string &src, std::wstring &dest) {
+	wchar_t *wcs = new wchar_t[src.length() + 1];
+	mbstowcs(wcs, src.c_str(), src.length() + 1);
+	dest = wcs;
+	delete[] wcs;
+}
+
 HFONT new_font, old_font;
 
 #define _FONT_
@@ -61,6 +86,8 @@ Texture*					mTexture = NULL;
 
 #endif
 
+static bool initok=false;
+
 
 Texture Font::GetFontTexture(){
 	if (mTexture)
@@ -69,7 +96,7 @@ Texture Font::GetFontTexture(){
 }
 
 HRESULT InitF_(){
-
+	init_setlocale();
 #ifndef _FONT_
 
 	HRESULT hr;
@@ -247,7 +274,7 @@ HRESULT InitF_(){
 
 	//ClearView();
 
-
+	initok = true;
 	return hr;
 #endif
 }
@@ -289,7 +316,8 @@ HRESULT Create(){
 }
 
 
-HRESULT Draw(){
+HRESULT Draw(std::string text){
+	if (!initok)return;
 
 #ifndef _FONT_
 	HRESULT hr = S_OK;
@@ -321,9 +349,8 @@ HRESULT Draw(){
 	return hr;
 #else
 	HRESULT hr;
-	static float el = 0.0f;
-	el += 1.0f;
-	if (el > 360.0f) el = 0.0f;
+	std::wstring wtext;
+	widen(text, wtext);
 
 	// Direct3D
 
@@ -342,20 +369,16 @@ HRESULT Draw(){
 	if (FAILED(hr))return hr;
 
 	D2D1_COLOR_F color;
-	color = D2D1::ColorF(
-		min(120.0f, max(0, 120.0f - el)) / 120.0f,
-		min(120.0f, max(0, el - 120.0f)) / 120.0f,
-		min(120.0f, max(0, 240.0f - el)) / 120.0f,
-		1.0f);
+	color = D2D1::ColorF(1,1,1,1.0f);
 
 	ID2D1SolidColorBrush *brush;
 	hr = d2dRenderTarget_->CreateSolidColorBrush(color, &brush);
 	if (FAILED(hr))return hr;
 
 	D2D1_RECT_F rect;
-	rect = D2D1::RectF(0 + el, 500, 440 + el, 510);
+	//rect = D2D1::RectF(0 + el, 500, 440 + el, 510);
 
-	static bool flag = true;
+	bool flag = true;
 	if (flag){
 		d2dRenderTarget_->BeginDraw();
 		d2dRenderTarget_->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
@@ -363,12 +386,11 @@ HRESULT Draw(){
 
 		// DirectWrite
 
-		rect = D2D1::RectF(0 + el, 200, 450 + el, 201);
-		WCHAR *drawText = L"Hello HELL World!!!";
+		rect = D2D1::RectF(0, 200, 1000, 201);
 
-		UINT s = wcslen(drawText);
+		UINT s = wcslen(wtext.c_str());
 		d2dRenderTarget_->DrawText(
-			drawText, s, dwriteTextFormat_, &rect, brush);
+			wtext.c_str(), s, dwriteTextFormat_, &rect, brush);
 
 		hr = d2dRenderTarget_->EndDraw();
 		flag = false;
@@ -415,8 +437,8 @@ void Release_(){
 	SafeRelease(&dxgiBackBuffer_);
 	SafeRelease(&mpRenderTargetView);
 	SafeRelease(&pDWriteFactory_);
-	if (mTexture)
-		delete mTexture;
+	//if (mTexture)
+	//	delete mTexture;
 #endif
 }
 
@@ -462,7 +484,7 @@ void  Font::Release(){
 }
 
 //static
-void Font::TextOutFont(int x, int y, int height, char *text_str, char *font_name, unsigned char col){
+void Font::TextOutFont(int x, int y, int height,const char *text_str, char *font_name, unsigned char col){
 	
 	HRESULT hr;
 
@@ -509,7 +531,7 @@ void Font::TextOutFont(int x, int y, int height, char *text_str, char *font_name
 
 #else
 
-	Draw();
+	Draw(text_str);
 	return;
 #endif
 

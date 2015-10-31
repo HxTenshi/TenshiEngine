@@ -137,7 +137,7 @@ void Init();
 static
 void Release();
 static
-void TextOutFont(int x, int y, int height, char *text_str, char *font_name, unsigned char col);
+void TextOutFont(int x, int y, int height,const char *text_str, char *font_name, unsigned char col);
 
 static void DrawEnd();
 

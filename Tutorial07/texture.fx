@@ -50,6 +50,6 @@ PS_INPUT VS( VS_INPUT input )
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float4 col = txDiffuse.Sample(samLinear, input.Tex);
-	//if (col.a == 0.0)discard;
+	if (col.a <= 0.5f)discard;
 	return col;
 }

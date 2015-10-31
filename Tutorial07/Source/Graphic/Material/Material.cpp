@@ -12,7 +12,7 @@ Material::~Material()
 
 }
 
-HRESULT Material::Create(){
+HRESULT Material::Create(const char* shaderFileName){
 
 
 	mCBMaterial = ConstantBuffer<cbChangesMaterial>::create(4);
@@ -31,7 +31,7 @@ HRESULT Material::Create(){
 		return S_FALSE;
 	mCBUseTexture.mParam.UseTexture = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 
-	mShader.Create("Tutorial07.fx");
+	mShader.Create(shaderFileName);
 
 	return S_OK;
 

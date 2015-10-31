@@ -16,7 +16,7 @@
 
             <Border Grid.Column="3" Name="TreeView">
             </Border>
-            <DockPanel Grid.Column="2" Name="MainDock" LastChildFill="False">
+            <StackPanel Grid.Column="2" Name="MainDock">
                 <!--
                 <Border DockPanel.Dock="Top"
                  x:Name="BaseBorder"
@@ -40,7 +40,7 @@
                 </Border>
                 -->
 
-            </DockPanel>
+            </StackPanel>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center"/>
             <Border Grid.Column="0">

@@ -84,7 +84,7 @@ public:
 		: Window()
 		, m_GameScreen(nullptr)
 		, mGameScreenHWND(NULL)
-		, m_ComponentDockPanel(nullptr)
+		, m_ComponentPanel(nullptr)
 		, m_TreeViewItemRoot(nullptr)
 	{
 		//DataContext = gcnew ViewModel();
@@ -99,7 +99,7 @@ public:
 		auto wfh = (WindowsFormsHost ^)contents->FindName("GameScreenWFH");
 		m_GameScreen = gcnew GameScreen(wfh);
 
-		m_ComponentDockPanel = (DockPanel ^)contents->FindName("MainDock");
+		m_ComponentPanel = (StackPanel ^)contents->FindName("MainDock");
 		auto TreeViewDec = (Border ^)contents->FindName("TreeView");
 		CreateTreeView(TreeViewDec);
 
@@ -174,9 +174,9 @@ public:
 	}
 
 	void UpdateView(){
-		if (m_ComponentDockPanel == nullptr)return;
-		for (int i = 0; i < m_ComponentDockPanel->Children->Count; i++){
-			auto b = dynamic_cast<Border^>(m_ComponentDockPanel->Children[i]);
+		if (m_ComponentPanel == nullptr)return;
+		for (int i = 0; i < m_ComponentPanel->Children->Count; i++){
+			auto b = dynamic_cast<Border^>(m_ComponentPanel->Children[i]);
 			if (b == nullptr)continue;
 			auto d = dynamic_cast<Panel^>(b->Child);
 			if (d == nullptr)continue;
@@ -203,15 +203,15 @@ public:
 		f->UpdateView();
 	}
 	void ClearAllComponent(){
-		if (m_ComponentDockPanel == nullptr)return;
-		m_ComponentDockPanel->Children->Clear();
+		if (m_ComponentPanel == nullptr)return;
+		m_ComponentPanel->Children->Clear();
 	}
 
 	void CreateComponent(array<InspectorData^>^ data){
-		if (m_ComponentDockPanel == nullptr)return;
+		if (m_ComponentPanel == nullptr)return;
 		FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
-		m_ComponentDockPanel->Children->Add(com);
-		DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
+		m_ComponentPanel->Children->Add(com);
+		//DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
 		auto dock = (DockPanel^)com->FindName("MainDock");
 		int num = data->GetLength(0);
 		for (int i = 0; i < num; i++){
@@ -470,7 +470,7 @@ private:
 	GameScreen ^m_GameScreen;
 	HWND mGameScreenHWND;
 
-	DockPanel ^m_ComponentDockPanel;
+	StackPanel ^m_ComponentPanel;
 
 	TreeView ^ m_TreeView;
 	TestContent::Person ^m_TreeViewItemRoot;
