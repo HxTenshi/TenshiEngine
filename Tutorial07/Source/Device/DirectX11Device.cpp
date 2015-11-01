@@ -9,6 +9,7 @@ D3D_FEATURE_LEVEL		Device::mFeatureLevel = D3D_FEATURE_LEVEL_11_0;
 ID3D11Device*			Device::mpd3dDevice = NULL;
 ID3D11DeviceContext*	Device::mpImmediateContext = NULL;
 IDXGISwapChain*			Device::mpSwapChain = NULL;
+IDXGIAdapter1*			Device::mpAdapter = NULL;
 
 //static
 HRESULT Device::Init(const Window& window)
@@ -23,17 +24,24 @@ HRESULT Device::Init(const Window& window)
 
 
 	//UINT createDeviceFlags = 0;
-	UINT createDeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#ifdef _DEBUG
-	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+	UINT createDeviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;//フォントを使うならこれ
+//#ifdef _DEBUG
+//	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+//#endif
 
+	//フォントを使うならこれ( HARDWAREならおｋ？
 	D3D_DRIVER_TYPE driverTypes[] =
 	{
-		D3D_DRIVER_TYPE_HARDWARE,
-		D3D_DRIVER_TYPE_WARP,
-		D3D_DRIVER_TYPE_REFERENCE,
+		//D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_UNKNOWN,
 	};
+
+	//D3D_DRIVER_TYPE driverTypes[] =
+	//{
+	//	D3D_DRIVER_TYPE_HARDWARE,
+	//	D3D_DRIVER_TYPE_WARP,
+	//	D3D_DRIVER_TYPE_REFERENCE,
+	//};
 	UINT numDriverTypes = ARRAYSIZE(driverTypes);
 
 	D3D_FEATURE_LEVEL featureLevels[] =
@@ -76,11 +84,27 @@ HRESULT Device::Init(const Window& window)
 	//sd.Flags = DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE;
 
 
+
+	// アダプタを取得
+	{
+		IDXGIFactory1* dxgiFactory;
+		if FAILED(hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (LPVOID*)&dxgiFactory))
+		{
+			return hr;
+		}
+		if FAILED(hr = dxgiFactory->EnumAdapters1(0, &mpAdapter))
+		{
+			return hr;
+		}
+		dxgiFactory->Release();
+	}
+
+
 	//有効なドライバータイプでブレイク
 	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 	{
 		mDriverType = driverTypes[driverTypeIndex];
-		hr = D3D11CreateDeviceAndSwapChain(NULL, mDriverType, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
+		hr = D3D11CreateDeviceAndSwapChain(mpAdapter, mDriverType, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
 			D3D11_SDK_VERSION, &sd, &mpSwapChain, &mpd3dDevice, &mFeatureLevel, &mpImmediateContext);
 		if (SUCCEEDED(hr))
 			break;
@@ -108,4 +132,6 @@ void Device::CleanupDevice()
 	if (mpSwapChain) mpSwapChain->Release();
 	if (mpImmediateContext) mpImmediateContext->Release();
 	if (mpd3dDevice) mpd3dDevice->Release();
+
+	if (mpAdapter)mpAdapter->Release();
 }

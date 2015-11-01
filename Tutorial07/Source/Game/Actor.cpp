@@ -42,6 +42,12 @@ Actor::Actor()
 Actor::~Actor()
 {
 }
+
+void Actor::Initialize(){
+	for (const auto& cmp : mComponents.mComponent){
+		cmp.second->Initialize();
+	}
+}
 void Actor::UpdateComponent(float deltaTime){
 	Update(deltaTime);
 
@@ -166,9 +172,6 @@ void Actor::ImportData(const std::string& fileName){
 		if (par){
 			mTransform->SetParent(par);
 		}
-	}
-	for (const auto& cmp : mComponents.mComponent){
-		cmp.second->Initialize();
 	}
 }
 

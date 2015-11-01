@@ -25,6 +25,7 @@ class Actor{
 public:
 	Actor();
 	virtual ~Actor();
+	virtual void Initialize();
 	virtual void UpdateComponent(float deltaTime);
 	virtual void Update(float deltaTime);
 

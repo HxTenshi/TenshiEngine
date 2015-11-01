@@ -73,6 +73,8 @@ void SelectActor::SelectActorDraw(){
 Game::Game()
 	:mWorldGrid(1.0f){
 
+	FontManager::Init();
+
 	gpList = &mList;
 	gDrawList = &mDrawList;
 	gCommandManager = &mCommandManager;
@@ -97,13 +99,14 @@ Game::Game()
 		AddObject(a);
 	}
 
+	//AddObject(new Text({ 0, 0 }, { 500, 500 }));
+
 	//AddObject(new Player());
 	//AddObject(new Tex("texture.png", { 1000, 0 }, { 1200, 200 }));
 	//AddObject(new Tex("texture.bmp", { 1000, 200 }, { 1200, 400 }));
 	//AddObject(new Tex(mCamera.GetDepthTexture(), { 0, 400 }, { 600, 800 }));
 	//AddObject(new Particle());
 
-	Font::Init();
 	//AddObject(new Tex(Font::GetFontTexture(), { 600, 400 }, { 1200, 800 }));
 
 	
@@ -182,13 +185,14 @@ Game::~Game(){
 	mPhysX3Main = NULL;
 	gpPhysX3Main = NULL;
 
-	Font::Release();
+	FontManager::Release();
 
 
 }
 //static
 void Game::AddObject(Actor* actor){
 	gpList->insert(std::pair<UINT, Actor*>(actor->GetUniqueID(), actor));
+	actor->Initialize();
 	Window::GetTreeViewWindow()->AddItem(actor);
 	if (!actor->mTransform->GetParent()){
 		actor->mTransform->SetParent(mRootObject);

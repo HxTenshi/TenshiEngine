@@ -18,6 +18,8 @@
 #include "TransformComponent.h"
 #include "PhysXColliderComponent.h"
 
+#include "Graphic/Font/Font.h"
+
 class ModelComponent :public Component{
 public:
 	ModelComponent(const std::string& FileName,shared_ptr<MaterialComponent> resultMaterial):
@@ -243,6 +245,7 @@ public:
 		ExportClassName(f);
 		int num = mMaterials->size();
 		f.Out(num);
+		if (mMaterialPath == "")mMaterialPath = "null";
 		f.Out(mMaterialPath);
 		//for (auto& m : *mMaterials){
 		//	m.ExportData(f);
@@ -253,15 +256,17 @@ public:
 		f.In(&num);
 		mMaterials->resize(num);
 		f.In(&mMaterialPath);
-		for (auto& m : *mMaterials){
-			m = LoadAssetResource(mMaterialPath);
-			if (!m.mCBUseTexture.mBuffer){
-				auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-				auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-				m.Create(cbm, cbt);
-			}
-			else{
-				TextureName = m.mTexture[0].mFileName;
+		if (mMaterialPath != "null"){
+			for (auto& m : *mMaterials){
+				m = LoadAssetResource(mMaterialPath);
+				if (!m.mCBUseTexture.mBuffer){
+					auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
+					auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
+					m.Create(cbm, cbt);
+				}
+				else{
+					TextureName = m.mTexture[0].mFileName;
+				}
 			}
 		}
 		//for (auto& m : *mMaterials){
@@ -620,6 +625,76 @@ public:
 	void* mDelete;
 };
 
+class TextComponent :public Component{
+public:
+	TextComponent()
+	{
+	}
+
+	void Initialize(){
+		mTexMaterial.Create("texture.fx");
+		mTexMaterial.SetTexture(mFont.GetTexture());
+
+
+		mMaterial = gameObject->GetComponent<MaterialComponent>();
+		if (mMaterial)mMaterial->SetMaterial(0, mTexMaterial);
+
+		mModel = gameObject->GetComponent<TextureModelComponent>();
+
+
+	}
+
+	void Update() override{
+		DrawTextUI();
+	}
+
+	void DrawTextUI();
+
+	void CreateInspector() override{
+
+		std::function<void(std::string)> collback = [&](std::string name){
+			ChangeText(name);
+		};
+		auto data = Window::CreateInspector();
+		Window::AddInspector(new InspectorLabelDataSet("Text"), data);
+		Window::AddInspector(new InspectorStringDataSet("Text", &mText, collback), data);
+		Window::ViewInspector(data);
+	}
+
+	void ExportData(File& f) override{
+		ExportClassName(f);
+		if (mText != ""){
+			f.Out(1);
+			f.Out(mText);
+		}
+		else{
+			f.Out(0);
+		}
+	}
+	void ImportData(File& f) override{
+		int n;
+		f.In(&n);
+		if (n == 1){
+			f.In(&mText);
+			ChangeText(mText);
+		}
+	}
+
+	void ChangeText(const std::string& text){
+		mText = text;
+		mFont.SetText(mText);
+	}
+private:
+
+	weak_ptr<ModelComponent> mModel;
+	weak_ptr<MaterialComponent> mMaterial;
+
+	Font mFont;
+	std::string mText;
+
+	Material mTexMaterial;
+};
+
 class ComponentFactory{
 
 public:
@@ -646,6 +721,7 @@ private:
 		_NewFunc<ScriptComponent>();
 		_NewFunc<PhysXComponent>();
 		_NewFunc<PhysXColliderComponent>();
+		_NewFunc<TextComponent>();
 		mIsInit = true;
 	}
 

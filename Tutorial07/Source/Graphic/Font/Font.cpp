@@ -5,6 +5,7 @@
 #include <D3D11.h>
 #include "Device/DirectX11Device.h"
 
+
 template <class T> void SafeRelease(T **ppT)
 {
 	if (*ppT)
@@ -16,8 +17,6 @@ template <class T> void SafeRelease(T **ppT)
 
 
 #include < locale.h >
-#include <string>
-
 void init_setlocale(){
 	setlocale(LC_CTYPE, "Japanese");
 }
@@ -40,96 +39,125 @@ void widen(const std::string &src, std::wstring &dest) {
 	delete[] wcs;
 }
 
-HFONT new_font, old_font;
+#pragma comment(lib,"dwrite.lib")
+#pragma comment (lib, "d3d10_1.lib")
+#pragma comment (lib, "d2d1.lib")
+#pragma comment (lib, "dxgi.lib")
 
-#define _FONT_
-//#define D2D_USE_C_DEFINITIONS
-
-#include <DWrite.h>
-#include <d2d1.h>
-#pragma comment(lib,"lib/dwrite.lib")
-#pragma comment(lib,"lib/d2d1.lib")
-
-
-#ifndef _FONT_
-
-
-IDWriteFactory* pDWriteFactory_=NULL;
-IDWriteTextFormat* pTextFormat_ = NULL;
-
-ID2D1Factory* pD2DFactory_ = NULL;
-
-ID2D1RenderTarget;
-ID2D1HwndRenderTarget* pRT_ = NULL;
-ID2D1SolidColorBrush* pBlackBrush_ = NULL;
-
-IDXGIDevice1           *dxgiDev_;
-
-const wchar_t* szText_ = L"Hello World using  DirectWrite!";
-
-#else
 
 #define FONT_DEFAULT_SIZE 48.0f
 
-IDWriteFactory* pDWriteFactory_ = NULL;
-IDWriteTextFormat* dwriteTextFormat_ = NULL;
-ID2D1RenderTarget* d2dRenderTarget_ = NULL;
 
-IDXGIDevice1           *dxgiDev_ = NULL;
+ID3D10Device1*		FontManager::device101 = NULL;
+ID2D1Factory*		FontManager::d2dfactory = NULL;
 
-ID3D11Texture2D			*sharedSurfTex_ = NULL;
-IDXGIKeyedMutex			*mutex11_ = NULL, *mutex101_ = NULL;
-IDXGISurface			*dxgiBackBuffer_ = NULL;
+/*
+HRESULT Draw2(std::string text){
+	if (!initok)return S_FALSE;
 
-ID3D11RenderTargetView*	mpRenderTargetView = NULL;
-Texture*					mTexture = NULL;
-
-#endif
-
-static bool initok=false;
+	HRESULT hr;
+	std::wstring wtext;
+	widen(text, wtext);
 
 
-Texture Font::GetFontTexture(){
-	if (mTexture)
-		return *mTexture;
-	return Texture();
+
+	// D3D 11 側のテクスチャの使用を完了。
+	keyedmutex11->ReleaseSync(0);
+
+
+	// D3D 10.1 (D2D) 側のテクスチャの使用を開始。
+	hr = keyedmutex10->AcquireSync(0, INFINITE);
+	if (FAILED(hr))return hr;
+
+
+
+	//D2D1_COLOR_F color;
+	//color = D2D1::ColorF(1, 1, 1, 1.0f);
+
+	//ID2D1SolidColorBrush *brush2;
+	//hr = rendertarget->CreateSolidColorBrush(color, &brush);
+	//if (FAILED(hr))return hr;
+
+	
+	D2D1_SIZE_F		size;
+	// サイズ等計算
+	size = rendertarget->GetSize();
+
+	D2D1_RECT_F rect;
+	rect = D2D1::RectF(0, 200, size.width/2, size.height/2);
+
+
+	rendertarget->BeginDraw();
+	{
+		rendertarget->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+
+		brush->SetColor(D2D1::ColorF(0.0f, 0.0f, 1.0f, 1.0f));
+		rendertarget->FillRectangle(&rect, brush);
+		brush->SetColor(D2D1::ColorF(1.0f, 0.0f, 0.0f, 1.0f));
+
+		rect = D2D1::RectF(0, 200, 1000, 501);
+
+		//微妙に重い描画しないとClearとかより先に描画して消される？
+		//rendertarget->FillRectangle(&rect, brush);で調整中
+		UINT s = wcslen(wtext.c_str());
+		rendertarget->DrawText(
+			wtext.c_str(), s, dwriteTextFormat_, &rect, brush);
+	}
+	hr = rendertarget->EndDraw();
+
+
+	//static float	angle = 0.0f;
+	//const float		strokeWidth = 16.0f;
+	//
+	//D2D1_SIZE_F		size;
+	//D2D1_POINT_2F	pos_size_2;
+	//
+	//angle += 0.005f;
+	//
+	//rendertarget->BeginDraw();
+	//rendertarget->Clear(D2D1::ColorF(0.0f, 0.7f, 0.0f, 1.0f));
+	//
+	//// サイズ等計算
+	//size = rendertarget->GetSize();
+	//pos_size_2.x = size.width / 2.0f; pos_size_2.y = size.height / 2.0f;
+	//
+	//rendertarget->SetTransform(D2D1::Matrix3x2F::Rotation(cosf(angle) * 2000, pos_size_2));
+	//
+	//brush->SetColor(D2D1::ColorF(1.0f, 0.0f, 0.0f, 0.5f));
+	//rendertarget->DrawLine(
+	//	D2D1::Point2F(pos_size_2.x - size.height * 0.4f, pos_size_2.y),
+	//	D2D1::Point2F(pos_size_2.x + size.height * 0.4f, pos_size_2.y),
+	//	brush, strokeWidth);
+	//
+	//brush->SetColor(D2D1::ColorF(0.0f, 0.0f, 1.0f, 0.5f));
+	//rendertarget->DrawLine(
+	//	D2D1::Point2F(pos_size_2.x, pos_size_2.y - size.height * 0.4f),
+	//	D2D1::Point2F(pos_size_2.x, pos_size_2.y + size.height * 0.4f),
+	//	brush, strokeWidth);
+	//
+	//hr = rendertarget->EndDraw();
+	//if (FAILED(hr))return hr;
+
+
+	//brush2->Release();
+
+	// D3D 10.1 (D2D) 側のテクスチャの使用を完了。
+	hr = keyedmutex10->ReleaseSync(1);
+	if (FAILED(hr))return hr;
+	// D3D 11 側のテクスチャの使用を開始。
+	hr = keyedmutex11->AcquireSync(1, INFINITE);
+	if (FAILED(hr))return hr;
+
+	//Device::mpImmediateContext->CopyResource(backbuffer, texture11);
+
+
+	return hr;
 }
+*/
+/*
 
 HRESULT InitF_(){
 	init_setlocale();
-#ifndef _FONT_
-
-	HRESULT hr;
-	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pD2DFactory_);
-	if (SUCCEEDED(hr))
-	{
-		hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&pDWriteFactory_));
-	}
-	if (SUCCEEDED(hr))
-	{
-		hr = pDWriteFactory_->CreateTextFormat(
-			L"Gabriola",                // Font family name.
-			NULL,                       // Font collection (NULL sets it to use the system font collection).
-			DWRITE_FONT_WEIGHT_REGULAR,
-			DWRITE_FONT_STYLE_NORMAL,
-			DWRITE_FONT_STRETCH_NORMAL,
-			72.0f,
-			L"en-us",
-			&pTextFormat_
-			);
-	}
-	if (SUCCEEDED(hr))
-	{
-		hr = pTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = pTextFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-	}
-	return hr;
-
-#else
 
 	HRESULT hr;
 
@@ -276,78 +304,11 @@ HRESULT InitF_(){
 
 	initok = true;
 	return hr;
-#endif
 }
-
-HRESULT Create(){
-
-#ifndef _FONT_
-	HRESULT hr = S_OK;
-	RECT rc;
-	HWND hwnd_ = Window::GetGameScreenHWND();
-	GetClientRect(hwnd_, &rc);
-
-	D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
-
-	//size.height /= 10;
-	//size.width /= 10;
-	if (!pRT_)
-	{
-		// Create a Direct2D render target.
-		hr = pD2DFactory_->CreateHwndRenderTarget(
-			D2D1::RenderTargetProperties(),
-			D2D1::HwndRenderTargetProperties(hwnd_,size),
-			&pRT_
-			);
-
-		// Create a black brush.
-		if (SUCCEEDED(hr))
-		{
-			hr = pRT_->CreateSolidColorBrush(
-				D2D1::ColorF(RGB(255,0,0),1.0f),
-				&pBlackBrush_
-				);
-		}
-	}
-	return hr;
-#else
-	return S_OK;
-#endif
-}
-
 
 HRESULT Draw(std::string text){
-	if (!initok)return;
+	if (!initok)return S_FALSE;
 
-#ifndef _FONT_
-	HRESULT hr = S_OK;
-
-	RECT rc;
-	HWND hwnd_ = Window::GetGameScreenHWND();
-	GetClientRect(hwnd_, &rc);
-
-	UINT32 cTextLength_ = (UINT32)wcslen(szText_);
-
-	float dpiScaleX_ = 1.0f;
-	float dpiScaleY_ = 1.0f;
-
-	D2D1_RECT_F layoutRect = D2D1::RectF(
-		static_cast<FLOAT>(rc.left) / dpiScaleX_,
-		static_cast<FLOAT>(rc.top) / dpiScaleY_,
-		static_cast<FLOAT>(rc.right - rc.left) / dpiScaleX_,
-		static_cast<FLOAT>(rc.bottom - rc.top) / dpiScaleY_
-		);
-
-	pRT_->DrawText(
-		szText_,        // The string to render.
-		cTextLength_,    // The string's length.
-		pTextFormat_,    // The text format.
-		layoutRect,       // The region of the window where the text will be rendered.
-		pBlackBrush_     // The brush used to draw the text.
-		);
-
-	return hr;
-#else
 	HRESULT hr;
 	std::wstring wtext;
 	widen(text, wtext);
@@ -409,172 +370,241 @@ HRESULT Draw(std::string text){
 	//Device::mpImmediateContext->CopyResource(BackBufferTex2D_, sharedSurfTex_);
 
 	return hr;
-#endif
 }
+*/
 
-void Font::DrawEnd(){
-
-	mutex11_->ReleaseSync(0);
-}
-
-
-void Release_(){
-
-#ifndef _FONT_
-
-	SafeRelease(&pRT_);
-	SafeRelease(&pBlackBrush_);
-#else
-
-	if (mutex11_)mutex11_->ReleaseSync(0);
-
-	SafeRelease(&dxgiDev_);
-	SafeRelease(&d2dRenderTarget_);
-	SafeRelease(&dwriteTextFormat_);
-	SafeRelease(&sharedSurfTex_);
-	SafeRelease(&mutex11_);
-	SafeRelease(&mutex101_);
-	SafeRelease(&dxgiBackBuffer_);
-	SafeRelease(&mpRenderTargetView);
-	SafeRelease(&pDWriteFactory_);
-	//if (mTexture)
-	//	delete mTexture;
-#endif
-}
 
 
 
 //static
-void  Font::Init(){
-	HRESULT hr;
-	int height = 60;
-	char font_name[] = "Comic Sans MS";
-
-	//フォント作成
-	new_font = CreateFont(
-		height, //高さ
-		0,  //横幅
-		0,  //角度
-		0,  //よくわからなんだ
-		FW_NORMAL,  //太さ
-		0,  //斜体
-		0,  //下線
-		0,  //打ち消し
-		DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-		DEFAULT_QUALITY, DEFAULT_PITCH, font_name);
-
-	//hdc = GetDC(Window::GetHWND());            //デバイスコンテキスト取得
-	//hdc = BeginPaint(Window::GetHWND(), &ps);
-
-	InitF_();
-
-}
-
-//static
-void  Font::Release(){
-	//ReleaseDC(Window::GetHWND(), hdc);         //デバイスコンテキスト解放
-	//EndPaint(Window::GetHWND(), &ps);
+HRESULT FontManager::Init(){
+	init_setlocale();
 
 
-	//pSurface1->ReleaseDC(&rc);
-
-	Release_();
-
-	DeleteObject(new_font);         //フォント消去
-}
-
-//static
-void Font::TextOutFont(int x, int y, int height,const char *text_str, char *font_name, unsigned char col){
-	
 	HRESULT hr;
 
-	//PAINTSTRUCT ps;
+	// 各デバイスの作成
+	{
+		// D3D 10.1 を作成
+		{
+			// D3D10_DRIVER_TYPE_HARDWARE と D3D10_CREATE_DEVICE_BGRA_SUPPORT は必ず指定。
+			// なお、こちらの環境では D3D10_FEATURE_LEVEL_9_3 にしないと動作しませんでした。
+			hr = D3D10CreateDevice1(
+				Device::mpAdapter,
+				D3D10_DRIVER_TYPE_HARDWARE,
+				NULL,
+				D3D10_CREATE_DEVICE_BGRA_SUPPORT,
+				D3D10_FEATURE_LEVEL_9_3,
+				D3D10_1_SDK_VERSION,
+				&device101
+				);
+			if FAILED(hr)
+			{
+				return hr;
+			}
+		}
+		// D2DFactory の生成
+		{
+			if FAILED(hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory), (LPVOID*)&d2dfactory))
+			{
+				return hr;
+			}
+		}
+	}
+}
+
+//static
+void FontManager::Release(){
+	SafeRelease(&device101);
+	SafeRelease(&d2dfactory);
+}
 
 
-	//const char* szText_ = "Hello World using  DirectWrite!";
-	//UINT32 cTextLength_ = (UINT32)strlen(szText_);
+TextFormat::TextFormat(){
 
+	HRESULT hr;
 
-#ifndef _FONT_
+	// DirectWriteのファクトリの作成
+	IDWriteFactory *dwriteFactory;
+	hr = DWriteCreateFactory(
+		DWRITE_FACTORY_TYPE_SHARED,
+		__uuidof(dwriteFactory),
+		reinterpret_cast<IUnknown**>(&dwriteFactory));
+	if (FAILED(hr))return;
 
-	static bool initf = true;
-	if (initf){
-		hr = InitF();
-		initf = false;
+	// テキストフォーマットの作成
+	hr = dwriteFactory->CreateTextFormat(
+		L"Meiryo UI", nullptr,
+		DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
+		FONT_DEFAULT_SIZE, L"", &mWriteTextFormat);
+	dwriteFactory->Release();
+	if (FAILED(hr))return;
+
+	// 文字の位置の設定
+	hr = mWriteTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	if (FAILED(hr))return;
+
+	// パラグラフの指定
+	hr = mWriteTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+	if (FAILED(hr))return;
+}
+TextFormat::~TextFormat(){
+
+	SafeRelease(&mWriteTextFormat);
+}
+
+Font::Font(){
+
+	texture11 = NULL;
+	keyedmutex11 = NULL;
+	keyedmutex10 = NULL;
+	rendertarget = NULL;
+	brush = NULL;
+	surface10 = NULL;
+
+	HRESULT hr;
+	// 共有するテクスチャを D3D 11 から用意。
+	{
+		D3D11_TEXTURE2D_DESC std;
+
+		// 作成するテクスチャ情報の設定。
+		// ・DXGI_FORMAT_B8G8R8A8_UNORM は固定。
+		// ・D3D11_BIND_RENDER_TARGET は D2D での描画対象とするために必須。
+		// ・D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX はテクスチャを共有するのに必須。
+		ZeroMemory(&std, sizeof(std));
+		std.Width = 1024;
+		std.Height = 1024;
+		std.MipLevels = 1;
+		std.ArraySize = 1;
+		std.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		std.SampleDesc.Count = 1;
+		std.Usage = D3D11_USAGE_DEFAULT;
+		std.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		std.MiscFlags = D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX;
+
+		if FAILED(Device::mpd3dDevice->CreateTexture2D(&std, NULL, &texture11))
+		{
+			return;
+		}
+	}
+	// 共有するための D3D 11 のキーミューテックスを取得
+	if FAILED(texture11->QueryInterface(__uuidof(IDXGIKeyedMutex), (LPVOID*)&keyedmutex11))
+	{
+		return;
 	}
 
-	hr = Create();
-	
-	if (SUCCEEDED(hr))
+	HANDLE			sharedHandle;
+	// 共有のためのハンドルを取得。
 	{
-		pRT_->BeginDraw();
-
-		pRT_->SetTransform(D2D1::IdentityMatrix());
-
-		pRT_->Clear(D2D1::ColorF(RGB(0,0,0),0.0f));
-
-		// Call the DrawText method of this class.
-		hr = Draw();
-
-		if (SUCCEEDED(hr))
+		IDXGIResource* resource11;
+		if FAILED(texture11->QueryInterface(__uuidof(IDXGIResource), (LPVOID*)&resource11))
 		{
-			hr = pRT_->EndDraw();
+			return;
+		}
+		if FAILED(resource11->GetSharedHandle(&sharedHandle))
+		{
+			return;
+		}
+		resource11->Release();
+	}
+	// D3D 10.1 で共有サーフェイスを生成。
+	if FAILED(hr = FontManager::device101->OpenSharedResource(sharedHandle, __uuidof(IDXGISurface1), (LPVOID*)&surface10))
+	{
+		return;
+	}
+	// 共有するための D3D 10.1 のキーミューテックスを取得
+	if FAILED(surface10->QueryInterface(__uuidof(IDXGIKeyedMutex), (LPVOID*)&keyedmutex10))
+	{
+		return;
+	}
+	// D2D のレンダーターゲットを D3D 10.1 の共有サーフェイスから生成。
+	{
+		D2D1_RENDER_TARGET_PROPERTIES	rtp;
+		ZeroMemory(&rtp, sizeof(rtp));
+		rtp.type = D2D1_RENDER_TARGET_TYPE_HARDWARE;
+		rtp.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED);
+		if FAILED(FontManager::d2dfactory->CreateDxgiSurfaceRenderTarget(surface10, &rtp, &rendertarget))
+		{
+			return;
 		}
 	}
 
+	// ここで共有の準備は整います。
+	
+	// D2D の描画用ブラシを生成
+	if FAILED(hr = rendertarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 0.0f, 1.0f), &brush))
+	{
+		return;
+	}
+
+
+	ID3D11ShaderResourceView* pShaderResourceView;
+	hr = Device::mpd3dDevice->CreateShaderResourceView(texture11, nullptr, &pShaderResourceView);
 	if (FAILED(hr))
+		return;
+	hr = mTexture.Create(pShaderResourceView);
+	if (FAILED(hr))
+		return;
+}
+Font::~Font(){
+
+	SafeRelease(&texture11);
+	SafeRelease(&keyedmutex11);
+	SafeRelease(&keyedmutex10);
+	SafeRelease(&rendertarget);
+	SafeRelease(&brush);
+	SafeRelease(&surface10);
+}
+HRESULT Font::SetText(const std::string& text){
+	HRESULT hr;
+	std::wstring wtext;
+	widen(text, wtext);
+
+
+	// D3D 11 側のテクスチャの使用を完了。
+	keyedmutex11->ReleaseSync(0);
+
+
+	// D3D 10.1 (D2D) 側のテクスチャの使用を開始。
+	hr = keyedmutex10->AcquireSync(0, INFINITE);
+	if (FAILED(hr))return hr;
+
+
+	D2D1_SIZE_F		size;
+	// サイズ等計算
+	size = rendertarget->GetSize();
+
+	D2D1_RECT_F rect;
+	rect = D2D1::RectF(0, 200, size.width / 2, size.height / 2);
+
+
+	rendertarget->BeginDraw();
 	{
-		Release();
+		rendertarget->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+
+		brush->SetColor(D2D1::ColorF(0.0f, 0.0f, 1.0f, 1.0f));
+		rendertarget->FillRectangle(&rect, brush);
+		brush->SetColor(D2D1::ColorF(1.0f, 0.0f, 0.0f, 1.0f));
+
+		rect = D2D1::RectF(0, 200, 1000, 201);
+
+		//微妙に重い描画しないとClearとかより先に描画して消される？
+		//rendertarget->FillRectangle(&rect, brush);で調整中
+		UINT s = wcslen(wtext.c_str());
+		rendertarget->DrawText(
+			wtext.c_str(), s, mTextFormat.GetTextFormat(), &rect, brush);
 	}
+	hr = rendertarget->EndDraw();
 
-	return;
+	// D3D 10.1 (D2D) 側のテクスチャの使用を完了。
+	hr = keyedmutex10->ReleaseSync(1);
+	if (FAILED(hr))return hr;
+	// D3D 11 側のテクスチャの使用を開始。
+	hr = keyedmutex11->AcquireSync(1, INFINITE);
+	if (FAILED(hr))return hr;
 
-#else
-
-	Draw(text_str);
-	return;
-#endif
-
-
-	IDXGISurface1* pSurface1 = NULL;
-	HDC hdc;
-	hr = Device::mpSwapChain->GetBuffer(0, __uuidof(IDXGISurface1), (void**)&pSurface1);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = pSurface1->GetDC(FALSE, &hdc);
-		if (SUCCEEDED(hr))
-		{
-			RECT rc = { x, y, x + height*strlen(text_str), y + height };
-			//InvalidateRect(Window::GetHWND(), &rc, true);
-			SetBkMode(hdc, TRANSPARENT);         //背景モード設定
-			old_font = (HFONT)SelectObject(hdc, new_font); //フォント選択
-			//フォントカラー設定
-			SetTextColor(hdc, RGB(255, 0, 0));
-
-			//BeginPath(hdc);
-			TextOut(hdc, x, y, text_str, strlen(text_str)); //出力
-
-			//EndPath(hdc);
-			// パスから一部の領域を抽出
-			//SelectClipPath(hdc, RGN_AND);
-			// 次のコードでも SelectClipPath() と同じ結果が得られる
-			// SelectClipRgn(hdc, PathToRegion(hdc));
-			// 得られた領域をグレイで塗りつぶす
-			//FillRect(hdc, &rc, (HBRUSH)GetStockObject(GRAY_BRUSH));
-			//DrawText(hdc, text_str, strlen(text_str), &rc, 0);
-			SelectObject(hdc, old_font);         //フォント復元
-
-			pSurface1->ReleaseDC(NULL);
-		}
-
-		pSurface1->Release();
-	}
-
-
-
-	//EndPaint(Window::GetHWND(), &ps);
-
-	//InvalidateRect(Window::GetHWND(), NULL, true);
-
+	return hr;
+}
+Texture Font::GetTexture(){
+	return mTexture;
 }
