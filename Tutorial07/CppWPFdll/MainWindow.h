@@ -8,12 +8,111 @@
 //using namespace System::Windows;
 using System::Windows::Controls::MenuItem;
 using System::Runtime::InteropServices::Marshal;
+static int cre = 0;
+ref class GameScreenPanel: public System::Windows::Forms::Panel{
+public:
+	property System::Windows::Forms::CreateParams^ CreateParams
+	{
+		virtual System::Windows::Forms::CreateParams^ get() override
+		{
+			System::Windows::Forms::CreateParams ^cp = __super::CreateParams;// System::Windows::Forms::Panel::CreateParams;
+			//cp->ExStyle |= WS_EX_TRANSPARENT;// 0x00000020;//クリック透過
+			//cp->Style == NULL;
+			//cp->Caption = "aiuto";
+			//cp->ExStyle == NULL;
+			return cp;
+		}
+	}
+	virtual void OnPaintBackground(System::Windows::Forms::PaintEventArgs pevent) override
+	{
+	}
+	virtual void OnPaint(System::Windows::Forms::PaintEventArgs pevent) override
+	{
+	}
+public:
+	void UpdateStyle(){
+		SetStyle(System::Windows::Forms::ControlStyles::SupportsTransparentBackColor, true);
+		UpdateStyles();
+	}
+};
 
 ref class GameScreen{
 public:
+
+	//void RemoveFrame()
+	//{
+	//	return;
+	//	IntPtr hwnd = m_wfh->Child->Handle;
+	//	System::Windows::MessageBox::Show(hwnd.ToString());
+	//	//GetWindowLong((HWND)hwnd.ToPointer(), GWL_STYLE) ^ WS_THICKFRAME
+	//	SetWindowLong((HWND)hwnd.ToPointer(), GWL_STYLE, NULL);
+	//	SetWindowLong((HWND)hwnd.ToPointer(), GWL_EXSTYLE, WS_EX_TRANSPARENT);
+
+	//	SetWindowPos((HWND)hwnd.ToPointer(), NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+	//	hwnd = m_wfh->Child->Parent->Handle;
+	//	System::Windows::MessageBox::Show(hwnd.ToString());
+	//	//GetWindowLong((HWND)hwnd.ToPointer(), GWL_STYLE) ^ WS_THICKFRAME
+	//	SetWindowLong((HWND)hwnd.ToPointer(), GWL_STYLE, NULL);
+	//	SetWindowLong((HWND)hwnd.ToPointer(), GWL_EXSTYLE, WS_EX_TRANSPARENT);
+
+	//	SetWindowPos((HWND)hwnd.ToPointer(), NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+	//	
+	//}
+
+	template<class T>
+	T^ HandleDragEnter(System::Windows::Forms::DragEventArgs ^e)
+	{
+		System::Reflection::FieldInfo ^info;
+
+		System::Object ^obj;
+
+		info = e->Data->GetType()->GetField("innerData", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance);
+
+		obj = info->GetValue(e->Data);
+
+		info = obj->GetType()->GetField("innerData", System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance);
+
+		System::Windows::DataObject ^dataObj = (System::Windows::DataObject^)info->GetValue(obj);
+
+		T ^item = (T^)dataObj->GetData(T::typeid);
+		return item;
+
+	}
+
 	GameScreen(WindowsFormsHost ^wfh)
 		:m_wfh(wfh)
 	{
+		auto panel = gcnew GameScreenPanel();
+		m_wfh->Child = panel;
+		auto par = panel->Parent;
+		//auto par2 = par->Parent;
+		//par->Visible = false;
+		//par->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::mu);
+		//panel->BackColor = System::Drawing::Color::Transparent;
+		//panel->Image = nullptr;
+		//panel->UpdateStyle();
+
+		//panel->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::mu);
+		//auto par3 = par2->Parent;
+		//par->BackColor = System::Drawing::Color::AliceBlue;
+		//par->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::mu);
+		//panel->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::md);
+		//panel->UpdateStyle();
+		//panel->BackColor = System::Drawing::Color::Transparent;
+		
+		//wfh->AllowDrop = true;
+		//wfh->DragEnter += gcnew DragEventHandler(this, &GameScreen::OnDragOver2);
+		//wfh->DragOver += gcnew DragEventHandler(this, &GameScreen::OnDragOver2);
+		//wfh->MouseDown += gcnew MouseButtonEventHandler(this, &GameScreen::md2);
+		wfh->Child->AllowDrop = true;
+		wfh->Child->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDrop);
+		wfh->Child->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
+		wfh->Child->DragOver += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
+
+		//auto image = gcnew System::Windows::Controls::Image();
+		//mD3DImageEx = gcnew System::Windows::Interop::D3DImageEx();
+		//image->Source = mD3DImageEx;
+		//Gamepanel->Children->Add(image);
 	}
 
 	//void ml(Object^ sender, MouseButtonEventArgs ^e){
@@ -22,6 +121,9 @@ public:
 	//void mr(Object^ sender, MouseButtonEventArgs ^e){
 	//	*m_MR = (bool)e->RightButton;
 	//}
+
+
+
 	void md(Object^ sender, System::Windows::Forms::MouseEventArgs ^e){
 		if (e->Button == System::Windows::Forms::MouseButtons::Left){
 			*m_ML = true;
@@ -43,18 +145,30 @@ public:
 		*m_MX = (int)e->X;
 		*m_MY = (int)e->Y;
 	}
+	//void keypressnull(Object^ sender, System::Windows::Forms::KeyEventArgs ^e){
+	//	e->Handled = true;
+	//}
+	//void keynull(Object^ sender, System::Windows::Forms::KeyEventArgs ^e){
+	//	e->Handled = true;
+	//}
 	void SetMouseEvents(bool* l, bool* r, int* x, int* y){
 		m_ML = l;
 		m_MR = r;
 		m_MX = x;
 		m_MY = y;
+
+		//mD3DImageEx->SetBackBufferEx(System::Windows::Interop::D3DResourceTypeEx::ID3D11Texture2D, IntPtr(pRenderTarget));
+
 		//m_wfh->Child->MouseMove	+= gcnew MouseButtonEventHandler(this, &GameScreen::ml);
 		//m_wfh->Child->MouseLeftButtonUp += gcnew MouseButtonEventHandler(this, &GameScreen::ml);
 		//m_wfh->Child->MouseRightButtonDown += gcnew MouseButtonEventHandler(this, &GameScreen::mr);
 		//m_wfh->Child->MouseRightButtonUp += gcnew MouseButtonEventHandler(this, &GameScreen::mr);
+
 		m_wfh->Child->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::md);
 		m_wfh->Child->MouseUp += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::mu);
 		m_wfh->Child->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::mm);
+
+		//m_wfh->Child->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &GameScreen::keynull);
 	}
 
 	//OnSourceInitializedイベント以降じゃないと取得できない
@@ -62,23 +176,62 @@ public:
 		//HWNDを取得
 		//auto source = gcnew System::Windows::Interop::WindowInteropHelper(this);
 		//HwndSource ^source = (HwndSource^)HwndSource::FromVisual(this);
+		//RemoveFrame();
 		System::IntPtr handle = m_wfh->Child->Handle;
+
 		return reinterpret_cast<HWND>(handle.ToPointer());
 	}
+	//ゲーム画面用のHWNDを取得するためのWindowsFormsHost
 
 private:
-	//ゲーム画面用のHWNDを取得するためのWindowsFormsHost
+
+	void OnDrop(Object ^s, System::Windows::Forms::DragEventArgs ^e)
+	{
+		TextBlock ^t = HandleDragEnter<TextBlock>(e);
+		//auto str = reinterpret_cast<String^>(e->Data->GetData(System::Windows::Forms::DataFormats::FileDrop));
+		//System::Windows::MessageBox::Show(str[0] + " is dropped.", "Dropped!");
+		//TextBlock ^t = (TextBlock^)e->Data->GetData(TextBlock::typeid);
+		pin_ptr<const wchar_t> wch = PtrToStringChars(t->Text);
+		size_t convertedChars = 0;
+		size_t  sizeInBytes = ((t->Text->Length + 1) * 2);
+		char    *ch = (char *)malloc(sizeInBytes);
+		wcstombs_s(&convertedChars,
+			ch, sizeInBytes,
+			wch, sizeInBytes);
+		std::string* str = new std::string(ch);
+		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, (void*)str);
+
+		free(ch);
+	}
+
+	void OnDragOver(Object ^sender, System::Windows::Forms::DragEventArgs ^e)
+	{
+		e->Effect = System::Windows::Forms::DragDropEffects::Copy;
+		return;
+	}
+
 	WindowsFormsHost ^m_wfh;
 	bool* m_ML;
 	bool* m_MR;
 	int* m_MX;
 	int* m_MY;
-	//bool* m_MIn;
 };
 
 // ビュー
 ref class View : public Window {
 public:
+
+	//void RemoveFrame()
+	//{
+	//	auto i = gcnew System::Windows::Interop::WindowInteropHelper(this);
+	//	IntPtr hwnd = i->Handle;
+	//	System::Windows::MessageBox::Show(hwnd.ToString());
+	//	//GetWindowLong((HWND)hwnd.ToPointer(), GWL_STYLE) ^ WS_THICKFRAME
+	//	SetWindowLong((HWND)hwnd.ToPointer(), GWL_EXSTYLE, WS_EX_TRANSPARENT);
+	//	SetWindowLong((HWND)hwnd.ToPointer(), GWL_STYLE, NULL);
+
+	//	SetWindowPos((HWND)hwnd.ToPointer(), NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+	//}
 
 	View()
 		: Window()
@@ -95,16 +248,17 @@ public:
 
 		FrameworkElement ^contents = LoadContentsFromResource(IDR_VIEW);
 		Content = contents;
-
+		
 		auto wfh = (WindowsFormsHost ^)contents->FindName("GameScreenWFH");
 		m_GameScreen = gcnew GameScreen(wfh);
 
 		m_ComponentPanel = (StackPanel ^)contents->FindName("MainDock");
 		auto TreeViewDec = (Border ^)contents->FindName("TreeView");
 		CreateTreeView(TreeViewDec);
+		auto AssetTreeViewDec = (Border ^)contents->FindName("AssetTreeView");
+		CreateAssetTreeView(AssetTreeViewDec);
 
-		Title = "title";
-
+		Title = "TenshiEngine";
 		SetSelectItemReturnPoint();
 
 		//((TestContent::Contents^)tv->DataContext)->TextChange("dacsdv");
@@ -269,10 +423,113 @@ public:
 	}
 
 private:
+	//アセットツリービュー作成
+	void CreateAssetTreeView(System::Windows::Controls::Decorator ^dec){
+		//ツリービュー作成
+		auto sp = (Panel^)LoadContentsFromResource(IDR_TREEVIEW);
+		dec->Child = sp;
+		auto treeView = (TreeView^)sp->FindName("treeView1");
+
+		//アイテムリスト作成
+		auto list = gcnew TestContent::MyList();
+		//アイテムリストのルートを作成
+		auto root = gcnew TestContent::Person("root", list);
+		treeView->DataContext = root;
+		auto source = gcnew System::Windows::Data::Binding("Children");
+		source->Mode = System::Windows::Data::BindingMode::TwoWay;
+		treeView->SetBinding(TreeView::ItemsSourceProperty, source);
+
+
+		//アイテムリストのデータ構造
+		auto datatemp = gcnew System::Windows::HierarchicalDataTemplate();
+		//アイテムのリストバインド
+		auto datasource = gcnew System::Windows::Data::Binding("Children");
+		datasource->Mode = System::Windows::Data::BindingMode::TwoWay;
+		datatemp->ItemsSource = datasource;
+
+		//追加するアイテムのコントロール
+		auto fact = gcnew System::Windows::FrameworkElementFactory();
+		fact->Type = TextBlock::typeid;
+		auto itembind = gcnew System::Windows::Data::Binding("Name");
+		itembind->Mode = BindingMode::TwoWay;
+		fact->SetBinding(TextBlock::TextProperty, itembind);
+		fact->AddHandler(TextBlock::MouseDownEvent,gcnew MouseButtonEventHandler(this,&View::OnMouseDown));
+		datatemp->VisualTree = fact;
+
+		treeView->ItemTemplate = datatemp;
+
+		treeView->AllowDrop = true;
+		treeView->Drop += gcnew DragEventHandler(this, &View::OnDrop);
+		treeView->DragEnter += gcnew DragEventHandler(this, &View::OnDragOver2);
+		treeView->DragOver += gcnew DragEventHandler(this, &View::OnDragOver2);
+
+		//選択中のアイテム表示
+		//auto tblock = (TextBlock ^)sp->FindName("textBlock1");
+		//m_ActorIntPtrDataBox = tblock;
+
+		auto dirs = gcnew System::IO::DirectoryInfo("Assets/");
+
+		auto e = dirs->EnumerateFiles()->GetEnumerator();
+		while(e->MoveNext()){
+			auto item = gcnew TestContent::Person("Assets/" + e->Current->Name, gcnew TestContent::MyList());
+			item->DataPtr = (IntPtr)NULL;
+			root->Add(item);
+		}
+
+	}
+
+	void OnMouseDown(Object ^s, MouseButtonEventArgs ^e)
+	{
+		//if (m_GameScreen->m_wfh->Visibility == System::Windows::Visibility::Visible)
+		//	m_GameScreen->m_wfh->Visibility = System::Windows::Visibility::Collapsed;
+		//else
+		//	m_GameScreen->m_wfh->Visibility = System::Windows::Visibility::Visible;
+		//System::Windows::MessageBox::Show("borderClick");
+		auto item = (TextBlock^)s;
+		if (e->LeftButton == MouseButtonState::Pressed
+			&& e->RightButton == MouseButtonState::Released
+			&& e->MiddleButton == MouseButtonState::Released)
+			DragDrop::DoDragDrop(
+			item, // ドラッグされる物
+			item, // 渡すデータ
+			DragDropEffects::Copy); // D&Dで許可するオペレーション
+
+	}
+	void OnDrop(Object ^s, DragEventArgs ^e)
+	{
+		//System::Windows::MessageBox::Show(e->Data->GetData(TextBlock::typeid)->ToString() + " is dropped.", "Dropped!");
+	}
+
+	void OnDragOver(Object ^sender, DragEventArgs ^e)
+	{
+		// ドロップされるデータがStringでなければ受け入れない
+		if (!e->Data->GetDataPresent(TextBlock::typeid))
+		{
+			e->Effects = DragDropEffects::None;
+			return;
+		}
+
+		e->Effects = DragDropEffects::None;
+	}
+	void OnDragOver2(Object ^sender, DragEventArgs ^e)
+	{
+		// ドロップされるデータがStringでなければ受け入れない
+		if (!e->Data->GetDataPresent(TextBlock::typeid))
+		{
+			e->Effects = DragDropEffects::None;
+			return;
+		}
+		auto t = (TextBlock^)e->Data->GetData(TextBlock::typeid);
+		if (t->Text->Contains(".prefab"))
+			e->Effects = DragDropEffects::Copy;
+		else
+			e->Effects = DragDropEffects::None;
+	}
+
 	//ツリービュー作成
 	void CreateTreeView(System::Windows::Controls::Decorator ^dec){
 		//ツリービュー作成
-		auto sp = (StackPanel^)LoadContentsFromResource(IDR_TREEVIEW);
+		auto sp = (Panel^)LoadContentsFromResource(IDR_TREEVIEW);
 		dec->Child = sp;
 		auto treeView = (TreeView^)sp->FindName("treeView1");
 		m_TreeView = treeView;
@@ -362,21 +619,6 @@ private:
 		//ツリービューに反映
 		m_TreeView->ContextMenu = cm;
 
-
-		//m_TreeView->AddHandler(TextBlock::MouseDownEvent, gcnew System::Windows::RoutedEventHandler(this, &View::OnDrag));
-
-		//m_TreeView->Resources->Add(System::Windows::Controls::ContextMenu::typeid, cm);
-
-		//auto treestyle = gcnew System::Windows::Style(TreeViewItem::typeid);
-		//
-		//auto cmbind = gcnew System::Windows::Data::Binding("TreeItemContextMenu");
-		//treestyle->Setters->Add(gcnew System::Windows::Setter(TreeViewItem::ContextMenuProperty, cmbind));
-
-
-		//fact->SetBinding(TextBlock::ContextMenuProperty, cmbind);
-
-		//m_TreeView->ItemContainerStyle = treestyle;
-
 	}
 
 	void OnDrag(Object ^sender, System::Windows::RoutedEventArgs ^e){
@@ -454,7 +696,6 @@ protected:
 	void OnSourceInitialized(System::EventArgs ^e) override
 	{
 		Window::OnSourceInitialized(e);
-
 		mGameScreenHWND = m_GameScreen->GetHWND();
 
 	}

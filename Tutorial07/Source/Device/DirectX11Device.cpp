@@ -2,6 +2,7 @@
 #include "DirectX11Device.h"
 
 #include "Window/Window.h"
+#include "Graphic/RenderTarget/RenderTarget.h"
 
 //static
 D3D_DRIVER_TYPE			Device::mDriverType = D3D_DRIVER_TYPE_NULL;
@@ -10,6 +11,7 @@ ID3D11Device*			Device::mpd3dDevice = NULL;
 ID3D11DeviceContext*	Device::mpImmediateContext = NULL;
 IDXGISwapChain*			Device::mpSwapChain = NULL;
 IDXGIAdapter1*			Device::mpAdapter = NULL;
+RenderTarget*			Device::mRenderTargetBack = NULL;
 
 //static
 HRESULT Device::Init(const Window& window)
@@ -68,7 +70,6 @@ HRESULT Device::Init(const Window& window)
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
-
 	//フォント表示用にhDCを取得するための設定（DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLEが重要）上の設定だとうまくいかないFAILED(hr)
 	//DXGI_SWAP_CHAIN_DESC sd;
 	//ZeroMemory(&sd, sizeof(sd));
@@ -120,6 +121,11 @@ HRESULT Device::Init(const Window& window)
 	//	int a = 0;
 	//}
 
+	mRenderTargetBack = new RenderTarget();
+	hr = mRenderTargetBack->CreateBackBuffer(WindowState::mWidth, WindowState::mHeight);
+	if (FAILED(hr))
+		return hr;
+
 	return S_OK;
 }
 
@@ -134,4 +140,8 @@ void Device::CleanupDevice()
 	if (mpd3dDevice) mpd3dDevice->Release();
 
 	if (mpAdapter)mpAdapter->Release();
+	if (mRenderTargetBack){
+		mRenderTargetBack->Release();
+		delete mRenderTargetBack;
+	}
 }

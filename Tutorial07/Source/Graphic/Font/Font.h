@@ -1,11 +1,16 @@
 #pragma once
 
-
 #include "../Material/Texture.h"
-#include <string>
-#include <DWrite.h>
-#include <d2d1.h>
 class Font;
+class ID3D11Texture2D;
+class IDXGIKeyedMutex;
+class IDXGIKeyedMutex;
+class ID2D1RenderTarget;
+class ID2D1SolidColorBrush;
+class IDXGISurface1;
+class IDWriteTextFormat;
+class ID3D10Device1;
+class ID2D1Factory;
 
 class FontManager{
 public:
@@ -27,9 +32,7 @@ public:
 	TextFormat();
 	~TextFormat();
 
-	IDWriteTextFormat* GetTextFormat(){
-		return mWriteTextFormat;
-	}
+	IDWriteTextFormat* GetTextFormat();
 private:
 
 	IDWriteTextFormat* mWriteTextFormat;
@@ -43,6 +46,8 @@ public:
 	HRESULT SetText(const std::string& text);
 	Texture GetTexture();
 private:
+	void Initialize();
+
 	TextFormat mTextFormat;
 	Texture	mTexture;
 
@@ -52,4 +57,5 @@ private:
 	ID2D1RenderTarget*		rendertarget;
 	ID2D1SolidColorBrush*	brush;
 	IDXGISurface1*			surface10;
+	bool mInitializeComplete;
 };

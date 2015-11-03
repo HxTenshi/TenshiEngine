@@ -37,7 +37,6 @@ public:
 		my = 0;
 
 		InputManager::InitDirectInput(hWnd, hInstance);
-
 		Window::SetMouseEvents(&ml, &mr, &mx, &my);
 	}
 
@@ -170,7 +169,7 @@ public:
 			ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
 			Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
 
-			Device::mpSwapChain->Present(0, 0);
+			Device::mpSwapChain->Present(1, 0);
 
 		}
 

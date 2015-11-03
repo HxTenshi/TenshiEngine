@@ -132,7 +132,10 @@ public:
 	static TreeViewWindow* GetTreeViewWindow(){
 		return &mTreeViewWindow;
 	}
-
+	template<class T>
+	static void Deleter(T* ptr){
+		mMainWindow_WPF.Deleter<T>(ptr);
+	}
 	static void AddTreeViewItem(std::string& name, void* ptr){
 		mMainWindow_WPF.AddTreeViewItem(name, ptr);
 	}

@@ -3,6 +3,7 @@
 #include <D3D11.h>
 #include "Window/Window.h"
 #include "Device/DirectX11Device.h"
+#include "Graphic/Material/Texture.h"
 
 class RenderTarget{
 public:
@@ -132,6 +133,7 @@ public:
 		if (FAILED(hr))
 			return hr;
 
+
 		// Create depth stencil texture
 		D3D11_TEXTURE2D_DESC descDepth;
 		ZeroMemory(&descDepth, sizeof(descDepth));
@@ -148,7 +150,7 @@ public:
 		//descDepth.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		descDepth.CPUAccessFlags = 0;
 		descDepth.MiscFlags = 0;
-		//descDepth.MiscFlags = D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX;
+		//descDepth.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
 
 
 		hr = Device::mpd3dDevice->CreateTexture2D(&descDepth, NULL, &mpTexture2D);
@@ -188,8 +190,8 @@ public:
 		//	return hr;
 
 		//mTexture.Create(shared_ptr<ID3D11ShaderResourceView>(pShaderResourceView));
-
 		ClearView();
+
 		return S_OK;
 	}
 

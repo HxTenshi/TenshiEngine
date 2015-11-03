@@ -55,6 +55,7 @@ public:
 
 	void ExportData(const std::string& pass);
 	void ImportData(const std::string& fileName);
+	void ImportDataAndNewID(const std::string& fileName);
 
 	shared_ptr<ITransformComponent> mTransform;
 

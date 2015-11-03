@@ -43,11 +43,7 @@ public:
 
 	HRESULT Init()
 	{
-
-		HRESULT hr = S_OK;
-		hr = mRenderTargetBack.CreateBackBuffer(WindowState::mWidth, WindowState::mHeight);
-		if (FAILED(hr))
-			MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
+		HRESULT hr;
 
 		hr = mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
 		if (FAILED(hr))
@@ -156,7 +152,7 @@ public:
 		VSSetConstantBuffers();
 		GSSetConstantBuffers();
 
-		mRenderTargetBack.ClearView();
+		Device::mRenderTargetBack->ClearView();
 		mRenderTarget.ClearView();
 
 
@@ -169,7 +165,7 @@ public:
 
 
 		const RenderTarget* r[1] = { &mRenderTarget };
-		RenderTarget::SetRendererTarget((UINT)1, r[0], &mRenderTargetBack);
+		RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
 
 		//for (Actor* p : mActors){
 		//	p->Draw(DrawBit::Depth);
@@ -181,8 +177,8 @@ public:
 		}
 		list.clear();
 
-		mRenderTargetBack.ClearView();
-		mRenderTargetBack.SetRendererTarget();
+		Device::mRenderTargetBack->ClearView();
+		Device::mRenderTargetBack->SetRendererTarget();
 
 
 		ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
@@ -246,7 +242,6 @@ public:
 	void Release(){
 
 		mRenderTarget.Release();
-		mRenderTargetBack.Release();
 
 	}
 
@@ -259,8 +254,6 @@ public:
 	}
 private:
 
-
-	RenderTarget mRenderTargetBack;
 	RenderTarget mRenderTarget;
 	RenderTarget mRenderTarget2;
 

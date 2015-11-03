@@ -68,8 +68,8 @@ void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
 
 void InputManager::Release(){
 	//“ü—Í‚³‚ê‚Ä‚È‚¢ó‘Ô‚ÅHŠJ•ú‚µ‚È‚¢‚Æ‚¢‚¯‚È‚¢HSAFE_REREASE
-	pDIKeyboard->Release();
-	pDInput->Release();
+	if (pDIKeyboard)pDIKeyboard->Release();
+	if (pDInput)pDInput->Release();
 }
 
 void InputManager::Update(){

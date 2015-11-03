@@ -134,6 +134,46 @@ void Actor::ExportData(const std::string& pass){
 		cmp.second->ExportData(f);
 	}
 }
+
+void Actor::ImportDataAndNewID(const std::string& fileName){
+	File f(fileName);
+	if (!f)return;
+
+	f.In(&mUniqueID);
+	mUniqueID = 0;
+	f.In(&mName);
+	int ioc = mName.find("$");
+	while (std::string::npos != ioc){
+		mName.replace(ioc, 1, " ");
+		ioc = mName.find("$");
+	}
+
+	UINT uid;
+	f.In(&uid);
+
+	std::string temp;
+
+	mComponents.mComponent.clear();
+	mTransform = shared_ptr<TransformComponent>();
+
+	while (f){
+		if (!f.In(&temp))break;
+		if (auto p = ComponentFactory::Create(temp)){
+			p->ImportData(f);
+			mComponents.AddComponent(p);
+			if (dynamic_cast<TransformComponent*>(p.Get())){
+				mTransform = p;
+			}
+		}
+	}
+
+	if (uid){
+		auto par = Game::FindUID(uid);
+		if (par){
+			mTransform->SetParent(par);
+		}
+	}
+}
 void Actor::ImportData(const std::string& fileName){
 	
 

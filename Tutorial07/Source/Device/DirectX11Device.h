@@ -1,7 +1,7 @@
 #pragma once
 
 class Window;
-
+class RenderTarget;
 #include <d3d11.h>
 
 class Device{
@@ -24,4 +24,5 @@ public:
 
 	//フォント用
 	static IDXGIAdapter1* mpAdapter;
+	static RenderTarget* mRenderTargetBack;
 };

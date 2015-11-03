@@ -14,8 +14,20 @@
                 <ColumnDefinition Width="400*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="3" Name="TreeView">
-            </Border>
+            <Grid Grid.Column="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Name="TreeView">
+
+                </Border>
+
+                <Border Grid.Row="1" Name="AssetTreeView">
+
+                </Border>
+            </Grid>
+
             <StackPanel Grid.Column="2" Name="MainDock">
                 <!--
                 <Border DockPanel.Dock="Top"
@@ -43,11 +55,13 @@
             </StackPanel>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center"/>
-            <Border Grid.Column="0">
-                <WindowsFormsHost x:Name="GameScreenWFH" Focusable="True">
-                    <WindowsFormsHost.Child>
-                        <wf:Panel x:Name="GameScreen" BackColor="Black" CausesValidation="False"/>
-                    </WindowsFormsHost.Child>
+            <Border Grid.Column="0" x:Name="GameScreenBorder">
+                <WindowsFormsHost x:Name="GameScreenWFH" Background="Black">
+
+                    <!--<WindowsFormsHost.Child>
+                        <wf:Panel x:Name="GameScreen" BackColor="Transparent" CausesValidation="False" Enabled="False" Visible="False" />
+                    </WindowsFormsHost.Child>-->
+
                 </WindowsFormsHost>
             </Border>
         </Grid>

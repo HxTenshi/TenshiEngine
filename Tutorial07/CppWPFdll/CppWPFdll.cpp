@@ -318,10 +318,6 @@ void InspectorVector3::CreateInspector(DockPanel^ dockPanel) {
 //	DataModel *_dataModel;
 //};
 
-HWND g_GameScreenHWND = NULL;
-HWND g_GameScreenHWND2 = NULL;
-
-
 #include <vcclr.h>
 
 #pragma comment(lib, "user32.lib")
@@ -499,6 +495,11 @@ namespace Test {
 		}
 		return temp;
 	}
+
+	//template<>
+	//void NativeFraction::Deleter(std::string* ptr){
+	//	delete ptr;
+	//}
 
 
 }

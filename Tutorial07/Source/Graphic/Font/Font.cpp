@@ -1,4 +1,8 @@
 
+#include <string>
+#include <DWrite.h>
+#include <d2d1.h>
+
 #include "Font.h"
 #include <Shlwapi.h>
 #include "Window/Window.h"
@@ -376,6 +380,10 @@ HRESULT Draw(std::string text){
 
 
 
+IDWriteTextFormat* TextFormat::GetTextFormat(){
+	return mWriteTextFormat;
+}
+
 //static
 HRESULT FontManager::Init(){
 	init_setlocale();
@@ -461,6 +469,27 @@ Font::Font(){
 	rendertarget = NULL;
 	brush = NULL;
 	surface10 = NULL;
+	Initialize();
+
+}
+Font::~Font(){
+
+	SafeRelease(&texture11);
+	SafeRelease(&keyedmutex11);
+	SafeRelease(&keyedmutex10);
+	SafeRelease(&rendertarget);
+	SafeRelease(&brush);
+	SafeRelease(&surface10);
+}
+
+void Font::Initialize(){
+	SafeRelease(&texture11);
+	SafeRelease(&keyedmutex11);
+	SafeRelease(&keyedmutex10);
+	SafeRelease(&rendertarget);
+	SafeRelease(&brush);
+	SafeRelease(&surface10);
+	mInitializeComplete = false;
 
 	HRESULT hr;
 	// 共有するテクスチャを D3D 11 から用意。
@@ -530,7 +559,7 @@ Font::Font(){
 	}
 
 	// ここで共有の準備は整います。
-	
+
 	// D2D の描画用ブラシを生成
 	if FAILED(hr = rendertarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 0.0f, 1.0f), &brush))
 	{
@@ -545,21 +574,19 @@ Font::Font(){
 	hr = mTexture.Create(pShaderResourceView);
 	if (FAILED(hr))
 		return;
-}
-Font::~Font(){
 
-	SafeRelease(&texture11);
-	SafeRelease(&keyedmutex11);
-	SafeRelease(&keyedmutex10);
-	SafeRelease(&rendertarget);
-	SafeRelease(&brush);
-	SafeRelease(&surface10);
+	mInitializeComplete = true;
 }
 HRESULT Font::SetText(const std::string& text){
 	HRESULT hr;
 	std::wstring wtext;
 	widen(text, wtext);
-
+	if (!mInitializeComplete){
+		Initialize();
+	}
+	if (!mInitializeComplete){
+		return S_FALSE;
+	}
 
 	// D3D 11 側のテクスチャの使用を完了。
 	keyedmutex11->ReleaseSync(0);

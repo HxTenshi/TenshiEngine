@@ -167,6 +167,15 @@ Game::Game()
 		//delete coll;
 	});
 
+	Window::SetWPFCollBack(MyWindowMessage::CreatePrefabToActor, [&](void* p)
+	{
+		std::string *s = (std::string*)p;
+		auto a = new Actor();
+		a->ImportDataAndNewID(*s);
+		AddObject(a);
+		Window::Deleter(s);
+	});
+
 }
 
 Game::~Game(){
