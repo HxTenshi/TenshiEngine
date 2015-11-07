@@ -67,6 +67,9 @@ void Material::SetShader() const{
 }
 
 void Material::PSSetShaderResources() const{
+	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
+		return;
+	}
 
 	for (UINT i = 0; i < 4; i++)
 		mTexture[i].PSSetShaderResources(i);

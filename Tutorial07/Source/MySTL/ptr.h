@@ -14,7 +14,9 @@ void sp_enable_shared_from_this(
 	Y const * py,
 	enable_shared_from_this< T > const * pe);
 
-void sp_enable_shared_from_this(...);
+template< class X, class Y >
+void sp_enable_shared_from_this(sp<X> const * ppx,
+	Y const * py,...);
 
 template < typename T >
 struct shared_ptr_traits
@@ -135,7 +137,7 @@ public:
 		: ptr((T*)a)
 		, count(a)
 	{
-		sp_enable_shared_from_this(this, a, a);
+		sp_enable_shared_from_this(this, ptr, ptr);
 	}
 
 	template <typename U>
@@ -377,7 +379,7 @@ private:
 
 template< class X, class Y, class T >
 inline void sp_enable_shared_from_this(
-	shared_ptr<X> const * ppx,
+	sp<X> const * ppx,
 	Y const * py,
 	enable_shared_from_this< T > const * pe)
 {
@@ -387,6 +389,8 @@ inline void sp_enable_shared_from_this(
 	}
 }
 
-inline void sp_enable_shared_from_this(...)
+template< class X, class Y>
+inline void sp_enable_shared_from_this(sp<X> const * ppx,
+	Y const * py, ...)
 {
 }

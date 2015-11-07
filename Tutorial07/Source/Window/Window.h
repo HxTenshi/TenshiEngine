@@ -60,6 +60,10 @@ public:
 		while (!hWnd){
 			hWnd = (HWND)mMainWindow_WPF.GetGameScreenHWND();
 		}
+		//RECT rc;
+		//GetClientRect(hWnd, &rc);
+		//WindowState::mWidth = rc.right - rc.left;
+		//WindowState::mHeight = rc.bottom - rc.top;
 
 		mGameScreenHWND = hWnd;
 	}
@@ -172,8 +176,8 @@ public:
 	static void AddInspector(InspectorStringDataSet* dataset, std::vector<InspectorDataSet>& data){
 		data.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
 	}
-	static void ViewInspector(std::vector<InspectorDataSet>& data){
-		mMainWindow_WPF.CreateComponentWindow(data);
+	static void ViewInspector(const std::string& ComponentName, std::vector<InspectorDataSet>& data){
+		mMainWindow_WPF.CreateComponentWindow(ComponentName,data);
 	}
 	static void UpdateInspector(){
 		mMainWindow_WPF.UpdateComponentWindow();

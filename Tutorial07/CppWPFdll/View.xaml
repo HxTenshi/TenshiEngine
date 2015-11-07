@@ -4,66 +4,69 @@
     xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
     Background="#FF4B4B4B">
+    <!--
+    Width="1920" Height="1080"
+    >
+    -->
+    <Border.Resources>
+        <Style TargetType="GridSplitter" >
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+    </Border.Resources>
     
     <DockPanel>
+        <StackPanel Name="CommandBarPanel" DockPanel.Dock="Top">
+        </StackPanel>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1200"/>
+                <ColumnDefinition Width="10*"/>
                 <ColumnDefinition Width="Auto" MinWidth="5"/>
-                <ColumnDefinition Width="400*"/>
-                <ColumnDefinition Width="400*"/>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="Auto" MinWidth="5"/>
+                <ColumnDefinition Width="5*"/>
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="3">
+            <Grid Grid.Column="4">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1*"/>
-                    <RowDefinition Height="1*"/>
+                    <RowDefinition/>
+                    <RowDefinition Height="Auto" MinHeight="5"/>
+                    <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" Name="TreeView">
 
                 </Border>
+                <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch"/>
 
-                <Border Grid.Row="1" Name="AssetTreeView">
+                <Border Grid.Row="2" Name="AssetTreeView">
 
                 </Border>
             </Grid>
-
-            <StackPanel Grid.Column="2" Name="MainDock">
-                <!--
-                <Border DockPanel.Dock="Top"
-                 x:Name="BaseBorder"
-                 Margin="16"
-                 Background="LightGray"
-                 BorderBrush="Aquamarine">
-                    <StackPanel Margin="8.0">
-                        <TextBlock Margin="16.0,8.0,16.0,4.0" Text="Value:"/>
-                        <Slider x:Name="ValueSlider" Margin="32.0,4.0" Minimum="0.0" Maximum="10.0" SmallChange="0.1" LargeChange="1.0"/>
-                        <TextBlock x:Name="ValueTextBlock" Margin="32.0,4.0,32.0,8.0" TextAlignment="Center"/>
-                    </StackPanel>
-                </Border>
-                <Border DockPanel.Dock="Top"
-                 Margin="4"
-                 Background="Maroon"
-                 BorderThickness="2"
-                 BorderBrush="Aquamarine">
-                    <StackPanel Margin="8.0">
-                        <Button FontFamily="Segoe Script" Content="Button" Cursor="UpArrow" ToolTip="ose"/>
-                    </StackPanel>
-                </Border>
-                -->
-
-            </StackPanel>
+            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Center"/>
+            <Border Grid.Column="2" Background="#FF646464" BorderBrush="#FF191919" BorderThickness="1" Padding="2" Margin="2">
+                <StackPanel Name="MainDock">
+                </StackPanel>
+            </Border>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center"/>
-            <Border Grid.Column="0" x:Name="GameScreenBorder">
-                <WindowsFormsHost x:Name="GameScreenWFH" Background="Black">
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="Auto" MinHeight="5"/>
+                    <RowDefinition Height="2*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0">
+                </Border>
+                <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch"/>
+                <Border Grid.Row="2" x:Name="GameScreenBorder" Margin="2">
+                    <WindowsFormsHost x:Name="GameScreenWFH" Background="Black">
 
-                    <!--<WindowsFormsHost.Child>
-                        <wf:Panel x:Name="GameScreen" BackColor="Transparent" CausesValidation="False" Enabled="False" Visible="False" />
-                    </WindowsFormsHost.Child>-->
+                        <!--<WindowsFormsHost.Child>
+                            <wf:Panel x:Name="GameScreen" BackColor="Transparent" CausesValidation="False" Enabled="False" Visible="False" />
+                        </WindowsFormsHost.Child>-->
 
-                </WindowsFormsHost>
-            </Border>
+                    </WindowsFormsHost>
+                </Border>
+            </Grid>
         </Grid>
     </DockPanel>
 </Border>

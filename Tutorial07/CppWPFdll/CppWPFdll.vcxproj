@@ -114,6 +114,7 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="WindowXAML\CommandBar.xaml" />
     <Page Include="WindowXAML\Component.xaml" />
     <Page Include="WindowXAML\InspectorCheckBox.xaml" />
     <Page Include="WindowXAML\InspectorFloat.xaml" />

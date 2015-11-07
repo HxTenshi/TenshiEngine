@@ -10,6 +10,7 @@
 #include <vector>
 
 class ModelBuffer;
+class AssetModelBuffer;
 class ModelBufferPMD;
 class ModelBufferPMX;
 class ModelBufferTexture;
@@ -55,6 +56,7 @@ protected:
 	vmd mVMD;
 
 	friend ModelBuffer;
+	friend AssetModelBuffer;
 	friend ModelBufferPMD;
 	friend ModelBufferPMX;
 	friend ModelBufferTexture;

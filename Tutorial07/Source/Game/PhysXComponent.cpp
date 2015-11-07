@@ -69,6 +69,15 @@ void PhysXComponent::RemoveShape(physx::PxShape& shape){
 	mRigidActor->detachShape(shape);
 }
 
+void PhysXComponent::CopyData(Component* post, Component* base){
+	auto Post = (PhysXComponent*)post;
+	auto Base = (PhysXComponent*)base;
+
+	Post->mIsKinematic = Base->mIsKinematic;
+	Post->SetKinematic(Post->mIsKinematic);
+	Post->mChengeTransformFlag = (char)PhysXChangeTransformFlag::Position | (char)PhysXChangeTransformFlag::Rotate;
+}
+
 void PhysXComponent::CreateInspector() {
 
 	std::function<void(bool)> collback = [&](bool value){
@@ -76,9 +85,8 @@ void PhysXComponent::CreateInspector() {
 	};
 
 	auto data = Window::CreateInspector();
-	Window::AddInspector(new InspectorLabelDataSet("PhysX"), data);
 	Window::AddInspector(new InspectorBoolDataSet("Kinematic", &mIsKinematic, collback), data);
-	Window::ViewInspector(data);
+	Window::ViewInspector("PhysX",data);
 }
 
 void PhysXComponent::ExportData(File& f) {

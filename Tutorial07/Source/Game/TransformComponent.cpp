@@ -7,7 +7,7 @@
 #include "Game.h"
 
 TransformComponent::TransformComponent()
-	:mFixMatrixFlag(true)
+	:mFixMatrixFlag(false)
 	, mParent(NULL){
 	mMatrix = XMMatrixIdentity();
 	mScale = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
@@ -58,6 +58,16 @@ void TransformComponent::Position(const XMVECTOR& position){
 	mPosition = position;
 	FlagSetChangeMatrix();
 	UpdatePhysX(PhysXChangeTransformFlag::Position);
+}
+
+const XMVECTOR& TransformComponent::Forward() const{
+	return GetMatrix().r[2];
+}
+const XMVECTOR& TransformComponent::Left() const{
+	return GetMatrix().r[0];
+}
+const XMVECTOR& TransformComponent::Up() const{
+	return GetMatrix().r[1];
 }
 
 const XMMATRIX& TransformComponent::GetMatrix() const{
@@ -118,6 +128,16 @@ void TransformComponent::SetUndo(const XMVECTOR& pos){
 	}
 }
 
+void TransformComponent::CopyData(Component* post, Component* base){
+	auto Post = (TransformComponent*)post;
+	auto Base = (TransformComponent*)base;
+
+	Post->mPosition = Base->mPosition;
+	Post->mRotate = Base->mRotate;
+	Post->mScale = Base->mScale;
+	Post->mFixMatrixFlag = false;
+}
+
 void TransformComponent::CreateInspector(){
 
 
@@ -161,11 +181,10 @@ void TransformComponent::CreateInspector(){
 		this->Scale(XMVectorSet(pos.x, pos.y, f, pos.w));
 	};
 	auto data = Window::CreateInspector();
-	Window::AddInspector(new InspectorLabelDataSet("Transform"), data);
 	Window::AddInspector(new InspectorVector3DataSet("Position", &mPosition.x, collbackpx, &mPosition.y, collbackpy, &mPosition.z, collbackpz), data);
 	Window::AddInspector(new InspectorVector3DataSet("Rotate", &mRotate.x, collbackrx, &mRotate.y, collbackry, &mRotate.z, collbackrz), data);
 	Window::AddInspector(new InspectorVector3DataSet("Scale", &mScale.x, collbacksx, &mScale.y, collbacksy, &mScale.z, collbacksz), data);
-	Window::ViewInspector(data);
+	Window::ViewInspector("Transform",data);
 
 	//Window::GetInspectorWindow()->AddLabel("Transform");
 	//Window::GetInspectorWindow()->AddParam(&mPosition.x, &mFixMatrixFlag);

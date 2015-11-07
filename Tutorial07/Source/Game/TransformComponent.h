@@ -29,6 +29,10 @@ public:
 	virtual void Rotate(const XMVECTOR& rotate) = 0;
 	virtual void Position(const XMVECTOR& position) = 0;
 
+	virtual const XMVECTOR& Forward() const = 0;
+	virtual const XMVECTOR& Left() const = 0;
+	virtual const XMVECTOR& Up() const = 0;
+
 	virtual void AddForce(XMVECTOR& force) = 0;
 	virtual void AddTorque(XMVECTOR& force) = 0;
 	virtual const XMMATRIX& GetMatrix() const = 0;
@@ -61,12 +65,17 @@ public:
 	void Rotate(const XMVECTOR& rotate) override;
 	void Position(const XMVECTOR& position) override;
 
+	const XMVECTOR& Forward() const override;
+	const XMVECTOR& Left() const override;
+	const XMVECTOR& Up() const override;
+
 	void Update() override;
 
 	void AddForce(XMVECTOR& force) override;
 	void AddTorque(XMVECTOR& force) override;
 
 	const XMMATRIX& GetMatrix() const override;
+	void CopyData(Component* post, Component* base) override;
 	void CreateInspector() override;
 
 	void ExportData(File& f) override;

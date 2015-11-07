@@ -8,6 +8,7 @@ static std::map<UINT,Actor*>* gpList;
 static std::map<DrawStage, std::list<std::function<void()>>> *gDrawList;
 static PhysX3Main* gpPhysX3Main;
 static CommandManager* gCommandManager;
+static CameraComponent** gMainCamera;
 //
 Actor* Game::mRootObject;
 
@@ -29,6 +30,7 @@ void file_(const std::string& pass, std::vector<std::string>& fileList) {
 	});
 }
 
+#include "Engine/AssetLoader.h"
 void SelectActor::SelectActorDraw(){
 	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
 		auto mModel = mSelect->GetComponent<ModelComponent>();
@@ -73,18 +75,28 @@ void SelectActor::SelectActorDraw(){
 Game::Game()
 	:mWorldGrid(1.0f){
 
+	mIsPlay = false;
+
+	HRESULT hr = S_OK;
+
 	FontManager::Init();
+
+
+	hr = mMeinViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
+	if (FAILED(hr))
+		MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
 
 	gpList = &mList;
 	gDrawList = &mDrawList;
 	gCommandManager = &mCommandManager;
+	gMainCamera = &mMainCamera;
 
 	mRootObject = new Actor();
-
-	HRESULT hr = S_OK;
-	hr = mCamera.Init();
-	if (FAILED(hr))
-		MessageBox(NULL, "Camera Create Error.", "Error", MB_OK);
+	mRootObject->mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+	mRootObject->AddComponent<TransformComponent>(mRootObject->mTransform);
+	//hr = mCamera.Init();
+	//if (FAILED(hr))
+	//	MessageBox(NULL, "Camera Create Error.", "Error", MB_OK);
 
 	mPhysX3Main = new PhysX3Main();
 	mPhysX3Main->InitializePhysX();
@@ -167,6 +179,14 @@ Game::Game()
 		//delete coll;
 	});
 
+	Window::SetWPFCollBack(MyWindowMessage::CreatePMXtoTEStaticMesh, [&](void* p)
+	{
+		std::string *s = (std::string*)p;
+		AssetLoader loader;
+		loader.LoadFile(*s);
+		Window::Deleter(s);
+	});
+
 	Window::SetWPFCollBack(MyWindowMessage::CreatePrefabToActor, [&](void* p)
 	{
 		std::string *s = (std::string*)p;
@@ -176,10 +196,19 @@ Game::Game()
 		Window::Deleter(s);
 	});
 
+	Window::SetWPFCollBack(MyWindowMessage::PlayGame, [&](void* p)
+	{
+		ChangePlayGame(true);
+	});
+	Window::SetWPFCollBack(MyWindowMessage::StopGame, [&](void* p)
+	{
+		ChangePlayGame(false);
+	});
 }
 
 Game::~Game(){
 
+	ChangePlayGame(false);
 	mSoundPlayer.Stop();
 	for (auto& p : mList){
 		p.second->ExportData("./Scene");
@@ -188,18 +217,25 @@ Game::~Game(){
 
 	delete mRootObject;
 
-	mCamera.Release();
+
+
+	//mCamera.Release();
 
 	delete mPhysX3Main;
 	mPhysX3Main = NULL;
 	gpPhysX3Main = NULL;
 
+	mMeinViewRenderTarget.Release();
 	FontManager::Release();
 
 
 }
 //static
 void Game::AddObject(Actor* actor){
+	if (!actor->mTransform){
+		delete actor;
+	}
+
 	gpList->insert(std::pair<UINT, Actor*>(actor->GetUniqueID(), actor));
 	actor->Initialize();
 	Window::GetTreeViewWindow()->AddItem(actor);
@@ -240,4 +276,31 @@ void Game::AddDrawList(DrawStage stage, std::function<void()> func){
 
 void Game::SetUndo(ICommand* command){
 	gCommandManager->SetUndo(command);
+}
+
+void Game::SetMainCamera(CameraComponent* Camera){
+	*gMainCamera = Camera;
+}
+
+
+void Game::ChangePlayGame(bool isPlay){
+
+	mIsPlay = isPlay;
+	if (isPlay){
+		for (auto& act : mList){
+			auto postactor = new Actor();
+			mListBack[act.first] = postactor;
+
+			postactor->CopyData(postactor, act.second);
+		}
+	}
+	else{
+		for (auto& act : mListBack){
+			auto postactor = mList[act.first];
+
+			postactor->CopyData(postactor, act.second);
+			delete act.second;
+		}
+		mListBack.clear();
+	}
 }

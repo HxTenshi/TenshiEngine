@@ -19,6 +19,113 @@
 #include "PhysXColliderComponent.h"
 
 #include "Graphic/Font/Font.h"
+class EditorCamera;
+
+class CameraComponent :public Component{
+public:
+	CameraComponent(){}
+	~CameraComponent(){}
+
+	void Initialize() override
+	{
+
+		mCBNeverChanges = ConstantBuffer<CBNeverChanges>::create(0);
+		mCBChangeOnResize = ConstantBuffer<CBChangeOnResize>::create(1);
+		mCBBillboard = ConstantBuffer<CBBillboard>::create(8);
+
+		// Initialize the view matrix
+		Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
+		At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+		Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+		UpdateView();
+
+
+		UINT width = WindowState::mWidth;
+		UINT height = WindowState::mHeight;
+		// Initialize the projection matrix
+		mProjection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
+
+		mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
+		mCBChangeOnResize.UpdateSubresource();
+
+	}
+
+	void Update() override;
+
+	void CreateInspector() override{
+		auto data = Window::CreateInspector();
+		Window::ViewInspector("Camera", data);
+	}
+
+	void ExportData(File& f) override{
+		ExportClassName(f);
+	}
+	void ImportData(File& f) override{
+	}
+
+	void VSSetConstantBuffers() const
+	{
+		mCBNeverChanges.VSSetConstantBuffers();
+		mCBChangeOnResize.VSSetConstantBuffers();
+		mCBBillboard.VSSetConstantBuffers();
+	}
+	void GSSetConstantBuffers() const
+	{
+		mCBNeverChanges.GSSetConstantBuffers();
+		mCBChangeOnResize.GSSetConstantBuffers();
+		mCBBillboard.GSSetConstantBuffers();
+	}
+
+private:
+
+	void UpdateView(){
+		mView = XMMatrixLookAtLH(Eye, At, Up);
+		
+		
+		auto Billboard = XMMatrixLookAtLH(XMVectorZero(), Eye - At, Up);
+		XMVECTOR v;
+		Billboard = XMMatrixTranspose(XMMatrixInverse(&v, Billboard));
+		mCBBillboard.mParam.mBillboardMatrix = Billboard;
+		mCBBillboard.UpdateSubresource();
+		
+		mCBNeverChanges.mParam.mView = XMMatrixTranspose(mView);
+		mCBNeverChanges.UpdateSubresource();
+		
+		//gameObject->mTransform->Position(Eye);
+		
+		XMVECTOR zaxis = XMVector3Normalize(At - Eye);
+		XMVECTOR xaxis = XMVector3Normalize(XMVector3Cross(Up, zaxis));
+		XMVECTOR yaxis = XMVector3Cross(zaxis, xaxis);
+		
+		float yaw = 0.0f;
+		float roll = 0.0f;
+		float pitch = asin(mView._31);
+		if (cos(pitch) == 0.0f){
+			yaw = atan2(mView._23, mView._22);
+		}
+		else{
+			float roll = asin(-mView._21 / cos(pitch));
+			if (mView._11 < 0) roll = 180 - roll;
+		
+			yaw = atan2(-mView._32, mView._33);
+		}
+		
+		//gameObject->mTransform->Rotate(XMVectorSet(roll, pitch, yaw, 1.0f));
+	}
+
+	ConstantBuffer<CBNeverChanges>		mCBNeverChanges;
+	ConstantBuffer<CBChangeOnResize>	mCBChangeOnResize;
+	ConstantBuffer<CBBillboard>			mCBBillboard;
+
+	XMMATRIX                            mView;
+	XMMATRIX                            mProjection;
+	XMVECTOR							Eye;
+	XMVECTOR							At;
+	XMVECTOR							Up;
+
+	friend EditorCamera;
+};
 
 class ModelComponent :public Component{
 public:
@@ -63,12 +170,7 @@ public:
 		return false;
 	}
 
-	void CreateInspector() override{
-		auto data = Window::CreateInspector();
-		Window::AddInspector(new InspectorLabelDataSet("Model"), data);
-		Window::AddInspector(new InspectorLabelDataSet(mFileName), data);
-		Window::ViewInspector(data);
-	}
+	void CreateInspector() override;
 
 	void ExportData(File& f) override{
 		ExportClassName(f);
@@ -111,6 +213,8 @@ public:
 	//}
 
 	bool HitChack(const XMVECTOR& pos, const XMVECTOR& vect) override{
+		(void)vect;
+		(void)pos;
 		XMVECTOR p;
 		p.x = mModel->mWorld.m[3][0];
 		p.y = mModel->mWorld.m[3][3];
@@ -135,14 +239,14 @@ public:
 
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
-		Window::AddInspector(new InspectorLabelDataSet("TextureModel"), data);
-		Window::ViewInspector(data);
+		Window::ViewInspector("TextureModel",data);
 	}
 
 	void ExportData(File& f) override{
 		ExportClassName(f);
 	}
 	void ImportData(File& f) override{
+		(void)f;
 		mModel = new ModelTexture();
 		mModel->Create("", shared_ptr<MaterialComponent>());
 	}
@@ -152,98 +256,108 @@ public:
 class MaterialComponent :public Component{
 public:
 
-	Material LoadAssetResource(const std::string& path){
+	void LoadAssetResource(const std::string& path){
 
-		Material material;
-		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-		auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-		auto hr = material.Create(cbm, cbt);
-		if (FAILED(hr))
-			return Material();
+		mMaterials.clear();
+
 		File f(path);
-		if (!f)return Material();
+		if (!f)return;
 		std::string name;
 		f.In(&name);
-		int num;
-		f.In(&num);
-		for (int i = 0; i < num; i++){
-			int slot;
-			f.In(&slot);
-			std::string filename;
-			f.In(&filename);
-			int ioc = filename.find("$");
-			while (std::string::npos != ioc){
-				filename.replace(ioc, 1, " ");
-				ioc = filename.find("$");
-			}
+		int materialnum;
+		f.In(&materialnum);
+		mMaterials.resize(materialnum);
+		for (int i = 0; i < materialnum; i++){
+			auto& material = mMaterials[i];
+			auto hr = material.Create();
+			if (FAILED(hr))return;
 
-			material.SetTexture(filename.c_str(), slot);
+			int texnum;
+			f.In(&texnum);
+			for (int i = 0; i < texnum; i++){
+				int slot;
+				f.In(&slot);
+				std::string filename;
+				f.In(&filename);
+				auto ioc = filename.find("$");
+				while (std::string::npos != ioc){
+					filename.replace(ioc, 1, " ");
+					ioc = filename.find("$");
+				}
+
+				material.SetTexture(filename.c_str(), slot);
+			}
 		}
-		return material;
+	}
+	void SaveAssetResource(const std::string& path){
+
+		File f;
+		if (!f.Open(path))
+			f.FileCreate();
+		f.Clear();
+		if (!f)return;
+		std::string name = "Material";
+		f.Out(name);
+		int num = mMaterials.size();
+		f.Out(num);
+		for (int i = 0; i < num; i++){
+			Material &mate = mMaterials[i];
+			mate.ExportData(f);
+		}
 	}
 
 	MaterialComponent(){
-		mThis = NULL;
-		mMaterials = new std::vector<Material>();
-		mMaterials->resize(1);
-		mppMaterials = &mMaterials;
-		mUseDelete = true;
+		mMaterials.resize(1);
 	}
 	~MaterialComponent(){
-		if (mUseDelete)
-			delete mMaterials;
 	}
 
 	void SetMaterial(UINT SetNo,Material& material){
-		if ((**mppMaterials).size() <= SetNo)(**mppMaterials).resize(SetNo+1);
-		(**mppMaterials)[SetNo] = material;
+		if (mMaterials.size() <= SetNo)mMaterials.resize(SetNo+1);
+		mMaterials[SetNo] = material;
 
 	}
 	Material GetMaterial(UINT GetNo) const{
-		if (!mMaterials){
+		if (mMaterials.size()<=GetNo){
 			return Material();
 		}
-		if (mMaterials->size()<=GetNo){
-			return Material();
-		}
-		return (**mppMaterials)[GetNo];
+		return mMaterials[GetNo];
 	}
 	std::string TextureName = "";
 	void CreateInspector() override{
 
 		auto data = Window::CreateInspector();
-		Window::AddInspector(new InspectorLabelDataSet("Material"), data);
 		std::function<void(float)> collbackx = [&](float f){
-			(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.x = f;
+			mMaterials[0].mCBMaterial.mParam.Diffuse.x = f;
 		};
 
 		std::function<void(float)> collbacky = [&](float f){
-			(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.y = f;
+			mMaterials[0].mCBMaterial.mParam.Diffuse.y = f;
 		};
 
 		std::function<void(float)> collbackz = [&](float f){
-			(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.z = f;
+			mMaterials[0].mCBMaterial.mParam.Diffuse.z = f;
 		};
 		std::function<void(std::string)> collbacktex = [&](std::string name){
-			(**mppMaterials)[0].SetTexture(name.c_str(),0);
+			mMaterials[0].SetTexture(name.c_str(),0);
 			TextureName = name;
 		};
 		std::function<void(std::string)> collbackpath = [&](std::string name){
 			mMaterialPath = name;
-			(**mppMaterials)[0] = LoadAssetResource(mMaterialPath);
-			TextureName = (**mppMaterials)[0].mTexture[0].mFileName;
+			LoadAssetResource(mMaterialPath);
+			//TextureName = (**mppMaterials)[0].mTexture[0].mFileName;
 		};
 		Window::AddInspector(new InspectorStringDataSet("Material", &mMaterialPath, collbackpath), data);
-		Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.x, collbackx), data);
-		Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.y, collbacky), data);
-		Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &(**mppMaterials)[0].mCBMaterial.mParam.Diffuse.z, collbackz), data);
+		Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.x, collbackx), data);
+		Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.y, collbacky), data);
+		Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.z, collbackz), data);
 		Window::AddInspector(new InspectorStringDataSet("Textre", &TextureName, collbacktex), data);
-		Window::ViewInspector(data);
+		Window::ViewInspector("Material",data);
 	}
 
 	void ExportData(File& f) override{
 		ExportClassName(f);
-		int num = mMaterials->size();
+		int num = mMaterials.size();
 		f.Out(num);
 		if (mMaterialPath == "")mMaterialPath = "null";
 		f.Out(mMaterialPath);
@@ -254,20 +368,19 @@ public:
 	void ImportData(File& f) override{
 		int num;
 		f.In(&num);
-		mMaterials->resize(num);
+		mMaterials.resize(num);
 		f.In(&mMaterialPath);
 		if (mMaterialPath != "null"){
-			for (auto& m : *mMaterials){
-				m = LoadAssetResource(mMaterialPath);
+			LoadAssetResource(mMaterialPath);
+			for (auto& m : mMaterials){
 				if (!m.mCBUseTexture.mBuffer){
-					auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-					auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-					m.Create(cbm, cbt);
-				}
-				else{
-					TextureName = m.mTexture[0].mFileName;
+					m.Create();
 				}
 			}
+		}
+		else{
+			auto& m = mMaterials[0];
+			m.Create();
 		}
 		//for (auto& m : *mMaterials){
 		//	f.In(&num);
@@ -290,10 +403,7 @@ public:
 		//}
 	}
 
-	bool mUseDelete;
-	std::vector<Material>** mppMaterials;
-	std::vector<Material>* mMaterials;
-	Actor* mThis;
+	std::vector<Material> mMaterials;
 	std::string mMaterialPath;
 };
 
@@ -315,14 +425,13 @@ public:
 	}
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
-		Window::AddInspector(new InspectorLabelDataSet("Animetion"), data);
 
 		std::function<void(float)> collback = [&](float f){
 			mTime = f;
 		};
 		Window::AddInspector(new InspectorFloatDataSet("Time",&mTime,collback), data);
 
-		Window::ViewInspector(data);
+		Window::ViewInspector("Animetion",data);
 	}
 
 	void ExportData(File& f) override{
@@ -367,14 +476,14 @@ public:
 
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
-		Window::AddInspector(new InspectorLabelDataSet("MeshRender"), data);
-		Window::ViewInspector(data);
+		Window::ViewInspector("MeshRender",data);
 	}
 
 	void ExportData(File& f) override{
 		ExportClassName(f);
 	}
 	void ImportData(File& f) override{
+		(void)f;
 	}
 
 	weak_ptr<ModelComponent> mModel;
@@ -570,13 +679,14 @@ public:
 
 		auto data = Window::CreateInspector();
 		Window::AddInspector(new InspectorLabelDataSet("Particle"), data);
-		Window::ViewInspector(data);
+		Window::ViewInspector("Particle",data);
 	}
 
 	void ExportData(File& f) override{
 		ExportClassName(f);
 	}
 	void ImportData(File& f) override{
+		(void)f;
 	}
 
 
@@ -608,14 +718,14 @@ public:
 	void CreateInspector() override{
 
 		auto data = Window::CreateInspector();
-		Window::AddInspector(new InspectorLabelDataSet("Script"), data);
-		Window::ViewInspector(data);
+		Window::ViewInspector("Script",data);
 	}
 
 	void ExportData(File& f) override{
 		ExportClassName(f);
 	}
 	void ImportData(File& f) override{
+		(void)f;
 	}
 
 	HMODULE hModule;
@@ -656,9 +766,8 @@ public:
 			ChangeText(name);
 		};
 		auto data = Window::CreateInspector();
-		Window::AddInspector(new InspectorLabelDataSet("Text"), data);
 		Window::AddInspector(new InspectorStringDataSet("Text", &mText, collback), data);
-		Window::ViewInspector(data);
+		Window::ViewInspector("Text",data);
 	}
 
 	void ExportData(File& f) override{
@@ -710,7 +819,8 @@ public:
 
 private:
 	static
-	void Init(){
+		void Init(){
+		_NewFunc<CameraComponent>();
 		_NewFunc<TransformComponent>();
 		_NewFunc<ModelComponent>();
 		_NewFunc<TextureModelComponent>();

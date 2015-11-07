@@ -24,8 +24,8 @@ public:
 
 	void Update() override;
 
+	void CopyData(Component* post, Component* base) override;
 	void CreateInspector() override;
-
 	void ExportData(File& f) override;
 	void ImportData(File& f) override;
 

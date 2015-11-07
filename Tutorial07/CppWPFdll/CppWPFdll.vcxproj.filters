@@ -72,5 +72,6 @@
     <Page Include="WindowXAML\TreeView.xaml" />
     <Page Include="WindowXAML\InspectorSlideBar.xaml" />
     <Page Include="WindowXAML\InspectorCheckBox.xaml" />
+    <Page Include="WindowXAML\CommandBar.xaml" />
   </ItemGroup>
 </Project>

@@ -12,6 +12,7 @@
         </Style>
 
         <Style TargetType="TextBlock" >
+            <Setter Property="Foreground" Value="#FF161616"/>
             <Setter Property="FontSize" Value="16" />
             <Setter Property="Padding" Value="5,0"/>
         </Style>

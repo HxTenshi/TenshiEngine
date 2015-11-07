@@ -123,20 +123,20 @@ public:
 
 	void UpdateSubresource() const{
 
-		Device::mpImmediateContext->UpdateSubresource(mBuffer->mpBuffer, 0, NULL, &mParam, 0, 0);
+		if (mBuffer->mpBuffer)Device::mpImmediateContext->UpdateSubresource(mBuffer->mpBuffer, 0, NULL, &mParam, 0, 0);
 	}
 
 	void VSSetConstantBuffers() const{
 
-		Device::mpImmediateContext->VSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+		if (mBuffer->mpBuffer)Device::mpImmediateContext->VSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
 	void GSSetConstantBuffers() const{
 
-		Device::mpImmediateContext->GSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+		if (mBuffer->mpBuffer)Device::mpImmediateContext->GSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
 	void PSSetConstantBuffers() const{
 
-		Device::mpImmediateContext->PSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+		if (mBuffer->mpBuffer)Device::mpImmediateContext->PSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
 
 public:

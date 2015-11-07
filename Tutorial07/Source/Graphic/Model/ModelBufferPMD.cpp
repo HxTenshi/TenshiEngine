@@ -223,7 +223,6 @@ HRESULT ModelBufferPMX::Create(const char* FileName, Model* mpModel, shared_ptr<
 
 	PMDVertex *vertices;
 	vertices = new PMDVertex[TYOUTEN];
-
 	for (int i = 0; i < TYOUTEN; i++){
 
 		if (modeldata.vertex_data.vertex[i].weight_type == pmx::t_vertex_data::BDEF1){

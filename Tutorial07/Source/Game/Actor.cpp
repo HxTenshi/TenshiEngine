@@ -35,8 +35,6 @@ Actor::Actor()
 	, mTreeViewPtr(NULL)
 {
 	mName = "new Object";
-	mTransform = shared_ptr<TransformComponent>(new TransformComponent());
-	mComponents.AddComponent<TransformComponent>(mTransform);
 	mUniqueID = 0;
 }
 Actor::~Actor()
@@ -46,6 +44,17 @@ Actor::~Actor()
 void Actor::Initialize(){
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->Initialize();
+	}
+}
+
+void Actor::DrawOnlyUpdateComponent(float deltaTime){
+	mTransform->Update();
+	auto cmp = mComponents.GetComponent<MeshDrawComponent>();
+	if (cmp)
+		cmp->Update();
+
+	for (auto child : mTransform->Children()){
+		child->DrawOnlyUpdateComponent(deltaTime);
 	}
 }
 void Actor::UpdateComponent(float deltaTime){
@@ -94,9 +103,28 @@ void Actor::CreateInspector(){
 	};
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new InspectorStringDataSet("Name", &mName, collback), data);
-	Window::ViewInspector(data);
+	Window::ViewInspector("Actor",data);
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->CreateInspector();
+	}
+}
+
+
+void Actor::CopyData(Actor* post, Actor* base){
+
+	for (const auto& cmp : base->mComponents.mComponent){
+		Component* basecmp = cmp.second.Get();
+		Component* postcmp;
+		auto postcmpite = post->mComponents.mComponent.find(cmp.first);
+		if (postcmpite != post->mComponents.mComponent.end()){
+			postcmp = postcmpite->second.Get();
+		}
+		else{
+			auto c = ComponentFactory::Create(cmp.second->ClassName());
+			post->mComponents.AddComponent(c);
+			postcmp = c.Get();
+		}
+		postcmp->CopyData(postcmp, basecmp);
 	}
 }
 
@@ -194,7 +222,6 @@ void Actor::ImportData(const std::string& fileName){
 	std::string temp;
 
 	mComponents.mComponent.clear();
-	mTransform = shared_ptr<TransformComponent>();
 
 	while (f){
 		if (!f.In(&temp))break;

@@ -8,6 +8,10 @@ enum class MyWindowMessage{
 	StackIntPtr,			//IntPtrをスタックする
 	ReturnTreeViewIntPtr,	//ツリービューのIntPtrを渡す
 
+
+	PlayGame,
+	StopGame,
+	CreatePMXtoTEStaticMesh,
 	CreatePrefabToActor,
 
 	SelectActor,

@@ -13,7 +13,6 @@ public:
 	void _Initialize(Actor* obj){
 		gameObject = obj;
 	}
-
 	virtual void Initialize(){
 
 	}
@@ -21,6 +20,10 @@ public:
 
 	}
 	virtual void Update(){
+
+	}
+
+	virtual void CopyData(Component* post, Component* base){
 
 	}
 
@@ -32,6 +35,11 @@ public:
 		std::string name = typeid(*this).name();
 		name.erase(0, 6);//"class "‚ğíœ
 		f.Out(name);
+	}
+	std::string ClassName(){
+		std::string name = typeid(*this).name();
+		name.erase(0, 6);//"class "‚ğíœ
+		return name;
 	}
 	virtual void ExportData(File& f) = 0;
 	virtual void ImportData(File& f) = 0;

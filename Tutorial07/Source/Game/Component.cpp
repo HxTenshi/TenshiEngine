@@ -138,63 +138,6 @@ void ScriptComponent::Update(){
 		if (Input::Trigger(KeyCoord::Key_R)){
 			actors.ReLoad();
 			return;
-			Unload();
-
-			//STARTUPINFO si;// スタートアップ情報
-			//PROCESS_INFORMATION pi;// プロセス情報
-			//
-			////STARTUPINFO 構造体の内容を取得 
-			//GetStartupInfo(&si);
-			//
-			//CreateProcess(
-			//	NULL,					// 実行可能モジュールの名前
-			//	"cmd.exe cd ./../ScriptComponent/ cureatedll.bat",			// コマンドラインの文字列
-			//	NULL,					// セキュリティ記述子
-			//	NULL,					// セキュリティ記述子
-			//	FALSE,					// ハンドルの継承オプション
-			//	CREATE_NO_WINDOW,				// 作成のフラグ 
-			//	//CREATE_NEW_PROCESS_GROUP	: 新たなプロセス
-			//	//CREATE_NEW_CONSOLE		: 新しいコンソールで実行
-			//	//CREATE_NO_WINDOW			: コンソールウィンドウなしでアプリケーションを実行
-			//	NULL,					// 新しい環境ブロック
-			//	NULL,					// カレントディレクトリの名前
-			//	&si,					// スタートアップ情報
-			//	&pi					// プロセス情報
-			//	);
-
-			//ShellExecute(Window::GetHWND(), "open", "c:Program Files\\Wireshark\\test.bat", SW_SHOW);
-			char cdir[255];
-			GetCurrentDirectory(255, cdir);
-			std::string  pass = cdir;
-#ifdef _DEBUG
-			pass += "/ScriptComponent/createdll_auto_d.bat";
-#else
-			pass += "/ScriptComponent/createdll_auto.bat";
-#endif
-			//if (ShellExecute(Window::GetHWND(), NULL, pass.c_str(), NULL, NULL, SW_SHOWNORMAL) <= (HINSTANCE)32)
-			//	MessageBox(Window::GetHWND(), "ファイルを開けませんでした", "失敗", MB_OK);
-
-			SHELLEXECUTEINFO	sei = { 0 };
-			//構造体のサイズ
-			sei.cbSize = sizeof(SHELLEXECUTEINFO);
-			//起動側のウインドウハンドル
-			sei.hwnd = Window::GetMainHWND();
-			//起動後の表示状態
-			sei.nShow = SW_SHOWNORMAL;
-			//このパラメータが重要で、セットしないとSHELLEXECUTEINFO構造体のhProcessメンバがセットされない。
-			sei.fMask = SEE_MASK_NOCLOSEPROCESS;
-			//起動プログラム
-			sei.lpFile = pass.c_str();
-			//プロセス起動
-			if (!ShellExecuteEx(&sei) || (const int)sei.hInstApp <= 32){
-				MessageBox(Window::GetMainHWND(), "ファイルを開けませんでした", "失敗", MB_OK);
-				return;
-			}
-			//終了を待つ
-			WaitForSingleObject(sei.hProcess, INFINITE);
-
-			Load();
-
 		}
 		else{
 			actors.mEndReloadDLL = false;
@@ -271,4 +214,35 @@ void TextComponent::DrawTextUI(){
 		Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
 		if (pBackDS)pBackDS->Release();
 	});
+}
+
+void ModelComponent::CreateInspector(){
+	auto data = Window::CreateInspector();
+	Window::AddInspector(new InspectorLabelDataSet("Model"), data);
+	std::function<void(std::string)> collbackpath = [&](std::string name){
+		Window::ClearInspector();
+		mFileName = name;
+		if (mModel){
+			mModel->Release();
+			delete mModel;
+		}
+		mModel = new Model();
+		//mModel->Create(mFileName.c_str(), shared_ptr<MaterialComponent>());
+		shared_ptr<MaterialComponent> material = shared_ptr<MaterialComponent>(new MaterialComponent());
+		mModel->Create(mFileName.c_str(), material);
+		gameObject->RemoveComponent<MaterialComponent>();
+		gameObject->AddComponent<MaterialComponent>(material);
+
+	};
+	Window::AddInspector(new InspectorStringDataSet("Model", &mFileName, collbackpath), data);
+	Window::ViewInspector("Model",data);
+}
+
+void CameraComponent::Update(){
+	XMVECTOR null;
+	gameObject->mTransform->Scale(XMVectorSet(1, 1, 1, 1));
+	mView = XMMatrixInverse(&null, gameObject->mTransform->GetMatrix());
+	mCBNeverChanges.mParam.mView = XMMatrixTranspose(mView);
+	mCBNeverChanges.UpdateSubresource();
+	Game::SetMainCamera(this);
 }

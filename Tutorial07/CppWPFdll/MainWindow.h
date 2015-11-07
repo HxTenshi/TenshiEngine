@@ -187,13 +187,14 @@ private:
 
 	void OnDrop(Object ^s, System::Windows::Forms::DragEventArgs ^e)
 	{
-		TextBlock ^t = HandleDragEnter<TextBlock>(e);
+		TreeViewItem ^t = HandleDragEnter<TreeViewItem>(e);
 		//auto str = reinterpret_cast<String^>(e->Data->GetData(System::Windows::Forms::DataFormats::FileDrop));
 		//System::Windows::MessageBox::Show(str[0] + " is dropped.", "Dropped!");
 		//TextBlock ^t = (TextBlock^)e->Data->GetData(TextBlock::typeid);
-		pin_ptr<const wchar_t> wch = PtrToStringChars(t->Text);
+		String^ name = (String^)t->Header;
+		pin_ptr<const wchar_t> wch = PtrToStringChars(name);
 		size_t convertedChars = 0;
-		size_t  sizeInBytes = ((t->Text->Length + 1) * 2);
+		size_t  sizeInBytes = ((name->Length + 1) * 2);
 		char    *ch = (char *)malloc(sizeInBytes);
 		wcstombs_s(&convertedChars,
 			ch, sizeInBytes,
@@ -206,8 +207,12 @@ private:
 
 	void OnDragOver(Object ^sender, System::Windows::Forms::DragEventArgs ^e)
 	{
-		e->Effect = System::Windows::Forms::DragDropEffects::Copy;
+		TreeViewItem ^t = HandleDragEnter<TreeViewItem>(e);
+		if (((String^)t->Header)->Contains(".prefab")){
+			e->Effect = System::Windows::Forms::DragDropEffects::Copy;
 		return;
+		}
+		e->Effect = System::Windows::Forms::DragDropEffects::None;
 	}
 
 	WindowsFormsHost ^m_wfh;
@@ -243,8 +248,9 @@ public:
 		//DataContext = gcnew ViewModel();
 		Background = Brushes::Black;
 		//w:1184, h : 762
-		Width = 1605 + 16 + 200;
-		Height = 800 + 38;
+		//Width = 1605 + 16 + 200;
+		//Height = 800 + 38;
+		this->WindowState = System::Windows::WindowState::Maximized;
 
 		FrameworkElement ^contents = LoadContentsFromResource(IDR_VIEW);
 		Content = contents;
@@ -257,6 +263,15 @@ public:
 		CreateTreeView(TreeViewDec);
 		auto AssetTreeViewDec = (Border ^)contents->FindName("AssetTreeView");
 		CreateAssetTreeView(AssetTreeViewDec);
+
+		auto commandBarPanel = (StackPanel ^)contents->FindName("CommandBarPanel");
+		auto commandBar = LoadContentsFromResource(IDR_COMMAND_BAR);
+		commandBarPanel->Children->Add(commandBar);
+
+		auto pbtn = (Button^)commandBar->FindName("PlayGameButton");
+		pbtn->Click += gcnew System::Windows::RoutedEventHandler(this,&View::PlayButton_Click);
+		auto sbtn = (Button^)commandBar->FindName("StopGameButton");
+		sbtn->Click += gcnew System::Windows::RoutedEventHandler(this, &View::StopButton_Click);
 
 		Title = "TenshiEngine";
 		SetSelectItemReturnPoint();
@@ -332,7 +347,9 @@ public:
 		for (int i = 0; i < m_ComponentPanel->Children->Count; i++){
 			auto b = dynamic_cast<Border^>(m_ComponentPanel->Children[i]);
 			if (b == nullptr)continue;
-			auto d = dynamic_cast<Panel^>(b->Child);
+			auto e = dynamic_cast<Expander^>(b->Child);
+			if (e == nullptr)continue;
+			auto d = dynamic_cast<Panel^>(e->Content);
 			if (d == nullptr)continue;
 			ForDockPanelChild(d);
 		}
@@ -361,11 +378,14 @@ public:
 		m_ComponentPanel->Children->Clear();
 	}
 
-	void CreateComponent(array<InspectorData^>^ data){
+	void CreateComponent(String^ headerName,array<InspectorData^>^ data){
 		if (m_ComponentPanel == nullptr)return;
+
 		FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
 		m_ComponentPanel->Children->Add(com);
-		//DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
+
+		auto header = (Expander^)com->FindName("ComponentHeaderName");
+		header->Header = headerName;
 		auto dock = (DockPanel^)com->FindName("MainDock");
 		int num = data->GetLength(0);
 		for (int i = 0; i < num; i++){
@@ -433,7 +453,7 @@ private:
 		//アイテムリスト作成
 		auto list = gcnew TestContent::MyList();
 		//アイテムリストのルートを作成
-		auto root = gcnew TestContent::Person("root", list);
+		auto root = gcnew TestContent::Person("__Assets__root__", list);
 		treeView->DataContext = root;
 		auto source = gcnew System::Windows::Data::Binding("Children");
 		source->Mode = System::Windows::Data::BindingMode::TwoWay;
@@ -449,11 +469,15 @@ private:
 
 		//追加するアイテムのコントロール
 		auto fact = gcnew System::Windows::FrameworkElementFactory();
-		fact->Type = TextBlock::typeid;
+		fact->Type = TreeViewItem::typeid;
 		auto itembind = gcnew System::Windows::Data::Binding("Name");
 		itembind->Mode = BindingMode::TwoWay;
-		fact->SetBinding(TextBlock::TextProperty, itembind);
-		fact->AddHandler(TextBlock::MouseDownEvent,gcnew MouseButtonEventHandler(this,&View::OnMouseDown));
+		fact->SetBinding(TreeViewItem::HeaderProperty, itembind);
+		fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
+		fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
+		fact->AddHandler(TreeViewItem::MouseRightButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown));
+		fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
+		fact->AddHandler(TreeViewItem::ExpandedEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeView_Expanded));
 		datatemp->VisualTree = fact;
 
 		treeView->ItemTemplate = datatemp;
@@ -467,25 +491,53 @@ private:
 		//auto tblock = (TextBlock ^)sp->FindName("textBlock1");
 		//m_ActorIntPtrDataBox = tblock;
 
-		auto dirs = gcnew System::IO::DirectoryInfo("Assets/");
 
-		auto e = dirs->EnumerateFiles()->GetEnumerator();
-		while(e->MoveNext()){
-			auto item = gcnew TestContent::Person("Assets/" + e->Current->Name, gcnew TestContent::MyList());
-			item->DataPtr = (IntPtr)NULL;
-			root->Add(item);
-		}
+		CreateAssetTreeViewItem(root, "Assets");
 
 	}
 
-	void OnMouseDown(Object ^s, MouseButtonEventArgs ^e)
+	void CreateAssetTreeViewItem(TestContent::Person^ parent, String^ Path){
+		auto dirs = gcnew System::IO::DirectoryInfo(Path);
+
+		auto folders = dirs->EnumerateDirectories()->GetEnumerator();
+		while (folders->MoveNext()){
+			auto item = gcnew TestContent::Person(folders->Current->Name, gcnew TestContent::MyList());
+			item->DataPtr = (IntPtr)NULL;
+			parent->Add(item);
+		}
+		auto files = dirs->EnumerateFiles()->GetEnumerator();
+		while (files->MoveNext()){
+			auto item = gcnew TestContent::Person(files->Current->Name, gcnew TestContent::MyList());
+			item->DataPtr = (IntPtr)NULL;
+			parent->Add(item);
+		}
+
+	}
+	String^ GetFolderPath(TestContent::Person^ item){
+		if (item->Name == "__Assets__root__")return "Assets/";
+		return GetFolderPath(item->Parent) + item->Name + "/";
+	}
+	void TreeView_Expanded(Object ^s, System::Windows::RoutedEventArgs ^e)
 	{
-		//if (m_GameScreen->m_wfh->Visibility == System::Windows::Visibility::Visible)
-		//	m_GameScreen->m_wfh->Visibility = System::Windows::Visibility::Collapsed;
-		//else
-		//	m_GameScreen->m_wfh->Visibility = System::Windows::Visibility::Visible;
-		//System::Windows::MessageBox::Show("borderClick");
-		auto item = (TextBlock^)s;
+		auto treeitem = (TreeViewItem^)s;
+		treeitem->Items->Clear();
+		auto par = (TestContent::Person^)treeitem->DataContext;
+
+		auto dirPath = GetFolderPath(par);
+
+		CreateAssetTreeViewItem(par, dirPath);
+	}
+	void TreeViewItem_ForcusLost(Object ^s, System::Windows::RoutedEventArgs ^e)
+	{
+		auto item = (TreeViewItem^)s;
+		if (item != nullptr)
+		{
+			item->IsSelected = false;
+		}
+	}
+	void TreeViewItem_OnMouseLeave(Object ^s, System::Windows::Input::MouseEventArgs ^e)
+	{
+		auto item = (TreeViewItem^)s;
 		if (e->LeftButton == MouseButtonState::Pressed
 			&& e->RightButton == MouseButtonState::Released
 			&& e->MiddleButton == MouseButtonState::Released)
@@ -493,37 +545,50 @@ private:
 			item, // ドラッグされる物
 			item, // 渡すデータ
 			DragDropEffects::Copy); // D&Dで許可するオペレーション
-
+	}
+	void OnMouseDown(Object ^s, MouseButtonEventArgs ^e)
+	{
+		auto item = (TreeViewItem^)s;
+		if (item != nullptr)
+		{
+			item->IsSelected = true;
+			item->Focus();
+		}
 	}
 	void OnDrop(Object ^s, DragEventArgs ^e)
 	{
-		//System::Windows::MessageBox::Show(e->Data->GetData(TextBlock::typeid)->ToString() + " is dropped.", "Dropped!");
+		auto t = (array<String^>^)e->Data->GetData(System::Windows::Forms::DataFormats::FileDrop, false);
+		if (t[0]->Contains(".pmx\0")){
+			pin_ptr<const wchar_t> wch = PtrToStringChars(t[0]);
+			size_t convertedChars = 0;
+			size_t  sizeInBytes = ((t[0]->Length + 1) * 2);
+			char    *ch = (char *)malloc(sizeInBytes);
+			wcstombs_s(&convertedChars,
+				ch, sizeInBytes,
+				wch, sizeInBytes);
+			std::string* str = new std::string(ch);
+			free(ch);
+			Data::MyPostMessage(MyWindowMessage::CreatePMXtoTEStaticMesh, str);
+		}
 	}
 
-	void OnDragOver(Object ^sender, DragEventArgs ^e)
+	void OnDragOver2(Object ^sender, DragEventArgs ^e)
 	{
-		// ドロップされるデータがStringでなければ受け入れない
-		if (!e->Data->GetDataPresent(TextBlock::typeid))
+		// ドロップされるデータがTextBlockでなければ受け入れない
+		if (e->Data->GetDataPresent(TextBlock::typeid))
 		{
-			e->Effects = DragDropEffects::None;
+			auto t = (TextBlock^)e->Data->GetData(TextBlock::typeid);
+			if (t->Text->Contains(".prefab\0"))
+				e->Effects = DragDropEffects::Copy;
+			return;
+		}
+		if (e->Data->GetDataPresent(System::Windows::Forms::DataFormats::FileDrop))
+		{
+			e->Effects = DragDropEffects::All;
 			return;
 		}
 
 		e->Effects = DragDropEffects::None;
-	}
-	void OnDragOver2(Object ^sender, DragEventArgs ^e)
-	{
-		// ドロップされるデータがStringでなければ受け入れない
-		if (!e->Data->GetDataPresent(TextBlock::typeid))
-		{
-			e->Effects = DragDropEffects::None;
-			return;
-		}
-		auto t = (TextBlock^)e->Data->GetData(TextBlock::typeid);
-		if (t->Text->Contains(".prefab"))
-			e->Effects = DragDropEffects::Copy;
-		else
-			e->Effects = DragDropEffects::None;
 	}
 
 	//ツリービュー作成
@@ -652,6 +717,16 @@ private:
 
 				e->Handled = true;
 			}
+	}
+
+
+	void PlayButton_Click(Object ^s, System::Windows::RoutedEventArgs ^e)
+	{
+		Data::MyPostMessage(MyWindowMessage::PlayGame);
+	}
+	void StopButton_Click(Object ^s, System::Windows::RoutedEventArgs ^e)
+	{
+		Data::MyPostMessage(MyWindowMessage::StopGame);
 	}
 
 #pragma region MenuContext

@@ -23,7 +23,7 @@ public:
 
 		mFilePtr.close();
 		mFileName = FileName;
-		mFilePtr.open(mFileName, std::ios::out | std::ios::in | std::ios::app);
+		mFilePtr.open(mFileName, std::ios::out | std::ios::in);
 		mOpen = !mFilePtr.fail();
 		int by = 0;//std::ios::binary;
 		bool b = (bool)(std::ios::binary & by);

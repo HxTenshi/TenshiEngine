@@ -103,6 +103,7 @@ namespace TestContent{
 		property ObservableCollection<Person^>^ Children{ ObservableCollection<Person^>^ get(){ return mChildren->list; } void set(ObservableCollection<Person^>^ s){ mChildren->list = s; NotifyPropertyChanged("Children"); } }
 		property IntPtr DataPtr{ IntPtr get(){ return mDataPtr; } void set(IntPtr ptr){ mDataPtr = ptr; } }
 		property IntPtr ThisIntPtr{ IntPtr get(){ return (IntPtr)mThisIntPtr; } }
+		property Person^ Parent{ Person^ get(){ return mParent; } }
 		void Add(Person^ item){
 			if (item->mParent)
 				item->mParent->Children->Remove(item);

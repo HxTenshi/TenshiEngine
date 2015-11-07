@@ -12,11 +12,11 @@ struct SimpleVertex
 	XMFLOAT2 Tex;
 };
 
+
 struct PMDVertex
 {
 	XMFLOAT3 Pos;
 	XMFLOAT3 Normal;
-	//XMFLOAT4 Col;
 	XMFLOAT2 Tex;
 	UINT BoneIndex[4];
 	UINT BoneWeight[4];
@@ -123,5 +123,14 @@ protected:
 	XMVECTOR mMaxVertex;
 	XMVECTOR mMinVertex;
 
+	friend Model;
+};
+
+
+#include "Engine/AssetLoader.h"
+class AssetModelBuffer : public ModelBuffer {
+public:
+	HRESULT Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial) override;
+private:
 	friend Model;
 };

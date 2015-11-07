@@ -19,10 +19,10 @@ HRESULT Device::Init(const Window& window)
 
 	HRESULT hr = S_OK;
 
-	RECT rc;
-	GetClientRect(window.GetGameScreenHWND(), &rc);
-	UINT width = rc.right - rc.left;
-	UINT height = rc.bottom - rc.top;
+	//RECT rc;
+	//GetClientRect(window.GetGameScreenHWND(), &rc);
+	//UINT width = rc.right - rc.left;
+	//UINT height = rc.bottom - rc.top;
 
 
 	//UINT createDeviceFlags = 0;
@@ -57,8 +57,8 @@ HRESULT Device::Init(const Window& window)
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
 	sd.BufferCount = 1;
-	sd.BufferDesc.Width = width;
-	sd.BufferDesc.Height = height;
+	sd.BufferDesc.Width = WindowState::mWidth;
+	sd.BufferDesc.Height = WindowState::mHeight;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;

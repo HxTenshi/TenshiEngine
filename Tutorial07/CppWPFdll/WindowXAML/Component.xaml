@@ -3,8 +3,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
-    Background="#FF595959" BorderThickness="1,12,1,1" CornerRadius="10,10,2,2" BorderBrush="#FF1F1F1F" VerticalAlignment="Top" Margin="0" Padding="10">
+    Background="#FF595959" BorderThickness="1,24,1,1" CornerRadius="10,10,2,2" BorderBrush="#FF1F1F1F" VerticalAlignment="Top" Padding="10,0" Margin="0,5,0,0">
 
-    <DockPanel Name="MainDock" LastChildFill="False" UseLayoutRounding="False" Margin="0">
-    </DockPanel>
+    <Expander Header="Expander1" Name="ComponentHeaderName" VerticalAlignment="Top" Background="{x:Null}" BorderBrush="{x:Null}" RenderTransformOrigin="0.5,0.5" Foreground="#FF8B8B8B" Margin="0,0,0,-24" IsExpanded="True" Focusable="False">
+
+        <Expander.Resources>
+            <Style TargetType="TextBlock" >
+                <Setter Property="Foreground" Value="#FF161616"/>
+            </Style>
+        </Expander.Resources>
+        
+        <Expander.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform/>
+                <SkewTransform/>
+                <RotateTransform/>
+                <TranslateTransform X="0" Y="-24"/>
+            </TransformGroup>
+        </Expander.RenderTransform>
+        <DockPanel Name="MainDock" LastChildFill="False" UseLayoutRounding="False" Margin="0">
+            <TextBlock DockPanel.Dock="Top" Background="{x:Null}" Foreground="{x:Null}" FontSize="4" ></TextBlock>
+            <TextBlock DockPanel.Dock="Bottom" Background="{x:Null}" Foreground="{x:Null}" FontSize="4" ></TextBlock>
+        </DockPanel>
+    </Expander>
 </Border>

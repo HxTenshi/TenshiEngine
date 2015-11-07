@@ -2,15 +2,15 @@
 
 #include "../Material/Texture.h"
 class Font;
-class ID3D11Texture2D;
-class IDXGIKeyedMutex;
-class IDXGIKeyedMutex;
-class ID2D1RenderTarget;
-class ID2D1SolidColorBrush;
-class IDXGISurface1;
-class IDWriteTextFormat;
-class ID3D10Device1;
-class ID2D1Factory;
+struct ID3D11Texture2D;
+struct IDXGIKeyedMutex;
+struct IDXGIKeyedMutex;
+struct ID2D1RenderTarget;
+struct ID2D1SolidColorBrush;
+struct IDXGISurface1;
+struct IDWriteTextFormat;
+struct ID3D10Device1;
+struct ID2D1Factory;
 
 class FontManager{
 public:

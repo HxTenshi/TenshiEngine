@@ -26,6 +26,7 @@ public:
 	Actor();
 	virtual ~Actor();
 	virtual void Initialize();
+	virtual void DrawOnlyUpdateComponent(float deltaTime);
 	virtual void UpdateComponent(float deltaTime);
 	virtual void Update(float deltaTime);
 
@@ -52,6 +53,8 @@ public:
 	UINT GetUniqueID(){
 		return mUniqueID;
 	}
+
+	void CopyData(Actor* post, Actor* base);
 
 	void ExportData(const std::string& pass);
 	void ImportData(const std::string& fileName);

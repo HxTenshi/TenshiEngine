@@ -134,13 +134,12 @@ physx::PxShape* PhysXColliderComponent::GetShape(){
 
 void PhysXColliderComponent::CreateInspector() {
 	auto data = Window::CreateInspector();
-	Window::AddInspector(new InspectorLabelDataSet("Collider"), data);
 	BoolCollback collback = [&](bool value){
 		mIsSphere = value;
 		ChangeShape();
 	};
 	Window::AddInspector(new InspectorBoolDataSet("IsSphere", &mIsSphere, collback), data);
-	Window::ViewInspector(data);
+	Window::ViewInspector("Collider",data);
 }
 
 void PhysXColliderComponent::ExportData(File& f) {

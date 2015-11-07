@@ -25,6 +25,7 @@ using System::Windows::Controls::ScrollViewer;
 using System::Windows::Controls::TreeView;
 using System::Windows::Controls::TreeViewItem;
 using System::Windows::Controls::ItemCollection;
+using System::Windows::Controls::Expander;
 using System::Windows::Media::Brushes;
 using System::Xaml::XamlObjectWriter;
 using System::Xaml::XamlXmlReader;

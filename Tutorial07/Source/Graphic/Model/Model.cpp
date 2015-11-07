@@ -28,10 +28,13 @@ HRESULT Model::Create(const char* FileName,shared_ptr<MaterialComponent> resultM
 	HRESULT hr = S_OK;
 
 	std::string f = FileName;
-	if (f.find(".pmd") != std::string::npos){
+	if (f.find(".tesmesh\0") != std::string::npos){
+		mModelBuffer = new AssetModelBuffer();
+	}
+	else if(f.find(".pmd\0") != std::string::npos){
 		mModelBuffer = new ModelBufferPMD();
 	}
-	else if (f.find(".pmx") != std::string::npos){
+	else if (f.find(".pmx\0") != std::string::npos){
 		mModelBuffer = new ModelBufferPMX();
 	}
 	else{

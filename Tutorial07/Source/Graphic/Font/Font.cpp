@@ -1,12 +1,12 @@
 
+#include <D3D11.h>
 #include <string>
 #include <DWrite.h>
 #include <d2d1.h>
+#include <Shlwapi.h>
 
 #include "Font.h"
-#include <Shlwapi.h>
 #include "Window/Window.h"
-#include <D3D11.h>
 #include "Device/DirectX11Device.h"
 
 
@@ -419,6 +419,7 @@ HRESULT FontManager::Init(){
 			}
 		}
 	}
+	return hr;
 }
 
 //static
@@ -587,7 +588,6 @@ HRESULT Font::SetText(const std::string& text){
 	if (!mInitializeComplete){
 		return S_FALSE;
 	}
-
 	// D3D 11 側のテクスチャの使用を完了。
 	keyedmutex11->ReleaseSync(0);
 
@@ -609,14 +609,11 @@ HRESULT Font::SetText(const std::string& text){
 	{
 		rendertarget->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
 
-		brush->SetColor(D2D1::ColorF(0.0f, 0.0f, 1.0f, 1.0f));
-		rendertarget->FillRectangle(&rect, brush);
 		brush->SetColor(D2D1::ColorF(1.0f, 0.0f, 0.0f, 1.0f));
 
 		rect = D2D1::RectF(0, 200, 1000, 201);
 
-		//微妙に重い描画しないとClearとかより先に描画して消される？
-		//rendertarget->FillRectangle(&rect, brush);で調整中
+		//毎フレーム描画してると上手く描画されない？
 		UINT s = wcslen(wtext.c_str());
 		rendertarget->DrawText(
 			wtext.c_str(), s, mTextFormat.GetTextFormat(), &rect, brush);
@@ -626,8 +623,17 @@ HRESULT Font::SetText(const std::string& text){
 	// D3D 10.1 (D2D) 側のテクスチャの使用を完了。
 	hr = keyedmutex10->ReleaseSync(1);
 	if (FAILED(hr))return hr;
+	//２回目を呼ぶと描画が反映される
+	{
+		// D3D 10.1 (D2D) 側のテクスチャの使用を開始。
+		hr = keyedmutex10->AcquireSync(1, INFINITE);
+		if (FAILED(hr))return hr;
+		// D3D 10.1 (D2D) 側のテクスチャの使用を完了。
+		hr = keyedmutex10->ReleaseSync(2);
+	}
+	if (FAILED(hr))return hr;
 	// D3D 11 側のテクスチャの使用を開始。
-	hr = keyedmutex11->AcquireSync(1, INFINITE);
+	hr = keyedmutex11->AcquireSync(2, INFINITE);
 	if (FAILED(hr))return hr;
 
 	return hr;

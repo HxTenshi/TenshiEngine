@@ -412,40 +412,39 @@ namespace Test {
 	delegate void MyDelegate();
 	delegate IntPtr MyDelegateR();
 	//delegate void MyDelegateI(IntViewModel ^);
-	delegate void MyDelegateF(array<InspectorData^>^);
+	delegate void MyDelegateF(String^,array<InspectorData^>^);
 	delegate void MyDelegateITEM(String^, IntPtr);
 	delegate void MyDelegateI2(IntPtr, IntPtr);
-	void NativeFraction::CreateComponentWindow(std::vector<InspectorDataSet>& data){
+	void NativeFraction::CreateComponentWindow(const std::string& ComponentName, std::vector<InspectorDataSet>& data){
 		if (ViewData::window!=nullptr){
 			auto del = gcnew MyDelegateF(ViewData::window, &View::CreateComponent);
 			//System::Array<std::vector<InspectorData>> ^f;
 			int num = data.size();
-			array<array<InspectorData^>^> ^a = gcnew array<array<InspectorData^>^>(1);
-			a[0] = gcnew array<InspectorData^>(num);
+			array<InspectorData^> ^a = gcnew array<InspectorData^>(num);
 			int i = 0;
 			for (auto& d : data){
 				if (d.format == InspectorDataFormat::Label){
-					a[0][i] = gcnew InspectorLabel((InspectorLabelDataSet*)d.data);
+					a[i] = gcnew InspectorLabel((InspectorLabelDataSet*)d.data);
 				}
 				if (d.format == InspectorDataFormat::String){
-					a[0][i] = gcnew InspectorString((InspectorStringDataSet*)d.data);
+					a[i] = gcnew InspectorString((InspectorStringDataSet*)d.data);
 				}
 				if (d.format == InspectorDataFormat::Float){
-					a[0][i] = gcnew InspectorFloat((InspectorFloatDataSet*)d.data);
+					a[i] = gcnew InspectorFloat((InspectorFloatDataSet*)d.data);
 				}
 				if (d.format == InspectorDataFormat::Bool){
-					a[0][i] = gcnew InspectorBool((InspectorBoolDataSet*)d.data);
+					a[i] = gcnew InspectorBool((InspectorBoolDataSet*)d.data);
 				}
 				if (d.format == InspectorDataFormat::Vector3){
-					a[0][i] = gcnew InspectorVector3((InspectorVector3DataSet*)d.data);
+					a[i] = gcnew InspectorVector3((InspectorVector3DataSet*)d.data);
 				}
 				if (d.format == InspectorDataFormat::SlideBar){
-					a[0][i] = gcnew InspectorFloatSlideBar((InspectorSlideBarDataSet*)d.data);
+					a[i] = gcnew InspectorFloatSlideBar((InspectorSlideBarDataSet*)d.data);
 				}
 				i++;
 			}
 			
-			ViewData::window->Dispatcher->BeginInvoke(del, a);
+			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()), a);
 
 		}
 	}

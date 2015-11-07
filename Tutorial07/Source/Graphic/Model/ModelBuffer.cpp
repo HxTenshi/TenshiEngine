@@ -726,3 +726,28 @@ void ModelBuffer::VMDIkAnimation()
 	UpdatePose();
 }
 #endif
+
+
+HRESULT AssetModelBuffer::Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial){
+	(void)resultMaterial;
+	HRESULT hr = S_OK;
+
+	mMaxVertex = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
+	mMinVertex = XMVectorSet(-1.0f, -1.0f, -1.0f, 1.0f);
+
+	AssetLoader loader;
+	auto modeldata = loader.LoadAsset(FileName);
+	if (!modeldata)return S_FALSE;
+
+	mpIndexBuffer = modeldata->m_pIndexBuffer;
+	mpVertexBuffer = modeldata->m_pVertexBuffer;
+	mIndexNum = modeldata->m_Polygons.IndexNum;
+
+	mpModel->mMeshs.resize(1);
+	mpModel->mMeshs[0].mpModelBuffer = this;
+	mpModel->mMeshs[0].mFace_vert_start_count = 0;
+	mpModel->mMeshs[0].mFace_vert_count = mIndexNum;
+
+	mStride = sizeof(PolygonsData::VertexType);
+	return S_OK;
+}

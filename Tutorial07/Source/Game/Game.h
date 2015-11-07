@@ -30,65 +30,88 @@ enum class DrawStage{
 };
 typedef void(*DrawFunc)();
 
-class Camera{
+
+class EditorCamera{
 public:
-	Camera()
-	{
+	EditorCamera(){
+		mRClickMousePos = XMVectorSet(0.0f,0.0f, 0.0f, 0.0f);
+		//mRClickEyeVect = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+		//mRClickRotateAxis = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+		mCameraComponent = new CameraComponent();
+		mCamera.mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+		mCamera.AddComponent<TransformComponent>(mCamera.mTransform);
+		mCamera.AddComponent(shared_ptr<CameraComponent>(mCameraComponent));
+		mCamera.Initialize();
+		UINT width = WindowState::mWidth;
+		UINT height = WindowState::mHeight;
+		//XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
+		mCamera.mTransform->Scale(XMVectorSet(1, 1, 1, 1));
+	}
+	~EditorCamera(){
 
 	}
-	virtual ~Camera()
-	{
-
-	}
-
-	HRESULT Init()
-	{
-		HRESULT hr;
-
-		hr = mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
-		if (FAILED(hr))
-			MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
-
-		//RECT rc;
-		//GetClientRect(window.GetHWND(), &rc);
-		UINT width = WindowState::mWidth;// rc.right - rc.left;
-		UINT height = WindowState::mHeight;//rc.bottom - rc.top;
-
-
-		mCBNeverChanges = ConstantBuffer<CBNeverChanges>::create(0);
-		if (!mCBNeverChanges.mBuffer)
-			return S_FALSE;
-
-		mCBChangeOnResize = ConstantBuffer<CBChangeOnResize>::create(1);
-		if (!mCBChangeOnResize.mBuffer)
-			return S_FALSE;
-
-		mCBBillboard = ConstantBuffer<CBBillboard>::create(8);
-		if (!mCBBillboard.mBuffer)
-			return S_FALSE;
-
-		// Initialize the view matrix
-		Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
-		At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-		Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	void Update(float deltaTime){
+		auto pos = mCamera.mTransform->Position();
+		if (Input::Down(KeyCoord::Key_F)){
+			pos.x -= 0.1f;
+		}
+		if (Input::Down(KeyCoord::Key_H)){
+			pos.x += 0.1f;
+		}
+		if (Input::Down(KeyCoord::Key_T)){
+			pos.z += 0.1f;
+		}
+		if (Input::Down(KeyCoord::Key_G)){
+			pos.z -= 0.1f;
+		}
+		if (Input::Down(KeyCoord::Key_U)){
+			pos.y += 0.1f;
+		}
+		if (Input::Down(KeyCoord::Key_J)){
+			pos.y -= 0.1f;
+		}
+		if (Input::Trigger(MouseCoord::Right)){
+			int x, y;
+			Input::MousePosition(&x, &y);
+			mRClickMousePos = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f);
 		
-		UpdateView();
+		
+			//mRClickEyeVect = mCamera.mTransform->Forward();
+			//mRClickRotateAxis = XMVector3Cross(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), -XMVector3Normalize(mRClickEyeVect));
 
-		// Initialize the projection matrix
-		mProjection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
-
-		mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
-		mCBChangeOnResize.UpdateSubresource();
-
-		return S_OK;
+			//mRClickRotate = mCamera.mTransform->Rotate();
+			
+		}
+		if (Input::Down(MouseCoord::Right)){
+			int x, y;
+			Input::MousePosition(&x, &y);
+			XMVECTOR DragVect = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f) - mRClickMousePos;
+		
+			DragVect *= 0.01f;
+			XMVECTOR xrot = XMQuaternionRotationAxis(mCamera.mTransform->Left(), DragVect.y);
+			//Eye = XMVector3Rotate(-mRClickEyeVect, xrot) + At;
+		
+			XMVECTOR yrot = XMQuaternionRotationAxis(XMVectorSet(0,1,0,1), DragVect.x);
+			//XMVECTOR yrot = XMQuaternionRotationAxis(mCamera.mTransform->Up(), DragVect.x);
+			//Eye = XMVector3Rotate(-mRClickEyeVect, yrot) + At;
+		
+			XMVECTOR rot = XMQuaternionMultiply(xrot, yrot);
+			XMVECTOR rotate = mCamera.mTransform->Rotate();
+			rot = XMQuaternionMultiply(rotate, rot);
+			mCamera.mTransform->Rotate(rot);
+			mRClickMousePos = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f);
+		
+		}
+		mCamera.mTransform->Position(pos);
+		mCamera.UpdateComponent(deltaTime);
 	}
 
 	XMVECTOR ScreenToWorldPoint(const XMVECTOR& point){
 		XMVECTOR d;
 		XMMATRIX projInv;
-		projInv = XMMatrixInverse(&d, mProjection);
+		projInv = XMMatrixInverse(&d, mCameraComponent->mProjection);
 		XMMATRIX viewInv;
-		viewInv = XMMatrixInverse(&d, mView);
+		viewInv = XMMatrixInverse(&d, mCameraComponent->mView);
 
 		XMMATRIX vpInv;
 		vpInv = XMMatrixIdentity();
@@ -104,7 +127,7 @@ public:
 
 		//float nearFar = 100.0f - 0.01f;
 
-		XMVECTOR worldPoint = point;// / XMVectorSet(WindowState::mWidth, WindowState::mHeight, nearFar, 1.0f);
+		XMVECTOR worldPoint = point;// XMVectorSet(WindowState::mWidth, WindowState::mHeight, nearFar, 1.0f);
 		worldPoint.z = 0.9999f;
 		worldPoint = XMVector3TransformCoord(worldPoint, vpInv);
 		return worldPoint;
@@ -113,221 +136,21 @@ public:
 	XMVECTOR PointRayVector(const XMVECTOR& point){
 
 		XMVECTOR end = ScreenToWorldPoint(point);
-		XMVECTOR vect = end - Eye;
+		XMVECTOR vect = end - mCamera.mTransform->Position();
 		vect = XMVector3Normalize(vect);
 		return vect;
 	}
 
-	void UpdateView(){
-		mView = XMMatrixLookAtLH(Eye, At, Up);
-
-
-		auto Billboard = XMMatrixLookAtLH(XMVectorZero(), Eye - At, Up);
-		XMVECTOR v;
-		Billboard = XMMatrixTranspose(XMMatrixInverse(&v, Billboard));
-		mCBBillboard.mParam.mBillboardMatrix = Billboard;
-		mCBBillboard.UpdateSubresource();
-
-		mCBNeverChanges.mParam.mView = XMMatrixTranspose(mView);
-		mCBNeverChanges.UpdateSubresource();
-	}
-
-	void VSSetConstantBuffers() const
-	{
-		mCBNeverChanges.VSSetConstantBuffers();
-		mCBChangeOnResize.VSSetConstantBuffers();
-		mCBBillboard.VSSetConstantBuffers();
-	}
-	void GSSetConstantBuffers() const
-	{
-		mCBNeverChanges.GSSetConstantBuffers();
-		mCBChangeOnResize.GSSetConstantBuffers();
-		mCBBillboard.GSSetConstantBuffers();
-	}
-
-	//void Draw(const std::list<Actor*>& mActors)const{
-	//void Draw(Actor* mActor)const{
-	void Draw(std::map<DrawStage, std::list<std::function<void()>>>* DrawList)const{
-
-		VSSetConstantBuffers();
-		GSSetConstantBuffers();
-
-		Device::mRenderTargetBack->ClearView();
-		mRenderTarget.ClearView();
-
-
-		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		descDS.DepthFunc = D3D11_COMPARISON_LESS;
-		ID3D11DepthStencilState* pDS = NULL;
-		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-		Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
-
-
-		const RenderTarget* r[1] = { &mRenderTarget };
-		RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
-
-		//for (Actor* p : mActors){
-		//	p->Draw(DrawBit::Depth);
-		//}
-		//mActor->Draw(DrawBit::Depth);
-		auto &list = (*DrawList)[DrawStage::Depth];
-		for (auto& p : list){
-			p();
-		}
-		list.clear();
-
-		Device::mRenderTargetBack->ClearView();
-		Device::mRenderTargetBack->SetRendererTarget();
-
-
-		ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
-		Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
-		ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
-		Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
-
-		//if(false){
-		//	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		//	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		//	descDS.DepthFunc = D3D11_COMPARISON_LESS;
-		//
-		//	ID3D11DepthStencilState* pDS = NULL;
-		//	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-		//
-		//	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
-		//
-		//	//tex->Draw();
-		//
-		//Font::TextOutFont(0, 60, 60, "AAAAA", "Comic Sans MS", 0);
-		//
-		//Font::DrawEnd();
-		//
-		//	//Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
-		//	//Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
-		//
-		//
-		//	const RenderTarget* r2[2] = { &mRenderTargetBack, &mRenderTarget2 };
-		//	RenderTarget::SetRendererTarget((UINT)2, r2[0], &mRenderTargetBack);
-		//
-		//	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-		//	pDS->Release();
-		//}
-
-		//for (Actor* p : mActors){
-		//	p->Draw(DrawBit::Diffuse);
-		//}
-		//mActor->Draw(DrawBit::Diffuse);
-		auto &list2 = (*DrawList)[DrawStage::Diffuse];
-		for (auto &p : list2){
-			p();
-		}
-		list2.clear();
-
-		auto &list3 = (*DrawList)[DrawStage::Engine];
-		for (auto &p : list3){
-			p();
-		}
-		list3.clear();
-		auto &list4 = (*DrawList)[DrawStage::UI];
-		for (auto &p : list4){
-			p();
-		}
-		list4.clear();
-
-		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-		if (pDS)pDS->Release();
-
-	}
-
-	void Release(){
-
-		mRenderTarget.Release();
-
-	}
-
-	XMVECTOR GetPosition() const{
-		return Eye;
-	}
-
-	Texture GetDepthTexture(){
-		return mRenderTarget.GetTexture();
-	}
-private:
-
-	RenderTarget mRenderTarget;
-	RenderTarget mRenderTarget2;
-
-	ConstantBuffer<CBNeverChanges>		mCBNeverChanges;
-	ConstantBuffer<CBChangeOnResize>	mCBChangeOnResize;
-	ConstantBuffer<CBBillboard>		mCBBillboard;
-
-	XMMATRIX                            mView;
-	XMMATRIX                            mProjection;
-protected:
-	XMVECTOR							Eye;
-	XMVECTOR							At;
-	XMVECTOR							Up;
-};
-
-class EditorCamera: public Camera{
-public:
-	EditorCamera(){
-		mRClickMousePos = XMVectorSet(0.0f,0.0f, 0.0f, 0.0f);
-		mRClickEyeVect = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-		mRClickRotateAxis = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	}
-	~EditorCamera(){
-
-	}
-	void Update(float deltaTime){
-		if (Input::Down(KeyCoord::Key_F)){
-			Eye.x += 0.1f;
-			UpdateView();
-		}
-		if (Input::Down(KeyCoord::Key_H)){
-			Eye.x -= 0.1f;
-			UpdateView();
-		}
-		if (Input::Down(KeyCoord::Key_T)){
-			Eye.z += 0.1f;
-			UpdateView();
-		}
-		if (Input::Down(KeyCoord::Key_G)){
-			Eye.z -= 0.1f;
-			UpdateView();
-		}
-		if (Input::Trigger(MouseCoord::Right)){
-			int x, y;
-			Input::MousePosition(&x, &y);
-			mRClickMousePos = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f);
-		
-		
-			mRClickEyeVect = At - Eye;
-			mRClickRotateAxis = XMVector3Cross(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), -XMVector3Normalize(mRClickEyeVect));
-			
-		}
-		if (Input::Down(MouseCoord::Right)){
-			int x, y;
-			Input::MousePosition(&x, &y);
-			XMVECTOR DragVect = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f) - mRClickMousePos;
-		
-			DragVect *= 0.01f;
-			XMVECTOR xrot = XMQuaternionRotationAxis(mRClickRotateAxis, -DragVect.y);
-			//Eye = XMVector3Rotate(-mRClickEyeVect, xrot) + At;
-		
-			XMVECTOR yrot = XMQuaternionRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), DragVect.x);
-			//Eye = XMVector3Rotate(-mRClickEyeVect, yrot) + At;
-		
-			XMVECTOR rot = XMQuaternionMultiply(xrot, yrot);
-			Eye = XMVector3Rotate(-mRClickEyeVect, rot) + At;
-		
-			UpdateView();
-		}
+	XMVECTOR GetPosition(){
+		return mCamera.mTransform->Position();;
 	}
 private:
 	XMVECTOR	mRClickMousePos;
-	XMVECTOR	mRClickEyeVect;
-	XMVECTOR	mRClickRotateAxis;
+	//XMVECTOR	mRClickEyeVect;
+	//XMVECTOR	mRClickRotateAxis;
+	//XMVECTOR	mRClickRotate;
+	Actor		mCamera;
+	CameraComponent* mCameraComponent;
 };
 
 
@@ -336,6 +159,8 @@ public:
 
 	Box(){
 		Name("new Box");
+		mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+		mComponents.AddComponent<TransformComponent>(mTransform);
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
 		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new ModelComponent("box",material)));
@@ -350,6 +175,8 @@ public:
 	}
 	Box(const XMVECTOR& Position){
 		Name("new Box");
+		mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+		mComponents.AddComponent<TransformComponent>(mTransform);
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
 		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new ModelComponent("box", material)));
@@ -379,6 +206,8 @@ public:
 	{
 		Name("new Text");
 
+		mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+		mComponents.AddComponent<TransformComponent>(mTransform);
 
 		auto mMaterialComponent = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(mMaterialComponent);
@@ -410,6 +239,8 @@ public:
 		Texture mTexture;
 		mTexture.Create(FileName);
 
+		mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+		mComponents.AddComponent<TransformComponent>(mTransform);
 		auto mMaterialComponent = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(mMaterialComponent);
 
@@ -448,6 +279,8 @@ public:
 		Name("new Texture");
 
 
+		mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+		mComponents.AddComponent<TransformComponent>(mTransform);
 		auto mMaterialComponent = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(mMaterialComponent);
 
@@ -494,6 +327,9 @@ class Player : public Actor{
 public:
 	Player(){
 		Name("new Player");
+
+		mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+		mComponents.AddComponent<TransformComponent>(mTransform);
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
 		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new ModelComponent("model/mikoteto1/model.pmx", material)));
@@ -537,6 +373,19 @@ public:
 	Actor* GetSelect(){
 		return mSelect;
 	}
+
+	void UpdateInspector(){
+		if (!mSelect)return;
+
+		static unsigned long time_start = timeGetTime();
+		unsigned long current_time = timeGetTime();
+		unsigned long b = (current_time - time_start);
+		if (b >= 16){
+			time_start = timeGetTime();
+			//ˆ—‚ª’Ç‚¢‚Â‚©‚È‚¢ê‡‚ª‚ ‚é
+			Window::UpdateInspector();
+		}
+	}
 	void Update(float deltaTime){
 		//if (Window::GetTreeViewWindow()->IsActive()){
 		//	void* s = (Actor*)Window::GetTreeViewWindow()->GetSelectItem();
@@ -550,15 +399,6 @@ public:
 		//}
 
 		if (!mSelect)return;
-
-		static unsigned long time_start = timeGetTime();
-		unsigned long current_time = timeGetTime();
-		unsigned long b = (current_time - time_start);
-		if (b >= 16){
-			time_start = timeGetTime();
-			//ˆ—‚ª’Ç‚¢‚Â‚©‚È‚¢ê‡‚ª‚ ‚é
-			Window::UpdateInspector();
-		}
 
 		mVectorBox[0].mTransform->Position(mSelect->mTransform->WorldPosition() + XMVectorSet(3.0f, 0.0f, 0.0f, 0.0f));
 		mVectorBox[1].mTransform->Position(mSelect->mTransform->WorldPosition() + XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f));
@@ -802,6 +642,8 @@ public:
 	Particle(){
 		Name("new Particle");
 
+		mTransform = shared_ptr<TransformComponent>(new TransformComponent());
+		mComponents.AddComponent<TransformComponent>(mTransform);
 		Material mTexMaterial;
 		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
 		auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
@@ -826,6 +668,7 @@ private:
 
 	MaterialComponent mMaterial;
 };
+
 
 class Game{
 public:
@@ -867,7 +710,37 @@ public:
 	static Actor* FindUID(UINT uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
 	static void SetUndo(ICommand* command);
+	static void SetMainCamera(CameraComponent* Camera);
+	void ChangePlayGame(bool isPlay);
 
+
+	void fps(){
+		static unsigned long time_start = timeGetTime();
+		static int count_frames = 0;
+
+		unsigned long current_time = timeGetTime();
+		float b = (current_time - time_start);
+		if (b == 0.0f){
+			b = 1;
+		}
+		float fps = (float)count_frames / b * 1000;
+		std::string title = "FPS:" + std::to_string(fps) + "‚¾‚æ`š";
+		count_frames++;
+		if (count_frames > 60){
+			time_start = timeGetTime();
+			count_frames = 1;
+		}
+
+		static Text text({ 0, 0 }, { 500, 800 });
+		static bool init = false;
+		if (!init){
+			text.Initialize();
+			init = true;
+		}
+		auto t = text.GetComponent<TextComponent>();
+		t->ChangeText(title);
+		text.UpdateComponent(1);
+	}
 
 	float GetDeltaTime(){
 		float deltaTime;
@@ -891,7 +764,15 @@ public:
 	}
 
 	void Update(){
-
+		if (mIsPlay){
+			GamePlay();
+		}
+		else{
+			GameStop();
+		}
+		mSelectActor.UpdateInspector();
+	}
+	void GameStop(){
 		float deltaTime = GetDeltaTime();
 
 		mCamera.Update(deltaTime);
@@ -901,7 +782,7 @@ public:
 			Input::MousePosition(&x, &y);
 			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
 			point = mCamera.ScreenToWorldPoint(point);
-
+		
 			AddObject(new Box(point));
 		}
 		if (Input::Trigger(KeyCoord::Key_X)){
@@ -932,7 +813,7 @@ public:
 			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
 			XMVECTOR vect = mCamera.PointRayVector(point);
 			XMVECTOR pos = mCamera.GetPosition();
-
+		
 			mSelectActor.ChackHitRay(pos, vect);
 			for (auto& p : mList){
 				if (p.second->ChackHitRay(pos, vect)){
@@ -941,52 +822,120 @@ public:
 			}
 		}
 
-		mRootObject->UpdateComponent(deltaTime);
-
-		mPhysX3Main->Display();
-
-
-
+		mRootObject->DrawOnlyUpdateComponent(deltaTime);
 
 		Game::AddDrawList(DrawStage::Engine, [&](){
 			mWorldGrid.Draw();
 		});
 
 
-		static unsigned long time_start = timeGetTime();
-		static int count_frames = 0;
+		fps();
+	}
+	void GamePlay(){
+		float deltaTime = GetDeltaTime();
 
-		unsigned long current_time = timeGetTime();
-		float b = (current_time - time_start);
-		if (b == 0.0f){
-			b = 1;
-		}
-		float fps = (float)count_frames / b * 1000;
-		std::string title = "FPS:" + std::to_string(fps) + "‚¾‚æ`š";
-		count_frames++;
-		if (count_frames > 60){
-			time_start = timeGetTime();
-			count_frames = 1;
-		}
+		mRootObject->UpdateComponent(deltaTime);
+		mPhysX3Main->Display();
 
-		static Text text({ 0, 0}, { 500, 800 });
-		static bool init = false;
-		if (!init){
-			text.Initialize();
-			init = true;
+		fps();
+	}
+
+	void Draw(){
+		if (!mMainCamera){
+			Device::mRenderTargetBack->ClearView();
+			mMeinViewRenderTarget.ClearView();
+			ClearDrawList();
+			return;
 		}
-		auto t = text.GetComponent<TextComponent>();
-		t->ChangeText(title);
-		text.UpdateComponent(deltaTime);
+		mMainCamera->VSSetConstantBuffers();
+		mMainCamera->GSSetConstantBuffers();
+
+		Device::mRenderTargetBack->ClearView();
+		mMeinViewRenderTarget.ClearView();
+
+
+		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		descDS.DepthFunc = D3D11_COMPARISON_LESS;
+		ID3D11DepthStencilState* pDS = NULL;
+		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
+		Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
+
+
+		const RenderTarget* r[1] = { &mMeinViewRenderTarget };
+		RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+
+
+		PlayDrawList(DrawStage::Depth);
+
+		Device::mRenderTargetBack->ClearView();
+		Device::mRenderTargetBack->SetRendererTarget();
+
+
+		ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
+		Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
+		ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
+		Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
+
+		//if(false){
+		//	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+		//	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		//	descDS.DepthFunc = D3D11_COMPARISON_LESS;
+		//
+		//	ID3D11DepthStencilState* pDS = NULL;
+		//	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
+		//
+		//	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
+		//
+		//	//tex->Draw();
+		//
+		//Font::TextOutFont(0, 60, 60, "AAAAA", "Comic Sans MS", 0);
+		//
+		//Font::DrawEnd();
+		//
+		//	//Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
+		//	//Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
+		//
+		//
+		//	const RenderTarget* r2[2] = { &mRenderTargetBack, &mRenderTarget2 };
+		//	RenderTarget::SetRendererTarget((UINT)2, r2[0], &mRenderTargetBack);
+		//
+		//	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+		//	pDS->Release();
+		//}
+
+		//for (Actor* p : mActors){
+		//	p->Draw(DrawBit::Diffuse);
+		//}
+		//mActor->Draw(DrawBit::Diffuse);
+
+
+		PlayDrawList(DrawStage::Diffuse);
+		PlayDrawList(DrawStage::Engine);
+		PlayDrawList(DrawStage::UI);
+
+		ClearDrawList();
+
+		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+		if (pDS)pDS->Release();
+
+		SetMainCamera(NULL);
 
 	}
-	void Draw(){
-
-		mCamera.Draw(&mDrawList);
-
+	void ClearDrawList(){
+		for (auto &list : mDrawList){
+			list.second.clear();
+		}
+	}
+	void PlayDrawList(DrawStage Stage){
+		auto &list = mDrawList[Stage];
+		for (auto &p : list){
+			p();
+		}
 	}
 private:
 	std::map<UINT, Actor*> mList;
+	std::map<UINT, Actor*> mListBack;
 	std::map<DrawStage, std::list<std::function<void()>>> mDrawList;
 	static Actor* mRootObject;
 
@@ -1003,4 +952,8 @@ private:
 	PhysX3Main* mPhysX3Main;
 
 	CommandManager mCommandManager;
+
+	RenderTarget mMeinViewRenderTarget;
+	CameraComponent* mMainCamera;
+	bool mIsPlay;
 };

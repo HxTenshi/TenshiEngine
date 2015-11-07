@@ -46,7 +46,7 @@ public:
 	}
 
 	void ChangeTreeViewName(void* ptr, std::string& name);
-	void CreateComponentWindow(std::vector<InspectorDataSet>& data);
+	void CreateComponentWindow(const std::string& ComponentName, std::vector<InspectorDataSet>& data);
 	void ClearAllComponentWindow();
 	void UpdateComponentWindow();
 
