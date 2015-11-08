@@ -705,14 +705,14 @@ public:
 	static void AddObject(Actor* actor);
 	static void DestroyObject(Actor* actor);
 	static PxRigidActor* CreateRigitBody();
-	static PxShape* CreateShape();
-	static PxShape* CreateShapeSphere();
+	static PhysX3Main* GetPhysX();
 	static void RemovePhysXActor(PxActor* act);
 	static Actor* FindUID(UINT uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
 	static void SetUndo(ICommand* command);
 	static void SetMainCamera(CameraComponent* Camera);
 	void ChangePlayGame(bool isPlay);
+	void SaveScene();
 
 
 	void fps(){

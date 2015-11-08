@@ -179,7 +179,7 @@ void Actor::ImportDataAndNewID(const std::string& fileName){
 	if (!f)return;
 
 	f.In(&mUniqueID);
-	mUniqueID = 0;
+	mUniqueID = gUniqueIDGenerator.CreateUniqueID();
 	f.In(&mName);
 	int ioc = mName.find("$");
 	while (std::string::npos != ioc){

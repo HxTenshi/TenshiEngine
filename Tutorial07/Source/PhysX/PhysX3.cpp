@@ -56,6 +56,9 @@ void PhysX3Main::InitializePhysX() {
 	if (!PxInitExtensions(*gPhysicsSDK))
 		std::cerr << "PxInitExtensions failed!" << std::endl;
 
+	PxCookingParams cookingParam(scale);
+	mCooking = PxCreateCooking(PX_PHYSICS_VERSION, *mFoundation, cookingParam);
+
 
 	//Create the scene
 	PxSceneDesc sceneDesc(gPhysicsSDK->getTolerancesScale());
@@ -136,20 +139,69 @@ PxRigidActor* PhysX3Main::createBox(){
 	return act;
 }
 
-
+#include <cooking\PxTriangleMeshDesc.h>
+#include <cooking\PxCooking.h>
 PxShape* PhysX3Main::CreateShape(){
-	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
+	//PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
 	PxVec3 dimensions(0.5, 0.5, 0.5);
 	PxBoxGeometry geometry(dimensions);
 	return gPhysicsSDK->createShape(geometry, *mMaterial,PxShapeFlag::eSIMULATION_SHAPE);
-
 }
 
 PxShape* PhysX3Main::CreateShapeSphere(){
-	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
+	//PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
 	PxSphereGeometry geometry(0.5);
 	return gPhysicsSDK->createShape(geometry, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE);
 
+}
+
+std::vector<PxVec3> vertexVec3;
+std::vector<PxU32> indexU32;
+PxShape* PhysX3Main::CreateTriangleMesh(PxU32 VertexNum, PolygonsData::VertexType* vertex, PxU32 IndexNum, PolygonsData::IndexType* index){
+
+	//std::vector<PxVec3> vertexVec3(VertexNum);
+	vertexVec3.resize(VertexNum);
+	for (int i = 0; i < VertexNum; i++){
+		vertexVec3[i] = PxVec3(vertex[i].Pos.x, vertex[i].Pos.y, vertex[i].Pos.z);
+	}
+
+	PxBoundedData vertexdata;
+	vertexdata.count = VertexNum;
+	vertexdata.stride = sizeof(PxVec3);
+	vertexdata.data = vertexVec3.data();
+
+
+	//std::vector<PxU32> indexU32(IndexNum);
+	indexU32.resize(IndexNum);
+	for (int i = 0; i < IndexNum; i++){
+		indexU32[i] = (PxU32)index[i];
+	}
+
+	PxBoundedData indexdata;
+	indexdata.count = IndexNum / 3;
+	indexdata.stride = sizeof(PxU32) * 3;
+	indexdata.data = indexU32.data();
+
+
+	// メッシュデータのパラメータを設定
+	PxTriangleMeshDesc triangleDesc;
+	triangleDesc.points = vertexdata; // 頂点データ
+	triangleDesc.triangles = indexdata; // 三角形の頂点インデックス
+	//triangleDesc.flags = PxMeshFlag;
+
+	PxDefaultMemoryOutputStream writeBuffer;
+	bool status = mCooking->cookTriangleMesh(triangleDesc, writeBuffer);
+	if (!status){
+		return NULL;
+	}
+
+	PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+	// メッシュを作成する
+	auto mesh =  gPhysicsSDK->createTriangleMesh(readBuffer);
+
+	PxTriangleMeshGeometry meshGeo(mesh);
+	auto shape = gPhysicsSDK->createShape(meshGeo, *mMaterial);
+	return shape;
 }
 
 static int mCount=0;

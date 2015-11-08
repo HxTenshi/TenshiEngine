@@ -184,14 +184,19 @@ public:
 	//ƒQ[ƒ€‰æ–Ê—p‚ÌHWND‚ðŽæ“¾‚·‚é‚½‚ß‚ÌWindowsFormsHost
 
 private:
-
+	String^ GetFolderPath(TestContent::Person^ item){
+		if (item->Name == "__Assets__root__")return "Assets";
+		return  GetFolderPath(item->Parent) + "/" + item->Name;
+	}
 	void OnDrop(Object ^s, System::Windows::Forms::DragEventArgs ^e)
 	{
 		TreeViewItem ^t = HandleDragEnter<TreeViewItem>(e);
 		//auto str = reinterpret_cast<String^>(e->Data->GetData(System::Windows::Forms::DataFormats::FileDrop));
 		//System::Windows::MessageBox::Show(str[0] + " is dropped.", "Dropped!");
 		//TextBlock ^t = (TextBlock^)e->Data->GetData(TextBlock::typeid);
-		String^ name = (String^)t->Header;
+
+		auto name = GetFolderPath((TestContent::Person^)t->DataContext);
+		//String^ name = (String^)t->Header;
 		pin_ptr<const wchar_t> wch = PtrToStringChars(name);
 		size_t convertedChars = 0;
 		size_t  sizeInBytes = ((name->Length + 1) * 2);
@@ -210,7 +215,7 @@ private:
 		TreeViewItem ^t = HandleDragEnter<TreeViewItem>(e);
 		if (((String^)t->Header)->Contains(".prefab")){
 			e->Effect = System::Windows::Forms::DragDropEffects::Copy;
-		return;
+			return;
 		}
 		e->Effect = System::Windows::Forms::DragDropEffects::None;
 	}
@@ -274,6 +279,8 @@ public:
 		sbtn->Click += gcnew System::Windows::RoutedEventHandler(this, &View::StopButton_Click);
 		auto cbtn = (Button^)commandBar->FindName("ScriptCompile");
 		cbtn->Click += gcnew System::Windows::RoutedEventHandler(this, &View::CompileButton_Click);
+		auto savebtn = (Button^)commandBar->FindName("SaveButton");
+		savebtn->Click += gcnew System::Windows::RoutedEventHandler(this, &View::SaveButton_Click);
 
 		Title = "TenshiEngine";
 		SetSelectItemReturnPoint();
@@ -560,7 +567,7 @@ private:
 	void OnDrop(Object ^s, DragEventArgs ^e)
 	{
 		auto t = (array<String^>^)e->Data->GetData(System::Windows::Forms::DataFormats::FileDrop, false);
-		if (t[0]->Contains(".pmx\0")){
+		if (t[0]->Contains(".pmx")){
 			pin_ptr<const wchar_t> wch = PtrToStringChars(t[0]);
 			size_t convertedChars = 0;
 			size_t  sizeInBytes = ((t[0]->Length + 1) * 2);
@@ -804,6 +811,10 @@ private:
 	void CompileButton_Click(Object ^s, System::Windows::RoutedEventArgs ^e)
 	{
 		Data::MyPostMessage(MyWindowMessage::ScriptCompile);
+	}
+	void SaveButton_Click(Object ^s, System::Windows::RoutedEventArgs ^e)
+	{
+		Data::MyPostMessage(MyWindowMessage::SaveScene);
 	}
 
 #pragma region MenuContext

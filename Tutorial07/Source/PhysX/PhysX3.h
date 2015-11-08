@@ -41,15 +41,18 @@
 #pragma comment(lib,"PhysXProfileSDKDEBUG.lib")
 //#pragma comment(lib,"PxTaskDEBUG.lib")
 #pragma comment(lib,"PhysX3ExtensionsDEBUG.lib")
+#pragma comment(lib,"PhysX3CookingDEBUG_x86.lib")
 
 #else
 #pragma comment(lib,"PhysX3_x86.lib")
 #pragma comment(lib,"PhysX3Common_x86.lib")
 #pragma comment(lib,"PhysXProfileSDK.lib")
 #pragma comment(lib,"PhysX3Extensions.lib")
+#pragma comment(lib,"PhysX3Cooking_x86.lib")
 #endif
 
 using namespace physx;
+#include "Graphic/Model/ModelBuffer.h"
 
 class PhysX3Main{
 public:
@@ -79,6 +82,7 @@ public:
 
 	PxShape* CreateShape();
 	PxShape* CreateShapeSphere();
+	PxShape* CreateTriangleMesh(PxU32 VertexNum, PolygonsData::VertexType* vertex, PxU32 IndexNum, PolygonsData::IndexType* index);
 
 private:
 	void getColumnMajor(PxMat33& m, PxVec3& t, float* mat);
@@ -89,6 +93,7 @@ private:
 	PxDefaultErrorCallback gDefaultErrorCallback;
 	PxDefaultAllocator gDefaultAllocatorCallback;
 	PxSimulationFilterShader gDefaultFilterShader;
+	PxCooking*	mCooking;
 
 	PxScene* gScene;
 

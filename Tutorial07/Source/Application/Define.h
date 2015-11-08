@@ -8,6 +8,7 @@ enum class MyWindowMessage{
 	StackIntPtr,			//IntPtrをスタックする
 	ReturnTreeViewIntPtr,	//ツリービューのIntPtrを渡す
 	ScriptCompile,
+	SaveScene,
 
 	PlayGame,
 	StopGame,

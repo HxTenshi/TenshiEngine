@@ -24,6 +24,7 @@ public:
 	void ImportData(File& f) override;
 
 	void ChangeShape();
+	void CreateMesh();
 
 	physx::PxShape* GetShape();
 private:
@@ -34,4 +35,5 @@ private:
 	bool mIsParentPhysX;
 
 	bool mIsSphere;
+	std::string mMeshFile;
 };

@@ -20,7 +20,8 @@ using ModelDataPtr = shared_ptr < ModelData > ;
 
 struct PolygonsData{
 	using VertexType = SimpleVertex;
-	using IndexType = unsigned int;
+	//using IndexType = unsigned int;
+	using IndexType = unsigned short;
 
 	unsigned long VertexNum;
 	VertexType *pVertexs;
@@ -101,6 +102,7 @@ private:
 		if (path.find(".tesmesh\0") != std::string::npos){
 			return LoadTEStaticMesh(path);
 		}
+		return ModelDataPtr();
 	}
 	void ExportModel(const std::string& path){
 		if (path.find(".pmd\0") != std::string::npos){

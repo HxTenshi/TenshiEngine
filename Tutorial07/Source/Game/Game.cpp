@@ -228,29 +228,18 @@ Game::Game()
 	{
 		ScriptManager::ReCompile();
 	});
+	Window::SetWPFCollBack(MyWindowMessage::SaveScene, [&](void* p)
+	{
+		SaveScene();
+	});
 }
 
 Game::~Game(){
 
 	ChangePlayGame(false);
 	mSoundPlayer.Stop();
-	//for (auto& p : mList){
-	//	
-	//	p.second->ExportData("./Scene");
-	//	//delete p;
-	//}
-	File scenefile;
-	if (scenefile.Open("./Assets/Scene.scene")){
-		scenefile.FileCreate();
-	}
-	scenefile.Clear();
 
-	mRootObject->ExportSceneDataStart("./Scene", scenefile);
 	delete mRootObject;
-
-
-
-	//mCamera.Release();
 
 	delete mPhysX3Main;
 	mPhysX3Main = NULL;
@@ -290,11 +279,8 @@ void Game::DestroyObject(Actor* actor){
 PxRigidActor* Game::CreateRigitBody(){
 	return gpPhysX3Main->createBox();
 }
-PxShape* Game::CreateShape(){
-	return gpPhysX3Main->CreateShape();
-}
-PxShape* Game::CreateShapeSphere(){
-	return gpPhysX3Main->CreateShapeSphere();
+PhysX3Main* Game::GetPhysX(){
+	return gpPhysX3Main;
 }
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
@@ -361,4 +347,20 @@ void Game::ChangePlayGame(bool isPlay){
 		mGamePlayList.clear();
 		gpList = &mList;
 	}
+}
+
+
+void Game::SaveScene(){
+	//for (auto& p : mList){
+	//	
+	//	p.second->ExportData("./Scene");
+	//	//delete p;
+	//}
+	File scenefile;
+	if (scenefile.Open("./Assets/Scene.scene")){
+		scenefile.FileCreate();
+	}
+	scenefile.Clear();
+
+	mRootObject->ExportSceneDataStart("./Scene", scenefile);
 }

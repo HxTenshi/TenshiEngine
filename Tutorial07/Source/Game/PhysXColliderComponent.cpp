@@ -9,13 +9,15 @@
 
 PhysXColliderComponent::PhysXColliderComponent(){
 	mIsParentPhysX = false;
-	mShape = Game::CreateShape();
+	mShape = Game::GetPhysX()->CreateShape();
 	mIsSphere = false;
 }
 
 PhysXColliderComponent::~PhysXColliderComponent(){
 	if (mAttachPhysXComponent)
 		mAttachPhysXComponent->RemoveShape(*mShape);
+	if (mShape)
+		mShape->release();
 }
 void PhysXColliderComponent::Initialize(){
 
@@ -123,9 +125,33 @@ void PhysXColliderComponent::UpdatePose(){
 
 
 void PhysXColliderComponent::ChangeShape(){
+	PxShape* back = mShape;
+	if (mIsSphere){
+		mShape = Game::GetPhysX()->CreateShapeSphere();
+	}
+	else{
+
+		mShape = Game::GetPhysX()->CreateShape();
+	}
+
 	if (!mAttachPhysXComponent)return;
-	mAttachPhysXComponent->RemoveShape(*mShape);
-	mShape = Game::CreateShapeSphere();
+	mAttachPhysXComponent->RemoveShape(*back);
+	back->release();
+	mAttachPhysXComponent->AddShape(*mShape);
+}
+
+void PhysXColliderComponent::CreateMesh(){
+
+	AssetLoader loader;
+	auto data = loader.LoadAsset(mMeshFile);
+	if (!data)return;
+	PxShape* back = mShape;
+	
+	mShape = Game::GetPhysX()->CreateTriangleMesh(data->m_Polygons.VertexNum, data->m_Polygons.pVertexs, data->m_Polygons.IndexNum, data->m_Polygons.pIindices);
+
+	if (!mAttachPhysXComponent)return;
+	mAttachPhysXComponent->RemoveShape(*back);
+	back->release();
 	mAttachPhysXComponent->AddShape(*mShape);
 }
 physx::PxShape* PhysXColliderComponent::GetShape(){
@@ -138,6 +164,11 @@ void PhysXColliderComponent::CreateInspector() {
 		mIsSphere = value;
 		ChangeShape();
 	};
+	std::function<void(std::string)> collbackpath = [&](std::string name){
+		mMeshFile = name;
+		CreateMesh();
+	};
+	Window::AddInspector(new InspectorStringDataSet("Mesh", &mMeshFile, collbackpath), data);
 	Window::AddInspector(new InspectorBoolDataSet("IsSphere", &mIsSphere, collback), data);
 	Window::ViewInspector("Collider",data);
 }
