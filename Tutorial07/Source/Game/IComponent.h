@@ -7,7 +7,8 @@ class Actor;
 
 class Component{
 public:
-	Component(){
+	Component()
+		:gameObject(NULL){
 
 	}
 	void _Initialize(Actor* obj){

@@ -39,8 +39,8 @@ public:
 	void RemoveShape(physx::PxShape& shape);
 	void SetKinematic(bool flag);
 
-	void AddForce(XMVECTOR& force);
-	void AddTorque(XMVECTOR& force);
+	void AddForce(const XMVECTOR& force);
+	void AddTorque(const XMVECTOR& force);
 
 private:
 	physx::PxRigidActor* mRigidActor;

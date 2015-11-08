@@ -9,6 +9,7 @@
 #include "IComponent.h"
 
 class Actor;
+class Game;
 class TransformComponent;
 
 class ITransformComponent :public Component{
@@ -33,8 +34,8 @@ public:
 	virtual const XMVECTOR& Left() const = 0;
 	virtual const XMVECTOR& Up() const = 0;
 
-	virtual void AddForce(XMVECTOR& force) = 0;
-	virtual void AddTorque(XMVECTOR& force) = 0;
+	virtual void AddForce(const XMVECTOR& force) = 0;
+	virtual void AddTorque(const XMVECTOR& force) = 0;
 	virtual const XMMATRIX& GetMatrix() const = 0;
 
 	virtual std::list<Actor*>& Children() = 0;
@@ -71,8 +72,8 @@ public:
 
 	void Update() override;
 
-	void AddForce(XMVECTOR& force) override;
-	void AddTorque(XMVECTOR& force) override;
+	void AddForce(const XMVECTOR& force) override;
+	void AddTorque(const XMVECTOR& force) override;
 
 	const XMMATRIX& GetMatrix() const override;
 	void CopyData(Component* post, Component* base) override;
@@ -101,6 +102,8 @@ private:
 	mutable XMMATRIX mMatrix;
 	std::list<Actor*> mChildren;
 	Actor* mParent;
+
+	friend Game;
 protected:
 	mutable bool mFixMatrixFlag;
 };

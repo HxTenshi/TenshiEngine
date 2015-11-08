@@ -111,12 +111,14 @@ private:
 	ConstantBuffer<cbChangesMaterial>	mCBChangeLgihtMaterial;
 };
 
-
+#include "Engine\AssetLoader.h"
 class Application{
 public:
 	Application()
 		:mGame(NULL)
 	{
+		AssetLoader as;
+		as.LoadFile("");
 	}
 
 	HRESULT InitDevice(const Window& window)

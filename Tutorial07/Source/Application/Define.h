@@ -7,7 +7,7 @@
 enum class MyWindowMessage{
 	StackIntPtr,			//IntPtrをスタックする
 	ReturnTreeViewIntPtr,	//ツリービューのIntPtrを渡す
-
+	ScriptCompile,
 
 	PlayGame,
 	StopGame,
@@ -15,6 +15,7 @@ enum class MyWindowMessage{
 	CreatePrefabToActor,
 
 	SelectActor,
+	SetActorParent,
 	ActorDestroy,
 	ChangeParamComponent,
 	AddComponent,

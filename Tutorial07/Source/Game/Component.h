@@ -713,28 +713,36 @@ public:
 	void Load();
 	void Unload();
 	void ReCompile();
+	void Initialize() override;
 	void Update() override;
 
 	void CreateInspector() override{
 
 		auto data = Window::CreateInspector();
+		std::function<void(std::string)> collback = [&](std::string name){
+			mClassName = name;
+			ReCompile();
+		};
+		Window::AddInspector(new InspectorStringDataSet("Class", &mClassName, collback), data);
 		Window::ViewInspector("Script",data);
 	}
 
 	void ExportData(File& f) override{
 		ExportClassName(f);
+		f.Out(mClassName);
 	}
 	void ImportData(File& f) override{
 		(void)f;
+		f.In(&mClassName);
 	}
 
-	HMODULE hModule;
 	IDllScriptComponent* pDllClass;
-
-	void* mCreate;
-	void* mDelete;
+	std::string mClassName;
 };
-
+class ScriptManager{
+public:
+	static void ReCompile();
+};
 class TextComponent :public Component{
 public:
 	TextComponent()

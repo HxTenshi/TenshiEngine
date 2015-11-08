@@ -272,6 +272,8 @@ public:
 		pbtn->Click += gcnew System::Windows::RoutedEventHandler(this,&View::PlayButton_Click);
 		auto sbtn = (Button^)commandBar->FindName("StopGameButton");
 		sbtn->Click += gcnew System::Windows::RoutedEventHandler(this, &View::StopButton_Click);
+		auto cbtn = (Button^)commandBar->FindName("ScriptCompile");
+		cbtn->Click += gcnew System::Windows::RoutedEventHandler(this, &View::CompileButton_Click);
 
 		Title = "TenshiEngine";
 		SetSelectItemReturnPoint();
@@ -624,13 +626,26 @@ private:
 
 		//追加するアイテムのコントロール
 		auto fact = gcnew System::Windows::FrameworkElementFactory();
-		fact->Type = TextBlock::typeid;
+		fact->Type = TreeViewItem::typeid;
 		auto itembind = gcnew System::Windows::Data::Binding("Name");
 		itembind->Mode = BindingMode::TwoWay;
-		fact->SetBinding(TextBlock::TextProperty, itembind);
+		fact->SetBinding(TreeViewItem::HeaderProperty, itembind);
+		fact->SetBinding(TreeViewItem::AllowDropProperty, gcnew System::Windows::Data::Binding("TRUE"));
+		fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
+		fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
+		fact->AddHandler(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop));
+		//fact->AddHandler(TreeViewItem::MouseRightButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown));
+		fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
+		fact->AddHandler(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
+		fact->AddHandler(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
 		datatemp->VisualTree = fact;
 
 		treeView->ItemTemplate = datatemp;
+
+		treeView->AllowDrop = true;
+		treeView->Drop += gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop);
+		treeView->DragEnter += gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver);
+		treeView->DragOver += gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver);
 
 		//選択中のアイテム表示
 		auto tblock = (TextBlock ^)sp->FindName("textBlock1");
@@ -643,6 +658,12 @@ private:
 			auto mitem = gcnew System::Windows::Controls::MenuItem();
 			mitem->Header = "しぬ";
 			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click);
+			cm->Items->Add(mitem);
+		}
+		{//コンテキストメニューの要素作成
+			auto mitem = gcnew System::Windows::Controls::MenuItem();
+			mitem->Header = "CreateObject";
+			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_CreateObject);
 			cm->Items->Add(mitem);
 		}
 		{//コンテキストメニューの要素作成
@@ -686,6 +707,58 @@ private:
 
 	}
 
+	void ActorTreeView_OnDragOver(Object ^sender, DragEventArgs ^e)
+	{
+		if (e->Data->GetDataPresent(TreeViewItem::typeid))
+		{
+			e->Effects = DragDropEffects::Copy;
+			return;
+		}
+
+		e->Effects = DragDropEffects::None;
+	}
+	void ActorTreeView_OnDrop(Object ^s, DragEventArgs ^e)
+	{
+		auto dragtreeitem = (TreeViewItem^)e->Data->GetData(TreeViewItem::typeid);
+		auto dragitem = dynamic_cast<TestContent::Person^>(dragtreeitem->DataContext);
+
+		auto targettreeitem = dynamic_cast<TreeViewItem^>(s);
+		//ツリービューアイテムに対してDropしたか
+		if (targettreeitem){
+			auto targetitem = dynamic_cast<TestContent::Person^>(targettreeitem->DataContext);
+			//アクターをD&Dしているか
+			if (dragitem->DataPtr != (IntPtr)NULL){
+				//アクターに対してDropしたか
+				if (targetitem->DataPtr != (IntPtr)NULL){
+					//ドロップ先が自分の子ならTRUE
+					if (ParentCheck(dragitem, targetitem))return;
+
+					targetitem->Add(dragitem);
+					Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)targetitem->DataPtr);
+					Data::MyPostMessage(MyWindowMessage::SetActorParent, (void*)dragitem->DataPtr);
+				}
+			}
+		}
+		//ツリービューアイテム外に対してDropしたなら
+		else{
+			m_TreeViewItemRoot->Add(dragitem);
+			Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)NULL);
+			Data::MyPostMessage(MyWindowMessage::SetActorParent, (void*)dragitem->DataPtr);
+		}
+
+	}
+	//ターゲットがペアレントの親ならTRUE
+	bool ParentCheck(TestContent::Person^ target, TestContent::Person^ parent){
+		if (parent == m_TreeViewItemRoot){
+			return false;
+		}
+		if (target == parent){
+			return true;
+		}
+
+		return ParentCheck(target,parent->Parent);
+
+	}
 	void OnDrag(Object ^sender, System::Windows::RoutedEventArgs ^e){
 		//auto item = (TestContent::Person^)e->Source;
 		//System::Windows::MessageBox::Show("had");
@@ -728,8 +801,16 @@ private:
 	{
 		Data::MyPostMessage(MyWindowMessage::StopGame);
 	}
+	void CompileButton_Click(Object ^s, System::Windows::RoutedEventArgs ^e)
+	{
+		Data::MyPostMessage(MyWindowMessage::ScriptCompile);
+	}
 
 #pragma region MenuContext
+	void MenuItem_Click_CreateObject(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, new std::string("EngineResource/box.prefab"));
+		e->Handled = true;
+	}
 	void PostMessageRemoveComponent(const char* t){
 		if (m_TreeView->SelectedItem == nullptr)return;
 		Data::MyPostMessage(MyWindowMessage::RemoveComponent, (void*)t);

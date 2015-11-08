@@ -56,6 +56,8 @@ public:
 
 	void CopyData(Actor* post, Actor* base);
 
+	void ExportSceneDataStart(const std::string& pass, File& sceneFile);
+	void ExportSceneData(const std::string& pass,File& sceneFile);
 	void ExportData(const std::string& pass);
 	void ImportData(const std::string& fileName);
 	void ImportDataAndNewID(const std::string& fileName);

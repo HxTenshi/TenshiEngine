@@ -127,7 +127,18 @@ void Actor::CopyData(Actor* post, Actor* base){
 		postcmp->CopyData(postcmp, basecmp);
 	}
 }
-
+void Actor::ExportSceneDataStart(const std::string& pass, File& sceneFile){
+	for (auto child : mTransform->Children()){
+		child->ExportSceneData(pass, sceneFile);
+	}
+}
+void Actor::ExportSceneData(const std::string& pass, File& sceneFile){
+	ExportData(pass);
+	sceneFile.Out(mUniqueID);
+	for (auto child : mTransform->Children()){
+		child->ExportSceneData(pass, sceneFile);
+	}
+}
 void Actor::ExportData(const std::string& pass){
 
 	File f;
@@ -182,7 +193,6 @@ void Actor::ImportDataAndNewID(const std::string& fileName){
 	std::string temp;
 
 	mComponents.mComponent.clear();
-	mTransform = shared_ptr<TransformComponent>();
 
 	while (f){
 		if (!f.In(&temp))break;

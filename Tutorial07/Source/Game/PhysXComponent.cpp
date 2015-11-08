@@ -104,11 +104,11 @@ void PhysXComponent::SetKinematic(bool flag){
 	r->setRigidDynamicFlag(PxRigidDynamicFlag::eKINEMATIC, mIsKinematic);
 }
 
-void PhysXComponent::AddForce(XMVECTOR& force){
+void PhysXComponent::AddForce(const XMVECTOR& force){
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	a->addForce(PxVec3(force.x, force.y, force.z));
 }
-void PhysXComponent::AddTorque(XMVECTOR& force){
+void PhysXComponent::AddTorque(const XMVECTOR& force){
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	a->addTorque(PxVec3(force.x, force.y, force.z));
 }

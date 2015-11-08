@@ -10,14 +10,18 @@
 //#include "Game/Component.h"
 #include "Input/Input.h"
 #include <xnamath.h>
+#include <map>
+#include <typeinfo>
+#include <functional>
 
 class Actor;
 class IDllScriptComponent{
 public:
 	virtual void Update(Actor* This) = 0;
+	virtual ~IDllScriptComponent(){}
 };
 
-IDllScriptComponent* CreateInstance();
+IDllScriptComponent* CreateInstance(const char* ClassName);
 
 void ReleseInstance(IDllScriptComponent* p);
 

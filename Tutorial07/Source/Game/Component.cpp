@@ -1,7 +1,7 @@
 #include "Component.h"
 
 #include "../ScriptComponent/main.h"
-typedef IDllScriptComponent* (__cdecl *CreateInstance_)();
+typedef IDllScriptComponent* (__cdecl *CreateInstance_)(const char*);
 typedef void(__cdecl *DeleteInstance_)(IDllScriptComponent*);
 
 std::map<std::string, std::function<Component*()>> ComponentFactory::mFactoryComponents;
@@ -11,14 +11,20 @@ bool ComponentFactory::mIsInit = false;
 class UseScriptActors{
 public:
 	UseScriptActors(){
-		mEndReloadDLL = false;
+		hModule = NULL;
+		mCreate = NULL;
+		mDelete = NULL;
+		DllLoad();
 	}
-	void ReLoad(){
-		if (mEndReloadDLL)return;
-		mEndReloadDLL = true;
+	~UseScriptActors(){
+		UnLoad();
+	}
+	void ReCompile(){
 		for (auto& p : mList){
 			p->Unload();
 		}
+
+		UnLoad();
 
 		char cdir[255];
 		GetCurrentDirectory(255, cdir);
@@ -48,40 +54,26 @@ public:
 		//終了を待つ
 		WaitForSingleObject(sei.hProcess, INFINITE);
 
+		DllLoad();
 
 		for (auto& p : mList){
 			p->Load();
 		}
 	}
-	std::list<ScriptComponent*> mList;
 
-	bool mEndReloadDLL;
-};
-static UseScriptActors actors;
+	void UnLoad(){
+		FreeLibrary(hModule);
+		hModule = NULL;
+		mCreate = NULL;
+		mDelete = NULL;
+	}
+	void DllLoad(){
 
-ScriptComponent::ScriptComponent(){
-	pDllClass = NULL;
-	hModule = NULL;
-	mCreate = NULL;
-	mDelete = NULL;
-
-	Load();
-
-	actors.mList.push_back(this);
-
-}
-ScriptComponent::~ScriptComponent(){
-	Unload();
-	actors.mList.remove(this);
-}
-
-void ScriptComponent::Load(){
-	if (pDllClass)return;
 		// DLLのロード
 #ifdef _DEBUG
-	hModule = LoadLibrary("../ScriptComponent/Debug/ScriptComponent.dll");
+		hModule = LoadLibrary("../ScriptComponent/Debug/ScriptComponent.dll");
 #else
-	hModule = LoadLibrary("../ScriptComponent/Release/ScriptComponent.dll");
+		hModule = LoadLibrary("../ScriptComponent/Release/ScriptComponent.dll");
 #endif
 		if (hModule == NULL)
 		{
@@ -108,41 +100,64 @@ void ScriptComponent::Load(){
 			hModule = NULL;
 			return;
 		}
-
+	}
+	IDllScriptComponent* Create(const std::string& ClassName){
+		if (!mCreate)return NULL;
 		//dllで作成したクラスインスタンスを作成する
-		pDllClass = ((CreateInstance_)mCreate)();
+		return ((CreateInstance_)mCreate)(ClassName.c_str());
 	}
 
+	void Deleter(IDllScriptComponent* script){
+		((DeleteInstance_)mDelete)(script);
+	}
+	std::list<ScriptComponent*> mList;
+	void* mCreate;
+	void* mDelete;
+	HMODULE hModule;
+};
+static UseScriptActors actors;
+
+
+//static
+void ScriptManager::ReCompile(){
+	actors.ReCompile();
+}
+
+ScriptComponent::ScriptComponent(){
+	pDllClass = NULL;
+}
+ScriptComponent::~ScriptComponent(){
+	Unload();
+	actors.mList.remove(this);
+}
+void ScriptComponent::Initialize(){
+	Load();
+	actors.mList.push_back(this);
+}
+void ScriptComponent::Load(){
+	if (pDllClass)return;
+
+	//dllで作成したクラスインスタンスを作成する
+	pDllClass = actors.Create(mClassName);
+}
 void ScriptComponent::Unload(){
 
-		if (pDllClass)
-			((DeleteInstance_)mDelete)(pDllClass);
+	if (pDllClass)
+		actors.Deleter(pDllClass);
 
-		FreeLibrary(hModule);
-		hModule = NULL;
-		mCreate = NULL;
-		mDelete = NULL;
-		pDllClass = NULL;
-	}
+	pDllClass = NULL;
+}
 void ScriptComponent::ReCompile(){
-		Unload();
-		Load();
+	Unload();
+	Load();
 
-	}
+}
 void ScriptComponent::Update(){
 
-		if (pDllClass){
-			pDllClass->Update(gameObject);
-		}
-
-		if (Input::Trigger(KeyCoord::Key_R)){
-			actors.ReLoad();
-			return;
-		}
-		else{
-			actors.mEndReloadDLL = false;
-		}
+	if (pDllClass){
+		pDllClass->Update(gameObject);
 	}
+}
 
 
 #include "Game.h"

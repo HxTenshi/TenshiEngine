@@ -1,6 +1,5 @@
 
-#ifndef _DLL_SCRIPT_H_
-#define _DLL_SCRIPT_H_
+#pragma once
 #include "main.h"
 
 class DllScriptComponent :public IDllScriptComponent{
@@ -12,5 +11,18 @@ private:
 	int timer;
 	int timer2;
 };
+class PlayerScript :public IDllScriptComponent{
+public:
+	PlayerScript();
+	virtual void Update(Actor* This)override;
+	float mRotateY;
 
-#endif
+};
+class CameraScript :public IDllScriptComponent{
+public:
+	CameraScript();
+	virtual void Update(Actor* This)override;
+
+private:
+	float mRotateY;
+};

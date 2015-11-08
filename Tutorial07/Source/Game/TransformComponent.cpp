@@ -132,10 +132,12 @@ void TransformComponent::CopyData(Component* post, Component* base){
 	auto Post = (TransformComponent*)post;
 	auto Base = (TransformComponent*)base;
 
+	//Post->mChildren.clear();
 	Post->mPosition = Base->mPosition;
 	Post->mRotate = Base->mRotate;
 	Post->mScale = Base->mScale;
-	Post->mFixMatrixFlag = false;
+	Post->mParent = Base->mParent;
+	Post->FlagSetChangeMatrix();
 }
 
 void TransformComponent::CreateInspector(){
@@ -239,12 +241,12 @@ void TransformComponent::UpdatePhysX(PhysXChangeTransformFlag flag){
 }
 
 
-void TransformComponent::AddForce(XMVECTOR& force){
+void TransformComponent::AddForce(const XMVECTOR& force){
 	auto c = gameObject->GetComponent<PhysXComponent>();
 	if (c)
 		c->AddForce(force);
 }
-void TransformComponent::AddTorque(XMVECTOR& force){
+void TransformComponent::AddTorque(const XMVECTOR& force){
 	auto c = gameObject->GetComponent<PhysXComponent>();
 	if (c)
 		c->AddTorque(force);

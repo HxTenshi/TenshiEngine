@@ -45,6 +45,7 @@ public:
 		UINT width = WindowState::mWidth;
 		UINT height = WindowState::mHeight;
 		//XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
+		mCamera.mTransform->Position(XMVectorSet(0, 3, -10,1));
 		mCamera.mTransform->Scale(XMVectorSet(1, 1, 1, 1));
 	}
 	~EditorCamera(){
@@ -52,22 +53,22 @@ public:
 	}
 	void Update(float deltaTime){
 		auto pos = mCamera.mTransform->Position();
-		if (Input::Down(KeyCoord::Key_F)){
+		if (Input::Down(KeyCoord::Key_A)){
 			pos.x -= 0.1f;
 		}
-		if (Input::Down(KeyCoord::Key_H)){
+		if (Input::Down(KeyCoord::Key_D)){
 			pos.x += 0.1f;
 		}
-		if (Input::Down(KeyCoord::Key_T)){
+		if (Input::Down(KeyCoord::Key_W)){
 			pos.z += 0.1f;
 		}
-		if (Input::Down(KeyCoord::Key_G)){
+		if (Input::Down(KeyCoord::Key_S)){
 			pos.z -= 0.1f;
 		}
-		if (Input::Down(KeyCoord::Key_U)){
+		if (Input::Down(KeyCoord::Key_Q)){
 			pos.y += 0.1f;
 		}
-		if (Input::Down(KeyCoord::Key_J)){
+		if (Input::Down(KeyCoord::Key_E)){
 			pos.y -= 0.1f;
 		}
 		if (Input::Trigger(MouseCoord::Right)){
@@ -777,24 +778,24 @@ public:
 
 		mCamera.Update(deltaTime);
 
-		if (Input::Trigger(KeyCoord::Key_C)){
-			int x, y;
-			Input::MousePosition(&x, &y);
-			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
-			point = mCamera.ScreenToWorldPoint(point);
-		
-			AddObject(new Box(point));
-		}
-		if (Input::Trigger(KeyCoord::Key_X)){
-			int x, y;
-			Input::MousePosition(&x, &y);
-			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
-			point = mCamera.ScreenToWorldPoint(point);
-			auto act = (new Box(point));
-			AddObject(act);
-			auto par = mSelectActor.GetSelect();
-			if (par)act->mTransform->SetParent(par);
-		}
+		//if (Input::Trigger(KeyCoord::Key_C)){
+		//	int x, y;
+		//	Input::MousePosition(&x, &y);
+		//	XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
+		//	point = mCamera.ScreenToWorldPoint(point);
+		//
+		//	AddObject(new Box(point));
+		//}
+		//if (Input::Trigger(KeyCoord::Key_X)){
+		//	int x, y;
+		//	Input::MousePosition(&x, &y);
+		//	XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
+		//	point = mCamera.ScreenToWorldPoint(point);
+		//	auto act = (new Box(point));
+		//	AddObject(act);
+		//	auto par = mSelectActor.GetSelect();
+		//	if (par)act->mTransform->SetParent(par);
+		//}
 
 		if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Z)){
 			mCommandManager.Undo();
@@ -934,6 +935,7 @@ public:
 		}
 	}
 private:
+	std::map<UINT, Actor*> mGamePlayList;
 	std::map<UINT, Actor*> mList;
 	std::map<UINT, Actor*> mListBack;
 	std::map<DrawStage, std::list<std::function<void()>>> mDrawList;

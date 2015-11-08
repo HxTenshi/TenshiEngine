@@ -12,6 +12,8 @@ static CameraComponent** gMainCamera;
 //
 Actor* Game::mRootObject;
 
+static bool gIsPlay;
+
 #include <algorithm>
 #include <filesystem>
 #include <vector>
@@ -90,6 +92,7 @@ Game::Game()
 	gDrawList = &mDrawList;
 	gCommandManager = &mCommandManager;
 	gMainCamera = &mMainCamera;
+	gIsPlay = mIsPlay;
 
 	mRootObject = new Actor();
 	mRootObject->mTransform = shared_ptr<TransformComponent>(new TransformComponent());
@@ -103,23 +106,25 @@ Game::Game()
 	gpPhysX3Main = mPhysX3Main;
 
 
-	std::vector<std::string> fList;
-	file_("./Scene/", fList);
-	for (auto& f : fList){
-		auto a = new Actor();
-		a->ImportData("./Scene/" + f);
-		AddObject(a);
+	//std::vector<std::string> fList;
+	//file_("./Scene/", fList);
+	//for (auto& f : fList){
+	//	auto a = new Actor();
+	//	a->ImportData("./Scene/" + f);
+	//	AddObject(a);
+	//}
+
+	File scenefile("./Assets/Scene.scene");
+	if (scenefile){
+		UINT id;
+		while (scenefile){
+			if (!scenefile.In(&id))break;
+			auto a = new Actor();
+			a->ImportData("./Scene/Object_" + std::to_string(id) + ".txt");
+			AddObject(a);
+		}
 	}
 
-	//AddObject(new Text({ 0, 0 }, { 500, 500 }));
-
-	//AddObject(new Player());
-	//AddObject(new Tex("texture.png", { 1000, 0 }, { 1200, 200 }));
-	//AddObject(new Tex("texture.bmp", { 1000, 200 }, { 1200, 400 }));
-	//AddObject(new Tex(mCamera.GetDepthTexture(), { 0, 400 }, { 600, 800 }));
-	//AddObject(new Particle());
-
-	//AddObject(new Tex(Font::GetFontTexture(), { 600, 400 }, { 1200, 800 }));
 
 	
 	mSoundPlayer.Play();
@@ -131,8 +136,8 @@ Game::Game()
 	Window::SetWPFCollBack(MyWindowMessage::ReturnTreeViewIntPtr, [&](void* p)
 	{
 		int intptr = gIntPtrStack.top();
-		((Actor*)intptr)->mTreeViewPtr = p;
 		gIntPtrStack.pop();
+		((Actor*)intptr)->mTreeViewPtr = p;
 		if (auto par = ((Actor*)intptr)->mTransform->GetParent())
 			if (par->mTreeViewPtr)
 				Window::SetParentTreeViewItem(par->mTreeViewPtr, ((Actor*)intptr)->mTreeViewPtr);
@@ -142,6 +147,17 @@ Game::Game()
 	{
 		auto act = ((Actor*)p);
 		mSelectActor.SetSelect(act);
+	});
+	Window::SetWPFCollBack(MyWindowMessage::SetActorParent, [&](void* p)
+	{
+		int intptr = gIntPtrStack.top();
+		gIntPtrStack.pop();
+		auto parent = ((Actor*)intptr);
+		if (!parent){
+			parent = mRootObject;
+		}
+		auto act = ((Actor*)p);
+		act->mTransform->SetParent(parent);
 	});
 	Window::SetWPFCollBack(MyWindowMessage::ActorDestroy, [&](void* p)
 	{
@@ -153,7 +169,11 @@ Game::Game()
 	{
 		std::string s((const char *)p);
 		if (auto actor = mSelectActor.GetSelect()){
-			if (s == "Script")actor->AddComponent(shared_ptr<ScriptComponent>(new ScriptComponent()));
+			if (s == "Script"){
+				auto c = shared_ptr<ScriptComponent>(new ScriptComponent());
+				actor->AddComponent(c);
+				c->Initialize();
+			}
 			if (s == "PhysX")actor->AddComponent(shared_ptr<PhysXComponent>(new PhysXComponent()));
 			if (s == "Collider")actor->AddComponent(shared_ptr<PhysXColliderComponent>(new PhysXColliderComponent()));
 			Window::ClearInspector();
@@ -204,17 +224,28 @@ Game::Game()
 	{
 		ChangePlayGame(false);
 	});
+	Window::SetWPFCollBack(MyWindowMessage::ScriptCompile, [&](void* p)
+	{
+		ScriptManager::ReCompile();
+	});
 }
 
 Game::~Game(){
 
 	ChangePlayGame(false);
 	mSoundPlayer.Stop();
-	for (auto& p : mList){
-		p.second->ExportData("./Scene");
-		//delete p;
+	//for (auto& p : mList){
+	//	
+	//	p.second->ExportData("./Scene");
+	//	//delete p;
+	//}
+	File scenefile;
+	if (scenefile.Open("./Assets/Scene.scene")){
+		scenefile.FileCreate();
 	}
+	scenefile.Clear();
 
+	mRootObject->ExportSceneDataStart("./Scene", scenefile);
 	delete mRootObject;
 
 
@@ -247,9 +278,12 @@ void Game::AddObject(Actor* actor){
 void Game::DestroyObject(Actor* actor){
 	if (!actor)return;
 	gpList->erase(actor->GetUniqueID());
-	Window::GetTreeViewWindow()->DeleteItem(actor);
 	Window::GetInspectorWindow()->InsertConponentData(NULL);
-	delete actor;
+	if (!gIsPlay)
+		delete actor;
+	else{
+		actor->mTransform->SetParent(NULL);
+	}
 }
 
 //static
@@ -267,7 +301,9 @@ void Game::RemovePhysXActor(PxActor* act){
 }
 
 Actor* Game::FindUID(UINT uid){
-	return (*gpList)[uid];
+	auto get = (*gpList).find(uid);
+	if (get == (*gpList).end())return NULL;
+	return get->second;
 }
 
 void Game::AddDrawList(DrawStage stage, std::function<void()> func){
@@ -286,6 +322,7 @@ void Game::SetMainCamera(CameraComponent* Camera){
 void Game::ChangePlayGame(bool isPlay){
 
 	mIsPlay = isPlay;
+	gIsPlay = mIsPlay;
 	if (isPlay){
 		for (auto& act : mList){
 			auto postactor = new Actor();
@@ -293,14 +330,35 @@ void Game::ChangePlayGame(bool isPlay){
 
 			postactor->CopyData(postactor, act.second);
 		}
+		mGamePlayList = mList;
+		gpList = &mGamePlayList;
 	}
 	else{
 		for (auto& act : mListBack){
 			auto postactor = mList[act.first];
 
 			postactor->CopyData(postactor, act.second);
+			//親子関係を解除しないとデストラクタで子が消される
+			act.second->GetComponent<TransformComponent>()->mParent = NULL;
+
+			//親子関係が構築されていないので手動で構築
+			postactor->GetComponent<TransformComponent>()->SetParent(postactor->GetComponent<TransformComponent>()->GetParent());
+
+			if (mGamePlayList.find(act.first) == mGamePlayList.end())
+				Window::GetTreeViewWindow()->AddItem(postactor);
+
+			//ツリービュー再構築
+			if (auto par = postactor->GetComponent<TransformComponent>()->GetParent())
+				if (par->mTreeViewPtr)
+					Window::SetParentTreeViewItem(par->mTreeViewPtr, postactor->mTreeViewPtr);
+		}
+		//親子を解除してから削除
+		for (auto& act : mListBack){
 			delete act.second;
 		}
 		mListBack.clear();
+
+		mGamePlayList.clear();
+		gpList = &mList;
 	}
 }
