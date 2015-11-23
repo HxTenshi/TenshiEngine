@@ -1,9 +1,5 @@
 #include "ptr.h"
 
-sp_count::sp_count()
-	: pimpl(NULL)
-{ }
-
 sp_count::sp_count(sp_count const& sc)
 	: pimpl(sc.pimpl)
 {

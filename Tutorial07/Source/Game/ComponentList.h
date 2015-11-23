@@ -1,10 +1,12 @@
 #pragma once
 
+
+
 #define COMPONENTLIST_TYPE_MAP
 //#define COMPONENTLIST_TYPE_UNORDERED_MAP
 
 #ifdef COMPONENTLIST_TYPE_MAP
-#include <map>
+#include <list>
 #endif
 #ifdef COMPONENTLIST_TYPE_UNORDERED_MAP
 #include <unordered_map>
@@ -16,48 +18,60 @@
 class Actor;
 #include "IComponent.h"
 
+#include <memory>
 class ComponentList{
 public:
-	ComponentList(Actor* obj){
+	ComponentList(Actor* obj)
+	{
 		gameObject = obj;
 	}
 	template<class T>
-	void AddComponent(const shared_ptr<T>& spComponent){
+	shared_ptr<T> AddComponent(const shared_ptr<T>& spComponent){
+		//親クラスでアドしても平気
 		_AddComponent(typeid(*spComponent.Get()).hash_code(), spComponent);
-		//mComponent.insert(std::pair<size_t, shared_ptr<Component>>(typeid(T).hash_code(), spComponent));
-	}
-	void _AddComponent(size_t hash, shared_ptr<Component> spComponent){
-		mComponent.insert(std::pair<size_t, shared_ptr<Component>>(hash, spComponent));
 		spComponent->_Initialize(gameObject);
+		spComponent->Initialize();
+		return spComponent;
+	}
+	template<class T>
+	shared_ptr<T> AddComponent(){
+		auto spComponent = make_shared<T>();
+		_AddComponent(typeid(T).hash_code(), spComponent);
+		spComponent->_Initialize(gameObject);
+		spComponent->Initialize();
+		return spComponent;
+	}
+	template<class T>
+	void _AddComponent(const size_t& hash,const shared_ptr<T>& spComponent){
+		mComponent.push_back(std::make_pair(hash, spComponent));
 	}
 
-	//template<class T>
-	//shared_ptr<T> GetComponent(){
-	//	if (mComponent.find(typeid(T).hash_code()) == mComponent.end()){
-	//		return shared_ptr<Component>();
-	//	}
-	//	return mComponent.at(typeid(T).hash_code());
-	//}
 	template<class T>
 	shared_ptr<T> GetComponent() const{
-		auto p = mComponent.find(typeid(T).hash_code());
-		if (p == mComponent.end()){
-			return shared_ptr<Component>();
+		const auto& v = typeid(T).hash_code();
+		for (auto& p : mComponent){
+			if (p.first == v)
+				return p.second;
 		}
-		return p->second;
+		return NULL;
+	}
+	shared_ptr<Component> GetComponent(const size_t& hash) const{
+		for (auto& p : mComponent){
+			if (p.first == hash)
+				return p.second;
+		}
+		return NULL;
 	}
 
 	template<class T>
 	void RemoveComponent(){
-		auto p = mComponent.find(typeid(T).hash_code());
-		if (p != mComponent.end()){
-			mComponent.erase(typeid(T).hash_code());
-			return;
-		}
+		const auto& v = typeid(T).hash_code();
+		mComponent.remove_if([v](const item_type& i){return i.first == v; });
 
 	}
 #ifdef COMPONENTLIST_TYPE_MAP
-	std::map<size_t, shared_ptr<Component>> mComponent;
+	using item_type = std::pair<size_t, shared_ptr<Component>>;
+	std::list<item_type> mComponent;
 #endif
 #ifdef COMPONENTLIST_TYPE_UNORDERED_MAP
 	std::unordered_map<size_t, shared_ptr<Component>> mComponent;
@@ -65,5 +79,14 @@ public:
 
 private:
 	Actor* gameObject;
+
+	friend Actor;
+
+	template<class T>
+	void AddComponent_NotInitialize(const shared_ptr<T>& spComponent){
+		//親クラスでアドしても平気
+		_AddComponent(typeid(*spComponent.Get()).hash_code(), spComponent);
+		spComponent->_Initialize(gameObject);
+	}
 
 };

@@ -4,31 +4,16 @@
 #include "../resource/resource.h"
 #include <string>
 
-#include "GameScreenWindow.h"
-#include "TreeViewWindow.h"
-#include "InspectorWindow.h"
-#include "ProjectWindow.h"
-
 #include <CommCtrl.h>
 
 #include <vector>
 
 #include <functional>
 #include "Application/Define.h"
-
-enum class IDC{
-	ForlderTree = 100,
-	ForlderItem = 101,
-};
-
-
 class WindowState{
 public:
 	static UINT mWidth;
 	static UINT mHeight;
-
-	static UINT mTreeViewWidth;
-	static UINT mTreeViewHeight;
 };
 //--------------------------------------------------------------------------------------
 // Called every time the application receives a message
@@ -89,9 +74,9 @@ public:
 			return E_FAIL;
 
 		// Create window
-		RECT rc = { 0, 0, WindowState::mWidth + WindowState::mTreeViewWidth + WindowState::mTreeViewWidth, WindowState::mHeight };
-		AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-		mhWnd = CreateWindow("TutorialWindowClass", "Direct3D 11 Tutorial 7", WS_OVERLAPPEDWINDOW,
+		RECT rc = { 0, 0, WindowState::mWidth, WindowState::mHeight };
+		AdjustWindowRect(&rc, NULL, FALSE);
+		mhWnd = CreateWindow("TutorialWindowClass", "Direct3D 11 Tutorial 7", NULL,
 			CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, mhInstance,
 			NULL);
 		if (!mhWnd)
@@ -101,7 +86,6 @@ public:
 		//InitCommonControls();
 
 		//mGameScreenWindow.Create(this);
-		mTreeViewWindow.Create(this);
 		//mInspectorWindow.Create(this);
 		//mProjectWindow.Create(this);
 
@@ -109,7 +93,7 @@ public:
 		//UpdateWindow(mhWnd);
 
 		//D&D‚Ì‹–‰Â
-		DragAcceptFiles(mhWnd,true);
+		//DragAcceptFiles(mhWnd,true);
 
 		return S_OK;
 	}
@@ -133,9 +117,6 @@ public:
 		SetWindowText(mhWnd, title.c_str());
 	}
 
-	static TreeViewWindow* GetTreeViewWindow(){
-		return &mTreeViewWindow;
-	}
 	template<class T>
 	static void Deleter(T* ptr){
 		mMainWindow_WPF.Deleter<T>(ptr);
@@ -149,6 +130,9 @@ public:
 	
 	static void ChangeTreeViewName(void* ptr, std::string& name){
 		mMainWindow_WPF.ChangeTreeViewName(ptr, name);
+	}
+	static void ClearTreeViewItem(void* ptr){
+		if (ptr)mMainWindow_WPF.ClearTreeViewItem(ptr);
 	}
 
 	static void ClearInspector(){
@@ -186,9 +170,6 @@ public:
 	static void SetMouseEvents(bool* l, bool* r, int* x, int* y){
 		mMainWindow_WPF.SetMouseEvents(l, r, x, y);
 	}
-	static InspectorWindow* GetInspectorWindow(){
-		return &mInspectorWindow;
-	}
 
 	static void SetWPFCollBack(MyWindowMessage massage, const std::function<void(void*)>& collback){
 		mWPFCollBacks[(int)massage] = collback;
@@ -200,17 +181,6 @@ public:
 	static HWND mhWnd;
 	HINSTANCE mhInstance;
 	int mnCmdShow;
-
-	//friend GameScreenWindow;
-	static GameScreenWindow mGameScreenWindow;
-
-	//friend TreeViewWindow;
-	static TreeViewWindow mTreeViewWindow;
-
-	//friend InspectorWindow;
-	static InspectorWindow mInspectorWindow;
-
-	ProjectWindow mProjectWindow;
 
 	static std::vector<const std::function<void(void*)>> mWPFCollBacks;
 };

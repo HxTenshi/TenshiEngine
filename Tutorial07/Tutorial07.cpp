@@ -11,7 +11,7 @@
 // /D "_XM_NO_INTRINSICS_" 
 
 #include <d3d11.h>
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
 
 #include "Window/Window.h"
 #include "Device/DirectX11Device.h"
@@ -25,7 +25,6 @@
 
 #include "Game/Game.h"
 //#include "Input\InputManager.h"
-
 
 class InputManagerRapper{
 public:
@@ -56,6 +55,11 @@ private:
 	bool mr, ml;
 	int mx, my;
 };
+
+#include <memory>
+void a(){
+	std::make_shared<int>();
+}
 
 class Light{
 public:

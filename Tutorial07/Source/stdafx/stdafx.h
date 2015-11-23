@@ -6,5 +6,10 @@
 #define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #endif
 
+
+#ifndef NULL
+#define NULL 0
+#endif
+
 // デバッグ時のSTLのアロケーターをリリース仕様にする
 //#define _NO_DEBUG_HEAP 1

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
 #include <String>
 #include <list>
 #include "MySTL/File.h"
@@ -43,7 +43,8 @@ public:
 	virtual void SetParent(Actor* parent) = 0;
 
 	virtual void SetUndo(const XMVECTOR& pos) = 0;
-
+protected:
+	ITransformComponent(){};
 private:
 	friend TransformComponent;
 	virtual void FlagSetChangeMatrix() = 0;
@@ -70,6 +71,8 @@ public:
 	const XMVECTOR& Left() const override;
 	const XMVECTOR& Up() const override;
 
+	void Start() override;
+	void Finish() override;
 	void Update() override;
 
 	void AddForce(const XMVECTOR& force) override;
@@ -84,12 +87,16 @@ public:
 
 	void UpdatePhysX(PhysXChangeTransformFlag flag);
 
+	//このゲームオブジェクトより子のオブジェクトを全てデストロイする
+	void AllChildrenDestroy();
 	void FlagSetChangeMatrix();
 	bool IsChangeMatrix(){
 		return !mFixMatrixFlag;
 	}
 
 	void SetUndo(const XMVECTOR& pos) override;
+
+	
 
 	std::list<Actor*>& Children() override;
 	Actor* GetParent() override;
@@ -102,7 +109,9 @@ private:
 	mutable XMMATRIX mMatrix;
 	std::list<Actor*> mChildren;
 	Actor* mParent;
+	UINT mParentUniqueID;
 
+	friend Actor;
 	friend Game;
 protected:
 	mutable bool mFixMatrixFlag;

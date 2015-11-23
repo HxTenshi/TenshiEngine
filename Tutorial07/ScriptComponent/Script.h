@@ -5,7 +5,7 @@
 class DllScriptComponent :public IDllScriptComponent{
 public:
 	DllScriptComponent();
-	virtual void Update(Actor* This)override;
+	void Update()override;
 
 private:
 	int timer;
@@ -14,15 +14,20 @@ private:
 class PlayerScript :public IDllScriptComponent{
 public:
 	PlayerScript();
-	virtual void Update(Actor* This)override;
+	void Update()override;
+	void OnCollide(Actor* target) override;
 	float mRotateY;
 
 };
 class CameraScript :public IDllScriptComponent{
 public:
 	CameraScript();
-	virtual void Update(Actor* This)override;
+	void Update()override;
 
 private:
 	float mRotateY;
+};
+
+class unk : public IDllScriptComponent{
+	void Update()override;
 };

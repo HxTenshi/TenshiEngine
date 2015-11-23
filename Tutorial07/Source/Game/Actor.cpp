@@ -43,7 +43,20 @@ Actor::~Actor()
 
 void Actor::Initialize(){
 	for (const auto& cmp : mComponents.mComponent){
+		cmp.second->_Initialize(this);
+	}
+	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->Initialize();
+	}
+}
+void Actor::Start(){
+	for (const auto& cmp : mComponents.mComponent){
+		cmp.second->Start();
+	}
+}
+void Actor::Finish(){
+	for (const auto& cmp : mComponents.mComponent){
+		cmp.second->Finish();
 	}
 }
 
@@ -73,6 +86,16 @@ void Actor::UpdateComponent(float deltaTime){
 }
 void Actor::Update(float deltaTime){
 	(void)deltaTime;
+	std::queue<std::function<void()>> temp;
+	mUpdateStageCollQueue.swap(temp);
+	while (!temp.empty()){
+		temp.front()();
+		temp.pop();
+	}
+}
+
+void Actor::SetUpdateStageCollQueue(const std::function<void()> coll){
+	mUpdateStageCollQueue.push(coll);
 }
 
 bool Actor::ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect){
@@ -115,13 +138,13 @@ void Actor::CopyData(Actor* post, Actor* base){
 	for (const auto& cmp : base->mComponents.mComponent){
 		Component* basecmp = cmp.second.Get();
 		Component* postcmp;
-		auto postcmpite = post->mComponents.mComponent.find(cmp.first);
-		if (postcmpite != post->mComponents.mComponent.end()){
-			postcmp = postcmpite->second.Get();
+		auto postcmpite = post->GetComponent(cmp.first);
+		if (postcmpite){
+			postcmp = postcmpite.Get();
 		}
 		else{
 			auto c = ComponentFactory::Create(cmp.second->ClassName());
-			post->mComponents.AddComponent(c);
+			post->mComponents.AddComponent_NotInitialize(c);
 			postcmp = c.Get();
 		}
 		postcmp->CopyData(postcmp, basecmp);
@@ -175,42 +198,9 @@ void Actor::ExportData(const std::string& pass){
 }
 
 void Actor::ImportDataAndNewID(const std::string& fileName){
-	File f(fileName);
-	if (!f)return;
-
-	f.In(&mUniqueID);
+	ImportData(fileName);
 	mUniqueID = gUniqueIDGenerator.CreateUniqueID();
-	f.In(&mName);
-	int ioc = mName.find("$");
-	while (std::string::npos != ioc){
-		mName.replace(ioc, 1, " ");
-		ioc = mName.find("$");
-	}
 
-	UINT uid;
-	f.In(&uid);
-
-	std::string temp;
-
-	mComponents.mComponent.clear();
-
-	while (f){
-		if (!f.In(&temp))break;
-		if (auto p = ComponentFactory::Create(temp)){
-			p->ImportData(f);
-			mComponents.AddComponent(p);
-			if (dynamic_cast<TransformComponent*>(p.Get())){
-				mTransform = p;
-			}
-		}
-	}
-
-	if (uid){
-		auto par = Game::FindUID(uid);
-		if (par){
-			mTransform->SetParent(par);
-		}
-	}
 }
 void Actor::ImportData(const std::string& fileName){
 	
@@ -237,19 +227,14 @@ void Actor::ImportData(const std::string& fileName){
 		if (!f.In(&temp))break;
 		if (auto p = ComponentFactory::Create(temp)){
 			p->ImportData(f);
-			mComponents.AddComponent(p);
+			mComponents.AddComponent_NotInitialize(p);
 			if (dynamic_cast<TransformComponent*>(p.Get())){
 				mTransform = p;
 			}
 		}
 	}
 
-	if (uid){
-		auto par = Game::FindUID(uid);
-		if (par){
-			mTransform->SetParent(par);
-		}
-	}
+	((TransformComponent*)mTransform.Get())->mParentUniqueID = uid;
 }
 
 //https://github.com/satoruhiga/ofxEulerAngles/blob/master/src/ofxEulerAngles.h
@@ -306,7 +291,6 @@ XMVECTOR toEulerXYZ(const XMMATRIX &m)
 }
 
 #include "../PhysX/PhysX3.h"
-#include <xnamath.h>
 //PhysXテスト用
 void Actor::SetTransform(physx::PxTransform* t){
 	physx::PxTransform& pT = *t;// PxShapeExt::getGlobalPose(*pShape, *actor);

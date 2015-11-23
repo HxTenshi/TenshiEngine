@@ -2,14 +2,13 @@
 
 
 #include <d3d11.h>
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
 
 #include "Graphic/Model/Model.h"
 #include "Graphic/Font/Font.h"
 #include <map>
 #include "Device/DirectX11Device.h"
 #include "Graphic/RenderTarget/RenderTarget.h"
-#include "Window/TreeViewWIndow.h"
 
 #include "Input/Input.h"
 #include "Component.h"
@@ -41,7 +40,7 @@ public:
 		mCamera.mTransform = shared_ptr<TransformComponent>(new TransformComponent());
 		mCamera.AddComponent<TransformComponent>(mCamera.mTransform);
 		mCamera.AddComponent(shared_ptr<CameraComponent>(mCameraComponent));
-		mCamera.Initialize();
+
 		UINT width = WindowState::mWidth;
 		UINT height = WindowState::mHeight;
 		//XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
@@ -49,7 +48,11 @@ public:
 		mCamera.mTransform->Scale(XMVectorSet(1, 1, 1, 1));
 	}
 	~EditorCamera(){
-
+		mCamera.Finish();
+	}
+	void Initialize(){
+		mCamera.Initialize();
+		mCamera.Start();
 	}
 	void Update(float deltaTime){
 		auto pos = mCamera.mTransform->Position();
@@ -207,15 +210,13 @@ public:
 	{
 		Name("new Text");
 
-		mTransform = shared_ptr<TransformComponent>(new TransformComponent());
-		mComponents.AddComponent<TransformComponent>(mTransform);
+		mTransform = mComponents.AddComponent<TransformComponent>();
 
-		auto mMaterialComponent = shared_ptr<MaterialComponent>(new MaterialComponent());
-		mComponents.AddComponent<MaterialComponent>(mMaterialComponent);
+		auto mMaterialComponent = mComponents.AddComponent<MaterialComponent>();
 
-		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new TextureModelComponent("", mMaterialComponent)));
+		mComponents.AddComponent<TextureModelComponent>(make_shared<TextureModelComponent>("", mMaterialComponent));
 
-		mComponents.AddComponent<TextComponent>(shared_ptr<TextComponent>(new TextComponent()));
+		mComponents.AddComponent<TextComponent>();
 
 
 		auto mPixelTopLeft = TopLeft;
@@ -230,6 +231,9 @@ public:
 
 
 		mTransform->Position(XMVectorSet(mTopLeft.x, mTopLeft.y, mDownRight.x, mDownRight.y));
+	}
+	~Text(){
+		Finish();
 	}
 };
 class Tex : public Actor{
@@ -348,7 +352,6 @@ public:
 private:
 };
 
-#include "Window/TreeViewWindow.h"
 class SelectActor{
 public:
 	SelectActor()
@@ -369,7 +372,8 @@ public:
 		mDragBox = -1;
 
 		mSelect = select;
-		Window::mInspectorWindow.InsertConponentData(mSelect);
+		Window::ClearInspector();
+		if (mSelect)mSelect->CreateInspector();
 	}
 	Actor* GetSelect(){
 		return mSelect;
@@ -669,8 +673,6 @@ private:
 
 	MaterialComponent mMaterial;
 };
-
-
 class Game{
 public:
 	static void AddResource(const std::string& filename){
@@ -704,6 +706,7 @@ public:
 
 	static void AddObject(Actor* actor);
 	static void DestroyObject(Actor* actor);
+	static void ActorMoveStage();
 	static PxRigidActor* CreateRigitBody();
 	static PhysX3Main* GetPhysX();
 	static void RemovePhysXActor(PxActor* act);
@@ -735,7 +738,7 @@ public:
 		static Text text({ 0, 0 }, { 500, 800 });
 		static bool init = false;
 		if (!init){
-			text.Initialize();
+			text.Start();
 			init = true;
 		}
 		auto t = text.GetComponent<TextComponent>();
@@ -837,7 +840,6 @@ public:
 
 		mRootObject->UpdateComponent(deltaTime);
 		mPhysX3Main->Display();
-
 		fps();
 	}
 
@@ -922,6 +924,10 @@ public:
 
 		SetMainCamera(NULL);
 
+		if (mIsPlay){
+			ActorMoveStage();
+		}
+
 	}
 	void ClearDrawList(){
 		for (auto &list : mDrawList){
@@ -935,8 +941,20 @@ public:
 		}
 	}
 private:
+	enum class ActorMove{
+		Create,
+		Delete,
+		Count,
+	};
+	//ツリービューのアイテム削除に失敗したアクター
+	std::list<Actor*> mTreeViewItem_ErrerClearList;
+	//追加と削除
+	std::queue<std::pair<ActorMove, Actor*>> mActorMoveList;
+	//ゲームプレイ中のリスト
 	std::map<UINT, Actor*> mGamePlayList;
+	//ゲームプレイ前のリスト
 	std::map<UINT, Actor*> mList;
+	//パラメータ保存用
 	std::map<UINT, Actor*> mListBack;
 	std::map<DrawStage, std::list<std::function<void()>>> mDrawList;
 	static Actor* mRootObject;
@@ -958,4 +976,22 @@ private:
 	RenderTarget mMeinViewRenderTarget;
 	CameraComponent* mMainCamera;
 	bool mIsPlay;
+
+};
+
+#include "IGame.h"
+class SGame : public IGame{
+public:
+	Actor* CreateActor(const char* prefab)override{
+		auto a = new Actor();
+		a->ImportDataAndNewID(prefab);
+		return a;
+	}
+	void AddObject(Actor* actor) override{
+		Game::AddObject(actor);
+	}
+	void DestroyObject(Actor* actor) override{
+		Game::DestroyObject(actor);
+
+	}
 };

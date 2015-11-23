@@ -82,7 +82,7 @@ public:
 
 	PxShape* CreateShape();
 	PxShape* CreateShapeSphere();
-	PxShape* CreateTriangleMesh(PxU32 VertexNum, PolygonsData::VertexType* vertex, PxU32 IndexNum, PolygonsData::IndexType* index);
+	PxShape* CreateTriangleMesh(const std::vector<PolygonsData::VertexType>& vertex, const std::vector<PolygonsData::IndexType>&  index);
 
 private:
 	void getColumnMajor(PxMat33& m, PxVec3& t, float* mat);

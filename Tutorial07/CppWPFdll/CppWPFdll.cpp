@@ -259,64 +259,6 @@ void InspectorVector3::CreateInspector(DockPanel^ dockPanel) {
 	CreateInspectorVector3(dockPanel, m_data->datax, m_data->collbackX, m_data->datay, m_data->collbackY, m_data->dataz, m_data->collbackZ);
 }
 
-// データモデル
-//class _DataModel {
-//public:
-//
-//	DataModel()
-//		: _value(3.0) {
-//	}
-//
-//	double GetValue() const {
-//		return _value;
-//	}
-//
-//	bool SetValue(double value) {
-//		if (_value == value) {
-//			return false;
-//		}
-//		_value = value;
-//		return true;
-//	}
-//
-//private:
-//	double _value;
-//};
-//
-//// ビューモデル
-//ref class _ViewModel : public NofityPropertyChanged {
-//public:
-//
-//	property double Value {
-//
-//		double get() {
-//			return _dataModel->GetValue();
-//		}
-//
-//		void set(double value) {
-//			if (_dataModel->SetValue(value)) {
-//				NotifyPropertyChanged("Value");
-//			}
-//		}
-//
-//	}
-//
-//	ViewModel()
-//		: _dataModel(new DataModel())
-//	{
-//	}
-//
-//	~ViewModel() {
-//		this->!ViewModel();
-//	}
-//
-//	!ViewModel() {
-//		delete _dataModel;
-//	}
-//
-//private:
-//	DataModel *_dataModel;
-//};
 
 #include <vcclr.h>
 
@@ -364,6 +306,9 @@ namespace Test {
 		float GetDen(){ return d; }
 		double GetRatio(){ return (double)m / d; }
 
+	};
+	class Fraction_{
+		float m, d;
 	};
 
 	///////////Frac1///////////
@@ -415,6 +360,7 @@ namespace Test {
 	delegate void MyDelegateF(String^,array<InspectorData^>^);
 	delegate void MyDelegateITEM(String^, IntPtr);
 	delegate void MyDelegateI2(IntPtr, IntPtr);
+	delegate void MyDelegateI1(IntPtr);
 	void NativeFraction::CreateComponentWindow(const std::string& ComponentName, std::vector<InspectorDataSet>& data){
 		if (ViewData::window!=nullptr){
 			auto del = gcnew MyDelegateF(ViewData::window, &View::CreateComponent);
@@ -463,6 +409,13 @@ namespace Test {
 		}
 	}
 
+	void NativeFraction::ClearTreeViewItem(void* ptr){
+		if (ViewData::window != nullptr){
+			auto del = gcnew MyDelegateI1(ViewData::window, &View::ClearTreeViewItem);
+			ViewData::window->Dispatcher->BeginInvoke(del, (IntPtr)ptr);
+		}
+	}
+
 	void NativeFraction::UpdateComponentWindow(){
 		if (ViewData::window != nullptr){
 			auto del = gcnew MyDelegate(ViewData::window, &View::UpdateView);
@@ -474,7 +427,7 @@ namespace Test {
 		if (ViewData::window == nullptr)return;
 
 		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddItem);
-		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
+		ViewData::window->Dispatcher->Invoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
 	}
 	void NativeFraction::SetParentTreeViewItem(void* parent, void* child){
 		if (ViewData::window == nullptr)return;
@@ -494,11 +447,5 @@ namespace Test {
 		}
 		return temp;
 	}
-
-	//template<>
-	//void NativeFraction::Deleter(std::string* ptr){
-	//	delete ptr;
-	//}
-
 
 }

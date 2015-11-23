@@ -26,7 +26,7 @@ public:
 		mFilePtr.open(mFileName, std::ios::out | std::ios::in);
 		mOpen = !mFilePtr.fail();
 		int by = 0;//std::ios::binary;
-		bool b = (bool)(std::ios::binary & by);
+		bool b = (std::ios::binary & by) != 0;
 		if (!b){
 			mSpace[0] = ' ';
 			mSpace[1] = '\0';
@@ -40,7 +40,7 @@ public:
 		mOpen = !mFilePtr.fail();
 
 		int by = 0;//std::ios::binary;
-		bool b = (bool)(std::ios::binary & by);
+		bool b = (std::ios::binary & by) != 0;
 		if (!b){
 			mSpace[0] = ' ';
 			mSpace[1] = '\0';

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
 
 struct CBNeverChanges
 {

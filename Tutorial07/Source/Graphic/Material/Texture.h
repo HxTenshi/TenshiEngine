@@ -1,6 +1,6 @@
 #pragma once
 
-#define _TEXTURE_LOADTYPE_DIRECTXTEX_ 0
+#define _TEXTURE_LOADTYPE_DIRECTXTEX_ 1
 
 #include <D3D11.h>
 #include "MySTL/ptr.h"

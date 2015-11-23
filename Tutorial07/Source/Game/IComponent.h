@@ -11,13 +11,23 @@ public:
 		:gameObject(NULL){
 
 	}
+	virtual ~Component(){
+
+	}
+	//コンポーネント共通初期化
 	void _Initialize(Actor* obj){
 		gameObject = obj;
 	}
+	//AddComponent後の初期化
 	virtual void Initialize(){
 
 	}
-	virtual ~Component(){
+	//GameStart時の初期化
+	virtual void Start(){
+
+	}
+	//デストロイ時の処理
+	virtual void Finish(){
 
 	}
 	virtual void Update(){
@@ -25,7 +35,8 @@ public:
 	}
 
 	virtual void CopyData(Component* post, Component* base){
-
+		(void)post;
+		(void)base;
 	}
 
 	virtual void CreateInspector(){
@@ -33,8 +44,7 @@ public:
 	}
 
 	void ExportClassName(File& f){
-		std::string name = typeid(*this).name();
-		name.erase(0, 6);//"class "を削除
+		std::string name = ClassName();
 		f.Out(name);
 	}
 	std::string ClassName(){

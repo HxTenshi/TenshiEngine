@@ -3,24 +3,31 @@
 #include "Game.h"
 PhysXComponent::PhysXComponent(){
 
-	mChengeTransformFlag = 0xFFFF;
-	mRigidActor = Game::CreateRigitBody();
-	auto r = (PxRigidDynamic*)mRigidActor;
-	auto flag = r->getRigidDynamicFlags();
-	mIsKinematic = flag & PxRigidDynamicFlag::eKINEMATIC;
-
+	mIsKinematic = false;
 }
 
 PhysXComponent::~PhysXComponent(){
-	Game::RemovePhysXActor(mRigidActor);
 }
 void PhysXComponent::Initialize(){
+	mChengeTransformFlag = (char)PhysXChangeTransformFlag::Position | (char)PhysXChangeTransformFlag::Rotate;
+	mRigidActor = Game::CreateRigitBody();
+
+	SetKinematic(mIsKinematic);
+
+	mRigidActor->userData = gameObject;
+}
+
+
+void PhysXComponent::Start(){
 	auto t = mRigidActor->getGlobalPose();
 	auto position = gameObject->mTransform->Position();
 	t.p = physx::PxVec3(position.x, position.y, position.z);
 	mRigidActor->setGlobalPose(t);
-
-	SetKinematic(mIsKinematic);
+}
+void PhysXComponent::Finish(){
+	if (mRigidActor)
+		Game::RemovePhysXActor(mRigidActor);
+	mRigidActor = NULL;
 }
 
 #include "Actor.h"
@@ -66,7 +73,8 @@ void PhysXComponent::AddShape(physx::PxShape& shape){
 	mRigidActor->attachShape(shape);
 }
 void PhysXComponent::RemoveShape(physx::PxShape& shape){
-	mRigidActor->detachShape(shape);
+	if (mRigidActor)
+		mRigidActor->detachShape(shape);
 }
 
 void PhysXComponent::CopyData(Component* post, Component* base){
@@ -74,8 +82,6 @@ void PhysXComponent::CopyData(Component* post, Component* base){
 	auto Base = (PhysXComponent*)base;
 
 	Post->mIsKinematic = Base->mIsKinematic;
-	Post->SetKinematic(Post->mIsKinematic);
-	Post->mChengeTransformFlag = (char)PhysXChangeTransformFlag::Position | (char)PhysXChangeTransformFlag::Rotate;
 }
 
 void PhysXComponent::CreateInspector() {

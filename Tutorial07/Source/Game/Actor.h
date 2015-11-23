@@ -1,7 +1,9 @@
 #pragma once
 
 #include <d3d11.h>
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
+#include <functional>
+#include <queue>
 #include "ComponentList.h"
 
 class ITransformComponent;
@@ -26,19 +28,30 @@ public:
 	Actor();
 	virtual ~Actor();
 	virtual void Initialize();
+	virtual void Start();
+	virtual void Finish();
 	virtual void DrawOnlyUpdateComponent(float deltaTime);
 	virtual void UpdateComponent(float deltaTime);
 	virtual void Update(float deltaTime);
 
+	void SetUpdateStageCollQueue(const std::function<void()> coll);
+
 	virtual bool ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect);
 	template<class T>
-	shared_ptr<T> GetComponent(){
+	weak_ptr<T> GetComponent(){
 		return mComponents.GetComponent<T>();
+	}
+	weak_ptr<Component> GetComponent(const size_t& hash){
+		return mComponents.GetComponent(hash);
 	}
 
 	template<class T>
-	void AddComponent(shared_ptr<T> component){
-		mComponents.AddComponent<T>(component);
+	shared_ptr<T> AddComponent(shared_ptr<T> component){
+		return mComponents.AddComponent<T>(component);
+	}
+	template<class T>
+	shared_ptr<T> AddComponent(){
+		return mComponents.AddComponent<T>();
 	}
 	template<class T>
 	void RemoveComponent(){
@@ -74,6 +87,8 @@ protected:
 	ComponentList mComponents;
 
 private:
+
+	std::queue<std::function<void()>> mUpdateStageCollQueue;
 	std::string mName;
 
 	UINT mUniqueID;

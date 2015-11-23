@@ -5,13 +5,12 @@
 #include "MySTL/Ptr.h"
 
 #include <d3d11.h>
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
 
 #include "Actor.h"
 #include "../Graphic/Model/Model.h"
 #include "Window/Window.h"
 #include "../Input/Input.h"
-#include "Window/InspectorWindow.h"
 #include "MySTL/File.h"
 
 #include "IComponent.h"
@@ -716,6 +715,8 @@ public:
 	void Initialize() override;
 	void Update() override;
 
+	void OnCollide(Actor* target);
+
 	void CreateInspector() override{
 
 		auto data = Window::CreateInspector();
@@ -812,6 +813,7 @@ private:
 	Material mTexMaterial;
 };
 
+#include <map>
 class ComponentFactory{
 
 public:
@@ -826,6 +828,8 @@ public:
 	}
 
 private:
+
+
 	static
 		void Init(){
 		_NewFunc<CameraComponent>();
@@ -842,24 +846,29 @@ private:
 		_NewFunc<TextComponent>();
 		mIsInit = true;
 	}
+	template<class T>
+	static 
+	shared_ptr<Component> _Make(){
+		return make_shared<T>();
+	}
 
 	template<class T>
 	static
 	void _NewFunc(){
-		mFactoryComponents[typeid(T).name()] = [](){return new T(); };
+		mFactoryComponents[typeid(T).name()] = &ComponentFactory::_Make<T>;
 	}
 
 	static
 	shared_ptr<Component> _Create(std::string ClassName){
 		auto p = mFactoryComponents.find(ClassName);
 		if (p != mFactoryComponents.end()){
-			return shared_ptr<Component>((*p).second());
+			return p->second();
 		}
-		return shared_ptr<Component>();
+		return NULL;
 	}
 
 	static
-		std::map<std::string, std::function<Component*()>> mFactoryComponents;
+		std::map<std::string, std::function<shared_ptr<Component>()>> mFactoryComponents;
 	static
 	bool mIsInit;
 };

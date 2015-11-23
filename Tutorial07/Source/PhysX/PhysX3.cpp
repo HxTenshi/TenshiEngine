@@ -6,10 +6,106 @@
 #include <physxprofilesdk\PxProfileZoneManager.h>
 #include <extensions\PxDefaultCpuDispatcher.h>
 
+class TestOn : public physx::PxSimulationEventCallback{
+	void onConstraintBreak(PxConstraintInfo *constraints, PxU32 count) override{
+		int a=0;
+	}
+	void onWake(PxActor **actors, PxU32 count) override{
+		int a=0;
+	}
+	void onSleep(PxActor **actors, PxU32 count) override{
+		int a=0;
+	}
+	void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs) override
+	{
+		for (PxU32 i = 0; i < nbPairs; i++)
+		{
+			const PxContactPair& cp = pairs[i];
+			if (cp.events & PxPairFlag::eTRIGGER_DEFAULT)
+			{
+				Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
+				Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
+				if (!(act0&&act1))continue;
+				auto script0 = act0->GetComponent<ScriptComponent>();
+				auto script1 = act1->GetComponent<ScriptComponent>();
+				if (script0)
+					script0->OnCollide(act1);
+				if (script1)
+					script1->OnCollide(act0);
+
+				break;
+			}
+			if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
+			{
+				Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
+				Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
+				if (!(act0&&act1))continue;
+				auto script0 = act0->GetComponent<ScriptComponent>();
+				auto script1 = act1->GetComponent<ScriptComponent>();
+				if (script0)
+					script0->OnCollide(act1);
+				if (script1)
+					script1->OnCollide(act0);
+
+				break;
+
+				//if ((pairHeader.actors[0] == mSubmarineActor) || (pairHeader.actors[1] == mSubmarineActor))
+				//{
+				//	PxActor* otherActor = (mSubmarineActor == pairHeader.actors[0]) ?
+				//		pairHeader.actors[1] : pairHeader.actors[0];
+				//	Seamine* mine = reinterpret_cast<Seamine*>(otherActor->userData);
+				//	// insert only once
+				//	if (std::find(mMinesToExplode.begin(), mMinesToExplode.end(), mine) == mMinesToExplode.end())
+				//		mMinesToExplode.push_back(mine);
+				//
+				//	break;
+				//}
+			}
+		}
+	}
+	void onTrigger(PxTriggerPair *pairs, PxU32 count) override{
+		int a=0;
+	}
+};
+
+PxFilterFlags SampleSubmarineFilterShader(
+	PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+	PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+	PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
+{
+	// let triggers through
+	if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
+	{
+		pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
+		return PxFilterFlag::eDEFAULT;
+	}
+	// generate contacts for all that were not filtered above
+	pairFlags = PxPairFlag::eCONTACT_DEFAULT;
+
+	// trigger the contact callback for pairs (A,B) where
+	// the filtermask of A contains the ID of B and vice versa.
+	if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
+		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
+
+	return PxFilterFlag::eDEFAULT;
+}
+
+struct  FilterGroup
+{
+	enum  Enum
+	{
+		eSUBMARINE = (1 << 0),
+		eMINE_HEAD = (1 << 1),
+		eMINE_LINK = (1 << 2),
+		eCRAB = (1 << 3),
+		eHEIGHTFIELD = (1 << 4),
+	};
+};
+
 PhysX3Main::PhysX3Main():
 gPhysicsSDK(NULL),
 mFoundation(NULL),
-gDefaultFilterShader(PxDefaultSimulationFilterShader),
+gDefaultFilterShader(SampleSubmarineFilterShader),
 gScene(NULL),
 myTimestep(1.0f/60.0f),
 mMaterial(NULL)
@@ -20,12 +116,12 @@ PhysX3Main::~PhysX3Main(){
 	ShutdownPhysX();
 }
 
+TestOn* mTestOn;
 PxDefaultCpuDispatcher* mCpuDispatcher;
 PxVec3 gravity(0, -9.81f, 0);
 void PhysX3Main::InitializePhysX() {
 
 	//mhbox = MV1LoadModel("res/PhysX/box.mqo");
-
 	mFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback,
 		gDefaultErrorCallback);
 	if (!mFoundation){
@@ -72,6 +168,10 @@ void PhysX3Main::InitializePhysX() {
 	if (!sceneDesc.filterShader)
 		sceneDesc.filterShader = gDefaultFilterShader;
 
+	sceneDesc.flags |= PxSceneFlag::eENABLE_KINEMATIC_PAIRS | PxSceneFlag::eENABLE_KINEMATIC_STATIC_PAIRS | PxSceneFlag::eDISABLE_CONTACT_CACHE | PxSceneFlag::eDISABLE_CONTACT_REPORT_BUFFER_RESIZE | PxSceneFlag::eENABLE_ACTIVETRANSFORMS;
+	mTestOn = new TestOn();
+	sceneDesc.simulationEventCallback = mTestOn;
+
 	gScene = gPhysicsSDK->createScene(sceneDesc);
 	if (!gScene)
 		std::cerr << "createScene failed!" << std::endl;
@@ -81,6 +181,8 @@ void PhysX3Main::InitializePhysX() {
 	mMaterial = gPhysicsSDK->createMaterial(0.5, 0.5, 0.5);
 
 	createPlane();
+
+	//gScene->setSimulationEventCallback(new TestOn());
 
 	//gScene->simulate(myTimestep);
 }
@@ -99,36 +201,17 @@ void PhysX3Main::createPlane(){
 	gScene->addActor(*plane);
 
 	p = plane;
+
 	PxRigidActor* act = plane;
-}
-
-PxRigidActor* PhysX3Main::createSphere(){
-
-	PxReal density = 1.0f;
-	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
-	PxReal r = 0.5f;
-	PxSphereGeometry geometry(r);
-
-	PxRigidDynamic *actor = PxCreateDynamic(*gPhysicsSDK, transform, geometry, *mMaterial, density);
-	actor->setAngularDamping(0.75);
-	actor->setLinearVelocity(PxVec3(0, 0, 0));
-	if (!actor)
-		std::cerr << "create actor failed!" << std::endl;
-	gScene->addActor(*actor);
-
-	PxRigidActor* act = actor;
-	return act;
+	auto flag = act->getActorFlags();
+	flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
+	act->setActorFlags(flag);
 }
 
 PxRigidActor* PhysX3Main::createBox(){
-
-	//2) Create cube  
-	PxReal density = 1.0f;
+  
 	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
-	//PxVec3 dimensions(0.5, 0.5, 0.5);
-	//PxBoxGeometry geometry(dimensions);
 	PxRigidDynamic *actor = gPhysicsSDK->createRigidDynamic(transform);
-	//PxRigidDynamic *actor = PxCreateDynamic(*gPhysicsSDK, transform, geometry, *mMaterial, density);
 	actor->setAngularDamping(0.75);
 	actor->setLinearVelocity(PxVec3(0, 0, 0));
 	if (!actor)
@@ -136,6 +219,9 @@ PxRigidActor* PhysX3Main::createBox(){
 	gScene->addActor(*actor);
 
 	PxRigidActor* act = actor;
+	auto flag = act->getActorFlags();
+	flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
+	act->setActorFlags(flag);
 	return act;
 }
 
@@ -145,48 +231,67 @@ PxShape* PhysX3Main::CreateShape(){
 	//PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
 	PxVec3 dimensions(0.5, 0.5, 0.5);
 	PxBoxGeometry geometry(dimensions);
-	return gPhysicsSDK->createShape(geometry, *mMaterial,PxShapeFlag::eSIMULATION_SHAPE);
+	auto box = gPhysicsSDK->createShape(geometry, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eTRIGGER_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
+
+	PxFilterData  filterData;
+	filterData.word0 = FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
+	filterData.word1 = FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
+	box->setSimulationFilterData(filterData);
+
+	return box;
 }
 
 PxShape* PhysX3Main::CreateShapeSphere(){
 	//PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
 	PxSphereGeometry geometry(0.5);
-	return gPhysicsSDK->createShape(geometry, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE);
+	auto shape = gPhysicsSDK->createShape(geometry, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eTRIGGER_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
+	PxFilterData  filterData;
+	filterData.word0 = FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
+	filterData.word1 = FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
+	shape->setSimulationFilterData(filterData);
+	return shape;
 
 }
 
-std::vector<PxVec3> vertexVec3;
-std::vector<PxU32> indexU32;
-PxShape* PhysX3Main::CreateTriangleMesh(PxU32 VertexNum, PolygonsData::VertexType* vertex, PxU32 IndexNum, PolygonsData::IndexType* index){
+PxShape* PhysX3Main::CreateTriangleMesh(const std::vector<PolygonsData::VertexType>& vertex, const std::vector<PolygonsData::IndexType>&  index){
 
 	//std::vector<PxVec3> vertexVec3(VertexNum);
-	vertexVec3.resize(VertexNum);
-	for (int i = 0; i < VertexNum; i++){
+	std::vector<PxVec3> vertexVec3;
+	vertexVec3.resize(vertex.size());
+	for (int i = 0; i < vertex.size(); i++){
 		vertexVec3[i] = PxVec3(vertex[i].Pos.x, vertex[i].Pos.y, vertex[i].Pos.z);
 	}
 
-	PxBoundedData vertexdata;
-	vertexdata.count = VertexNum;
-	vertexdata.stride = sizeof(PxVec3);
-	vertexdata.data = vertexVec3.data();
+	//PxBoundedData vertexdata;
+	//vertexdata.count = vertex.size();
+	//vertexdata.stride = sizeof(PxVec3);
+	//vertexdata.data = vertexVec3.data();
 
 
-	//std::vector<PxU32> indexU32(IndexNum);
-	indexU32.resize(IndexNum);
-	for (int i = 0; i < IndexNum; i++){
+	//std::vector<PxU32> indexU32;
+	std::vector<PxU32> indexU32(index.size());
+	indexU32.resize(index.size());
+	for (int i = 0; i < index.size(); i++){
 		indexU32[i] = (PxU32)index[i];
 	}
 
-	PxBoundedData indexdata;
-	indexdata.count = IndexNum / 3;
-	indexdata.stride = sizeof(PxU32) * 3;
-	indexdata.data = indexU32.data();
+	//PxBoundedData indexdata;
+	//indexdata.count = index.size() / 3;
+	//indexdata.stride = sizeof(PolygonsData::IndexType) * 3;
+	//indexdata.data = indexU32.data();
 
 
 	// メッシュデータのパラメータを設定
 	PxTriangleMeshDesc triangleDesc;
-	triangleDesc.points = vertexdata; // 頂点データ
-	triangleDesc.triangles = indexdata; // 三角形の頂点インデックス
+	// 頂点データ
+	triangleDesc.points.count = vertexVec3.size();
+	triangleDesc.points.stride = sizeof(PxVec3);
+	triangleDesc.points.data = vertexVec3.data();
+	// 三角形の頂点インデックス
+	triangleDesc.triangles.count = indexU32.size() / 3;
+	triangleDesc.triangles.stride = sizeof(PxU32) * 3;
+	triangleDesc.triangles.data = indexU32.data();
+
 	//triangleDesc.flags = PxMeshFlag;
 
 	PxDefaultMemoryOutputStream writeBuffer;
@@ -200,7 +305,13 @@ PxShape* PhysX3Main::CreateTriangleMesh(PxU32 VertexNum, PolygonsData::VertexTyp
 	auto mesh =  gPhysicsSDK->createTriangleMesh(readBuffer);
 
 	PxTriangleMeshGeometry meshGeo(mesh);
-	auto shape = gPhysicsSDK->createShape(meshGeo, *mMaterial);
+	auto shape = gPhysicsSDK->createShape(meshGeo, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eTRIGGER_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
+
+	PxFilterData  filterData;
+	filterData.word0 = FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
+	filterData.word1 = FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
+	shape->setSimulationFilterData(filterData);
+
 	return shape;
 }
 
@@ -221,7 +332,7 @@ void PhysX3Main::StepPhysX()
 
 	//シュミレーション中に？作成Shapeを？作成できない
 	//...perform useful work here using previous frame's state data
-	//gScene->checkResults(false);
+	gScene->checkResults();
 	
 	while (!gScene->fetchResults())
 	{
@@ -332,6 +443,7 @@ void PhysX3Main::Display() {
 }
 
 void PhysX3Main::ShutdownPhysX() {
+	delete mTestOn;
 	p->release();
 	mMaterial->release();
 	mCpuDispatcher->release();

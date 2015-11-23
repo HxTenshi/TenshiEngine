@@ -2,6 +2,7 @@
 #include "Component.h"
 
 #include <stack>
+
 static std::stack<int> gIntPtrStack;
 
 static std::map<UINT,Actor*>* gpList;
@@ -11,6 +12,7 @@ static CommandManager* gCommandManager;
 static CameraComponent** gMainCamera;
 //
 Actor* Game::mRootObject;
+Game* mGame = NULL;
 
 static bool gIsPlay;
 
@@ -30,6 +32,18 @@ void file_(const std::string& pass, std::vector<std::string>& fileList) {
 		else if (sys::is_directory(p)) { // ディレクトリなら...
 		}
 	});
+}
+
+//ツリービューが完成するまで繰り返す関数
+std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
+	return [=](){
+		if (par->mTreeViewPtr){
+			Window::SetParentTreeViewItem(par->mTreeViewPtr, chil->mTreeViewPtr);
+		}
+		else{
+			chil->SetUpdateStageCollQueue(CreateSetParentTreeViewItemColl(par, chil));
+		}
+	};
 }
 
 #include "Engine/AssetLoader.h"
@@ -77,6 +91,7 @@ void SelectActor::SelectActorDraw(){
 Game::Game()
 	:mWorldGrid(1.0f){
 
+	mGame = this;
 	mIsPlay = false;
 
 	HRESULT hr = S_OK;
@@ -95,8 +110,10 @@ Game::Game()
 	gIsPlay = mIsPlay;
 
 	mRootObject = new Actor();
-	mRootObject->mTransform = shared_ptr<TransformComponent>(new TransformComponent());
-	mRootObject->AddComponent<TransformComponent>(mRootObject->mTransform);
+	mRootObject->mTransform = mRootObject->AddComponent<TransformComponent>();
+	mRootObject->Initialize();
+
+	mCamera.Initialize();
 	//hr = mCamera.Init();
 	//if (FAILED(hr))
 	//	MessageBox(NULL, "Camera Create Error.", "Error", MB_OK);
@@ -136,11 +153,30 @@ Game::Game()
 	Window::SetWPFCollBack(MyWindowMessage::ReturnTreeViewIntPtr, [&](void* p)
 	{
 		int intptr = gIntPtrStack.top();
+		auto act = ((Actor*)intptr);
 		gIntPtrStack.pop();
-		((Actor*)intptr)->mTreeViewPtr = p;
-		if (auto par = ((Actor*)intptr)->mTransform->GetParent())
-			if (par->mTreeViewPtr)
-				Window::SetParentTreeViewItem(par->mTreeViewPtr, ((Actor*)intptr)->mTreeViewPtr);
+
+		//削除失敗リストから検索して削除
+		bool remove = false;
+		mTreeViewItem_ErrerClearList.remove_if([&](Actor* tar){
+			bool f = tar == act;
+			if (f){
+				Window::ClearTreeViewItem(p);
+				remove = true;
+			}
+			return true;
+		});
+		if (remove)return;
+
+		act->mTreeViewPtr = p;
+		//ツリービューで親子関係のセット関数
+		if (auto par = act->mTransform->GetParent()){
+			if (par == mRootObject)return;
+			auto coll = CreateSetParentTreeViewItemColl(par, act);
+			//とりあえず１回実行
+			coll();
+		}
+			
 	});
 
 	Window::SetWPFCollBack(MyWindowMessage::SelectActor, [&](void* p)
@@ -232,6 +268,7 @@ Game::Game()
 	{
 		SaveScene();
 	});
+
 }
 
 Game::~Game(){
@@ -239,6 +276,11 @@ Game::~Game(){
 	ChangePlayGame(false);
 	mSoundPlayer.Stop();
 
+	//for (auto& act : mList){
+	//	DestroyObject(act.second);
+	//}
+	TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
+	t->AllChildrenDestroy();
 	delete mRootObject;
 
 	delete mPhysX3Main;
@@ -258,20 +300,68 @@ void Game::AddObject(Actor* actor){
 
 	gpList->insert(std::pair<UINT, Actor*>(actor->GetUniqueID(), actor));
 	actor->Initialize();
-	Window::GetTreeViewWindow()->AddItem(actor);
-	if (!actor->mTransform->GetParent()){
-		actor->mTransform->SetParent(mRootObject);
+	actor->Start();
+	if (!gIsPlay)
+	{
+		Window::AddTreeViewItem(actor->Name(), actor);
+		if (!actor->mTransform->GetParent()){
+			actor->mTransform->SetParent(mRootObject);
+		}
+	}
+	else{
+		mGame->mActorMoveList.push(std::make_pair(ActorMove::Create, actor));
 	}
 }
 //static
 void Game::DestroyObject(Actor* actor){
 	if (!actor)return;
+	int num1 = gpList->size();
 	gpList->erase(actor->GetUniqueID());
-	Window::GetInspectorWindow()->InsertConponentData(NULL);
-	if (!gIsPlay)
+	int num2 = gpList->size();
+	if (num1 == num2)return;
+	if (!gIsPlay){
+		Window::ClearTreeViewItem(actor->mTreeViewPtr);
+		TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
+		t->AllChildrenDestroy();
+		actor->Finish();
 		delete actor;
+	}
 	else{
-		actor->mTransform->SetParent(NULL);
+		mGame->mActorMoveList.push(std::make_pair(ActorMove::Delete, actor));
+
+		//Window::ClearTreeViewItem(actor->mTreeViewPtr);
+		//actor->mTreeViewPtr = NULL;
+		//TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
+		//t->AllChildrenDestroy();
+		//actor->Finish();
+	}
+}
+
+//static
+void Game::ActorMoveStage(){
+	while (!mGame->mActorMoveList.empty()){
+		auto& tar = mGame->mActorMoveList.front();
+		mGame->mActorMoveList.pop();
+		auto actor = tar.second;
+		if (tar.first == ActorMove::Delete){
+			//ツリービューが作成されていれば
+			if (actor->mTreeViewPtr){
+				Window::ClearTreeViewItem(actor->mTreeViewPtr);
+			}//ツリービューが作成される前なら
+			else{//削除リストに追加
+				mGame->mTreeViewItem_ErrerClearList.push_back(actor);
+			}
+			actor->mTreeViewPtr = NULL;
+			TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
+			t->AllChildrenDestroy();
+			actor->Finish();
+		}
+		else{
+			Window::AddTreeViewItem(actor->Name(), actor);
+			if (!actor->mTransform->GetParent()){
+				actor->mTransform->SetParent(mRootObject);
+			}
+		}
 	}
 }
 
@@ -306,7 +396,7 @@ void Game::SetMainCamera(CameraComponent* Camera){
 
 
 void Game::ChangePlayGame(bool isPlay){
-
+	if (mIsPlay == isPlay)return;
 	mIsPlay = isPlay;
 	gIsPlay = mIsPlay;
 	if (isPlay){
@@ -318,26 +408,52 @@ void Game::ChangePlayGame(bool isPlay){
 		}
 		mGamePlayList = mList;
 		gpList = &mGamePlayList;
+		for (auto& act : mGamePlayList){
+			act.second->Finish();
+		}
 	}
 	else{
+
+		for (auto& act : *gpList){
+			act.second->Finish();
+		}
+		//戻すデータ一覧
 		for (auto& act : mListBack){
+			//戻す対象
 			auto postactor = mList[act.first];
 
 			postactor->CopyData(postactor, act.second);
 			//親子関係を解除しないとデストラクタで子が消される
-			act.second->GetComponent<TransformComponent>()->mParent = NULL;
+			//act.second->GetComponent<TransformComponent>()->mParent = NULL;
 
 			//親子関係が構築されていないので手動で構築
-			postactor->GetComponent<TransformComponent>()->SetParent(postactor->GetComponent<TransformComponent>()->GetParent());
+			//if (!postactor->mTransform->GetParent()){
+			//	postactor->mTransform->SetParent(mRootObject);
+			//}
+			//else{
+			//postactor->GetComponent<TransformComponent>()->SetParent(postactor->GetComponent<TransformComponent>()->GetParent());
+			//}
 
-			if (mGamePlayList.find(act.first) == mGamePlayList.end())
-				Window::GetTreeViewWindow()->AddItem(postactor);
+			//ゲームシーンで削除されていれば
+			if (mGamePlayList.find(act.first) == mGamePlayList.end()){
+				Window::AddTreeViewItem(postactor->Name(), postactor);	
+			}
+			//終わったアクターを削除
+			mGamePlayList.erase(act.first);
 
 			//ツリービュー再構築
 			if (auto par = postactor->GetComponent<TransformComponent>()->GetParent())
-				if (par->mTreeViewPtr)
+				if (par->mTreeViewPtr&&postactor->mTreeViewPtr)
 					Window::SetParentTreeViewItem(par->mTreeViewPtr, postactor->mTreeViewPtr);
 		}
+
+		//残ったアクターは新しく追加されたアクター
+		while (!mGamePlayList.empty()){
+			auto& ite = mGamePlayList.begin();
+			auto& addact = *ite;
+			DestroyObject(addact.second);
+		}
+
 		//親子を解除してから削除
 		for (auto& act : mListBack){
 			delete act.second;
@@ -346,6 +462,13 @@ void Game::ChangePlayGame(bool isPlay){
 
 		mGamePlayList.clear();
 		gpList = &mList;
+	}
+
+	for (auto& act : *gpList){
+		act.second->Initialize();
+	}
+	for (auto& act : *gpList){
+		act.second->Start();
 	}
 }
 

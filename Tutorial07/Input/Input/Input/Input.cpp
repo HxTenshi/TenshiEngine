@@ -1,7 +1,7 @@
 
 
-#pragma comment( lib , "lib/dinput8.lib" )
-#pragma comment( lib , "lib/dxguid.lib" )
+#pragma comment( lib , "dinput8.lib" )
+#pragma comment( lib , "dxguid.lib" )
 
 #define _EXPORTING
 #include "Input.h"

@@ -741,12 +741,20 @@ HRESULT AssetModelBuffer::Create(const char* FileName, Model* mpModel, shared_pt
 
 	mpIndexBuffer = modeldata->m_pIndexBuffer;
 	mpVertexBuffer = modeldata->m_pVertexBuffer;
-	mIndexNum = modeldata->m_Polygons.IndexNum;
+	mIndexNum = modeldata->m_Polygons.Indices.size();
 
-	mpModel->mMeshs.resize(1);
-	mpModel->mMeshs[0].mpModelBuffer = this;
-	mpModel->mMeshs[0].mFace_vert_start_count = 0;
-	mpModel->mMeshs[0].mFace_vert_count = mIndexNum;
+	auto &poly = modeldata->m_Polygons;
+
+	mpModel->mMeshs.resize(poly.Meshs.size());
+	int i = 0;
+	int total = 0;
+	for (auto& mesh : mpModel->mMeshs){
+		mesh.mpModelBuffer = this;
+		mesh.mFace_vert_start_count = total;
+		mesh.mFace_vert_count = poly.Meshs[i];
+		total += poly.Meshs[i];
+		i++;
+	}
 
 	mStride = sizeof(PolygonsData::VertexType);
 	return S_OK;

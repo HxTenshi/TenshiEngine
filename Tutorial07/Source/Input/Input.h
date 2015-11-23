@@ -5,7 +5,7 @@
 //#define INITGUID
 #include <dinput.h>
 
-#pragma comment( lib , "lib/dinput8.lib" )
+#pragma comment( lib , "dinput8.lib" )
 
 #ifdef _DEBUG
 #pragma comment(lib, "Debug/MyInput.lib")

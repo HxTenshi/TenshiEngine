@@ -1,5 +1,7 @@
 
 
+#include "Texture.h"
+
 #if _TEXTURE_LOADTYPE_DIRECTXTEX_
 
 #include "../DirectXTex/DirectXTex.h"
@@ -11,7 +13,6 @@
 
 #endif //_TEXTURE_LOADTYPE_DIRECTXTEX_
 
-#include "Texture.h"
 
 #include "Device/DirectX11Device.h"
 
@@ -19,8 +20,7 @@
 #include <locale.h>
 
 
-#include <d3dx11.h>
-
+#include "../DirectXTex/DirectXTex.h"
 
 Texture Texture::mNullTexture;
 
@@ -122,10 +122,10 @@ HRESULT Texture::LoadDirectXTex(){
 	//ÉçÉPÅ[ÉãéwíË
 	setlocale(LC_ALL, "japanese");
 	//ïœä∑
-	mbstowcs_s(&wLen, f, 255, FileName, _TRUNCATE);
+	mbstowcs_s(&wLen, f, 255, mFileName.c_str(), _TRUNCATE);
 
 	HRESULT hr;
-	while (true){
+	do{
 		hr = DirectX::LoadFromWICFile(f, 0, &metadata, image);
 		if (SUCCEEDED(hr)){
 			break;
@@ -138,8 +138,7 @@ HRESULT Texture::LoadDirectXTex(){
 		if (SUCCEEDED(hr)){
 			break;
 		}
-		break;
-	}
+	} while (false);
 	if (FAILED(hr)){
 		return hr;
 	}
@@ -184,7 +183,7 @@ HRESULT Texture::LoadD3DX11(){
 void Texture::ExportData(File& f){
 	if (mFileName != ""){
 		auto name = mFileName;
-		int ioc = name.find(" ");
+		auto ioc = name.find(" ");
 		while (std::string::npos != ioc){
 			name.replace(ioc, 1, "$");
 			ioc = name.find(" ");

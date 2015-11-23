@@ -450,6 +450,10 @@ public:
 		auto i = (gcroot<TestContent::Person^>*)(void*)treeviewptr;
 		(*i)->Name = name;
 	}
+	void ClearTreeViewItem(IntPtr treeviewptr){
+		auto i = (gcroot<TestContent::Person^>*)(void*)treeviewptr;
+		(*i)->RemoveSelf();
+	}
 
 private:
 	//アセットツリービュー作成
@@ -777,26 +781,23 @@ private:
 		//System::Windows::MessageBox::Show("had");
 	}
 	void MenuItem_Click(Object ^sender, System::Windows::RoutedEventArgs ^e){
-			{
-				if (m_TreeView->SelectedItem == nullptr)return;
-				auto i = (TestContent::Person^)m_TreeView->SelectedItem;
-				//i->Name = "死んだ";
-				//m_TreeViewItemRoot->Children->Remove(i);
-				Data::MyPostMessage(MyWindowMessage::ActorDestroy, (void*)i->DataPtr);
-				//((IntViewModel^)m_ActorIntPtrDataBox->DataContext)->Value = "0";
-				//m_ActorIntPtrDataBox->Text = "0";
-				//((TestContent::Person^)m_TreeView->SelectedItem)->DataPtr = (IntPtr)0;
 
-				i->RemoveSelf();
+		//カーソルを変えないとダメ
+		//要素があるときのみ
+		//if (m_TreeViewItemRoot->Children->Count != 0){
+			//セレクトし直す
+									//m_ActorIntPtrDataBox
+			ActorIntPtr_TargetUpdated(gcnew TextBlock, nullptr);
+		//}
 
-				//要素があるときのみ
-				if (m_TreeViewItemRoot->Children->Count != 0){
-					//セレクトし直す
-					ActorIntPtr_TargetUpdated(m_ActorIntPtrDataBox, nullptr);
-				}
+		if (m_TreeView->SelectedItem == nullptr)return;
+		auto i = (TestContent::Person^)m_TreeView->SelectedItem;
+		Data::MyPostMessage(MyWindowMessage::ActorDestroy, (void*)i->DataPtr);
 
-				e->Handled = true;
-			}
+		//デストロイ時にアクターから消される
+		//i->RemoveSelf();
+
+		e->Handled = true;
 	}
 
 

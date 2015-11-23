@@ -1,7 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
 #include <String>
 #include "MySTL/File.h"
 #include "IComponent.h"
@@ -21,6 +21,8 @@ public:
 	PhysXComponent();
 	~PhysXComponent();
 	void Initialize() override;
+	void Start() override;
+	void Finish() override;
 
 	void Update() override;
 

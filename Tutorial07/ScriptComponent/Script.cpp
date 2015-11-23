@@ -6,15 +6,13 @@
 #include "Game\PhysXComponent.h"
 #include "Input\Input.h"
 #include "MySTL\ptr.h"
+#include "Game\IGame.h"
 
-//#ifdef _DEBUG
-//#pragma comment(lib, "Debug/MyInput.lib")
-//#else
-//#pragma comment(lib, "Release/MyInput.lib")
-//#endif
+#include <functional>
+#include <map>
 
-//#pragma comment( lib , "lib/dinput8.lib" )
-//#pragma comment( lib , "lib/dxguid.lib" )
+//#define INITGUID
+#include <dinput.h>
 
 
 class FuctorySetter{
@@ -23,6 +21,7 @@ public:
 		mFactory[typeid(DllScriptComponent).name()] = [](){ return new DllScriptComponent(); };
 		mFactory[typeid(CameraScript).name()] = [](){ return new CameraScript(); };
 		mFactory[typeid(PlayerScript).name()] = [](){ return new PlayerScript(); };
+		mFactory[typeid(unk).name()] = [](){ return new unk(); };
 	}
 	std::map<std::string, std::function<IDllScriptComponent*()>> mFactory;
 };
@@ -44,7 +43,7 @@ DllScriptComponent::DllScriptComponent(){
 	timer = 0;
 	timer2 = 0;
 }
-void DllScriptComponent::Update(Actor* This){
+void DllScriptComponent::Update(){
 	timer++;
 	timer = timer % 30;
 	if (timer2 != 0){
@@ -90,45 +89,45 @@ void DllScriptComponent::Update(Actor* This){
 	//	This->mTransform->AddForce(XMVectorSet(0.0f, speed * 4, 0.0f, 0.0f));
 	//}
 	if (Input::Down(KeyCoord::Key_J)){
-		auto rotate = This->mTransform->Position();
+		auto rotate = gameObject->mTransform->Position();
 		rotate.x += speed;
-		This->mTransform->Position(rotate);
+		gameObject->mTransform->Position(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_K)){
-		auto rotate = This->mTransform->Position();
+		auto rotate = gameObject->mTransform->Position();
 		rotate.x -= speed;
-		This->mTransform->Position(rotate);
+		gameObject->mTransform->Position(rotate);
 	}
 
 	if (Input::Down(KeyCoord::Key_A)){
-		auto rotate = This->mTransform->Rotate();
+		auto rotate = gameObject->mTransform->Rotate();
 		rotate = XMQuaternionMultiply(rotate, XMQuaternionRotationRollPitchYaw(0, 0, speed));
-		This->mTransform->Rotate(rotate);
+		gameObject->mTransform->Rotate(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_D)){
-		auto rotate = This->mTransform->Rotate();
+		auto rotate = gameObject->mTransform->Rotate();
 		rotate = XMQuaternionMultiply(rotate, XMQuaternionRotationRollPitchYaw(0, 0, -speed));
-		This->mTransform->Rotate(rotate);
+		gameObject->mTransform->Rotate(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_W)){
-		auto rotate = This->mTransform->Rotate();
+		auto rotate = gameObject->mTransform->Rotate();
 		rotate = XMQuaternionMultiply(rotate, XMQuaternionRotationRollPitchYaw(speed, 0, 0));
-		This->mTransform->Rotate(rotate);
+		gameObject->mTransform->Rotate(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_S)){
-		auto rotate = This->mTransform->Rotate();
+		auto rotate = gameObject->mTransform->Rotate();
 		rotate = XMQuaternionMultiply(rotate, XMQuaternionRotationRollPitchYaw(-speed, 0, 0));
-		This->mTransform->Rotate(rotate);
+		gameObject->mTransform->Rotate(rotate);
 	}
 	if (Input::Down(KeyCoord::Key_U)){
-		This->mTransform->AddTorque(XMVectorSet(speed*100, 0, 0,1));
+		gameObject->mTransform->AddTorque(XMVectorSet(speed * 100, 0, 0, 1));
 	}
 }
 
 CameraScript::CameraScript(){
 	mRotateY = 0.0f;
 }
-void CameraScript::Update(Actor* This){
+void CameraScript::Update(){
 	//auto pos = par->mTransform->Position();
 
 	if (Input::Down(KeyCoord::Key_Q)){
@@ -138,21 +137,21 @@ void CameraScript::Update(Actor* This){
 		mRotateY += 0.05f;
 	}
 
-	auto rotate = XMQuaternionInverse(This->mTransform->GetParent()->mTransform->Rotate());
+	auto rotate = XMQuaternionInverse(gameObject->mTransform->GetParent()->mTransform->Rotate());
 	auto rotatey = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 1), mRotateY);
-	This->mTransform->Rotate(XMQuaternionMultiply(rotatey, rotate));
+	gameObject->mTransform->Rotate(XMQuaternionMultiply(rotatey, rotate));
 	//rotatey;
-	auto back = XMVector3Normalize(This->mTransform->Forward()) * -5;
+	auto back = XMVector3Normalize(gameObject->mTransform->Forward()) * -5;
 	auto pos = XMVector3Rotate(XMVectorSet(0, 1, 0, 1) + back, rotate);
-	This->mTransform->Position(pos);
+	gameObject->mTransform->Position(pos);
 }
 
 PlayerScript::PlayerScript(){
 	mRotateY = 0.0f;
 }
-void PlayerScript::Update(Actor* This){
+void PlayerScript::Update(){
 	
-	auto list = This->mTransform->Children();
+	auto list = gameObject->mTransform->Children();
 	Actor* camera = NULL;
 	for (auto act : list){
 		if (act->Name() == "MainCamera"){
@@ -169,20 +168,39 @@ void PlayerScript::Update(Actor* This){
 	//This->mTransform->Rotate(XMVectorSet(0, mRotateY, 0, 1));
 	//auto ball = This;
 	if (!camera)return;
-	float speed = 10.0f;
+	float speed = 50.0f;
 	if (Input::Down(KeyCoord::Key_A)){
-		This->mTransform->AddTorque(camera->mTransform->Forward()*speed);
+		gameObject->mTransform->AddTorque(camera->mTransform->Forward()*speed);
 	}
 	if (Input::Down(KeyCoord::Key_D)){
-		This->mTransform->AddTorque(camera->mTransform->Forward()*-speed);
+		gameObject->mTransform->AddTorque(camera->mTransform->Forward()*-speed);
 	}
 	if (Input::Down(KeyCoord::Key_W)){
-		This->mTransform->AddTorque(camera->mTransform->Left()*speed);
+		gameObject->mTransform->AddTorque(camera->mTransform->Left()*speed);
 	}
 	if (Input::Down(KeyCoord::Key_S)){
-		This->mTransform->AddTorque(camera->mTransform->Left()*-speed);
+		gameObject->mTransform->AddTorque(camera->mTransform->Left()*-speed);
+	}
+	if (Input::Down(KeyCoord::Key_Z)){
+		gameObject->mTransform->AddForce(camera->mTransform->Up()*100);
+	}
+	if (Input::Down(KeyCoord::Key_SPACE)){
+		auto a = game->CreateActor("Assets/coin.prefab");
+		game->AddObject(a);
 	}
 	//auto wp = ball->mTransform->WorldPosition() + XMVectorSet(0, 0, 0, 1);
 	//This->mTransform->Position(wp);
 
+}
+
+void PlayerScript::OnCollide(Actor* target){
+	if (target->Name() == "coin")
+		game->DestroyObject(target);
+}
+
+
+void unk::Update(){
+	if (Input::Down(KeyCoord::Key_SPACE)){
+		gameObject->mTransform->AddForce(XMVectorSet(0, 10, 0, 1));
+	}
 }

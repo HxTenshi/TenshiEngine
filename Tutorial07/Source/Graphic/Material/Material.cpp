@@ -16,7 +16,6 @@ HRESULT Material::Create(const char* shaderFileName){
 
 
 	mCBMaterial = ConstantBuffer<cbChangesMaterial>::create(4);
-	HRESULT hr = S_OK;
 	if (!mCBMaterial.mBuffer)
 		return S_FALSE;
 

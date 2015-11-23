@@ -1,14 +1,14 @@
 
 #include "TransformComponent.h"
 #include "Window/Window.h"
-#include "Window/InspectorWindow.h"
 
 #include "Actor.h"
 #include "Game.h"
 
 TransformComponent::TransformComponent()
 	:mFixMatrixFlag(false)
-	, mParent(NULL){
+	, mParent(NULL)
+	, mParentUniqueID(NULL){
 	mMatrix = XMMatrixIdentity();
 	mScale = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	mRotate = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
@@ -16,15 +16,20 @@ TransformComponent::TransformComponent()
 
 }
 
+
 TransformComponent::~TransformComponent(){
-	if (mParent)
-		mParent->mTransform->Children().remove(gameObject);
-	while (mChildren.size()){
-		Actor* child = Children().front();
-		Game::DestroyObject(child);
-	}
 }
 
+void TransformComponent::Start(){
+	if (mParentUniqueID){
+		mParent = Game::FindUID(mParentUniqueID);
+	}
+	SetParent(mParent);
+}
+void TransformComponent::Finish(){
+	if (mParent)
+		mParent->mTransform->Children().remove(gameObject);
+}
 void TransformComponent::Update(){
 	auto physx = gameObject->GetComponent<PhysXComponent>();
 	if (physx){
@@ -100,6 +105,13 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 			mMatrix = XMMatrixMultiply(mMatrix, mParent->mTransform->GetMatrix());
 	}
 	return mMatrix;
+}
+//このゲームオブジェクトより子のオブジェクトを全てデストロイする
+void TransformComponent::AllChildrenDestroy(){
+	while (mChildren.size()){
+		Actor* child = Children().front();
+		Game::DestroyObject(child);
+	}
 }
 
 void TransformComponent::FlagSetChangeMatrix(){
@@ -262,6 +274,9 @@ void TransformComponent::SetParent(Actor* parent){
 	if (mParent)
 		mParent->mTransform->Children().remove(gameObject);
 	mParent = parent;
-	if (parent)
+	mParentUniqueID = 0;
+	if (parent){
 		parent->mTransform->Children().push_back(gameObject);
+		mParentUniqueID = parent->GetUniqueID();
+	}
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
 #include <String>
 #include "MySTL/File.h"
 #include "MySTL/Ptr.h"
@@ -16,7 +16,8 @@ public:
 	PhysXColliderComponent();
 	~PhysXColliderComponent();
 	void Initialize() override;
-
+	void Start() override;
+	void Finish() override;
 	void Update() override;
 	void CreateInspector() override;
 
@@ -28,8 +29,11 @@ public:
 
 	physx::PxShape* GetShape();
 private:
+	bool SearchAttachPhysXComponent();
+	void ShapeAttach(physx::PxShape* shape);
 	void UpdatePose();
 	physx::PxShape* mShape;
+	bool mIsShapeAttach;
 	weak_ptr<PhysXComponent> mAttachPhysXComponent;
 
 	bool mIsParentPhysX;

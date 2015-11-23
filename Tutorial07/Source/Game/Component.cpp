@@ -4,8 +4,11 @@
 typedef IDllScriptComponent* (__cdecl *CreateInstance_)(const char*);
 typedef void(__cdecl *DeleteInstance_)(IDllScriptComponent*);
 
-std::map<std::string, std::function<Component*()>> ComponentFactory::mFactoryComponents;
+decltype(ComponentFactory::mFactoryComponents) ComponentFactory::mFactoryComponents;
 bool ComponentFactory::mIsInit = false;
+
+#include "Game.h"
+static SGame gSGame;
 
 //同じDLLを持ってるコンポーネントを管理
 class UseScriptActors{
@@ -139,6 +142,11 @@ void ScriptComponent::Load(){
 
 	//dllで作成したクラスインスタンスを作成する
 	pDllClass = actors.Create(mClassName);
+
+	if (pDllClass){
+		pDllClass->game = &gSGame;
+		pDllClass->gameObject = gameObject;
+	}
 }
 void ScriptComponent::Unload(){
 
@@ -155,7 +163,13 @@ void ScriptComponent::ReCompile(){
 void ScriptComponent::Update(){
 
 	if (pDllClass){
-		pDllClass->Update(gameObject);
+		pDllClass->Update();
+	}
+}
+
+void ScriptComponent::OnCollide(Actor* target){
+	if (pDllClass){
+		pDllClass->OnCollide(target);
 	}
 }
 
@@ -235,7 +249,6 @@ void ModelComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new InspectorLabelDataSet("Model"), data);
 	std::function<void(std::string)> collbackpath = [&](std::string name){
-		Window::ClearInspector();
 		mFileName = name;
 		if (mModel){
 			mModel->Release();

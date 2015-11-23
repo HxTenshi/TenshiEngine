@@ -8,34 +8,43 @@
 #include <PxPhysicsAPI.h>
 
 PhysXColliderComponent::PhysXColliderComponent(){
-	mIsParentPhysX = false;
-	mShape = Game::GetPhysX()->CreateShape();
 	mIsSphere = false;
+	mShape = NULL;
+	mIsShapeAttach = false;
 }
 
 PhysXColliderComponent::~PhysXColliderComponent(){
-	if (mAttachPhysXComponent)
-		mAttachPhysXComponent->RemoveShape(*mShape);
-	if (mShape)
-		mShape->release();
+
 }
 void PhysXColliderComponent::Initialize(){
+	mIsParentPhysX = false;
+}
 
-	Actor* par = gameObject;
-	while (par){
-		mAttachPhysXComponent = par->GetComponent<PhysXComponent>();
-		if (mAttachPhysXComponent){
-			mAttachPhysXComponent->AddShape(*mShape);
-			mIsParentPhysX = par != gameObject;
-			break;
-		}
-		par = par->mTransform->GetParent();
+void PhysXColliderComponent::Start(){
+	SearchAttachPhysXComponent();
+
+	if (mMeshFile != ""){
+		CreateMesh();
 	}
+	if (!mShape){
+		ChangeShape();
+	}
+
+}
+
+void PhysXColliderComponent::Finish(){
+	ShapeAttach(NULL);
+	mAttachPhysXComponent = NULL;
 }
 
 void PhysXColliderComponent::Update(){
-	if (!mShape)return;
-	if (!mAttachPhysXComponent)Initialize();
+	if (!mIsShapeAttach){
+		if (!mAttachPhysXComponent)
+			if (!SearchAttachPhysXComponent())return;
+		ShapeAttach(mShape);
+		if (!mIsShapeAttach)return;
+	}
+
 	UpdatePose();
 
 	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
@@ -64,7 +73,46 @@ void PhysXColliderComponent::Update(){
 	}));
 }
 
+bool PhysXColliderComponent::SearchAttachPhysXComponent(){
+	Actor* par = gameObject;
+	while (par){
+		mAttachPhysXComponent = par->GetComponent<PhysXComponent>();
+		if (mAttachPhysXComponent){
+			mIsParentPhysX = par != gameObject;
+			return true;
+		}
+		par = par->mTransform->GetParent();
+	}
+	return false;
+}
 
+void PhysXColliderComponent::ShapeAttach(PxShape* shape){
+	//アタッチ失敗
+	if (!mAttachPhysXComponent){
+		mIsShapeAttach = false;
+		mShape = shape;
+		return;
+	}
+	//アタッチしていれば
+	if (mIsShapeAttach){
+		mAttachPhysXComponent->RemoveShape(*mShape);
+		mShape->release();
+	}
+	else{
+		if (mShape != shape && mShape){
+			mShape->release();
+		}
+	}
+
+	mShape = shape;
+	if (mShape){
+		mAttachPhysXComponent->AddShape(*mShape);
+		mIsShapeAttach = true;
+	}
+	else{
+		mIsShapeAttach = false;
+	}
+}
 void PhysXColliderComponent::UpdatePose(){
 
 
@@ -125,19 +173,15 @@ void PhysXColliderComponent::UpdatePose(){
 
 
 void PhysXColliderComponent::ChangeShape(){
-	PxShape* back = mShape;
+	PxShape* shape = NULL;
 	if (mIsSphere){
-		mShape = Game::GetPhysX()->CreateShapeSphere();
+		shape = Game::GetPhysX()->CreateShapeSphere();
 	}
 	else{
-
-		mShape = Game::GetPhysX()->CreateShape();
+		shape = Game::GetPhysX()->CreateShape();
 	}
 
-	if (!mAttachPhysXComponent)return;
-	mAttachPhysXComponent->RemoveShape(*back);
-	back->release();
-	mAttachPhysXComponent->AddShape(*mShape);
+	ShapeAttach(shape);
 }
 
 void PhysXColliderComponent::CreateMesh(){
@@ -145,14 +189,10 @@ void PhysXColliderComponent::CreateMesh(){
 	AssetLoader loader;
 	auto data = loader.LoadAsset(mMeshFile);
 	if (!data)return;
-	PxShape* back = mShape;
-	
-	mShape = Game::GetPhysX()->CreateTriangleMesh(data->m_Polygons.VertexNum, data->m_Polygons.pVertexs, data->m_Polygons.IndexNum, data->m_Polygons.pIindices);
+	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->m_Polygons.Vertexs, data->m_Polygons.Indices);
 
-	if (!mAttachPhysXComponent)return;
-	mAttachPhysXComponent->RemoveShape(*back);
-	back->release();
-	mAttachPhysXComponent->AddShape(*mShape);
+	ShapeAttach(shape);
+
 }
 physx::PxShape* PhysXColliderComponent::GetShape(){
 	return mShape;

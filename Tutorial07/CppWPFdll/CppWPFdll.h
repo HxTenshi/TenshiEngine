@@ -28,11 +28,13 @@ namespace Test {
 
 #include <vector>
 #include "InspectorDataSet.h"
+
 class CLASS_DECLSPEC Test::NativeFraction{
 
 	Frac1* frac;
-
 public:
+	int i;
+	char c;
 
 	NativeFraction();
 	~NativeFraction();
@@ -48,6 +50,7 @@ public:
 	void ChangeTreeViewName(void* ptr, std::string& name);
 	void CreateComponentWindow(const std::string& ComponentName, std::vector<InspectorDataSet>& data);
 	void ClearAllComponentWindow();
+	void ClearTreeViewItem(void* ptr);
 	void UpdateComponentWindow();
 
 	void AddTreeViewItem(std::string& Name, void* ptr);

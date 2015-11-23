@@ -1,7 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
-#include <xnamath.h>
+#include "XNAMath/xnamath.h"
 
 #include "Texture.h"
 #include "ConstantBuffer/ConstantBuffer.h"

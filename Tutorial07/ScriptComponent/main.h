@@ -8,17 +8,23 @@
 
 //#include "Game/Actor.h"
 //#include "Game/Component.h"
-#include "Input/Input.h"
-#include <xnamath.h>
-#include <map>
-#include <typeinfo>
-#include <functional>
+#include <windows.h>
+
+#include "XNAMath/xnamath.h"
 
 class Actor;
+class IGame;
+class ScriptComponent;
 class IDllScriptComponent{
 public:
-	virtual void Update(Actor* This) = 0;
 	virtual ~IDllScriptComponent(){}
+	virtual void Update(){}
+	virtual void OnCollide(Actor* target){}
+
+	Actor* gameObject;
+protected:
+	IGame* game;
+	friend ScriptComponent;
 };
 
 IDllScriptComponent* CreateInstance(const char* ClassName);
