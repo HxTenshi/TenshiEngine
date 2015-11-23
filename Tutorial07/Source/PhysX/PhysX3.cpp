@@ -443,12 +443,21 @@ void PhysX3Main::Display() {
 }
 
 void PhysX3Main::ShutdownPhysX() {
+
+	static PxShape* shapes[256];
+	PxU32 nShapes = p->getNbShapes();
+	p->getShapes(shapes, nShapes);
+	while (nShapes--)
+	{
+		shapes[nShapes]->release();
+	}
 	delete mTestOn;
 	p->release();
 	mMaterial->release();
 	mCpuDispatcher->release();
 	gScene->release();
 	mFoundation->release();
+	mCooking->release();
 	gPhysicsSDK->release();//ƒƒ‚ƒŠ[ƒŠ[ƒN
 	mProfileZoneManager->release();
 }

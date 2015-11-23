@@ -347,14 +347,22 @@ void Game::ActorMoveStage(){
 			//ツリービューが作成されていれば
 			if (actor->mTreeViewPtr){
 				Window::ClearTreeViewItem(actor->mTreeViewPtr);
-			}//ツリービューが作成される前なら
-			else{//削除リストに追加
+			}
+			//ツリービューが作成される前なら
+			else{
+				//削除リストに追加
 				mGame->mTreeViewItem_ErrerClearList.push_back(actor);
 			}
 			actor->mTreeViewPtr = NULL;
 			TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
 			t->AllChildrenDestroy();
 			actor->Finish();
+
+			//ゲームプレイ中に追加されたオブジェクトならデリート
+			if (mGame->mList.find(actor->GetUniqueID()) == mGame->mList.end()){
+				delete actor;
+			}
+
 		}
 		else{
 			Window::AddTreeViewItem(actor->Name(), actor);
