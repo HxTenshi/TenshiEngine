@@ -21,11 +21,12 @@ public:
 };
 class CameraScript :public IDllScriptComponent{
 public:
-	CameraScript();
+	void Start()override;
 	void Update()override;
 
 private:
 	float mRotateY;
+	float mLength;
 };
 
 class unk : public IDllScriptComponent{

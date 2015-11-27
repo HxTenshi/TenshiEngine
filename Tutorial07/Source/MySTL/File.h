@@ -2,6 +2,7 @@
 
 #include <string>
 #include <fstream>
+#include <Windows.h>
 
 class File{
 public:

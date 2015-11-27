@@ -16,6 +16,7 @@
 #include "IComponent.h"
 #include "TransformComponent.h"
 #include "PhysXColliderComponent.h"
+#include "ScriptComponent.h"
 
 #include "Graphic/Font/Font.h"
 class EditorCamera;
@@ -61,6 +62,7 @@ public:
 		ExportClassName(f);
 	}
 	void ImportData(File& f) override{
+		(void)f;
 	}
 
 	void VSSetConstantBuffers() const
@@ -93,22 +95,22 @@ private:
 		
 		//gameObject->mTransform->Position(Eye);
 		
-		XMVECTOR zaxis = XMVector3Normalize(At - Eye);
-		XMVECTOR xaxis = XMVector3Normalize(XMVector3Cross(Up, zaxis));
-		XMVECTOR yaxis = XMVector3Cross(zaxis, xaxis);
-		
-		float yaw = 0.0f;
-		float roll = 0.0f;
-		float pitch = asin(mView._31);
-		if (cos(pitch) == 0.0f){
-			yaw = atan2(mView._23, mView._22);
-		}
-		else{
-			float roll = asin(-mView._21 / cos(pitch));
-			if (mView._11 < 0) roll = 180 - roll;
-		
-			yaw = atan2(-mView._32, mView._33);
-		}
+		//XMVECTOR zaxis = XMVector3Normalize(At - Eye);
+		//XMVECTOR xaxis = XMVector3Normalize(XMVector3Cross(Up, zaxis));
+		//XMVECTOR yaxis = XMVector3Cross(zaxis, xaxis);
+		//
+		//float yaw = 0.0f;
+		//float roll = 0.0f;
+		//float pitch = asin(mView._31);
+		//if (cos(pitch) == 0.0f){
+		//	yaw = atan2(mView._23, mView._22);
+		//}
+		//else{
+		//	float roll = asin(-mView._21 / cos(pitch));
+		//	if (mView._11 < 0) roll = 180 - roll;
+		//
+		//	yaw = atan2(-mView._32, mView._33);
+		//}
 		
 		//gameObject->mTransform->Rotate(XMVectorSet(roll, pitch, yaw, 1.0f));
 	}
@@ -437,6 +439,7 @@ public:
 		ExportClassName(f);
 	}
 	void ImportData(File& f) override{
+		(void)f;
 	}
 	
 	float mTime;
@@ -703,54 +706,13 @@ public:
 
 };
 
-class IDllScriptComponent;
-class ScriptComponent : public Component{
-public:
-	ScriptComponent();
-	~ScriptComponent();
-
-	void Load();
-	void Unload();
-	void ReCompile();
-	void Initialize() override;
-	void Update() override;
-
-	void OnCollide(Actor* target);
-
-	void CreateInspector() override{
-
-		auto data = Window::CreateInspector();
-		std::function<void(std::string)> collback = [&](std::string name){
-			mClassName = name;
-			ReCompile();
-		};
-		Window::AddInspector(new InspectorStringDataSet("Class", &mClassName, collback), data);
-		Window::ViewInspector("Script",data);
-	}
-
-	void ExportData(File& f) override{
-		ExportClassName(f);
-		f.Out(mClassName);
-	}
-	void ImportData(File& f) override{
-		(void)f;
-		f.In(&mClassName);
-	}
-
-	IDllScriptComponent* pDllClass;
-	std::string mClassName;
-};
-class ScriptManager{
-public:
-	static void ReCompile();
-};
 class TextComponent :public Component{
 public:
 	TextComponent()
 	{
 	}
 
-	void Initialize(){
+	void Initialize() override{
 		mTexMaterial.Create("texture.fx");
 		mTexMaterial.SetTexture(mFont.GetTexture());
 
@@ -811,6 +773,33 @@ private:
 	std::string mText;
 
 	Material mTexMaterial;
+};
+
+
+class PostEffectComponent :public Component{
+public:
+	PostEffectComponent()
+	{
+	}
+
+	void Initialize() override{
+
+	}
+
+	void Update() override{
+	}
+
+	void CreateInspector() override{
+		auto data = Window::CreateInspector();
+		Window::ViewInspector("PostEffect", data);
+	}
+
+	void ExportData(File& f) override{
+		ExportClassName(f);
+	}
+	void ImportData(File& f) override{
+	}
+private:
 };
 
 #include <map>

@@ -565,7 +565,8 @@ private:
 		if (item != nullptr)
 		{
 			item->IsSelected = true;
-			item->Focus();
+			//item->Focus();
+			//System::Windows::MessageBox::Show(item->ToString());
 		}
 	}
 	void OnDrop(Object ^s, DragEventArgs ^e)
@@ -613,12 +614,7 @@ private:
 		m_TreeView = treeView;
 
 		//アイテムリスト作成
-		auto list = gcnew TestContent::MyList();//gcnew List<TestContent::Person^>();
-		//list->list->Add(gcnew TestContent::Person
-		//	("U", gcnew TestContent::MyList(
-		//			gcnew TestContent::Person("UNK", gcnew TestContent::MyList())
-		//	))
-		//);
+		auto list = gcnew TestContent::MyList();
 		//アイテムリストのルートを作成
 		auto root = gcnew TestContent::Person("root", list);
 		treeView->DataContext = root;
@@ -626,7 +622,6 @@ private:
 		source->Mode = System::Windows::Data::BindingMode::TwoWay;
 		treeView->SetBinding(TreeView::ItemsSourceProperty, source);
 		m_TreeViewItemRoot = root;
-
 
 		//アイテムリストのデータ構造
 		auto datatemp = gcnew System::Windows::HierarchicalDataTemplate();
@@ -637,21 +632,34 @@ private:
 
 		//追加するアイテムのコントロール
 		auto fact = gcnew System::Windows::FrameworkElementFactory();
-		fact->Type = TreeViewItem::typeid;
+		fact->Type = TextBlock::typeid;
 		auto itembind = gcnew System::Windows::Data::Binding("Name");
 		itembind->Mode = BindingMode::TwoWay;
-		fact->SetBinding(TreeViewItem::HeaderProperty, itembind);
-		fact->SetBinding(TreeViewItem::AllowDropProperty, gcnew System::Windows::Data::Binding("TRUE"));
-		fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
-		fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
-		fact->AddHandler(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop));
+		fact->SetBinding(TextBlock::TextProperty, itembind);
+		fact->SetValue(TextBlock::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(24,24,24)));
+		fact->SetBinding(TextBlock::AllowDropProperty, gcnew System::Windows::Data::Binding("TRUE"));
+		//fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
+		//fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
+		//fact->AddHandler(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop));
 		//fact->AddHandler(TreeViewItem::MouseRightButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown));
-		fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
-		fact->AddHandler(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
-		fact->AddHandler(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
+		//fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
+		//fact->AddHandler(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
+		//fact->AddHandler(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
 		datatemp->VisualTree = fact;
 
 		treeView->ItemTemplate = datatemp;
+
+		//styleのセット　今のところ上で設定しているので意味なし
+		auto s = gcnew System::Windows::Style(TreeViewItem::typeid);
+		auto setter = s->Setters;
+		//setter->Add(gcnew System::Windows::Setter(TreeViewItem::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(240, 240, 240))));
+		//setter->Add(gcnew System::Windows::Setter(TreeViewItem::BackgroundProperty, gcnew SolidColorBrush(Color::FromRgb(5, 147, 14 * 16 + 2))));
+		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop)));
+		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave)));
+		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+		treeView->ItemContainerStyle = s;
+
 
 		treeView->AllowDrop = true;
 		treeView->Drop += gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop);
@@ -730,6 +738,8 @@ private:
 	}
 	void ActorTreeView_OnDrop(Object ^s, DragEventArgs ^e)
 	{
+
+		System::Windows::MessageBox::Show(s->ToString());
 		auto dragtreeitem = (TreeViewItem^)e->Data->GetData(TreeViewItem::typeid);
 		auto dragitem = dynamic_cast<TestContent::Person^>(dragtreeitem->DataContext);
 
@@ -756,7 +766,7 @@ private:
 			Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)NULL);
 			Data::MyPostMessage(MyWindowMessage::SetActorParent, (void*)dragitem->DataPtr);
 		}
-
+		e->Handled = true;
 	}
 	//ターゲットがペアレントの親ならTRUE
 	bool ParentCheck(TestContent::Person^ target, TestContent::Person^ parent){

@@ -227,8 +227,40 @@ void ThreadProc(int nThreadNo)
 // Entry point to the program. Initializes everything an4d goes into a message processing 
 // loop. Idle time is used to render the scene.
 //--------------------------------------------------------------------------------------
+
+inline
+bool WhileColl(){
+	if (Input::Down(KeyCoord::Key_ESCAPE)){
+		throw(0);
+	}
+	return true;
+}
+
+struct throwNull{};
+inline
+throwNull ForColl(){
+	if (Input::Down(KeyCoord::Key_ESCAPE)){
+		throw(0);
+	}
+	return throwNull();
+}
+
+template<class T>
+T& operator & (T&& t, throwNull& n){
+	return t;
+}
+
+//無限ループ回避
+//インプットアップデートに依存しないデバッグインプットを作成する必要あり
+//#define while(x) while( (x) && WhileColl() )
+//#define for(x) for( x & ForColl() )
+//
+//#undef while
+//#undef for
+
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
+
 	//HANDLE hThread;
 	//DWORD dwThreadID;
 	//hThread = CreateThread(NULL, 0,
@@ -254,7 +286,9 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			return 0;
 		}
 
+
 		while (WM_QUIT != msg.message)
+		//for (int i=0; WM_QUIT != msg.message;i++)
 		{
 			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
@@ -268,6 +302,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		}
 		App.CleanupDevice();
 	}
+
 
 
 	//CloseHandle(hThread);

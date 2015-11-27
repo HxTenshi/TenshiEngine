@@ -9,6 +9,9 @@
 //#include "Game/Actor.h"
 //#include "Game/Component.h"
 #include <windows.h>
+#include <map>
+#include <string>
+#include "MySTL\Reflection\MemberInfo_Data.h"
 
 #include "XNAMath/xnamath.h"
 
@@ -18,7 +21,10 @@ class ScriptComponent;
 class IDllScriptComponent{
 public:
 	virtual ~IDllScriptComponent(){}
+	virtual void Initialize(){}
+	virtual void Start(){}
 	virtual void Update(){}
+	virtual void Finish(){}
 	virtual void OnCollide(Actor* target){}
 
 	Actor* gameObject;
@@ -30,5 +36,7 @@ protected:
 IDllScriptComponent* CreateInstance(const char* ClassName);
 
 void ReleseInstance(IDllScriptComponent* p);
+
+std::map<std::string, std::map<std::string, MemberInfo_Data>>* GetReflectionData();
 
 #endif

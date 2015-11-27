@@ -178,7 +178,7 @@ private:
 			std::string savePath = "Assets/" + name + ".tesmesh";
 
 			FILE *hFP;
-			hFP = fopen(savePath.c_str(), "wb");
+			fopen_s(&hFP,savePath.c_str(), "wb");
 			if (hFP != 0){
 				vecfwrite(buffer.Vertexs, hFP);
 				vecfwrite(buffer.Indices, hFP);
@@ -190,7 +190,7 @@ private:
 		//マテリアルアセットの作成
 		{
 			shared_ptr<MaterialComponent> mc = shared_ptr<MaterialComponent>(new MaterialComponent());
-			CreateMaterial(data.material_count, data.material, data.textureName, "Assets/Texture/", NULL, mc);
+			CreateMaterial(data.material_count, data.material, data.textureName, "Assets/Texture/", mc);
 			mc->SaveAssetResource("Assets/" + name + ".txt");
 		}
 
@@ -207,7 +207,7 @@ private:
 	}
 	ModelDataPtr LoadTEStaticMesh(const std::string& path){
 		FILE *hFP;
-		hFP = fopen(path.c_str(), "rb");
+		fopen_s(&hFP,path.c_str(), "rb");
 
 		if (hFP == 0)return ModelDataPtr();
 
@@ -221,7 +221,7 @@ private:
 		
 	}
 
-	HRESULT CreateMaterial(unsigned long count, pmx::t_material* material, std::string* textures, const std::string& sFileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial){
+	HRESULT CreateMaterial(unsigned long count, pmx::t_material* material, std::string* textures, const std::string& sFileName, shared_ptr<MaterialComponent> resultMaterial){
 		HRESULT hr = S_OK;
 
 		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);

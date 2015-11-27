@@ -315,10 +315,8 @@ void Game::AddObject(Actor* actor){
 //static
 void Game::DestroyObject(Actor* actor){
 	if (!actor)return;
-	int num1 = gpList->size();
-	gpList->erase(actor->GetUniqueID());
-	int num2 = gpList->size();
-	if (num1 == num2)return;
+	auto desnum = gpList->erase(actor->GetUniqueID());
+	if (!desnum)return;
 	if (!gIsPlay){
 		Window::ClearTreeViewItem(actor->mTreeViewPtr);
 		TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
@@ -328,7 +326,6 @@ void Game::DestroyObject(Actor* actor){
 	}
 	else{
 		mGame->mActorMoveList.push(std::make_pair(ActorMove::Delete, actor));
-
 		//Window::ClearTreeViewItem(actor->mTreeViewPtr);
 		//actor->mTreeViewPtr = NULL;
 		//TransformComponent* t = (TransformComponent*)actor->mTransform.Get();

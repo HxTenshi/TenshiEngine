@@ -26,8 +26,9 @@ public:
 	std::map<std::string, std::function<IDllScriptComponent*()>> mFactory;
 };
 
+FuctorySetter mFact;
+
 IDllScriptComponent* CreateInstance(const char* ClassName){
-	FuctorySetter mFact;
 	//return new DllScriptComponent();
 	std::string name = "class ";
 	name += ClassName;
@@ -123,9 +124,9 @@ void DllScriptComponent::Update(){
 		gameObject->mTransform->AddTorque(XMVectorSet(speed * 100, 0, 0, 1));
 	}
 }
-
-CameraScript::CameraScript(){
+void CameraScript::Start(){
 	mRotateY = 0.0f;
+	mLength = 5.0f;
 }
 void CameraScript::Update(){
 	//auto pos = par->mTransform->Position();
@@ -141,7 +142,7 @@ void CameraScript::Update(){
 	auto rotatey = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 1), mRotateY);
 	gameObject->mTransform->Rotate(XMQuaternionMultiply(rotatey, rotate));
 	//rotatey;
-	auto back = XMVector3Normalize(gameObject->mTransform->Forward()) * -5;
+	auto back = XMVector3Normalize(gameObject->mTransform->Forward()) * -mLength;
 	auto pos = XMVector3Rotate(XMVectorSet(0, 1, 0, 1) + back, rotate);
 	gameObject->mTransform->Position(pos);
 }

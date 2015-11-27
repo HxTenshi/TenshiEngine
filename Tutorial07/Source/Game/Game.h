@@ -41,8 +41,8 @@ public:
 		mCamera.AddComponent<TransformComponent>(mCamera.mTransform);
 		mCamera.AddComponent(shared_ptr<CameraComponent>(mCameraComponent));
 
-		UINT width = WindowState::mWidth;
-		UINT height = WindowState::mHeight;
+		//UINT width = WindowState::mWidth;
+		//UINT height = WindowState::mHeight;
 		//XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
 		mCamera.mTransform->Position(XMVectorSet(0, 3, -10,1));
 		mCamera.mTransform->Scale(XMVectorSet(1, 1, 1, 1));
@@ -197,7 +197,7 @@ public:
 	}
 
 	void Update(float deltaTime)override{
-
+		(void)deltaTime;
 	}
 private:
 	float t;
@@ -488,7 +488,7 @@ public:
 		XMFLOAT4 v[_lineNum];
 		WORD idx[_lineNum];
 
-		for (int i = 0; i < XlineNum; i += 2){
+		for (WORD i = 0; i < XlineNum; i += 2){
 			float x = (float)(i - XlineNum / 2)*GridSize;
 
 			float z = GridSize*ZlineNum / 2;
@@ -500,7 +500,7 @@ public:
 			idx[i + 1] = i + 1;
 		}
 
-		for (int i = 0; i < ZlineNum; i += 2){
+		for (WORD i = 0; i < ZlineNum; i += 2){
 			float z = (float)(i - ZlineNum / 2)*GridSize;
 			float x = GridSize*XlineNum / 2;
 			v[XlineNum + i] = { -x, 0.0f, z, 0.0f };
@@ -723,7 +723,7 @@ public:
 		static int count_frames = 0;
 
 		unsigned long current_time = timeGetTime();
-		float b = (current_time - time_start);
+		auto b = (current_time - time_start);
 		if (b == 0.0f){
 			b = 1;
 		}
@@ -880,38 +880,6 @@ public:
 		ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
 		Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
 
-		//if(false){
-		//	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		//	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		//	descDS.DepthFunc = D3D11_COMPARISON_LESS;
-		//
-		//	ID3D11DepthStencilState* pDS = NULL;
-		//	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-		//
-		//	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
-		//
-		//	//tex->Draw();
-		//
-		//Font::TextOutFont(0, 60, 60, "AAAAA", "Comic Sans MS", 0);
-		//
-		//Font::DrawEnd();
-		//
-		//	//Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
-		//	//Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
-		//
-		//
-		//	const RenderTarget* r2[2] = { &mRenderTargetBack, &mRenderTarget2 };
-		//	RenderTarget::SetRendererTarget((UINT)2, r2[0], &mRenderTargetBack);
-		//
-		//	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-		//	pDS->Release();
-		//}
-
-		//for (Actor* p : mActors){
-		//	p->Draw(DrawBit::Diffuse);
-		//}
-		//mActor->Draw(DrawBit::Diffuse);
-
 
 		PlayDrawList(DrawStage::Diffuse);
 		PlayDrawList(DrawStage::Engine);
@@ -941,6 +909,9 @@ public:
 		}
 	}
 private:
+	Game(const Game&);
+	Game operator = (Game&);
+
 	enum class ActorMove{
 		Create,
 		Delete,

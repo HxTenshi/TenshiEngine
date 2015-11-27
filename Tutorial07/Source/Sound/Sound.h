@@ -63,7 +63,7 @@ public:
 
 		//DSBVOLUME_MAX (Œ¸Š‚È‚µ) ‚©‚ç DSBVOLUME_MIN (–³‰¹)
 		float vol = 0.7f;
-		LONG v = DSBVOLUME_MIN - DSBVOLUME_MIN*vol;
+		LONG v = (LONG)(DSBVOLUME_MIN - DSBVOLUME_MIN*vol);
 		//•ÏXŽž‚ÉActive‚¶‚á‚È‚¢‚Æ‚¢‚¯‚È‚¢H
 		pDSBuffer->SetVolume(v);
 	}

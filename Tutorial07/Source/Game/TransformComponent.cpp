@@ -110,6 +110,9 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 void TransformComponent::AllChildrenDestroy(){
 	while (mChildren.size()){
 		Actor* child = Children().front();
+		Children().pop_front();
+		//親と子が同時に死ぬとエラーが出る
+		child->mTransform->SetParent(NULL);
 		Game::DestroyObject(child);
 	}
 }
