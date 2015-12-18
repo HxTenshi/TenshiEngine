@@ -77,6 +77,7 @@ void SelectActor::SelectActorDraw(){
 
 		model.Draw(mSelectWireMaterial);
 
+
 		Device::mpImmediateContext->RSSetState(NULL);
 		if (pRS)pRS->Release();
 
@@ -86,6 +87,53 @@ void SelectActor::SelectActorDraw(){
 		Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
 		if (pBackDS)pBackDS->Release();
 	}));
+	//Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
+	//	auto mModel = mVectorBox[0].GetComponent<ModelComponent>();
+	//	if (!mModel)return;
+	//	Model& model1 = *mModel->mModel;
+	//	mModel = mVectorBox[1].GetComponent<ModelComponent>();
+	//	if (!mModel)return;
+	//	Model& model2 = *mModel->mModel;
+	//	mModel = mVectorBox[2].GetComponent<ModelComponent>();
+	//	if (!mModel)return;
+	//	Model& model3 = *mModel->mModel;
+	//
+	//	ID3D11DepthStencilState* pBackDS;
+	//	UINT ref;
+	//	Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
+	//
+	//	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+	//	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	//	//descDS.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	//	descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	//	ID3D11DepthStencilState* pDS = NULL;
+	//	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
+	//	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
+	//
+	//	D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+	//	descRS.CullMode = D3D11_CULL_BACK;
+	//	descRS.FillMode = D3D11_FILL_SOLID;
+	//
+	//	ID3D11RasterizerState* pRS = NULL;
+	//	Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
+	//
+	//	Device::mpImmediateContext->RSSetState(pRS);
+	//
+	//
+	//	model1.Draw(mVectorBox[0].GetComponent<MaterialComponent>());
+	//	model2.Draw(mVectorBox[1].GetComponent<MaterialComponent>());
+	//	model3.Draw(mVectorBox[2].GetComponent<MaterialComponent>());
+	//
+	//
+	//	Device::mpImmediateContext->RSSetState(NULL);
+	//	if (pRS)pRS->Release();
+	//
+	//	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+	//	pDS->Release();
+	//
+	//	Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
+	//	if (pBackDS)pBackDS->Release();
+	//}));
 }
 
 Game::Game()
@@ -120,6 +168,7 @@ Game::Game()
 	mPhysX3Main->InitializePhysX();
 	gpPhysX3Main = mPhysX3Main;
 
+	mSelectActor.Initialize();
 
 	//std::vector<std::string> fList;
 	//file_("./Scene/", fList);
@@ -279,6 +328,8 @@ Game::~Game(){
 	t->AllChildrenDestroy();
 	delete mRootObject;
 
+	mSelectActor.Finish();
+
 	delete mPhysX3Main;
 	mPhysX3Main = NULL;
 	gpPhysX3Main = NULL;
@@ -367,13 +418,19 @@ void Game::ActorMoveStage(){
 
 //static
 PxRigidActor* Game::CreateRigitBody(){
-	return gpPhysX3Main->createBox();
+	return gpPhysX3Main->createBody();
+}
+PxRigidActor* Game::CreateRigitBodyEngine(){
+	return gpPhysX3Main->createBodyEngine();
 }
 PhysX3Main* Game::GetPhysX(){
 	return gpPhysX3Main;
 }
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
+}
+void Game::RemovePhysXActorEngine(PxActor* act){
+	return gpPhysX3Main->RemoveActorEngine(act);
 }
 Actor* Game::FindNameActor(const char* name){
 

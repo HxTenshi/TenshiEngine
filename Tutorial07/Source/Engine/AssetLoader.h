@@ -18,12 +18,69 @@ enum class PMXFileVer{
 class ModelData;
 using ModelDataPtr = shared_ptr < ModelData > ;
 
-struct PolygonsData{
-	using VertexType = SimpleVertex;
-	//using IndexType = unsigned int;
-	using IndexType = unsigned short;
-	using MeshType = int;
+struct IPolygonsData{
+
+	virtual ~IPolygonsData(){}
+
+	unsigned int VertexSize;
+	unsigned int IndexSize;
+	unsigned int MeshSize;
 	
+	virtual void* GetVertexPtr() = 0;
+	virtual void* GetIndexPtr() = 0;
+	virtual void* GetMeshPtr() = 0;
+	virtual int GetVertexNum() const = 0;
+	virtual int GetIndexNum() const = 0;
+	virtual int GetMeshNum() const = 0;
+
+	virtual XMFLOAT3 GetVertexPos(int i) const = 0;
+	virtual unsigned int GetIndex(int i) const = 0;
+	virtual int GetMesh(int i) const = 0;
+};
+
+template <class Vertex, class Index, class Mesh>
+struct PolygonsData : public IPolygonsData{
+
+	using VertexType = Vertex;
+	//using IndexType = unsigned int;
+	using IndexType = Index;
+	using MeshType = Mesh;
+
+	PolygonsData(){
+		VertexSize = sizeof(VertexType);
+		IndexSize = sizeof(IndexType);
+		MeshSize = sizeof(MeshType);
+	}
+
+	void* GetVertexPtr() override{
+		return Vertexs.data();
+	}
+	void* GetIndexPtr() override{
+		return Indices.data();
+	}
+	void* GetMeshPtr() override{
+		return Meshs.data();
+	}
+	int GetVertexNum() const override{
+		return Vertexs.size();
+	}
+	int GetIndexNum() const override{
+		return Indices.size();
+	}
+	int GetMeshNum() const override{
+		return Meshs.size();
+	}
+	XMFLOAT3 GetVertexPos(int i) const override{
+		return Vertexs[i].Pos;
+	}
+	unsigned int GetIndex(int i) const override{
+		return (unsigned int)Indices[i];
+	}
+	int GetMesh(int i) const override{
+		return (int)Meshs[i];
+	}
+
+
 	std::vector<VertexType> Vertexs;
 	std::vector<IndexType> Indices;
 	std::vector<MeshType> Meshs;
@@ -35,19 +92,23 @@ struct PolygonsData{
 class ModelData{
 public:
 	~ModelData(){
+		if (m_Polygons)delete m_Polygons;
 	}
 
 	static
-	ModelDataPtr Create(PolygonsData& m_Polygons){
+	ModelDataPtr Create(IPolygonsData* m_Polygons){
 
 		ModelData *temp = new ModelData();
-		temp->m_Polygons = std::move(m_Polygons);
+		temp->m_Polygons = m_Polygons;
 		temp->CreateBuffer();
 		return ModelDataPtr(temp);
 	}
 
 private:
 	ModelData(){
+		m_Polygons = NULL;
+		m_pVertexBuffer = NULL;
+		m_pIndexBuffer = NULL;
 	}
 
 	void CreateBuffer(){
@@ -62,24 +123,24 @@ private:
 
 		//バーテックスの作成
 		{
-			bd.ByteWidth = sizeof(PolygonsData::VertexType) * m_Polygons.Vertexs.size();
+			bd.ByteWidth = m_Polygons->VertexSize * m_Polygons->GetVertexNum();
 			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
-			InitData.pSysMem = m_Polygons.Vertexs.data();
+			InitData.pSysMem = m_Polygons->GetVertexPtr();
 			Device::mpd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
 		}
 		//インデックスの作成
 		{
-			bd.ByteWidth = sizeof(PolygonsData::IndexType) * m_Polygons.Indices.size();
+			bd.ByteWidth = m_Polygons->IndexSize * m_Polygons->GetIndexNum();
 			bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
-			InitData.pSysMem = m_Polygons.Indices.data();
+			InitData.pSysMem = m_Polygons->GetIndexPtr();
 			Device::mpd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
 		}
 	}
 
 public:
-	PolygonsData m_Polygons;
+	IPolygonsData* m_Polygons;
 
 	//解放は現在モデルバッファーがやってる
 	//今後直す
@@ -122,7 +183,62 @@ private:
 
 		int num = write.size();
 		fwrite(&num, sizeof(int), 1, hFP);
+
 		fwrite(write.data(), sizeof(T), write.size(), hFP);
+	}
+
+	template<class IndexType>
+	void createMesh(pmx& data,std::string& name){
+
+		auto itype = data.header.config[pmx::t_header::VIDX];
+
+		PolygonsData<SimpleVertex, unsigned short, int> buffer;
+		//頂点データを取得
+		buffer.Vertexs.resize(data.vert_count);
+
+		int i = 0;
+
+		for (auto& v : buffer.Vertexs){
+			v.Pos.x = data.vertex_data.vertex[i].v.pos[0];
+			v.Pos.y = data.vertex_data.vertex[i].v.pos[1];
+			v.Pos.z = data.vertex_data.vertex[i].v.pos[2];
+			v.Normal.x = data.vertex_data.vertex[i].v.normal_vec[0];
+			v.Normal.y = data.vertex_data.vertex[i].v.normal_vec[1];
+			v.Normal.z = data.vertex_data.vertex[i].v.normal_vec[2];
+			v.Tex.x = data.vertex_data.vertex[i].v.uv[0];
+			v.Tex.y = data.vertex_data.vertex[i].v.uv[1];
+			i++;
+		}
+
+		//インデックスデータを取得
+		buffer.Indices.resize(data.face_vert_count);
+
+		i = 0;
+		for (auto& idx : buffer.Indices){
+			idx = (unsigned short)((IndexType*)data.face_vert_index)[i];
+			i++;
+		}
+
+		//メッシュ取得
+		buffer.Meshs.resize(data.material_count);
+
+		i = 0;
+		for (auto& m : buffer.Meshs){
+			m = data.material[i].face_vert_count;
+			i++;
+		}
+
+
+		std::string savePath = "Assets/" + name + ".tesmesh";
+
+		FILE *hFP;
+		fopen_s(&hFP, savePath.c_str(), "wb");
+		if (hFP != 0){
+			vecfwrite(buffer.Vertexs, hFP);
+			vecfwrite(buffer.Indices, hFP);
+			vecfwrite(buffer.Meshs, hFP);
+			fclose(hFP);
+		}
 	}
 	HRESULT PMX_to_TEStaticMesh(const std::string& path){
 		pmx data(path.c_str());
@@ -138,52 +254,15 @@ private:
 
 		//メッシュの作成
 		{
-
-			PolygonsData buffer;
-			//頂点データを取得
-			buffer.Vertexs.resize(data.vert_count);
-
-			int i = 0;
-			for (auto& v : buffer.Vertexs){
-				v.Pos.x = data.vertex_data.vertex[i].v.pos[0];
-				v.Pos.y = data.vertex_data.vertex[i].v.pos[1];
-				v.Pos.z = data.vertex_data.vertex[i].v.pos[2];
-				v.Normal.x = data.vertex_data.vertex[i].v.normal_vec[0];
-				v.Normal.y = data.vertex_data.vertex[i].v.normal_vec[1];
-				v.Normal.z = data.vertex_data.vertex[i].v.normal_vec[2];
-				v.Tex.x = data.vertex_data.vertex[i].v.uv[0];
-				v.Tex.y = data.vertex_data.vertex[i].v.uv[1];
-				i++;
+			auto itype = data.header.config[pmx::t_header::VIDX];
+			if (itype == 1){
+				createMesh<unsigned char>(data,name);
 			}
-
-			//インデックスデータを取得
-			buffer.Indices.resize(data.face_vert_count);
-
-			i = 0;
-			for (auto& idx : buffer.Indices){
-				idx = ((PolygonsData::IndexType*)data.face_vert_index)[i];
-				i++;
+			if (itype == 2){
+				createMesh<unsigned short>(data, name);
 			}
-
-			//メッシュ取得
-			buffer.Meshs.resize(data.material_count);
-
-			i = 0;
-			for (auto& m : buffer.Meshs){
-				m = data.material[i].face_vert_count;
-				i++;
-			}
-
-
-			std::string savePath = "Assets/" + name + ".tesmesh";
-
-			FILE *hFP;
-			fopen_s(&hFP,savePath.c_str(), "wb");
-			if (hFP != 0){
-				vecfwrite(buffer.Vertexs, hFP);
-				vecfwrite(buffer.Indices, hFP);
-				vecfwrite(buffer.Meshs, hFP);
-				fclose(hFP);
+			if (itype == 4){
+				createMesh<unsigned int>(data, name);
 			}
 		}
 
@@ -211,10 +290,10 @@ private:
 
 		if (hFP == 0)return ModelDataPtr();
 
-		PolygonsData poly;
-		vecfread(poly.Vertexs, hFP);
-		vecfread(poly.Indices, hFP);
-		vecfread(poly.Meshs, hFP);
+		PolygonsData<SimpleVertex, unsigned short, int>* poly = new PolygonsData<SimpleVertex, unsigned short, int>();
+		vecfread(poly->Vertexs, hFP);
+		vecfread(poly->Indices, hFP);
+		vecfread(poly->Meshs, hFP);
 
 		fclose(hFP);
 		return ModelData::Create(poly);

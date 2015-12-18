@@ -133,7 +133,7 @@ public:
 		//float nearFar = 100.0f - 0.01f;
 
 		XMVECTOR worldPoint = point;// XMVectorSet(WindowState::mWidth, WindowState::mHeight, nearFar, 1.0f);
-		worldPoint.z = 0.9999f;
+		worldPoint.z = 1.0f;
 		worldPoint = XMVector3TransformCoord(worldPoint, vpInv);
 		return worldPoint;
 	}
@@ -158,7 +158,28 @@ private:
 	CameraComponent* mCameraComponent;
 };
 
+class Arrow : public Actor{
+public:
 
+	Arrow(){
+		Name("arrow");
+		mTransform = make_shared<TransformComponent>();
+		mComponents.AddComponent<TransformComponent>(mTransform);
+		auto dmy = make_shared<MaterialComponent>();
+		mComponents.AddComponent<ModelComponent>(make_shared<ModelComponent>("EngineResource/Arrow.pmx.tesmesh", dmy));
+		auto material = make_shared<MaterialComponent>();
+		mComponents.AddComponent<MaterialComponent>(material);
+		material->LoadAssetResource("EngineResource/Arrow.pmx.txt");
+		mComponents.AddComponent<MeshDrawComponent>();
+	}
+	~Arrow(){
+	}
+
+	void Update(float deltaTime)override{
+		(void)deltaTime;
+	}
+private:
+};
 class Box : public Actor{
 public:
 
@@ -359,14 +380,67 @@ public:
 		:mSelect(NULL)
 	{
 		mDragBox = -1;
-		mVectorBox[0].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
-		mVectorBox[1].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
-		mVectorBox[2].mTransform->Scale(XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f));
+		mVectorBox[0].mTransform->Scale(XMVectorSet(0.1f, 0.1f, 0.1f, 1.0f));
+		mVectorBox[1].mTransform->Scale(XMVectorSet(0.1f, 0.1f, 0.1f, 1.0f));
+		mVectorBox[2].mTransform->Scale(XMVectorSet(0.1f, 0.1f, 0.1f, 1.0f));
+		auto mate = mVectorBox[0].GetComponent<MaterialComponent>();
+		if (mate){
+			auto& m = mate->GetMaterial(0);
+			auto& d = m.mCBMaterial.mParam.Diffuse;
+			d.x = 1;
+			d.y = 0;
+			d.z = 0;
+			d.w = 1;
+			mate->SetMaterial(0, m);
+		}
+		mate = mVectorBox[1].GetComponent<MaterialComponent>();
+		if (mate){
+			auto& m = mate->GetMaterial(0);
+			auto& d = m.mCBMaterial.mParam.Diffuse;
+			d.x = 0;
+			d.y = 1;
+			d.z = 0;
+			d.w = 1;
+			mate->SetMaterial(0,m);
+		}
+		mate = mVectorBox[2].GetComponent<MaterialComponent>();
+		if (mate){
+			auto& m = mate->GetMaterial(0);
+			auto& d = m.mCBMaterial.mParam.Diffuse;
+			d.x = 0;
+			d.y = 0;
+			d.z = 1;
+			d.w = 1;
+			mate->SetMaterial(0, m);
+		}
 
 		mSelectWireMaterial.mDiffuse.x = 0.95f;
 		mSelectWireMaterial.mDiffuse.y = 0.6f;
 		mSelectWireMaterial.mDiffuse.z = 0.1f;
 		mSelectWireMaterial.Create();
+	}
+
+	void Finish(){
+		for (int i = 0; i < 3; i++){
+		
+			mVectorBox[i].Finish();
+		}
+	}
+
+	void Initialize(){
+		for (int i = 0; i < 3; i++){
+
+			//mVectorBox[i].AddComponent<PhysXComponent>();
+			//auto phy = mVectorBox[i].GetComponent<PhysXComponent>();
+			//phy->mIsEngineMode = true;
+			//mVectorBox[i].AddComponent<PhysXColliderComponent>();
+			//auto col = mVectorBox[i].GetComponent<PhysXColliderComponent>();
+			//col->SetMesh("EngineResource/Arrow.pmx.tesmesh");
+			mVectorBox[i].Initialize();
+			mVectorBox[i].Start();
+
+			//phy->SetKinematic(true);
+		}
 	}
 
 	void SetSelect(Actor* select){
@@ -406,13 +480,16 @@ public:
 
 		if (!mSelect)return;
 
-		mVectorBox[0].mTransform->Position(mSelect->mTransform->WorldPosition() + XMVectorSet(3.0f, 0.0f, 0.0f, 0.0f));
-		mVectorBox[1].mTransform->Position(mSelect->mTransform->WorldPosition() + XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f));
-		mVectorBox[2].mTransform->Position(mSelect->mTransform->WorldPosition() + XMVectorSet(0.0f, 0.0f, 3.0f, 0.0f));
+		mVectorBox[0].mTransform->Position(mSelect->mTransform->WorldPosition());
+		mVectorBox[1].mTransform->Position(mSelect->mTransform->WorldPosition());
+		mVectorBox[2].mTransform->Position(mSelect->mTransform->WorldPosition());
 
-		mVectorBox[0].UpdateComponent(deltaTime);
-		mVectorBox[1].UpdateComponent(deltaTime);
-		mVectorBox[2].UpdateComponent(deltaTime);
+		mVectorBox[0].mTransform->Rotate(XMVectorSet(0, 0, -XM_PI / 2, 1));
+		mVectorBox[2].mTransform->Rotate(XMVectorSet(XM_PI / 2,0,0, 1));
+
+		//mVectorBox[0].UpdateComponent(deltaTime);
+		//mVectorBox[1].UpdateComponent(deltaTime);
+		//mVectorBox[2].UpdateComponent(deltaTime);
 
 		static XMVECTOR vect = XMVectorZero();
 		if (Input::Down(MouseCoord::Left)){
@@ -447,28 +524,41 @@ public:
 
 	void SelectActorDraw();
 
-	void ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect){
+	bool ChackHitRay(PhysX3Main* physx, EditorCamera& camera){
 
-		if (!mSelect)return;
+		if (!mSelect)return false;
 
-		if (mVectorBox[0].ChackHitRay(pos, vect)){
-			mDragPos = mSelect->mTransform->Position();
-			mDragBox = 0;
+		int x, y;
+		Input::MousePosition(&x, &y);
+		XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
+		XMVECTOR vect = camera.PointRayVector(point);
+		XMVECTOR pos = camera.GetPosition();
+
+		auto act = physx->EngineSceneRaycast(pos, vect);
+		if (act){
+			if (&mVectorBox[0] == act){
+				mDragPos = mSelect->mTransform->Position();
+				mDragBox = 0;
+				return true;
+			}
+			if (&mVectorBox[1] == act){
+				mDragPos = mSelect->mTransform->Position();
+				mDragBox = 1;
+				return true;
+			}
+			if (&mVectorBox[2] == act){
+				mDragPos = mSelect->mTransform->Position();
+				mDragBox = 2;
+				return true;
+			}
 		}
-		if (mVectorBox[1].ChackHitRay(pos, vect)){
-			mDragPos = mSelect->mTransform->Position();
-			mDragBox = 1;
-		}
-		if (mVectorBox[2].ChackHitRay(pos, vect)){
-			mDragPos = mSelect->mTransform->Position();
-			mDragBox = 2;
-		}
+		return false;
 	}
 private:
 
 	Actor* mSelect;
 
-	Box mVectorBox[3];
+	Arrow mVectorBox[3];
 	int mDragBox;
 	XMVECTOR mDragPos;
 
@@ -800,8 +890,10 @@ public:
 	static void DestroyObject(Actor* actor);
 	static void ActorMoveStage();
 	static PxRigidActor* CreateRigitBody();
+	static PxRigidActor* CreateRigitBodyEngine();
 	static PhysX3Main* GetPhysX();
 	static void RemovePhysXActor(PxActor* act);
+	static void RemovePhysXActorEngine(PxActor* act);
 
 	static Actor* FindNameActor(const char* name);
 	static Actor* FindUID(UINT uid);
@@ -879,19 +971,28 @@ public:
 
 
 		mSelectActor.Update(deltaTime);
-
 		if (Input::Trigger(MouseCoord::Left)){
-			int x, y;
-			Input::MousePosition(&x, &y);
-			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
-			XMVECTOR vect = mCamera.PointRayVector(point);
-			XMVECTOR pos = mCamera.GetPosition();
-		
-			mSelectActor.ChackHitRay(pos, vect);
-			for (auto& p : mList){
-				if (p.second->ChackHitRay(pos, vect)){
-					mSelectActor.SetSelect(p.second);
+
+			if (!mSelectActor.ChackHitRay(mPhysX3Main, mCamera)){
+
+				int x, y;
+				Input::MousePosition(&x, &y);
+				XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
+				XMVECTOR vect = mCamera.PointRayVector(point);
+				XMVECTOR pos = mCamera.GetPosition();
+
+				auto act = mPhysX3Main->Raycast(pos, vect);
+				if (act){
+					mSelectActor.SetSelect(act);
 				}
+
+				//mSelectActor.ChackHitRay(pos, vect);
+				//
+				//for (auto& p : mList){
+				//	if (p.second->ChackHitRay(pos, vect)){
+				//		mSelectActor.SetSelect(p.second);
+				//	}
+				//}
 			}
 		}
 

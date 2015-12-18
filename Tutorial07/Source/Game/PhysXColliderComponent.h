@@ -26,6 +26,11 @@ public:
 
 	void ChangeShape();
 	void CreateMesh();
+	void SetIsTrigger(bool flag);
+
+	void SetMesh(const char* file){
+		mMeshFile = file;
+	}
 
 	physx::PxShape* GetShape();
 private:
@@ -40,4 +45,9 @@ private:
 
 	bool mIsSphere;
 	std::string mMeshFile;
+
+	//åªç›ÇÃÉXÉPÅ[Éã
+	XMVECTOR mScale;
+
+	bool mIsTrigger;
 };

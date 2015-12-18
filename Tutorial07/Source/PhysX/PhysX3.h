@@ -64,14 +64,13 @@ public:
 
 	void createPlane();
 	PxRigidActor* createSphere();
-	PxRigidActor* createBox();
+	PxRigidActor* createBody();
+	PxRigidActor* createBodyEngine();
 
 	void DrawBox(PxShape* pShape, PxRigidActor* actor);
-
 	void DrawShape(PxShape* shape, PxRigidActor* actor);
 
 	void DrawActor(PxRigidActor* actor);
-	void RenderActors();
 
 	void Display();
 	void StepPhysX();
@@ -79,10 +78,14 @@ public:
 	void ShutdownPhysX();
 
 	void RemoveActor(PxActor* act);
+	void RemoveActorEngine(PxActor* act);
+
+	Actor* Raycast(const XMVECTOR& pos, const XMVECTOR& dir);
+	Actor* EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir);
 
 	PxShape* CreateShape();
 	PxShape* CreateShapeSphere();
-	PxShape* CreateTriangleMesh(const std::vector<PolygonsData::VertexType>& vertex, const std::vector<PolygonsData::IndexType>&  index);
+	PxShape* CreateTriangleMesh(IPolygonsData* poly);
 
 private:
 	void getColumnMajor(PxMat33& m, PxVec3& t, float* mat);
@@ -96,6 +99,7 @@ private:
 	PxCooking*	mCooking;
 
 	PxScene* gScene;
+	PxScene* mEngineScene;
 
 	PxMaterial* mMaterial;
 

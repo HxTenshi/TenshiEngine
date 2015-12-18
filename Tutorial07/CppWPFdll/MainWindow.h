@@ -144,6 +144,10 @@ public:
 		//auto p = e->P(m_wfh);
 		*m_MX = (int)e->X;
 		*m_MY = (int)e->Y;
+
+		auto scr = (System::Windows::Forms::Panel^)m_wfh->Child;
+		*m_WX = scr->Width;
+		*m_WY = scr->Height;
 	}
 	//void keypressnull(Object^ sender, System::Windows::Forms::KeyEventArgs ^e){
 	//	e->Handled = true;
@@ -151,11 +155,14 @@ public:
 	//void keynull(Object^ sender, System::Windows::Forms::KeyEventArgs ^e){
 	//	e->Handled = true;
 	//}
-	void SetMouseEvents(bool* l, bool* r, int* x, int* y){
+	void SetMouseEvents(bool* l, bool* r, int* x, int* y, int* wx, int* wy){
 		m_ML = l;
 		m_MR = r;
 		m_MX = x;
 		m_MY = y;
+		m_WX = wx;
+		m_WY = wy;
+
 
 		//mD3DImageEx->SetBackBufferEx(System::Windows::Interop::D3DResourceTypeEx::ID3D11Texture2D, IntPtr(pRenderTarget));
 
@@ -225,6 +232,8 @@ private:
 	bool* m_MR;
 	int* m_MX;
 	int* m_MY;
+	int* m_WX;
+	int* m_WY;
 };
 
 // ƒrƒ…[

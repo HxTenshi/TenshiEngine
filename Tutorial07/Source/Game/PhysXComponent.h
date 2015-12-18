@@ -44,8 +44,10 @@ public:
 	void AddForce(const XMVECTOR& force);
 	void AddTorque(const XMVECTOR& force);
 
+	bool mIsEngineMode;
 private:
 	physx::PxRigidActor* mRigidActor;
 	bool mIsKinematic;
 	char mChengeTransformFlag;
 };
+

@@ -2,7 +2,7 @@
 
 #include "Game.h"
 PhysXComponent::PhysXComponent(){
-
+	mIsEngineMode = false;
 	mIsKinematic = false;
 }
 
@@ -10,7 +10,12 @@ PhysXComponent::~PhysXComponent(){
 }
 void PhysXComponent::Initialize(){
 	mChengeTransformFlag = (char)PhysXChangeTransformFlag::Position | (char)PhysXChangeTransformFlag::Rotate;
-	mRigidActor = Game::CreateRigitBody();
+	if (mIsEngineMode){
+		mRigidActor = Game::CreateRigitBodyEngine();
+	}
+	else{
+		mRigidActor = Game::CreateRigitBody();
+	}
 
 	SetKinematic(mIsKinematic);
 
@@ -25,8 +30,14 @@ void PhysXComponent::Start(){
 	mRigidActor->setGlobalPose(t);
 }
 void PhysXComponent::Finish(){
-	if (mRigidActor)
-		Game::RemovePhysXActor(mRigidActor);
+	if (mRigidActor){
+		if (mIsEngineMode){
+			Game::RemovePhysXActorEngine(mRigidActor);
+		}
+		else{
+			Game::RemovePhysXActor(mRigidActor);
+		}
+	}
 	mRigidActor = NULL;
 }
 

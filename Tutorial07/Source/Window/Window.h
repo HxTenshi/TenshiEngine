@@ -167,8 +167,8 @@ public:
 		mMainWindow_WPF.UpdateComponentWindow();
 	}
 
-	static void SetMouseEvents(bool* l, bool* r, int* x, int* y){
-		mMainWindow_WPF.SetMouseEvents(l, r, x, y);
+	static void SetMouseEvents(bool* l, bool* r, int* x, int* y, int *wx, int *wy){
+		mMainWindow_WPF.SetMouseEvents(l, r, x, y, wx, wy);
 	}
 
 	static void SetWPFCollBack(MyWindowMessage massage, const std::function<void(void*)>& collback){

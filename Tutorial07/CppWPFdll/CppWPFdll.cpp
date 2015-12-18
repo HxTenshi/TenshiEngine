@@ -436,9 +436,9 @@ namespace Test {
 		ViewData::window->Dispatcher->BeginInvoke(del, (IntPtr)parent, (IntPtr)child);
 	}
 
-	void NativeFraction::SetMouseEvents(bool* l, bool* r, int* x, int* y){
+	void NativeFraction::SetMouseEvents(bool* l, bool* r, int* x, int* y, int* wx, int* wy){
 		if (ViewData::window == nullptr)return;
-		ViewData::window->GameScreenData->SetMouseEvents(l, r, x, y);
+		ViewData::window->GameScreenData->SetMouseEvents(l, r, x, y, wx, wy);
 	}
 	void* NativeFraction::GetGameScreenHWND() const {
 		void* temp = NULL;

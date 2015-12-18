@@ -34,16 +34,20 @@ public:
 		ml = false;
 		mx = 0;
 		my = 0;
+		wx = 1;
+		wy = 1;
 
 		InputManager::InitDirectInput(hWnd, hInstance);
-		Window::SetMouseEvents(&ml, &mr, &mx, &my);
+		Window::SetMouseEvents(&ml, &mr, &mx, &my, &wx, &wy);
 	}
 
 	void Update(){
 
 		InputManager::SetMouseL(ml);
 		InputManager::SetMouseR(mr);
-		InputManager::SetMouseXY(mx,my);
+		int x = (int)((float)mx / wx * WindowState::mWidth);
+		int y = (int)((float)my / wy * WindowState::mHeight);
+		InputManager::SetMouseXY(x, y);
 		InputManager::Update();
 	}
 
@@ -54,6 +58,7 @@ public:
 private:
 	bool mr, ml;
 	int mx, my;
+	int wx, wy;
 };
 
 #include <memory>

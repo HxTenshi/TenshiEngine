@@ -153,7 +153,7 @@ PlayerScript::PlayerScript(){
 }
 void PlayerScript::Update(){
 	
-	auto list = gameObject->mTransform->Children();
+	auto& list = gameObject->mTransform->Children();
 	Actor* camera = NULL;
 	for (auto act : list){
 		if (act->Name() == "MainCamera"){
@@ -161,14 +161,6 @@ void PlayerScript::Update(){
 		}
 	}
 
-	//if (Input::Down(KeyCoord::Key_Q)){
-	//	mRotateY += 0.01f;
-	//}
-	//if (Input::Down(KeyCoord::Key_E)){
-	//	mRotateY -= 0.01f;
-	//}
-	//This->mTransform->Rotate(XMVectorSet(0, mRotateY, 0, 1));
-	//auto ball = This;
 	if (!camera)return;
 	float speed = 50.0f;
 	if (Input::Down(KeyCoord::Key_A)){
@@ -187,23 +179,8 @@ void PlayerScript::Update(){
 		gameObject->mTransform->AddForce(camera->mTransform->Up()*100);
 	}
 	if (Input::Down(KeyCoord::Key_SPACE)){
-		//auto a = game->CreateActor("Assets/coin.prefab");
-		//game->AddObject(a);
-		auto coin = game->FindActor("coin");
-
-		if (coin){
-
-		auto scr = coin->GetScript<PlayerScript>();
-		if (scr){
-			scr->Start();
-
-			game->DestroyObject(coin);
-		}
-		}
 
 	}
-	//auto wp = ball->mTransform->WorldPosition() + XMVectorSet(0, 0, 0, 1);
-	//This->mTransform->Position(wp);
 
 }
 

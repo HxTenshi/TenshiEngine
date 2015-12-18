@@ -11,6 +11,7 @@ PhysXColliderComponent::PhysXColliderComponent(){
 	mIsSphere = false;
 	mShape = NULL;
 	mIsShapeAttach = false;
+	mIsTrigger = false;
 }
 
 PhysXColliderComponent::~PhysXColliderComponent(){
@@ -29,7 +30,8 @@ void PhysXColliderComponent::Start(){
 	else{
 		ChangeShape();
 	}
-
+	mScale = XMVectorZero();
+	SetIsTrigger(mIsTrigger);
 }
 
 void PhysXColliderComponent::Finish(){
@@ -156,10 +158,8 @@ void PhysXColliderComponent::UpdatePose(){
 
 	scale = XMVectorMultiply(scale, gameObject->mTransform->Scale());
 
-
-	static XMVECTOR gscale = XMVectorZero();
-	if (gscale.x == scale.x&&gscale.y == scale.y&&gscale.z == scale.z)return;
-	gscale = scale;
+	if (mScale.x == scale.x&&mScale.y == scale.y&&mScale.z == scale.z)return;
+	mScale = scale;
 	//PxBoxGeometry box(PxVec3(1.0f*scale.x, 1.0f*scale.y, 1.0f*scale.z));
 	auto g = mShape->getGeometry();
 	if (g.getType() == PxGeometryType::eBOX){
@@ -191,11 +191,33 @@ void PhysXColliderComponent::CreateMesh(){
 	AssetLoader loader;
 	auto data = loader.LoadAsset(mMeshFile);
 	if (!data)return;
-	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->m_Polygons.Vertexs, data->m_Polygons.Indices);
+	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->m_Polygons);
 
 	ShapeAttach(shape);
 
 }
+
+void PhysXColliderComponent::SetIsTrigger(bool flag){
+	mIsTrigger = flag;
+	//PxShapeFlag::eTRIGGER_SHAPE ‚Ü‚½‚Í@PxShapeFlag::eSIMULATION_SHAPE 
+
+	PxShapeFlags flags = mShape->getFlags();
+
+	//ˆê’UƒIƒ“‚É‚µ‚Ä
+	flags |= PxShapeFlag::eTRIGGER_SHAPE;
+	flags |= PxShapeFlag::eSIMULATION_SHAPE;
+	//•s—v‚È•û‚ð”½“]
+	if (mIsTrigger){
+		flags ^= PxShapeFlag::eSIMULATION_SHAPE;
+	}
+	else{
+		flags ^= PxShapeFlag::eTRIGGER_SHAPE;
+	}
+
+	mShape->setFlags(flags);
+}
+
+
 physx::PxShape* PhysXColliderComponent::GetShape(){
 	return mShape;
 }
@@ -210,8 +232,14 @@ void PhysXColliderComponent::CreateInspector() {
 		mMeshFile = name;
 		CreateMesh();
 	};
+	BoolCollback collbacktri = [&](bool value){
+		//mIsTrigger = value;
+		SetIsTrigger(value);
+	};
+
 	Window::AddInspector(new InspectorStringDataSet("Mesh", &mMeshFile, collbackpath), data);
 	Window::AddInspector(new InspectorBoolDataSet("IsSphere", &mIsSphere, collback), data);
+	Window::AddInspector(new InspectorBoolDataSet("IsTrigger", &mIsTrigger, collbacktri), data);
 	Window::ViewInspector("Collider",data);
 }
 
