@@ -687,6 +687,18 @@ private:
 		}
 		{//コンテキストメニューの要素作成
 			auto mitem = gcnew System::Windows::Controls::MenuItem();
+			mitem->Header = "AddPostEffectComponent";
+			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_AddPostEffectComponent);
+			cm->Items->Add(mitem);
+		}
+		{//コンテキストメニューの要素作成
+			auto mitem = gcnew System::Windows::Controls::MenuItem();
+			mitem->Header = "RemovePostEffectComponent";
+			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePostEffectComponent);
+			cm->Items->Add(mitem);
+		}
+		{//コンテキストメニューの要素作成
+			auto mitem = gcnew System::Windows::Controls::MenuItem();
 			mitem->Header = "AddScriptComponent";
 			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_AddScriptComponent);
 			cm->Items->Add(mitem);
@@ -739,7 +751,6 @@ private:
 	void ActorTreeView_OnDrop(Object ^s, DragEventArgs ^e)
 	{
 
-		System::Windows::MessageBox::Show(s->ToString());
 		auto dragtreeitem = (TreeViewItem^)e->Data->GetData(TreeViewItem::typeid);
 		auto dragitem = dynamic_cast<TestContent::Person^>(dragtreeitem->DataContext);
 
@@ -785,7 +796,6 @@ private:
 		//System::Windows::MessageBox::Show("had");
 		auto tv = (TreeView^)sender;
 		//tv->Background = Brush
-		System::Windows::MessageBox::Show(e->Source->ToString());
 		e->Handled = true;
 		//tv->Cursor = gcnew System::Windows::Input::Cursor("Hand");
 		//System::Windows::MessageBox::Show("had");
@@ -840,6 +850,15 @@ private:
 	void PostMessageAddComponent(const char* t){
 		if (m_TreeView->SelectedItem == nullptr)return;
 		Data::MyPostMessage(MyWindowMessage::AddComponent, (void*)t);
+	}
+	void MenuItem_Click_AddPostEffectComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		PostMessageAddComponent("PostEffect");
+		e->Handled = true;
+	}
+	void MenuItem_Click_RemovePostEffectComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		PostMessageRemoveComponent("PostEffect");
+		e->Handled = true;
+
 	}
 	void MenuItem_Click_AddScriptComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
 		PostMessageAddComponent("Script");

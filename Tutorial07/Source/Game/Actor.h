@@ -5,7 +5,6 @@
 #include <functional>
 #include <queue>
 #include "ComponentList.h"
-
 class ITransformComponent;
 class File;
 //PhysXテスト用
@@ -23,7 +22,14 @@ unsigned char operator & (const unsigned char& bit, const DrawBit& bit2);
 unsigned char operator | (const DrawBit& bit, const DrawBit& bit2);
 unsigned char operator | (const unsigned char& bit, const DrawBit& bit2);
 
-class Actor{
+
+class IActor{
+public:
+	virtual ~IActor(){}
+	virtual void* _GetScript(const char* name) = 0;
+};
+
+class Actor : public IActor{
 public:
 	Actor();
 	virtual ~Actor();
@@ -44,6 +50,13 @@ public:
 	weak_ptr<Component> GetComponent(const size_t& hash){
 		return mComponents.GetComponent(hash);
 	}
+
+	template<class T>
+	T* GetScript(){
+		return (T*)_GetScript(typeid(T).name());
+	}
+
+	void* _GetScript(const char* name) override;
 
 	template<class T>
 	shared_ptr<T> AddComponent(shared_ptr<T> component){

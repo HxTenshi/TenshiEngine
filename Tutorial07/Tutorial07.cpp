@@ -133,6 +133,8 @@ public:
 		if (FAILED(hr))
 			return hr;
 
+		FontManager::Init();
+
 		// Set primitive topology
 		//インデックスの並び　Z字など
 		Device::mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -191,6 +193,10 @@ public:
 	void CleanupDevice()
 	{
 
+		if (mGame)delete mGame;
+
+		FontManager::Release();
+
 		mInputManagerRapper.Release();
 
 		Device::CleanupDevice();
@@ -198,8 +204,6 @@ public:
 		mLight.Release();
 
 		Window::Release();
-
-		if (mGame)delete mGame;
 	}
 private:
 

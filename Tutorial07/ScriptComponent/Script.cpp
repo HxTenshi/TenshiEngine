@@ -21,7 +21,8 @@ public:
 		mFactory[typeid(DllScriptComponent).name()] = [](){ return new DllScriptComponent(); };
 		mFactory[typeid(CameraScript).name()] = [](){ return new CameraScript(); };
 		mFactory[typeid(PlayerScript).name()] = [](){ return new PlayerScript(); };
-		mFactory[typeid(unk).name()] = [](){ return new unk(); };
+		mFactory[typeid(CoinScript).name()] = [](){ return new CoinScript(); };
+		mFactory[typeid(CoinManagerScript).name()] = [](){ return new CoinManagerScript(); };
 	}
 	std::map<std::string, std::function<IDllScriptComponent*()>> mFactory;
 };
@@ -186,8 +187,20 @@ void PlayerScript::Update(){
 		gameObject->mTransform->AddForce(camera->mTransform->Up()*100);
 	}
 	if (Input::Down(KeyCoord::Key_SPACE)){
-		auto a = game->CreateActor("Assets/coin.prefab");
-		game->AddObject(a);
+		//auto a = game->CreateActor("Assets/coin.prefab");
+		//game->AddObject(a);
+		auto coin = game->FindActor("coin");
+
+		if (coin){
+
+		auto scr = coin->GetScript<PlayerScript>();
+		if (scr){
+			scr->Start();
+
+			game->DestroyObject(coin);
+		}
+		}
+
 	}
 	//auto wp = ball->mTransform->WorldPosition() + XMVectorSet(0, 0, 0, 1);
 	//This->mTransform->Position(wp);
@@ -195,13 +208,58 @@ void PlayerScript::Update(){
 }
 
 void PlayerScript::OnCollide(Actor* target){
-	if (target->Name() == "coin")
+	if (target->Name() == "coin"){
 		game->DestroyObject(target);
+
+		auto gm = game->FindActor("CoinManager");
+		if (!gm)return;
+		auto gms = gm->GetScript<CoinManagerScript>();
+		if (!gms)return;
+		gms->GetCoin();
+	}
+}
+
+void CoinScript::Start(){
+	mRotateY = 0.0f;
+}
+
+void CoinScript::Update(){
+	mRotateY += 0.01f;
+	gameObject->mTransform->Rotate(XMVectorSet(0, mRotateY, 0,1));
 }
 
 
-void unk::Update(){
-	if (Input::Down(KeyCoord::Key_SPACE)){
-		gameObject->mTransform->AddForce(XMVectorSet(0, 10, 0, 1));
+#include "Game\TextComponent.h"
+
+void CoinManagerScript::Start(){
+	mGetCoinCount = 0;
+	mMaxCoin = 0;
+	isClear = false;
+
+	auto obj = game->FindActor("GetCoinText");
+	if (!obj)return;
+	auto text = obj->GetComponent<TextComponent>();
+	if (!text)return;
+	text->ChangeText("GetCoin:0");
+}
+void CoinManagerScript::Update(){
+	mMaxCoin = gameObject->mTransform->Children().size();
+
+	if (mMaxCoin == 0 && !isClear){
+		auto a = game->CreateActor("Assets/gameclear.prefab");
+		if (a)game->AddObject(a);
+		isClear = true;
 	}
+
+}
+
+
+void CoinManagerScript::GetCoin(){
+	mGetCoinCount++;
+
+	auto obj = game->FindActor("GetCoinText");
+	if (!obj)return;
+	auto text = obj->GetComponent<TextComponent>();
+	if (!text)return;
+	text->ChangeText("GetCoin:"+std::to_string(mGetCoinCount));
 }

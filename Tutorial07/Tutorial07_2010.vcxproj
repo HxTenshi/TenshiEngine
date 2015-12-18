@@ -409,6 +409,7 @@
     <ClCompile Include="Source\Game\PhysXColliderComponent.cpp" />
     <ClCompile Include="Source\Game\PhysXComponent.cpp" />
     <ClCompile Include="Source\Game\ScriptComponent.cpp" />
+    <ClCompile Include="Source\Game\TextComponent.cpp" />
     <ClCompile Include="Source\Game\TransformComponent.cpp" />
     <ClCompile Include="Source\Graphic\Font\Font.cpp" />
     <ClCompile Include="Source\Graphic\Loader\Animation\VMD.cpp" />
@@ -461,6 +462,7 @@
     <ClInclude Include="Source\Game\PhysXColliderComponent.h" />
     <ClInclude Include="Source\Game\PhysXComponent.h" />
     <ClInclude Include="Source\Game\ScriptComponent.h" />
+    <ClInclude Include="Source\Game\TextComponent.h" />
     <ClInclude Include="Source\Game\TransformComponent.h" />
     <ClInclude Include="Source\Graphic\Font\Font.h" />
     <ClInclude Include="Source\Graphic\Loader\Animation\VMD.h" />

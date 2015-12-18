@@ -96,12 +96,10 @@ Game::Game()
 
 	HRESULT hr = S_OK;
 
-	FontManager::Init();
-
-
-	hr = mMeinViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
+	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
 	if (FAILED(hr))
 		MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
+	mPostEffectRendering.Initialize();
 
 	gpList = &mList;
 	gDrawList = &mDrawList;
@@ -205,11 +203,8 @@ Game::Game()
 	{
 		std::string s((const char *)p);
 		if (auto actor = mSelectActor.GetSelect()){
-			if (s == "Script"){
-				auto c = shared_ptr<ScriptComponent>(new ScriptComponent());
-				actor->AddComponent(c);
-				c->Initialize();
-			}
+			if (s == "PostEffect")actor->AddComponent(shared_ptr<PostEffectComponent>(new PostEffectComponent()));
+			if (s == "Script")actor->AddComponent(shared_ptr<ScriptComponent>(new ScriptComponent()));
 			if (s == "PhysX")actor->AddComponent(shared_ptr<PhysXComponent>(new PhysXComponent()));
 			if (s == "Collider")actor->AddComponent(shared_ptr<PhysXColliderComponent>(new PhysXColliderComponent()));
 			Window::ClearInspector();
@@ -220,6 +215,7 @@ Game::Game()
 	{
 		std::string s((const char *)p);
 		if (auto actor = mSelectActor.GetSelect()){
+			if (s == "PostEffect")actor->RemoveComponent<PostEffectComponent>();
 			if (s == "Script")actor->RemoveComponent<ScriptComponent>();
 			if (s == "PhysX")actor->RemoveComponent<PhysXComponent>();
 			if (s == "Collider")actor->RemoveComponent<PhysXColliderComponent>();
@@ -287,15 +283,14 @@ Game::~Game(){
 	mPhysX3Main = NULL;
 	gpPhysX3Main = NULL;
 
-	mMeinViewRenderTarget.Release();
-	FontManager::Release();
-
+	mMainViewRenderTarget.Release();
 
 }
 //static
 void Game::AddObject(Actor* actor){
 	if (!actor->mTransform){
 		delete actor;
+		return;
 	}
 
 	gpList->insert(std::pair<UINT, Actor*>(actor->GetUniqueID(), actor));
@@ -380,6 +375,15 @@ PhysX3Main* Game::GetPhysX(){
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
 }
+Actor* Game::FindNameActor(const char* name){
+
+	for (auto& act : (*gpList)){
+		if (act.second->Name() == name){
+			return act.second;
+		}
+	}
+	return NULL;
+}
 
 Actor* Game::FindUID(UINT uid){
 	auto get = (*gpList).find(uid);
@@ -398,7 +402,9 @@ void Game::SetUndo(ICommand* command){
 void Game::SetMainCamera(CameraComponent* Camera){
 	*gMainCamera = Camera;
 }
-
+RenderTarget Game::GetMainViewRenderTarget(){
+	return mGame->mMainViewRenderTarget;
+}
 
 void Game::ChangePlayGame(bool isPlay){
 	if (mIsPlay == isPlay)return;
@@ -491,4 +497,10 @@ void Game::SaveScene(){
 	scenefile.Clear();
 
 	mRootObject->ExportSceneDataStart("./Scene", scenefile);
+}
+
+void PostEffectRendering::Initialize(){
+	mModelTexture.Create("", shared_ptr<MaterialComponent>());
+	mMaterial.Create("EngineResource/PostEffectRendering.fx");
+	mMaterial.SetTexture(Game::GetMainViewRenderTarget().GetTexture(), 0);
 }

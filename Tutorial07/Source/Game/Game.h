@@ -23,6 +23,7 @@ enum class DrawStage{
 	Diffuse,
 	Depth,
 	Normal,
+	PostEffect,
 	Engine,
 	UI,
 	Count
@@ -673,33 +674,124 @@ private:
 
 	MaterialComponent mMaterial;
 };
+
+
+class PostEffectRendering{
+public:
+	void Initialize();
+
+	void Rendering(){
+		Device::mRenderTargetBack->SetRendererTarget();
+
+		mModelTexture.Update();
+
+		ID3D11DepthStencilState* pBackDS;
+		UINT ref;
+		Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
+
+		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
+		ID3D11DepthStencilState* pDS_tex = NULL;
+		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS_tex);
+		Device::mpImmediateContext->OMSetDepthStencilState(pDS_tex, 0);
+
+
+		D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+		descRS.CullMode = D3D11_CULL_NONE;
+		descRS.FillMode = D3D11_FILL_SOLID;
+
+		ID3D11RasterizerState* pRS = NULL;
+		Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
+
+		Device::mpImmediateContext->RSSetState(pRS);
+
+		mModelTexture.Draw(mMaterial);
+
+		Device::mpImmediateContext->RSSetState(NULL);
+		if (pRS)pRS->Release();
+
+		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+		pDS_tex->Release();
+
+		Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
+		if (pBackDS)pBackDS->Release();
+	}
+
+private:
+	ModelTexture mModelTexture;
+	Material mMaterial;
+};
+
+class FPSChecker{
+public:
+	FPSChecker()
+		: mFPSObject({ 0, 0 }, { 500, 800 })
+		, mFrameNum(60)
+		, mStepFrame_times(60, 0)
+		, mCorrentVectorPos(0)
+	{
+		mFPSObject.Start();
+		mFPSText = mFPSObject.GetComponent<TextComponent>();
+	}
+
+	void Update(){
+		
+
+		auto old_time = mStepFrame_times[mCorrentVectorPos];
+		auto current_time = timeGetTime();
+		mStepFrame_times[mCorrentVectorPos] = current_time;
+		mCorrentVectorPos = ++mCorrentVectorPos%mFrameNum;
+
+		auto sec_time = (current_time - old_time);
+		if (sec_time == 0.0f){
+			sec_time = 1;
+		}
+		float fps = (float)mFrameNum / sec_time * 1000;
+		auto fpsstr = std::to_string(fps);
+		std::string title = "FPS:" + fpsstr.substr(0, 4) + "‚¾‚æ`š";
+
+		mFPSText->ChangeText(title);
+		mFPSObject.UpdateComponent(1);
+	}
+
+private:
+	Text mFPSObject; 
+	weak_ptr<TextComponent> mFPSText;
+	std::vector<unsigned long> mStepFrame_times;
+	int mCorrentVectorPos;
+
+	const int mFrameNum;
+
+};
+
 class Game{
 public:
-	static void AddResource(const std::string& filename){
-		auto pos = filename.find_last_of(".");
-		auto type = filename.substr(pos);
+	//static void AddResource(const std::string& filename){
+	//	auto pos = filename.find_last_of(".");
+	//	auto type = filename.substr(pos);
 
-		if (type == ".png"
-			|| type == ".bmp"
-			|| type == ".jpg"
-			|| type == ".jpge"){
-			AddObject(new Tex(filename.c_str(), { 1000, 0 }, { 1200, 200 }));
-			return;
-		}
-		if (type == ".pmd"
-			|| type == ".pmx"){
-			auto act = new Actor();
-			auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
-			act->AddComponent(material);
-			act->AddComponent(shared_ptr<ModelComponent>(new ModelComponent(filename.c_str(),material)));
-			act->AddComponent(shared_ptr<MeshDrawComponent>(new MeshDrawComponent()));
-			act->AddComponent(shared_ptr<AnimetionComponent>(new AnimetionComponent()));
-			AddObject(act);
-			return;
-		}
+	//	if (type == ".png"
+	//		|| type == ".bmp"
+	//		|| type == ".jpg"
+	//		|| type == ".jpge"){
+	//		AddObject(new Tex(filename.c_str(), { 1000, 0 }, { 1200, 200 }));
+	//		return;
+	//	}
+	//	if (type == ".pmd"
+	//		|| type == ".pmx"){
+	//		auto act = new Actor();
+	//		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
+	//		act->AddComponent(material);
+	//		act->AddComponent(shared_ptr<ModelComponent>(new ModelComponent(filename.c_str(),material)));
+	//		act->AddComponent(shared_ptr<MeshDrawComponent>(new MeshDrawComponent()));
+	//		act->AddComponent(shared_ptr<AnimetionComponent>(new AnimetionComponent()));
+	//		AddObject(act);
+	//		return;
+	//	}
 
-		MessageBox(Window::mhWnd, "ƒtƒ@ƒCƒ‹‚ðŠJ‚¯‚Ü‚¹‚ñ‚Å‚µ‚½", "Ž¸”s", MB_OK);
-	}
+	//	MessageBox(Window::mhWnd, "ƒtƒ@ƒCƒ‹‚ðŠJ‚¯‚Ü‚¹‚ñ‚Å‚µ‚½", "Ž¸”s", MB_OK);
+	//}
 
 	Game();
 	~Game();
@@ -710,41 +802,17 @@ public:
 	static PxRigidActor* CreateRigitBody();
 	static PhysX3Main* GetPhysX();
 	static void RemovePhysXActor(PxActor* act);
+
+	static Actor* FindNameActor(const char* name);
 	static Actor* FindUID(UINT uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
 	static void SetUndo(ICommand* command);
 	static void SetMainCamera(CameraComponent* Camera);
+	static RenderTarget GetMainViewRenderTarget();
+
 	void ChangePlayGame(bool isPlay);
 	void SaveScene();
 
-
-	void fps(){
-		static unsigned long time_start = timeGetTime();
-		static int count_frames = 0;
-
-		unsigned long current_time = timeGetTime();
-		auto b = (current_time - time_start);
-		if (b == 0.0f){
-			b = 1;
-		}
-		float fps = (float)count_frames / b * 1000;
-		std::string title = "FPS:" + std::to_string(fps) + "‚¾‚æ`š";
-		count_frames++;
-		if (count_frames > 60){
-			time_start = timeGetTime();
-			count_frames = 1;
-		}
-
-		static Text text({ 0, 0 }, { 500, 800 });
-		static bool init = false;
-		if (!init){
-			text.Start();
-			init = true;
-		}
-		auto t = text.GetComponent<TextComponent>();
-		t->ChangeText(title);
-		text.UpdateComponent(1);
-	}
 
 	float GetDeltaTime(){
 		float deltaTime;
@@ -774,6 +842,7 @@ public:
 		else{
 			GameStop();
 		}
+		mFPS.Update();
 		mSelectActor.UpdateInspector();
 	}
 	void GameStop(){
@@ -833,20 +902,18 @@ public:
 		});
 
 
-		fps();
 	}
 	void GamePlay(){
 		float deltaTime = GetDeltaTime();
 
 		mRootObject->UpdateComponent(deltaTime);
 		mPhysX3Main->Display();
-		fps();
 	}
 
 	void Draw(){
 		if (!mMainCamera){
 			Device::mRenderTargetBack->ClearView();
-			mMeinViewRenderTarget.ClearView();
+			mMainViewRenderTarget.ClearView();
 			ClearDrawList();
 			return;
 		}
@@ -854,7 +921,7 @@ public:
 		mMainCamera->GSSetConstantBuffers();
 
 		Device::mRenderTargetBack->ClearView();
-		mMeinViewRenderTarget.ClearView();
+		mMainViewRenderTarget.ClearView();
 
 
 		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
@@ -865,14 +932,22 @@ public:
 		Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
 
 
-		const RenderTarget* r[1] = { &mMeinViewRenderTarget };
+		const RenderTarget* r[1] = { &mMainViewRenderTarget };
 		RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
 
-
+		//¡‚ÍˆÓ–¡‚È‚µ
 		PlayDrawList(DrawStage::Depth);
 
-		Device::mRenderTargetBack->ClearView();
-		Device::mRenderTargetBack->SetRendererTarget();
+
+		//if (mIsPlay){
+		//	//mMainViewRenderTarget.SetRendererTarget();
+		//	RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+		//}
+		//else{
+		//	Device::mRenderTargetBack->ClearView();
+		//	Device::mRenderTargetBack->SetRendererTarget();
+		//}
+
 
 
 		ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
@@ -882,6 +957,10 @@ public:
 
 
 		PlayDrawList(DrawStage::Diffuse);
+		PlayDrawList(DrawStage::PostEffect);
+		
+		mPostEffectRendering.Rendering();
+
 		PlayDrawList(DrawStage::Engine);
 		PlayDrawList(DrawStage::UI);
 
@@ -908,6 +987,7 @@ public:
 			p();
 		}
 	}
+
 private:
 	Game(const Game&);
 	Game operator = (Game&);
@@ -944,9 +1024,13 @@ private:
 
 	CommandManager mCommandManager;
 
-	RenderTarget mMeinViewRenderTarget;
+	RenderTarget mMainViewRenderTarget;
 	CameraComponent* mMainCamera;
 	bool mIsPlay;
+
+	PostEffectRendering mPostEffectRendering;
+
+	FPSChecker mFPS;
 
 };
 
@@ -957,6 +1041,10 @@ public:
 		auto a = new Actor();
 		a->ImportDataAndNewID(prefab);
 		return a;
+	}
+
+	Actor* FindActor(const char* name)override{
+		return Game::FindNameActor(name);
 	}
 	void AddObject(Actor* actor) override{
 		Game::AddObject(actor);

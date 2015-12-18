@@ -1,0 +1,120 @@
+
+
+#include "MySTL/Ptr.h"
+#include "Graphic/Font/Font.h"
+#include "Graphic/Material/Material.h"
+#include "TextComponent.h"
+#include "Component.h"
+#include "Game.h"
+
+class TextComponentMember{
+public:
+	weak_ptr<ModelComponent> mModel;
+	weak_ptr<MaterialComponent> mMaterial;
+
+	Font mFont;
+	std::string mText;
+
+	Material mTexMaterial;
+};
+
+TextComponent::TextComponent()
+{
+	impl = new TextComponentMember();
+}
+TextComponent::~TextComponent()
+{
+	delete impl;
+}
+
+void TextComponent::Initialize(){
+	impl->mTexMaterial.Create("texture.fx");
+	impl->mTexMaterial.SetTexture(impl->mFont.GetTexture());
+
+
+	impl->mMaterial = gameObject->GetComponent<MaterialComponent>();
+	if (impl->mMaterial)impl->mMaterial->SetMaterial(0, impl->mTexMaterial);
+
+	impl->mModel = gameObject->GetComponent<TextureModelComponent>();
+
+
+}
+
+void TextComponent::Update(){
+	DrawTextUI();
+}
+
+void TextComponent::DrawTextUI(){
+	Game::AddDrawList(DrawStage::UI, [&](){
+
+		if (!impl->mModel)return;
+		impl->mModel->SetMatrix();
+		Model& model = *impl->mModel->mModel;
+
+		ID3D11DepthStencilState* pBackDS;
+		UINT ref;
+		Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
+
+		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		//descDS.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+		descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
+		ID3D11DepthStencilState* pDS_tex = NULL;
+		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS_tex);
+		Device::mpImmediateContext->OMSetDepthStencilState(pDS_tex, 0);
+
+		D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+		descRS.CullMode = D3D11_CULL_BACK;
+		descRS.FillMode = D3D11_FILL_SOLID;
+
+		ID3D11RasterizerState* pRS = NULL;
+		Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
+
+		Device::mpImmediateContext->RSSetState(pRS);
+
+		model.Draw(impl->mTexMaterial);
+
+		Device::mpImmediateContext->RSSetState(NULL);
+		if (pRS)pRS->Release();
+
+		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+		pDS_tex->Release();
+
+		Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
+		if (pBackDS)pBackDS->Release();
+	});
+}
+
+void TextComponent::CreateInspector(){
+
+	std::function<void(std::string)> collback = [&](std::string name){
+		ChangeText(name);
+	};
+	auto data = Window::CreateInspector();
+	Window::AddInspector(new InspectorStringDataSet("Text", &impl->mText, collback), data);
+	Window::ViewInspector("Text", data);
+}
+
+void TextComponent::ExportData(File& f){
+	ExportClassName(f);
+	if (impl->mText != ""){
+		f.Out(1);
+		f.Out(impl->mText);
+	}
+	else{
+		f.Out(0);
+	}
+}
+void TextComponent::ImportData(File& f){
+	int n;
+	f.In(&n);
+	if (n == 1){
+		f.In(&impl->mText);
+		ChangeText(impl->mText);
+	}
+}
+
+void TextComponent::ChangeText(const std::string& text){
+	impl->mText = text;
+	impl->mFont.SetText(impl->mText);
+}

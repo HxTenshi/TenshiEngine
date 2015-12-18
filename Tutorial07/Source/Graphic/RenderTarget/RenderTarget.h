@@ -189,7 +189,10 @@ public:
 		//if (FAILED(hr))
 		//	return hr;
 
-		//mTexture.Create(shared_ptr<ID3D11ShaderResourceView>(pShaderResourceView));
+		//hr = mTexture.Create(pShaderResourceView);
+		//if (FAILED(hr))
+		//	return hr;
+
 		ClearView();
 
 		return S_OK;

@@ -33,6 +33,7 @@ static UniqueIDGenerator gUniqueIDGenerator("./UniqueID.txt");
 Actor::Actor()
 	:mComponents(this)
 	, mTreeViewPtr(NULL)
+	, mTransform(NULL)
 {
 	mName = "new Object";
 	mUniqueID = 0;
@@ -320,4 +321,14 @@ void Actor::SetTransform(physx::PxTransform* t){
 	//XMMatrixRotationRollPitchYawFromVector
 
 	mTransform->Rotate(rotate);
+}
+
+void* Actor::_GetScript(const char* name){
+	auto com = mComponents.GetComponent<ScriptComponent>();
+	if (com){
+		if (("class "+com->mClassName) == std::string(name)){
+			return com.Get()->pDllClass;
+		}
+	}
+	return NULL;
 }

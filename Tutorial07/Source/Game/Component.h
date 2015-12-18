@@ -17,6 +17,7 @@
 #include "TransformComponent.h"
 #include "PhysXColliderComponent.h"
 #include "ScriptComponent.h"
+#include "TextComponent.h"
 
 #include "Graphic/Font/Font.h"
 class EditorCamera;
@@ -706,88 +707,22 @@ public:
 
 };
 
-class TextComponent :public Component{
-public:
-	TextComponent()
-	{
-	}
-
-	void Initialize() override{
-		mTexMaterial.Create("texture.fx");
-		mTexMaterial.SetTexture(mFont.GetTexture());
-
-
-		mMaterial = gameObject->GetComponent<MaterialComponent>();
-		if (mMaterial)mMaterial->SetMaterial(0, mTexMaterial);
-
-		mModel = gameObject->GetComponent<TextureModelComponent>();
-
-
-	}
-
-	void Update() override{
-		DrawTextUI();
-	}
-
-	void DrawTextUI();
-
-	void CreateInspector() override{
-
-		std::function<void(std::string)> collback = [&](std::string name){
-			ChangeText(name);
-		};
-		auto data = Window::CreateInspector();
-		Window::AddInspector(new InspectorStringDataSet("Text", &mText, collback), data);
-		Window::ViewInspector("Text",data);
-	}
-
-	void ExportData(File& f) override{
-		ExportClassName(f);
-		if (mText != ""){
-			f.Out(1);
-			f.Out(mText);
-		}
-		else{
-			f.Out(0);
-		}
-	}
-	void ImportData(File& f) override{
-		int n;
-		f.In(&n);
-		if (n == 1){
-			f.In(&mText);
-			ChangeText(mText);
-		}
-	}
-
-	void ChangeText(const std::string& text){
-		mText = text;
-		mFont.SetText(mText);
-	}
-private:
-
-	weak_ptr<ModelComponent> mModel;
-	weak_ptr<MaterialComponent> mMaterial;
-
-	Font mFont;
-	std::string mText;
-
-	Material mTexMaterial;
-};
-
-
+#include "Graphic/RenderTarget/RenderTarget.h"
 class PostEffectComponent :public Component{
 public:
 	PostEffectComponent()
 	{
 	}
 
-	void Initialize() override{
-
-	}
-
+	void Initialize() override;
+	
 	void Update() override{
+		PostDraw();
 	}
+
+	void Finish() override;
+
+	void PostDraw();
 
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
@@ -800,6 +735,14 @@ public:
 	void ImportData(File& f) override{
 	}
 private:
+
+	RenderTarget mRenderTarget;
+
+	ModelTexture mModelTexture;
+
+	Material mMaterial;
+	Material mMaterialEnd;
+	
 };
 
 #include <map>
@@ -833,6 +776,7 @@ private:
 		_NewFunc<PhysXComponent>();
 		_NewFunc<PhysXColliderComponent>();
 		_NewFunc<TextComponent>();
+		_NewFunc<PostEffectComponent>();
 		mIsInit = true;
 	}
 	template<class T>

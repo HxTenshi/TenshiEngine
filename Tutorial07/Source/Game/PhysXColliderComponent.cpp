@@ -23,10 +23,10 @@ void PhysXColliderComponent::Initialize(){
 void PhysXColliderComponent::Start(){
 	SearchAttachPhysXComponent();
 
-	if (mMeshFile != ""){
+	if (mMeshFile != "" && mMeshFile != "null"){
 		CreateMesh();
 	}
-	if (!mShape){
+	else{
 		ChangeShape();
 	}
 
@@ -47,30 +47,32 @@ void PhysXColliderComponent::Update(){
 
 	UpdatePose();
 
-	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
-		
-		auto mModel = gameObject->GetComponent<ModelComponent>();
-		if (!mModel)return;
 
-		if (!mModel->mModel)return;
 
-		auto mMaterial = gameObject->GetComponent<MaterialComponent>();
-		if (!mMaterial)return;
-		auto pT = mShape->getLocalPose();
-		auto Position = XMVectorSet(pT.p.x, pT.p.y, pT.p.z, 1);
-		auto Rotate = XMVectorSet(pT.q.x, pT.q.y, pT.q.z, pT.q.w);
-		auto Matrix = XMMatrixMultiply(
-			XMMatrixMultiply(
-			XMMatrixScalingFromVector(gameObject->mTransform->Scale()),
-			XMMatrixRotationQuaternion(Rotate)),
-			XMMatrixTranslationFromVector(Position));
-		mModel->mModel->mWorld = Matrix;
-		mModel->Update();
-
-		Model& model = *mModel->mModel;
-
-		model.Draw(mMaterial);
-	}));
+	//Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
+	//	
+	//	auto mModel = gameObject->GetComponent<ModelComponent>();
+	//	if (!mModel)return;
+	//
+	//	if (!mModel->mModel)return;
+	//
+	//	auto mMaterial = gameObject->GetComponent<MaterialComponent>();
+	//	if (!mMaterial)return;
+	//	auto pT = mShape->getLocalPose();
+	//	auto Position = XMVectorSet(pT.p.x, pT.p.y, pT.p.z, 1);
+	//	auto Rotate = XMVectorSet(pT.q.x, pT.q.y, pT.q.z, pT.q.w);
+	//	auto Matrix = XMMatrixMultiply(
+	//		XMMatrixMultiply(
+	//		XMMatrixScalingFromVector(gameObject->mTransform->Scale()),
+	//		XMMatrixRotationQuaternion(Rotate)),
+	//		XMMatrixTranslationFromVector(Position));
+	//	mModel->mModel->mWorld = Matrix;
+	//	mModel->Update();
+	//
+	//	Model& model = *mModel->mModel;
+	//
+	//	model.Draw(mMaterial);
+	//}));
 }
 
 bool PhysXColliderComponent::SearchAttachPhysXComponent(){
@@ -215,7 +217,17 @@ void PhysXColliderComponent::CreateInspector() {
 
 void PhysXColliderComponent::ExportData(File& f) {
 	ExportClassName(f);
+	if (mMeshFile == "")mMeshFile = "null";
+	f.Out(mMeshFile);
+	f.Out(mIsSphere);
 }
 void PhysXColliderComponent::ImportData(File& f) {
-
+	f.In(&mMeshFile);
+	f.In(&mIsSphere);
+	if (mMeshFile != "null"){
+		CreateMesh();
+	}
+	else{
+		ChangeShape();
+	}
 }

@@ -23,7 +23,6 @@ public:
 		mDelete = NULL;
 		mGetReflect = NULL;
 		ReCompile();
-		DllLoad();
 	}
 	~UseScriptActors(){
 		UnLoad();
@@ -131,10 +130,10 @@ public:
 	void* mDelete;
 	void* mGetReflect;
 	HMODULE hModule;
+
 };
 
 UseScriptActors actors;
-
 
 
 //static
@@ -146,8 +145,6 @@ ScriptComponent::ScriptComponent(){
 	pDllClass = NULL;
 }
 ScriptComponent::~ScriptComponent(){
-	Unload();
-	actors.mList.remove(this);
 }
 void ScriptComponent::Initialize(){
 	Load();
@@ -173,6 +170,7 @@ void ScriptComponent::Unload(){
 		actors.Deleter(pDllClass);
 
 	pDllClass = NULL;
+
 }
 void ScriptComponent::ReCompile(){
 	Unload();
@@ -194,6 +192,8 @@ void ScriptComponent::Finish(){
 	if (pDllClass){
 		pDllClass->Finish();
 	}
+	Unload();
+	actors.mList.remove(this);
 }
 
 void ScriptComponent::OnCollide(Actor* target){
