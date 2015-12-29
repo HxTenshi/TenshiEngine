@@ -66,6 +66,9 @@ void Actor::DrawOnlyUpdateComponent(float deltaTime){
 	auto cmp = mComponents.GetComponent<MeshDrawComponent>();
 	if (cmp)
 		cmp->Update();
+	auto cmp2 = mComponents.GetComponent<PointLightComponent>();
+	if (cmp2)
+		cmp2->Update();
 
 	for (auto child : mTransform->Children()){
 		child->DrawOnlyUpdateComponent(deltaTime);

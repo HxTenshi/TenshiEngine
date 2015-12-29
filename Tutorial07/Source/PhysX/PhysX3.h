@@ -18,6 +18,8 @@
 #include <iostream>
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h> 
+#include <physxprofilesdk\PxProfileZoneManager.h>
+#include <extensions\PxDefaultCpuDispatcher.h>
 //#include <PxExtensionsAPI.h>
 //#include < PxDefaultErrorCallback.h>
 //#include < PxDefaultAllocator.h>

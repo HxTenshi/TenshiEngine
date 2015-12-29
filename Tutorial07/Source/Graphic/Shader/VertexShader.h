@@ -73,6 +73,7 @@ public:
 	}
 
 	void SetShader() const{
+		if (!mpVertexShader)return;
 		Device::mpImmediateContext->VSSetShader(mpVertexShader, NULL, 0);
 		mInputLayout.SetInputLayout();
 	}

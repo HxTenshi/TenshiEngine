@@ -48,6 +48,8 @@ public:
 		mProjection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
 
 		mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
+		XMVECTOR null;
+		mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
 		mCBChangeOnResize.UpdateSubresource();
 
 	}
@@ -72,11 +74,21 @@ public:
 		mCBChangeOnResize.VSSetConstantBuffers();
 		mCBBillboard.VSSetConstantBuffers();
 	}
+	void PSSetConstantBuffers() const
+	{
+		mCBNeverChanges.PSSetConstantBuffers();
+		mCBChangeOnResize.PSSetConstantBuffers();
+		mCBBillboard.PSSetConstantBuffers();
+	}
 	void GSSetConstantBuffers() const
 	{
 		mCBNeverChanges.GSSetConstantBuffers();
 		mCBChangeOnResize.GSSetConstantBuffers();
 		mCBBillboard.GSSetConstantBuffers();
+	}
+
+	const XMMATRIX& GetViewMatrix(){
+		return mView;
 	}
 
 private:
@@ -86,12 +98,13 @@ private:
 		
 		
 		auto Billboard = XMMatrixLookAtLH(XMVectorZero(), Eye - At, Up);
-		XMVECTOR v;
-		Billboard = XMMatrixTranspose(XMMatrixInverse(&v, Billboard));
+		XMVECTOR null;
+		Billboard = XMMatrixTranspose(XMMatrixInverse(&null, Billboard));
 		mCBBillboard.mParam.mBillboardMatrix = Billboard;
 		mCBBillboard.UpdateSubresource();
 		
 		mCBNeverChanges.mParam.mView = XMMatrixTranspose(mView);
+		mCBNeverChanges.mParam.mViewInv = XMMatrixTranspose(XMMatrixInverse(&null, mView));
 		mCBNeverChanges.UpdateSubresource();
 		
 		//gameObject->mTransform->Position(Eye);
@@ -200,6 +213,8 @@ public:
 		mModel = NULL;
 	}
 	~TextureModelComponent(){
+		//親で開放してる
+		//if (mModel)mModel->Release();
 	}
 
 	//void Update(Actor* mThis) override{
@@ -745,6 +760,97 @@ private:
 	
 };
 
+class PointLightComponent :public Component{
+public:
+
+	PointLightComponent()
+	{
+		//D3D11_INPUT_ELEMENT_DESC layout[] = {
+		//		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },  // 座標
+		//};
+		//mVertexShader.Create("DeferredPointLightRendering.fx", "VS", layout, 1);
+		//mPixelShader.Create("DeferredPointLightRendering.fx", "PS");
+
+		mPointLightBuffer = ConstantBuffer<cbChangesPointLight>::create(8);
+		mModel.Create("Assets/ball/ball.pmx.tesmesh", shared_ptr<MaterialComponent>());
+		m_Radius = 1;
+		m_AttenuationStart = 0;
+		m_AttenuationParam = 1;
+		m_Color = XMFLOAT3(1, 1, 1);
+
+		mMaterial.Create("EngineResource/DeferredPointLightRendering.fx");
+
+	}
+	~PointLightComponent(){
+		mModel.Release();
+	}
+
+	void Initialize() override{
+	}
+
+	void Finish() override{
+
+	}
+	void Update() override;
+	void CreateInspector() override{
+
+
+		auto data = Window::CreateInspector();
+		std::function<void(float)> collbackx = [&](float f){
+			m_Color.x = f;
+		};
+
+		std::function<void(float)> collbacky = [&](float f){
+			m_Color.y = f;
+		};
+
+		std::function<void(float)> collbackz = [&](float f){
+			m_Color.z = f;
+		};
+
+		std::function<void(float)> collbackr = [&](float f){
+			m_Radius = f;
+		};
+		std::function<void(float)> collbackas = [&](float f){
+			m_AttenuationStart = f;
+		};
+		std::function<void(float)> collbackap = [&](float f){
+			m_AttenuationParam = f;
+		};
+
+		Window::AddInspector(new InspectorFloatDataSet("radius", &m_Radius, collbackr), data);
+		Window::AddInspector(new InspectorFloatDataSet("AttenuationStart", &m_AttenuationStart, collbackas), data);
+		Window::AddInspector(new InspectorFloatDataSet("AttenuationParam", &m_AttenuationParam, collbackap), data);
+		Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &m_Color.x, collbackx), data);
+		Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &m_Color.y, collbacky), data);
+		Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &m_Color.z, collbackz), data);
+		Window::ViewInspector("PointLight", data);
+	}
+
+	void ExportData(File& f) override{
+		ExportClassName(f);
+	}
+	void ImportData(File& f) override{
+		(void)f;
+	}
+
+	//影響範囲半径
+	float m_Radius;
+	//減衰開始
+	float m_AttenuationStart;
+	//減衰曲線パラメータ
+	float m_AttenuationParam;
+	//カラー
+	XMFLOAT3 m_Color;
+
+	Material mMaterial;
+
+	Model mModel;
+
+	ConstantBuffer<cbChangesPointLight> mPointLightBuffer;
+
+};
+
 #include <map>
 class ComponentFactory{
 
@@ -777,6 +883,7 @@ private:
 		_NewFunc<PhysXColliderComponent>();
 		_NewFunc<TextComponent>();
 		_NewFunc<PostEffectComponent>();
+		_NewFunc<PointLightComponent>();
 		mIsInit = true;
 	}
 	template<class T>

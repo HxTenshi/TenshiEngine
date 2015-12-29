@@ -104,7 +104,6 @@ namespace TestContent{
 		property IntPtr DataPtr{ IntPtr get(){ return mDataPtr; } void set(IntPtr ptr){ mDataPtr = ptr; } }
 		property IntPtr ThisIntPtr{ IntPtr get(){ return (IntPtr)mThisIntPtr; } }
 		property Person^ Parent{ Person^ get(){ return mParent; } }
-		property bool TRUE{ bool get(){ return true; } }
 		void Add(Person^ item){
 			if (item->mParent)
 				item->mParent->Children->Remove(item);
@@ -115,6 +114,8 @@ namespace TestContent{
 		void RemoveSelf(){
 			if (mParent)
 				mParent->Children->Remove(this);
+			DataPtr = (IntPtr)NULL;
+			Name = "sinderu";
 			delete this;
 		}
 	private:

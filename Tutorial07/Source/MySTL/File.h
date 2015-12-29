@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <Windows.h>
+#include "Utility.h"
 
 class File{
 public:
@@ -36,6 +37,20 @@ public:
 	}
 
 	bool FileCreate(){
+		//if (CreateDirectory(mFileName.c_str(), NULL)){
+		//}
+		std::string path = "";
+		auto fullpath = mFileName;
+		while (true){
+			auto dir = forward_than_find_first_of(fullpath, "/");
+			if (dir == "")break;
+			if (path != "")path += "\\";
+			path += dir;
+			fullpath.erase(0, dir.length()+1);
+		
+			if (CreateDirectory(path.c_str(), NULL)){
+			}
+		}
 		mFilePtr.close();
 		mFilePtr.open(mFileName, std::ios::out | std::ios::in | std::ios::trunc);
 		mOpen = !mFilePtr.fail();

@@ -15,6 +15,8 @@ class ModelBufferPMD;
 class ModelBufferPMX;
 class ModelBufferTexture;
 
+class PointLightComponent;
+
 class Mesh{
 public:
 	void Draw()const;
@@ -60,6 +62,8 @@ protected:
 	friend ModelBufferPMD;
 	friend ModelBufferPMX;
 	friend ModelBufferTexture;
+
+	friend PointLightComponent;
 };
 
 class ModelTexture : public Model{

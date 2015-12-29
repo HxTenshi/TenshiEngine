@@ -94,6 +94,9 @@ void PhysXColliderComponent::ShapeAttach(PxShape* shape){
 	//アタッチ失敗
 	if (!mAttachPhysXComponent){
 		mIsShapeAttach = false;
+		if (mShape != shape && mShape){
+			mShape->release();
+		}
 		mShape = shape;
 		return;
 	}
@@ -195,6 +198,9 @@ void PhysXColliderComponent::CreateMesh(){
 
 	ShapeAttach(shape);
 
+	//開放されないので仕方なくここで解放
+	data->m_pVertexBuffer->Release();
+	data->m_pIndexBuffer->Release();
 }
 
 void PhysXColliderComponent::SetIsTrigger(bool flag){

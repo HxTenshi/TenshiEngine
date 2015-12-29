@@ -100,7 +100,7 @@ HRESULT Texture::Create(const char* FileName){
 
 void Texture::PSSetShaderResources(UINT Slot) const{
 	if (!mTexturePtr->mpTextureRV){
-		mNullTexture.PSSetShaderResources(Slot);
+		//mNullTexture.PSSetShaderResources(Slot);
 		//ID3D11ShaderResourceView* r = NULL;
 		//ID3D11SamplerState* s = NULL;
 		//Device::mpImmediateContext->PSSetShaderResources(Slot, 1, &r);

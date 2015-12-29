@@ -39,7 +39,7 @@ HRESULT ShaderFile::CompileShaderFromFile(const char* szFileName, LPCSTR szEntry
 	std::wstring fname;
 	widen2(szFileName, fname);
 
-	ID3DBlob* pErrorBlob;
+	ID3DBlob* pErrorBlob = NULL;
 	hr = D3DCompileFromFile(
 		fname.c_str(),
 		NULL,	// macro
@@ -57,6 +57,7 @@ HRESULT ShaderFile::CompileShaderFromFile(const char* szFileName, LPCSTR szEntry
 		if (pErrorBlob != NULL)
 			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
 		if (pErrorBlob) pErrorBlob->Release();
+		*ppBlobOut = NULL;
 		return hr;
 	}
 	if (pErrorBlob) pErrorBlob->Release();

@@ -52,7 +52,11 @@ void TransformComponent::Rotate(const XMVECTOR& rotate){
 	FlagSetChangeMatrix();
 	UpdatePhysX(PhysXChangeTransformFlag::Rotate);
 }
-
+const XMVECTOR TransformComponent::LossyScale() const{
+	auto m = GetMatrix();
+	
+	return XMVectorSet(1/XMVector3Length(m.r[0]).x, 1/XMVector3Length(m.r[1]).x, 1/XMVector3Length(m.r[2]).x, 1);
+}
 const XMVECTOR& TransformComponent::WorldPosition() const{
 	return GetMatrix().r[3];
 }

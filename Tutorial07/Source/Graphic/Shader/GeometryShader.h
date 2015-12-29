@@ -60,7 +60,8 @@ public:
 	}
 
 	void SetShader() const{
-		Device::mpImmediateContext->GSSetShader(mpGeometryShader, NULL, 0);
+		if (mpGeometryShader)
+			Device::mpImmediateContext->GSSetShader(mpGeometryShader, NULL, 0);
 	}
 
 	void Release(){

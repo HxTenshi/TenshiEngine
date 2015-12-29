@@ -408,6 +408,7 @@
     <ClCompile Include="Source\Game\Game.cpp" />
     <ClCompile Include="Source\Game\PhysXColliderComponent.cpp" />
     <ClCompile Include="Source\Game\PhysXComponent.cpp" />
+    <ClCompile Include="Source\Game\Scene.cpp" />
     <ClCompile Include="Source\Game\ScriptComponent.cpp" />
     <ClCompile Include="Source\Game\TextComponent.cpp" />
     <ClCompile Include="Source\Game\TransformComponent.cpp" />
@@ -425,6 +426,7 @@
     <ClCompile Include="Source\Input\Input.cpp" />
     <ClCompile Include="Source\MySTL\ptr.cpp" />
     <ClCompile Include="Source\MySTL\Reflection\Reflection.cpp" />
+    <ClCompile Include="Source\MySTL\Utility.cpp" />
     <ClCompile Include="Source\PhysX\PhysX3.cpp" />
     <ClCompile Include="Source\stdafx\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -461,6 +463,7 @@
     <ClInclude Include="Source\Game\Lua.h" />
     <ClInclude Include="Source\Game\PhysXColliderComponent.h" />
     <ClInclude Include="Source\Game\PhysXComponent.h" />
+    <ClInclude Include="Source\Game\Scene.h" />
     <ClInclude Include="Source\Game\ScriptComponent.h" />
     <ClInclude Include="Source\Game\TextComponent.h" />
     <ClInclude Include="Source\Game\TransformComponent.h" />
@@ -486,6 +489,7 @@
     <ClInclude Include="Source\MySTL\ptr.h" />
     <ClInclude Include="Source\MySTL\Reflection\MemberInfo_Data.h" />
     <ClInclude Include="Source\MySTL\Reflection\Reflection.h" />
+    <ClInclude Include="Source\MySTL\Utility.h" />
     <ClInclude Include="Source\PhysX\PhysX3.h" />
     <ClInclude Include="Source\PhysX\PxMat33Legacy.h" />
     <ClInclude Include="Source\Sound\Sound.h" />

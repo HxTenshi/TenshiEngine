@@ -86,7 +86,7 @@ class MaterialComponent;
 class ModelBuffer{
 public:
 	ModelBuffer();
-	~ModelBuffer();
+	virtual ~ModelBuffer();
 	virtual HRESULT Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial);
 	void IASet() const;
 	void Draw(UINT IndexNum, UINT StartIndex) const;

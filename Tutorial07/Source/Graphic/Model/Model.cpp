@@ -14,6 +14,7 @@ void Mesh::Draw()const{
 
 Model::Model()
 	:mVMD("anim/好き雪本気マジック_モーション/好き雪本気マジック_Lat式.vmd")
+	, mModelBuffer(NULL)
 	//: mVMD("anim/test2.vmd")
 {
 	// Initialize the world matrices
@@ -70,8 +71,10 @@ void Model::SetConstantBuffer() const
 
 void Model::Release(){
 
-	mModelBuffer->Release();
-	delete mModelBuffer;
+	if (mModelBuffer){
+		mModelBuffer->Release();
+		delete mModelBuffer;
+	}
 }
 
 

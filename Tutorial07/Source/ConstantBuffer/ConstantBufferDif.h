@@ -5,11 +5,13 @@
 struct CBNeverChanges
 {
 	XMMATRIX mView;
+	XMMATRIX mViewInv;
 };
 
 struct CBChangeOnResize
 {
 	XMMATRIX mProjection;
+	XMMATRIX mProjectionInv;
 };
 
 struct CBChangesEveryFrame
@@ -43,4 +45,11 @@ struct cbBoneMatrix
 struct CBBillboard
 {
 	XMMATRIX mBillboardMatrix;
+};
+
+struct cbChangesPointLight
+{
+	XMFLOAT4 ViewPosition;
+	XMFLOAT4 Color;
+	XMFLOAT4 Param;
 };

@@ -1,10 +1,7 @@
 
 
 #include "PhysX3.h"
-#include "../../../PhysX SDK/PhysXSDK/Include/PxActor.h"
 #include <algorithm>
-#include <physxprofilesdk\PxProfileZoneManager.h>
-#include <extensions\PxDefaultCpuDispatcher.h>
 
 class TestOn : public physx::PxSimulationEventCallback{
 	void onConstraintBreak(PxConstraintInfo *constraints, PxU32 count) override{
@@ -146,14 +143,16 @@ struct  FilterGroup
 	};
 };
 
-PhysX3Main::PhysX3Main():
-gPhysicsSDK(NULL),
-mFoundation(NULL),
-gDefaultFilterShader(SampleSubmarineFilterShader),
-gScene(NULL),
-mEngineScene(NULL),
-myTimestep(1.0f/60.0f),
-mMaterial(NULL)
+PhysX3Main::PhysX3Main()
+:gPhysicsSDK(NULL)
+,mFoundation(NULL)
+,gDefaultFilterShader(SampleSubmarineFilterShader)
+,gScene(NULL)
+,mCooking(NULL)
+,mEngineScene(NULL)
+,myTimestep(1.0f/60.0f)
+,mMaterial(NULL)
+, mProfileZoneManager(NULL)
 {
 }
 
@@ -161,8 +160,8 @@ PhysX3Main::~PhysX3Main(){
 	ShutdownPhysX();
 }
 
-TestOn* mTestOn;
-PxDefaultCpuDispatcher* mCpuDispatcher;
+TestOn* mTestOn = NULL;
+PxDefaultCpuDispatcher* mCpuDispatcher = NULL;
 PxVec3 gravity(0, -9.81f, 0);
 void PhysX3Main::InitializePhysX() {
 
@@ -174,7 +173,6 @@ void PhysX3Main::InitializePhysX() {
 		exit(1);
 	}
 
-	bool recordMemoryAllocations = true;
 	mProfileZoneManager = &PxProfileZoneManager::createProfileZoneManager(mFoundation);
 	if (!mProfileZoneManager){
 		std::cerr << "PxProfileZoneManager::createProfileZoneManager failed!" << std::endl;
@@ -187,6 +185,7 @@ void PhysX3Main::InitializePhysX() {
 	//物理を停止するスピード
 	scale.speed = 0.1f;         // typical speed of an object, gravity*1s is a reasonable choice
 
+	bool recordMemoryAllocations = false;
 	gPhysicsSDK = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation,
 		scale, recordMemoryAllocations, mProfileZoneManager);
 	if (gPhysicsSDK == NULL) {
@@ -234,11 +233,12 @@ void PhysX3Main::InitializePhysX() {
 
 	createPlane();
 
+
 	//gScene->setSimulationEventCallback(new TestOn());
 
 	//gScene->simulate(myTimestep);
 }
-PxRigidStatic* p;
+PxRigidStatic* p = NULL;
 void PhysX3Main::createPlane(){
 	//Create actors 
 	//1) Create ground plane
@@ -501,23 +501,60 @@ void PhysX3Main::Display() {
 
 void PhysX3Main::ShutdownPhysX() {
 
-	static PxShape* shapes[256];
-	PxU32 nShapes = p->getNbShapes();
-	p->getShapes(shapes, nShapes);
-	while (nShapes--)
+	//static PxShape* shapes[256];
+	//PxU32 nShapes = 0;
+	//if (p)nShapes = p->getNbShapes();
+	//if(p)p->getShapes(shapes, nShapes);
+	//while (nShapes--)
+	//{
+	//	//shapes[nShapes]->release();
+	//}
 	{
-		shapes[nShapes]->release();
+		physx::PxActorTypeSelectionFlags t;
+		t |= physx::PxActorTypeSelectionFlag::eRIGID_STATIC;
+		t |= physx::PxActorTypeSelectionFlag::eRIGID_DYNAMIC;
+		t |= physx::PxActorTypeSelectionFlag::ePARTICLE_FLUID;
+		t |= physx::PxActorTypeSelectionFlag::ePARTICLE_SYSTEM;
+		t |= physx::PxActorTypeSelectionFlag::eCLOTH;
+
+		int n = gScene->getNbActors(t);
+		std::vector<physx::PxActor*> buffer(n);
+		gScene->getActors(t, buffer.data(), n);
+
+		for (int i = 0; i < buffer.size(); i++)
+		{
+			gScene->removeActor(*buffer[i]);
+			buffer[i]->release();
+		}
 	}
-	delete mTestOn;
-	p->release();
-	mMaterial->release();
-	mCpuDispatcher->release();
-	gScene->release();
-	mEngineScene->release();
-	mFoundation->release();
-	mCooking->release();
-	gPhysicsSDK->release();//メモリーリーク
-	mProfileZoneManager->release();
+	{
+		physx::PxActorTypeSelectionFlags t;
+		t |= physx::PxActorTypeSelectionFlag::eRIGID_STATIC;
+		t |= physx::PxActorTypeSelectionFlag::eRIGID_DYNAMIC;
+		t |= physx::PxActorTypeSelectionFlag::ePARTICLE_FLUID;
+		t |= physx::PxActorTypeSelectionFlag::ePARTICLE_SYSTEM;
+		t |= physx::PxActorTypeSelectionFlag::eCLOTH;
+
+		int n = mEngineScene->getNbActors(t);
+		std::vector<physx::PxActor*> buffer(n);
+		mEngineScene->getActors(t, buffer.data(), n);
+
+		for (int i = 0; i < buffer.size(); i++)
+		{
+			mEngineScene->removeActor(*buffer[i]);
+			buffer[i]->release();
+		}
+	}
+	if (mTestOn)delete mTestOn;
+	//if (p)p->release();
+	if (gScene)gScene->release();
+	if (mEngineScene)mEngineScene->release();
+	if (mMaterial)mMaterial->release();
+	if (mCpuDispatcher)mCpuDispatcher->release();
+	if (mCooking)mCooking->release();
+	if (gPhysicsSDK)gPhysicsSDK->release();
+	if (mProfileZoneManager)mProfileZoneManager->release();
+	if (mFoundation)mFoundation->release();
 }
 
 

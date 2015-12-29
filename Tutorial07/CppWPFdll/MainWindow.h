@@ -4,12 +4,29 @@
 #include "Using.h"
 #include "InspectorData.h"
 
+
+std::string* string_cast(String^ str){
+	//String^ name = (String^)t->Header;
+	pin_ptr<const wchar_t> wch = PtrToStringChars(str);
+	size_t convertedChars = 0;
+	size_t  sizeInBytes = ((str->Length + 1) * 2);
+	char    *ch = (char *)malloc(sizeInBytes);
+	wcstombs_s(&convertedChars,
+		ch, sizeInBytes,
+		wch, sizeInBytes);
+	std::string* temp = new std::string(ch);
+	free(ch);
+
+	return temp;
+
+}
+
 //using namespace System::Windows::Input;
 //using namespace System::Windows;
 using System::Windows::Controls::MenuItem;
 using System::Runtime::InteropServices::Marshal;
 static int cre = 0;
-ref class GameScreenPanel: public System::Windows::Forms::Panel{
+ref class GameScreenPanel : public System::Windows::Forms::Panel{
 public:
 	property System::Windows::Forms::CreateParams^ CreateParams
 	{
@@ -99,7 +116,7 @@ public:
 		//panel->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::md);
 		//panel->UpdateStyle();
 		//panel->BackColor = System::Drawing::Color::Transparent;
-		
+
 		//wfh->AllowDrop = true;
 		//wfh->DragEnter += gcnew DragEventHandler(this, &GameScreen::OnDragOver2);
 		//wfh->DragOver += gcnew DragEventHandler(this, &GameScreen::OnDragOver2);
@@ -268,7 +285,7 @@ public:
 
 		FrameworkElement ^contents = LoadContentsFromResource(IDR_VIEW);
 		Content = contents;
-		
+
 		auto wfh = (WindowsFormsHost ^)contents->FindName("GameScreenWFH");
 		m_GameScreen = gcnew GameScreen(wfh);
 
@@ -283,7 +300,7 @@ public:
 		commandBarPanel->Children->Add(commandBar);
 
 		auto pbtn = (Button^)commandBar->FindName("PlayGameButton");
-		pbtn->Click += gcnew System::Windows::RoutedEventHandler(this,&View::PlayButton_Click);
+		pbtn->Click += gcnew System::Windows::RoutedEventHandler(this, &View::PlayButton_Click);
 		auto sbtn = (Button^)commandBar->FindName("StopGameButton");
 		sbtn->Click += gcnew System::Windows::RoutedEventHandler(this, &View::StopButton_Click);
 		auto cbtn = (Button^)commandBar->FindName("ScriptCompile");
@@ -396,7 +413,7 @@ public:
 		m_ComponentPanel->Children->Clear();
 	}
 
-	void CreateComponent(String^ headerName,array<InspectorData^>^ data){
+	void CreateComponent(String^ headerName, array<InspectorData^>^ data){
 		if (m_ComponentPanel == nullptr)return;
 
 		FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
@@ -433,6 +450,10 @@ public:
 			Data::MyPostMessage(MyWindowMessage::SelectActor, NULL);
 			return;
 		}
+		//System::Windows::MessageBox::Show("text:" + text->Text + "a:" + ((TestContent::Person^)m_TreeView->SelectedValue)->Name);
+		//if (text->Text != ((TestContent::Person^)m_TreeView->SelectedValue)->DataPtr.ToString()){
+		//	text->Text = "0";
+		//}
 		//((IntViewModel^)text->DataContext)->Value = text->Text;
 		//auto item = dynamic_cast<TestContent::Person^>(m_TreeView->SelectedItem);
 		Data::MyPostMessage(MyWindowMessage::SelectActor, (void*)int::Parse(text->Text));
@@ -468,6 +489,7 @@ private:
 	//アセットツリービュー作成
 	void CreateAssetTreeView(System::Windows::Controls::Decorator ^dec){
 		//ツリービュー作成
+
 		auto sp = (Panel^)LoadContentsFromResource(IDR_TREEVIEW);
 		dec->Child = sp;
 		auto treeView = (TreeView^)sp->FindName("treeView1");
@@ -491,28 +513,38 @@ private:
 
 		//追加するアイテムのコントロール
 		auto fact = gcnew System::Windows::FrameworkElementFactory();
-		fact->Type = TreeViewItem::typeid;
+		fact->Type = TextBlock::typeid;
 		auto itembind = gcnew System::Windows::Data::Binding("Name");
 		itembind->Mode = BindingMode::TwoWay;
-		fact->SetBinding(TreeViewItem::HeaderProperty, itembind);
-		fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
-		fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
-		fact->AddHandler(TreeViewItem::MouseRightButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown));
-		fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
-		fact->AddHandler(TreeViewItem::ExpandedEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeView_Expanded));
+		fact->SetBinding(TextBlock::TextProperty, itembind);
+		//fact->SetBinding(TreeViewItem::HeaderProperty, itembind);
+		//fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
+		//fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
+		//fact->AddHandler(TreeViewItem::MouseRightButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown));
+		//fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
+		//fact->AddHandler(TreeViewItem::ExpandedEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeView_Expanded));
 		datatemp->VisualTree = fact;
 
 		treeView->ItemTemplate = datatemp;
+
+		//styleのセット
+		//今のところ上で設定しているので意味なし?
+		auto s = gcnew System::Windows::Style(TreeViewItem::typeid);
+		auto setter = s->Setters;
+		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::ExpandedEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeView_Expanded)));
+		//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop)));
+		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave)));
+		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseDoubleClickEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &View::AssetsTreeViewItem_OnMouseDoubleClick)));
+		//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+		//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+
+		treeView->ItemContainerStyle = s;
+		
 
 		treeView->AllowDrop = true;
 		treeView->Drop += gcnew DragEventHandler(this, &View::OnDrop);
 		treeView->DragEnter += gcnew DragEventHandler(this, &View::OnDragOver2);
 		treeView->DragOver += gcnew DragEventHandler(this, &View::OnDragOver2);
-
-		//選択中のアイテム表示
-		//auto tblock = (TextBlock ^)sp->FindName("textBlock1");
-		//m_ActorIntPtrDataBox = tblock;
-
 
 		CreateAssetTreeViewItem(root, "Assets");
 
@@ -538,6 +570,10 @@ private:
 	String^ GetFolderPath(TestContent::Person^ item){
 		if (item->Name == "__Assets__root__")return "Assets/";
 		return GetFolderPath(item->Parent) + item->Name + "/";
+	}
+	String^ GetFilePath(TestContent::Person^ item){
+		if (item->Name == "__Assets__root__")return "Assets";
+		return GetFilePath(item->Parent) + "/" + item->Name;
 	}
 	void TreeView_Expanded(Object ^s, System::Windows::RoutedEventArgs ^e)
 	{
@@ -567,6 +603,23 @@ private:
 			item, // ドラッグされる物
 			item, // 渡すデータ
 			DragDropEffects::Copy); // D&Dで許可するオペレーション
+	}
+	void AssetsTreeViewItem_OnMouseDoubleClick(Object ^s, System::Windows::Input::MouseButtonEventArgs ^e)
+	{
+		auto t = (TreeViewItem^)s;
+
+		auto name = GetFilePath((TestContent::Person^)t->DataContext);
+		pin_ptr<const wchar_t> wch = PtrToStringChars(name);
+		size_t convertedChars = 0;
+		size_t  sizeInBytes = ((name->Length + 1) * 2);
+		char    *ch = (char *)malloc(sizeInBytes);
+		wcstombs_s(&convertedChars,
+			ch, sizeInBytes,
+			wch, sizeInBytes);
+		std::string* str = new std::string(ch);
+		free(ch);
+		Data::MyPostMessage(MyWindowMessage::OpenAsset, (void*)str);
+
 	}
 	void OnMouseDown(Object ^s, MouseButtonEventArgs ^e)
 	{
@@ -614,136 +667,134 @@ private:
 		e->Effects = DragDropEffects::None;
 	}
 
+
+	//コンテキストメニューの要素作成
+	void CreateContextMenu_AddComponent(String^ text, System::Windows::Controls::ContextMenu^ cm){
+		auto mitem = gcnew System::Windows::Controls::MenuItem();
+		mitem->Header = text;
+		mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_AddComponent);
+		cm->Items->Add(mitem);
+	}
 	//ツリービュー作成
 	void CreateTreeView(System::Windows::Controls::Decorator ^dec){
 		//ツリービュー作成
-		auto sp = (Panel^)LoadContentsFromResource(IDR_TREEVIEW);
-		dec->Child = sp;
-		auto treeView = (TreeView^)sp->FindName("treeView1");
-		m_TreeView = treeView;
+		{
+			auto sp = (Panel^)LoadContentsFromResource(IDR_TREEVIEW);
+
+			dec->Child = sp;
+			auto treeView = (TreeView^)sp->FindName("treeView1");
+			m_TreeView = treeView;
+
+			//選択中のアイテム表示
+			auto tblock = (TextBlock ^)sp->FindName("textBlock1");
+			m_ActorIntPtrDataBox = tblock;
+		}
 
 		//アイテムリスト作成
-		auto list = gcnew TestContent::MyList();
-		//アイテムリストのルートを作成
-		auto root = gcnew TestContent::Person("root", list);
-		treeView->DataContext = root;
-		auto source = gcnew System::Windows::Data::Binding("Children");
-		source->Mode = System::Windows::Data::BindingMode::TwoWay;
-		treeView->SetBinding(TreeView::ItemsSourceProperty, source);
-		m_TreeViewItemRoot = root;
+		{
+			auto list = gcnew TestContent::MyList();
+			//アイテムリストのルートを作成
+			auto root = gcnew TestContent::Person("root", list);
+			m_TreeView->DataContext = root;
+			auto source = gcnew System::Windows::Data::Binding("Children");
+			source->Mode = System::Windows::Data::BindingMode::TwoWay;
+			m_TreeView->SetBinding(TreeView::ItemsSourceProperty, source);
+			m_TreeViewItemRoot = root;
+		}
 
 		//アイテムリストのデータ構造
-		auto datatemp = gcnew System::Windows::HierarchicalDataTemplate();
-		//アイテムのリストバインド
-		auto datasource = gcnew System::Windows::Data::Binding("Children");
-		datasource->Mode = System::Windows::Data::BindingMode::TwoWay;
-		datatemp->ItemsSource = datasource;
+		{
+			auto datatemp = gcnew System::Windows::HierarchicalDataTemplate();
+			//アイテムのリストバインド
+			auto datasource = gcnew System::Windows::Data::Binding("Children");
+			datasource->Mode = System::Windows::Data::BindingMode::TwoWay;
+			datatemp->ItemsSource = datasource;
 
-		//追加するアイテムのコントロール
-		auto fact = gcnew System::Windows::FrameworkElementFactory();
-		fact->Type = TextBlock::typeid;
-		auto itembind = gcnew System::Windows::Data::Binding("Name");
-		itembind->Mode = BindingMode::TwoWay;
-		fact->SetBinding(TextBlock::TextProperty, itembind);
-		fact->SetValue(TextBlock::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(24,24,24)));
-		fact->SetBinding(TextBlock::AllowDropProperty, gcnew System::Windows::Data::Binding("TRUE"));
-		//fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
-		//fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
-		//fact->AddHandler(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop));
-		//fact->AddHandler(TreeViewItem::MouseRightButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown));
-		//fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
-		//fact->AddHandler(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
-		//fact->AddHandler(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
-		datatemp->VisualTree = fact;
+			//追加するアイテムのコントロール
+			auto fact = gcnew System::Windows::FrameworkElementFactory();
+			fact->Type = TextBlock::typeid;
+			auto itembind = gcnew System::Windows::Data::Binding("Name");
+			itembind->Mode = BindingMode::TwoWay;
+			fact->SetBinding(TextBlock::TextProperty, itembind);
+			fact->SetValue(TextBlock::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(24, 24, 24)));
 
-		treeView->ItemTemplate = datatemp;
+			//fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
+			//fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
+			//fact->AddHandler(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop));
+			//fact->AddHandler(TreeViewItem::MouseRightButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown));
+			//fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
+			//fact->AddHandler(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
+			//fact->AddHandler(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
+			datatemp->VisualTree = fact;
 
-		//styleのセット　今のところ上で設定しているので意味なし
-		auto s = gcnew System::Windows::Style(TreeViewItem::typeid);
-		auto setter = s->Setters;
-		//setter->Add(gcnew System::Windows::Setter(TreeViewItem::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(240, 240, 240))));
-		//setter->Add(gcnew System::Windows::Setter(TreeViewItem::BackgroundProperty, gcnew SolidColorBrush(Color::FromRgb(5, 147, 14 * 16 + 2))));
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop)));
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave)));
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
-		treeView->ItemContainerStyle = s;
+			m_TreeView->ItemTemplate = datatemp;
+		}
+
+		//styleのセット
+		{
+			//今のところ上で設定しているので意味なし?
+			auto s = gcnew System::Windows::Style(TreeViewItem::typeid);
+			auto setter = s->Setters;
+			//setter->Add(gcnew System::Windows::Setter(TreeViewItem::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(240, 240, 240))));
+			//setter->Add(gcnew System::Windows::Setter(TreeViewItem::BackgroundProperty, gcnew SolidColorBrush(Color::FromRgb(5, 147, 14 * 16 + 2))));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+			m_TreeView->ItemContainerStyle = s;
 
 
-		treeView->AllowDrop = true;
-		treeView->Drop += gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop);
-		treeView->DragEnter += gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver);
-		treeView->DragOver += gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver);
-
-		//選択中のアイテム表示
-		auto tblock = (TextBlock ^)sp->FindName("textBlock1");
-		m_ActorIntPtrDataBox = tblock;
+			m_TreeView->AllowDrop = true;
+			m_TreeView->Drop += gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop);
+			m_TreeView->DragEnter += gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver);
+			m_TreeView->DragOver += gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver);
+		}
 
 
 		//コンテキストメニュー作成
-		auto cm = gcnew System::Windows::Controls::ContextMenu();
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "しぬ";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click);
-			cm->Items->Add(mitem);
+		{
+			auto cm = gcnew System::Windows::Controls::ContextMenu();
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "しぬ";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click);
+				cm->Items->Add(mitem);
+			}
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "CreateObject";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_CreateObject);
+				cm->Items->Add(mitem);
+			}
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "RemoveMeshDrawComponent";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePostEffectComponent);
+				cm->Items->Add(mitem);
+			}
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "RemoveScriptComponent";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemoveScriptComponent);
+				cm->Items->Add(mitem);
+			}
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "RemovePhysXComponent";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePhysXComponent);
+				cm->Items->Add(mitem);
+			}
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "RemovePhysXColliderComponent";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePhysXColliderComponent);
+				cm->Items->Add(mitem);
+			}
+			CreateContextMenu_AddComponent("PointLightComponent", cm);
+			CreateContextMenu_AddComponent("MeshDrawComponent", cm);
+			//ツリービューに反映
+			m_TreeView->ContextMenu = cm;
 		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "CreateObject";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_CreateObject);
-			cm->Items->Add(mitem);
-		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "AddPostEffectComponent";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_AddPostEffectComponent);
-			cm->Items->Add(mitem);
-		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "RemovePostEffectComponent";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePostEffectComponent);
-			cm->Items->Add(mitem);
-		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "AddScriptComponent";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_AddScriptComponent);
-			cm->Items->Add(mitem);
-		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "RemoveScriptComponent";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemoveScriptComponent);
-			cm->Items->Add(mitem);
-		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "AddPhysXComponent";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_AddPhysXComponent);
-			cm->Items->Add(mitem);
-		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "RemovePhysXComponent";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePhysXComponent);
-			cm->Items->Add(mitem);
-		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "AddPhysXColliderComponent";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_AddPhysXColliderComponent);
-			cm->Items->Add(mitem);
-		}
-		{//コンテキストメニューの要素作成
-			auto mitem = gcnew System::Windows::Controls::MenuItem();
-			mitem->Header = "RemovePhysXColliderComponent";
-			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePhysXColliderComponent);
-			cm->Items->Add(mitem);
-		}
-		//ツリービューに反映
-		m_TreeView->ContextMenu = cm;
 
 	}
 
@@ -797,7 +848,7 @@ private:
 			return true;
 		}
 
-		return ParentCheck(target,parent->Parent);
+		return ParentCheck(target, parent->Parent);
 
 	}
 	void OnDrag(Object ^sender, System::Windows::RoutedEventArgs ^e){
@@ -814,9 +865,9 @@ private:
 		//カーソルを変えないとダメ
 		//要素があるときのみ
 		//if (m_TreeViewItemRoot->Children->Count != 0){
-			//セレクトし直す
-									//m_ActorIntPtrDataBox
-			ActorIntPtr_TargetUpdated(gcnew TextBlock, nullptr);
+		//セレクトし直す
+		//m_ActorIntPtrDataBox
+		ActorIntPtr_TargetUpdated(gcnew TextBlock, nullptr);
 		//}
 
 		if (m_TreeView->SelectedItem == nullptr)return;
@@ -860,42 +911,39 @@ private:
 		if (m_TreeView->SelectedItem == nullptr)return;
 		Data::MyPostMessage(MyWindowMessage::AddComponent, (void*)t);
 	}
-	void MenuItem_Click_AddPostEffectComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageAddComponent("PostEffect");
+	void PostMessageAddComponent(std::string* str){
+		if (m_TreeView->SelectedItem == nullptr)return;
+		Data::MyPostMessage(MyWindowMessage::AddComponent, (void*)str);
+	}
+
+	void MenuItem_Click_AddComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		auto m = (MenuItem^)sender;
+		auto s = (String^)m->Header;
+		auto str = string_cast(s);
+		PostMessageAddComponent(str);
 		e->Handled = true;
 	}
+
 	void MenuItem_Click_RemovePostEffectComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageRemoveComponent("PostEffect");
+		PostMessageRemoveComponent("MeshDraw");
 		e->Handled = true;
 
-	}
-	void MenuItem_Click_AddScriptComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageAddComponent("Script");
-		e->Handled = true;
 	}
 	void MenuItem_Click_RemoveScriptComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
 		PostMessageRemoveComponent("Script");
 		e->Handled = true;
 	}
 
-	void MenuItem_Click_AddPhysXComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageAddComponent("PhysX");
-		e->Handled = true;
-	}
 	void MenuItem_Click_RemovePhysXComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
 		PostMessageRemoveComponent("PhysX");
 		e->Handled = true;
 	}
 
-	void MenuItem_Click_AddPhysXColliderComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageAddComponent("Collider");
-		e->Handled = true;
-	}
 	void MenuItem_Click_RemovePhysXColliderComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
 		PostMessageRemoveComponent("Collider");
 		e->Handled = true;
 	}
-//MenuContext
+	//MenuContext
 #pragma endregion 
 
 protected:

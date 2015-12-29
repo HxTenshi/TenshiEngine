@@ -136,6 +136,19 @@ void SelectActor::SelectActorDraw(){
 	//}));
 }
 
+void SelectActor::SetSelect(Actor* select){
+	mDragBox = -1;
+
+	if (mGame->FindActor(select)){
+		mSelect = select;
+	}
+	else{
+		mSelect = NULL;
+	}
+	Window::ClearInspector();
+	if (mSelect)mSelect->CreateInspector();
+}
+
 Game::Game()
 	:mWorldGrid(1.0f){
 
@@ -147,6 +160,8 @@ Game::Game()
 	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
 	if (FAILED(hr))
 		MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
+
+	m_DeferredRendering.Initialize();
 	mPostEffectRendering.Initialize();
 
 	gpList = &mList;
@@ -178,16 +193,18 @@ Game::Game()
 	//	AddObject(a);
 	//}
 
-	File scenefile("./Assets/Scene.scene");
-	if (scenefile){
-		UINT id;
-		while (scenefile){
-			if (!scenefile.In(&id))break;
-			auto a = new Actor();
-			a->ImportData("./Scene/Object_" + std::to_string(id) + ".txt");
-			AddObject(a);
-		}
-	}
+	m_Scene.LoadScene("./Assets/Scene_.scene");
+
+	//File scenefile("./Assets/Scene.scene");
+	//if (scenefile){
+	//	UINT id;
+	//	while (scenefile){
+	//		if (!scenefile.In(&id))break;
+	//		auto a = new Actor();
+	//		a->ImportData("./Scene/Object_" + std::to_string(id) + ".txt");
+	//		AddObject(a);
+	//	}
+	//}
 
 
 	
@@ -211,7 +228,7 @@ Game::Game()
 				Window::ClearTreeViewItem(p);
 				remove = true;
 			}
-			return true;
+			return false;
 		});
 		if (remove)return;
 
@@ -250,21 +267,27 @@ Game::Game()
 
 	Window::SetWPFCollBack(MyWindowMessage::AddComponent, [&](void* p)
 	{
-		std::string s((const char *)p);
+		std::string* s = (std::string*)p;
 		if (auto actor = mSelectActor.GetSelect()){
-			if (s == "PostEffect")actor->AddComponent(shared_ptr<PostEffectComponent>(new PostEffectComponent()));
-			if (s == "Script")actor->AddComponent(shared_ptr<ScriptComponent>(new ScriptComponent()));
-			if (s == "PhysX")actor->AddComponent(shared_ptr<PhysXComponent>(new PhysXComponent()));
-			if (s == "Collider")actor->AddComponent(shared_ptr<PhysXColliderComponent>(new PhysXColliderComponent()));
+			auto temp = ComponentFactory::Create(*s);
+			if (temp){
+				actor->AddComponent(temp);
+			}
+			//if (s == "PostEffect")actor->AddComponent(shared_ptr<PostEffectComponent>(new PostEffectComponent()));
+			//if (s == "Script")actor->AddComponent(shared_ptr<ScriptComponent>(new ScriptComponent()));
+			//if (s == "PhysX")actor->AddComponent(shared_ptr<PhysXComponent>(new PhysXComponent()));
+			//if (s == "Collider")actor->AddComponent(shared_ptr<PhysXColliderComponent>(new PhysXColliderComponent()));
 			Window::ClearInspector();
 			actor->CreateInspector();
+
 		}
+		Window::Deleter(s);
 	});
 	Window::SetWPFCollBack(MyWindowMessage::RemoveComponent, [&](void* p)
 	{
 		std::string s((const char *)p);
 		if (auto actor = mSelectActor.GetSelect()){
-			if (s == "PostEffect")actor->RemoveComponent<PostEffectComponent>();
+			if (s == "MeshDraw")actor->RemoveComponent<MeshDrawComponent>();
 			if (s == "Script")actor->RemoveComponent<ScriptComponent>();
 			if (s == "PhysX")actor->RemoveComponent<PhysXComponent>();
 			if (s == "Collider")actor->RemoveComponent<PhysXColliderComponent>();
@@ -312,6 +335,17 @@ Game::Game()
 	Window::SetWPFCollBack(MyWindowMessage::SaveScene, [&](void* p)
 	{
 		SaveScene();
+	});
+
+	Window::SetWPFCollBack(MyWindowMessage::OpenAsset, [&](void* p)
+	{
+		std::string *s = (std::string*)p;
+		if ((*s).find(".scene\0") != (*s).npos){
+			TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
+			t->AllChildrenDestroy();
+			m_Scene.LoadScene(*s);
+		}
+		Window::Deleter(s);
 	});
 
 }
@@ -364,10 +398,24 @@ void Game::DestroyObject(Actor* actor){
 	auto desnum = gpList->erase(actor->GetUniqueID());
 	if (!desnum)return;
 	if (!gIsPlay){
-		Window::ClearTreeViewItem(actor->mTreeViewPtr);
+		//ツリービューが作成されていれば
+		if (actor->mTreeViewPtr){
+			Window::ClearTreeViewItem(actor->mTreeViewPtr);
+		}
+		//ツリービューが作成される前なら
+		else{
+			//削除リストに追加
+			mGame->mTreeViewItem_ErrerClearList.push_back(actor);
+		}
 		TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
 		t->AllChildrenDestroy();
 		actor->Finish();
+
+		auto ptr = mGame->mSelectActor.GetSelect();
+		if (actor == ptr){
+			mGame->mSelectActor.SetSelect(NULL);
+		}
+
 		delete actor;
 	}
 	else{
@@ -387,6 +435,10 @@ void Game::ActorMoveStage(){
 		mGame->mActorMoveList.pop();
 		auto actor = tar.second;
 		if (tar.first == ActorMove::Delete){
+			auto ptr = mGame->mSelectActor.GetSelect();
+			if (actor == ptr){
+				mGame->mSelectActor.SetSelect(NULL);
+			}
 			//ツリービューが作成されていれば
 			if (actor->mTreeViewPtr){
 				Window::ClearTreeViewItem(actor->mTreeViewPtr);
@@ -405,7 +457,6 @@ void Game::ActorMoveStage(){
 			if (mGame->mList.find(actor->GetUniqueID()) == mGame->mList.end()){
 				delete actor;
 			}
-
 		}
 		else{
 			Window::AddTreeViewItem(actor->Name(), actor);
@@ -432,6 +483,16 @@ void Game::RemovePhysXActor(PxActor* act){
 void Game::RemovePhysXActorEngine(PxActor* act){
 	return gpPhysX3Main->RemoveActorEngine(act);
 }
+Actor* Game::FindActor(Actor* actor){
+
+	for (auto& act : (*gpList)){
+		if (act.second == actor){
+			return act.second;
+		}
+	}
+	return NULL;
+}
+
 Actor* Game::FindNameActor(const char* name){
 
 	for (auto& act : (*gpList)){
@@ -458,6 +519,9 @@ void Game::SetUndo(ICommand* command){
 
 void Game::SetMainCamera(CameraComponent* Camera){
 	*gMainCamera = Camera;
+}
+CameraComponent* Game::GetMainCamera(){
+	return *gMainCamera;
 }
 RenderTarget Game::GetMainViewRenderTarget(){
 	return mGame->mMainViewRenderTarget;
@@ -542,20 +606,20 @@ void Game::ChangePlayGame(bool isPlay){
 
 
 void Game::SaveScene(){
-	//for (auto& p : mList){
-	//	
-	//	p.second->ExportData("./Scene");
-	//	//delete p;
+	//File scenefile;
+	//if (scenefile.Open("./Assets/Scene.scene")){
+	//	scenefile.FileCreate();
 	//}
-	File scenefile;
-	if (scenefile.Open("./Assets/Scene.scene")){
-		scenefile.FileCreate();
-	}
-	scenefile.Clear();
+	//scenefile.Clear();
 
-	mRootObject->ExportSceneDataStart("./Scene", scenefile);
+	//mRootObject->ExportSceneDataStart("./Scene", scenefile);
+
+	m_Scene.SaveScene(mRootObject);
 }
 
+PostEffectRendering::~PostEffectRendering(){
+	mModelTexture.Release();
+}
 void PostEffectRendering::Initialize(){
 	mModelTexture.Create("", shared_ptr<MaterialComponent>());
 	mMaterial.Create("EngineResource/PostEffectRendering.fx");

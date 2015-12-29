@@ -13,7 +13,7 @@ public:
 	Material();
 	~Material();
 
-	HRESULT Create(const char* shaderFileName = "Tutorial07.fx");
+	HRESULT Create(const char* shaderFileName = "DeferredPrePass.fx");
 	HRESULT Create(ConstantBuffer<cbChangesMaterial> const& cbMaterial, ConstantBuffer<cbChangesUseTexture> const& cbUseTexture);
 	void SetShader() const;
 	void PSSetShaderResources() const;

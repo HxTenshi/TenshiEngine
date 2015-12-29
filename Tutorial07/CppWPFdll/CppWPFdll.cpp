@@ -427,7 +427,7 @@ namespace Test {
 		if (ViewData::window == nullptr)return;
 
 		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddItem);
-		ViewData::window->Dispatcher->Invoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
+		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
 	}
 	void NativeFraction::SetParentTreeViewItem(void* parent, void* child){
 		if (ViewData::window == nullptr)return;

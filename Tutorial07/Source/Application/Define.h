@@ -10,6 +10,8 @@ enum class MyWindowMessage{
 	ScriptCompile,
 	SaveScene,
 
+	OpenAsset,
+
 	PlayGame,
 	StopGame,
 	CreatePMXtoTEStaticMesh,

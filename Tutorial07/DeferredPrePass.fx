@@ -10,12 +10,6 @@
 Texture2D txDiffuse : register( t0 );
 SamplerState samLinear : register(s0);
 
-Texture2D txSphereMap : register(t1);
-SamplerState samSphereMapLinear : register(s1);
-
-Texture2D txToonMap : register(t2);
-SamplerState samToonMapLinear : register(s2);
-
 cbuffer cbNeverChanges : register( b0 )
 {
 	matrix View;
@@ -82,7 +76,9 @@ struct PS_INPUT
 
 struct PS_OUTPUT_1
 {
-	float4 Color0 : SV_Target0;
+	float4 ColorAlbedo : SV_Target0;
+	float4 ColorNormal : SV_Target1;
+	float4 ColorDepth : SV_Target2;
 };
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -95,7 +91,7 @@ PS_INPUT VS( VS_INPUT input )
 	output.Pos = mul( output.VPos, Projection);
 
 	output.Normal = mul(input.Normal, (float3x3)World);
-	//output.Normal = mul(output.Normal, (float3x3)View);
+	output.Normal = mul(output.Normal, (float3x3)View);
 
 	output.Tex = input.Tex;
 	
@@ -111,23 +107,14 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 	// 法線の準備
 	float3 N = normalize(input.Normal);
-	
-	// ライトのベクトル
-	float3 L = normalize(LightVect.xyz);
-	
-	// 頂点座標から視点へのベクトルを正規化
-	float3 V = normalize(-input.VPos.xyz);
-	
-	// ディフューズ角度減衰率計算
-	float DifGen = saturate(dot(N, -L));
-	
-	// ハーフベクトルの計算 norm( ( norm( 頂点位置から視点へのベクトル ) + ライトの方向 ) )
-	float H = normalize(V - L);
+	N = N * 0.5 + 0.5;
 
-	float SpeGen = pow(max(0.0f, dot(N, H)), (MSpecular.a));
+	float farClip = 100;
+	float D = input.VPos.z / farClip;
+	//float D2 = input.Pos.z / input.Pos.w;
 
-	float3 SpeColor = SpeGen * LSpecular.rgb;
-
+	
+	//MSpecular
 
 	// 出力カラー計算 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++( 開始 )
 
@@ -136,20 +123,8 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 		DifColor = txDiffuse.Sample(samLinear, input.Tex);
 
 
-	// ディフューズカラー = ライトのディフューズカラー蓄積値 * マテリアルのディフューズカラー
-	float4 LMDif = LDiffuse * MDiffuse * DifGen;
-	float4 LMAmb = LAmbient * MAmbient;
-	// スペキュラカラー = ライトのスペキュラカラー蓄積値 * マテリアルのスペキュラカラー
-	float3 LMSpe = SpeColor * MSpecular.rgb;
-	//LMSpe = float3(0,0,0);
-
-	float4 Color;
-	// 出力 = saturate( saturate( ディフューズカラー * アンビエントカラーの蓄積値 ) * トゥーンテクスチャカラー + スペキュラカラー ) * テクスチャカラー
-	Color.rgb = saturate(saturate(LMDif.rgb + LMAmb.rgb) + LMSpe.rgb) * DifColor.rgb;
-
-	// アルファ値 = ディフューズアルファ * マテリアルのディフューズアルファ * 不透明度
-	Color.a = DifColor.a * MDiffuse.a;
-
-	Out.Color0 = saturate(Color);
+	Out.ColorAlbedo = DifColor;
+	Out.ColorNormal = float4(N,1);
+	Out.ColorDepth = float4(D, 0, 0, 1);
 	return Out;
 }

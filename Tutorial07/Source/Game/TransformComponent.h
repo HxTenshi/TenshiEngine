@@ -17,7 +17,7 @@ public:
 	virtual ~ITransformComponent(){
 
 	}
-	//virtual const XMVECTOR& WorldScale() const = 0;
+	virtual const XMVECTOR LossyScale() const = 0;
 	//virtual const XMVECTOR& WorldRotate() const = 0;
 	virtual const XMVECTOR& WorldPosition() const = 0;
 
@@ -56,7 +56,7 @@ public:
 	TransformComponent();
 	~TransformComponent();
 
-	//const XMVECTOR& WorldScale() const override;
+	const XMVECTOR LossyScale() const override;
 	//const XMVECTOR& WorldRotate() const override;
 	const XMVECTOR& WorldPosition() const override;
 

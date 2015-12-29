@@ -229,8 +229,9 @@ public:
 		for (UINT i = 0; i < num; i++){
 			r[i] = render[i].mpRenderTargetView;
 		}
+		ID3D11DepthStencilView* d = depth ? depth->mpDepthStencilView : NULL;
 		//レンダーターゲットと深度ステンシルの関連付け
-		Device::mpImmediateContext->OMSetRenderTargets(num, r, depth->mpDepthStencilView);
+		Device::mpImmediateContext->OMSetRenderTargets(num, r, d);
 	}
 	static void NullSetRendererTarget(){
 
