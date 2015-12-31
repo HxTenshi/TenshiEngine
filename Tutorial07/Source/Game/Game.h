@@ -155,9 +155,6 @@ public:
 	}
 private:
 	XMVECTOR	mRClickMousePos;
-	//XMVECTOR	mRClickEyeVect;
-	//XMVECTOR	mRClickRotateAxis;
-	//XMVECTOR	mRClickRotate;
 	Actor		mCamera;
 	CameraComponent* mCameraComponent;
 };
@@ -169,8 +166,9 @@ public:
 		Name("arrow");
 		mTransform = make_shared<TransformComponent>();
 		mComponents.AddComponent<TransformComponent>(mTransform);
-		auto dmy = make_shared<MaterialComponent>();
-		mComponents.AddComponent<ModelComponent>(make_shared<ModelComponent>("EngineResource/Arrow.pmx.tesmesh", dmy));
+		auto model = make_shared<ModelComponent>();
+		model->mFileName = "EngineResource/Arrow.pmx.tesmesh";
+		mComponents.AddComponent<ModelComponent>(model);
 		auto material = make_shared<MaterialComponent>();
 		mComponents.AddComponent<MaterialComponent>(material);
 		material->LoadAssetResource("EngineResource/Arrow.pmx.txt");
@@ -193,8 +191,8 @@ public:
 		mComponents.AddComponent<TransformComponent>(mTransform);
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
-		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new ModelComponent("box",material)));
-		mComponents.AddComponent<MeshDrawComponent>(shared_ptr<MeshDrawComponent>(new MeshDrawComponent()));
+		mComponents.AddComponent<ModelComponent>();
+		mComponents.AddComponent<MeshDrawComponent>();
 		t = 0.0f;
 
 		float scale = 1.0f;
@@ -209,8 +207,8 @@ public:
 		mComponents.AddComponent<TransformComponent>(mTransform);
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
-		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new ModelComponent("box", material)));
-		mComponents.AddComponent<MeshDrawComponent>(shared_ptr<MeshDrawComponent>(new MeshDrawComponent()));
+		mComponents.AddComponent<ModelComponent>();
+		mComponents.AddComponent<MeshDrawComponent>();
 
 		mTransform->Position(Position);
 		t = 0.0f;
@@ -240,7 +238,7 @@ public:
 
 		auto mMaterialComponent = mComponents.AddComponent<MaterialComponent>();
 
-		mComponents.AddComponent<TextureModelComponent>(make_shared<TextureModelComponent>("", mMaterialComponent));
+		mComponents.AddComponent<TextureModelComponent>();
 
 		mComponents.AddComponent<TextComponent>();
 
@@ -275,7 +273,7 @@ public:
 		auto mMaterialComponent = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(mMaterialComponent);
 
-		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new TextureModelComponent("", mMaterialComponent)));
+		mComponents.AddComponent<ModelComponent>();
 		auto draw = shared_ptr<MeshDrawComponent>(new MeshDrawComponent());
 		draw->mWriteDepth = false;
 		mComponents.AddComponent<MeshDrawComponent>(draw);
@@ -315,7 +313,7 @@ public:
 		auto mMaterialComponent = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(mMaterialComponent);
 
-		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new TextureModelComponent("", mMaterialComponent)));
+		mComponents.AddComponent<ModelComponent>();
 		auto draw = shared_ptr<MeshDrawComponent>(new MeshDrawComponent());
 		draw->mWriteDepth = false;
 		mComponents.AddComponent<MeshDrawComponent>(draw);
@@ -363,7 +361,7 @@ public:
 		mComponents.AddComponent<TransformComponent>(mTransform);
 		auto material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mComponents.AddComponent<MaterialComponent>(material);
-		mComponents.AddComponent<ModelComponent>(shared_ptr<ModelComponent>(new ModelComponent("model/mikoteto1/model.pmx", material)));
+		mComponents.AddComponent<ModelComponent>();
 		mComponents.AddComponent<MeshDrawComponent>(shared_ptr<MeshDrawComponent>(new MeshDrawComponent()));
 		mComponents.AddComponent<AnimetionComponent>(shared_ptr<AnimetionComponent>(new AnimetionComponent()));
 		mComponents.AddComponent<ScriptComponent>(shared_ptr<ScriptComponent>(new ScriptComponent()));
@@ -389,7 +387,7 @@ public:
 		mVectorBox[2].mTransform->Scale(XMVectorSet(0.1f, 0.1f, 0.1f, 1.0f));
 		auto mate = mVectorBox[0].GetComponent<MaterialComponent>();
 		if (mate){
-			auto& m = mate->GetMaterial(0);
+			auto m = mate->GetMaterial(0);
 			auto& d = m.mCBMaterial.mParam.Diffuse;
 			d.x = 1;
 			d.y = 0;
@@ -399,7 +397,7 @@ public:
 		}
 		mate = mVectorBox[1].GetComponent<MaterialComponent>();
 		if (mate){
-			auto& m = mate->GetMaterial(0);
+			auto m = mate->GetMaterial(0);
 			auto& d = m.mCBMaterial.mParam.Diffuse;
 			d.x = 0;
 			d.y = 1;
@@ -409,7 +407,7 @@ public:
 		}
 		mate = mVectorBox[2].GetComponent<MaterialComponent>();
 		if (mate){
-			auto& m = mate->GetMaterial(0);
+			auto m = mate->GetMaterial(0);
 			auto& d = m.mCBMaterial.mParam.Diffuse;
 			d.x = 0;
 			d.y = 0;
@@ -465,6 +463,7 @@ public:
 		}
 	}
 	void Update(float deltaTime){
+		(void)deltaTime;
 		//if (Window::GetTreeViewWindow()->IsActive()){
 		//	void* s = (Actor*)Window::GetTreeViewWindow()->GetSelectItem();
 		//	
@@ -596,28 +595,28 @@ public:
 			v[XlineNum + i + 1] = { x, 0.0f, z, 0.0f };
 			if (z == 0)v[XlineNum + i + 1] = { 0.0f, 0.0f, z, 0.0f };
 
-			idx[XlineNum + i] = XlineNum + i;
-			idx[XlineNum + i + 1] = XlineNum + i + 1;
+			idx[XlineNum + i] = (WORD)XlineNum + i;
+			idx[XlineNum + i + 1] = (WORD)XlineNum + i + 1;
 		}
 		float z = GridSize*ZlineNum / 2;
 		float x = GridSize*XlineNum / 2;
 		int i = XlineNum + ZlineNum;
 		v[i] = { 0, 0.0f, 0.0f, 0.0f };
 		v[i + 1] = { x, 0.0f, 0.0f, 0.0f };
-		idx[i] = i;
-		idx[i + 1] = i + 1;
+		idx[i] = (WORD)i;
+		idx[i + 1] = (WORD)i + 1;
 
 		i += 2;
 		v[i] = { 0.0f, 0.0f, 0, 0.0f };
 		v[i + 1] = { 0.0f, 0.0f, z, 0.0f };
-		idx[i] = i;
-		idx[i + 1] = i + 1;
+		idx[i] = (WORD)i;
+		idx[i + 1] = (WORD)i + 1;
 
 		i += 2;
 		v[i] = { 0.0f, 0, 0.0f, 0.0f };
 		v[i + 1] = { 0.0f, z, 0.0f, 0.0f };
-		idx[i] = i;
-		idx[i + 1] = i + 1;
+		idx[i] = (WORD)i;
+		idx[i + 1] = (WORD)i + 1;
 
 		createVertex(v, sizeof(XMFLOAT4), _lineNum);
 		createIndex(idx, _lineNum);
@@ -720,6 +719,9 @@ public:
 	}
 
 private:
+
+	WorldGrid& operator = (const WorldGrid&);
+
 	Shader mShader;
 
 	ID3D11Buffer*	mpVertexBuffer;
@@ -831,7 +833,7 @@ public:
 		m_DepthRT.Create(w, h);
 		m_LightRT.Create(w, h);
 
-		mModelTexture.Create("", shared_ptr<MaterialComponent>());
+		mModelTexture.Create("");
 
 
 		mMaterialLight.Create("EngineResource/DeferredLightRendering.fx");
@@ -1017,6 +1019,9 @@ public:
 	}
 
 private:
+
+	FPSChecker& operator = (const FPSChecker&);
+
 	Text mFPSObject; 
 	weak_ptr<TextComponent> mFPSText;
 	std::vector<unsigned long> mStepFrame_times;
@@ -1320,7 +1325,10 @@ class SGame : public IGame{
 public:
 	Actor* CreateActor(const char* prefab)override{
 		auto a = new Actor();
-		a->ImportDataAndNewID(prefab);
+		if (!a->ImportDataAndNewID(prefab)){
+			delete a;
+			return NULL;
+		}
 		return a;
 	}
 

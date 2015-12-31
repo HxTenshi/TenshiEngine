@@ -46,7 +46,7 @@ void ModelComponent::CreateInspector(){
 		mModel = new Model();
 		//mModel->Create(mFileName.c_str(), shared_ptr<MaterialComponent>());
 		shared_ptr<MaterialComponent> material = shared_ptr<MaterialComponent>(new MaterialComponent());
-		mModel->Create(mFileName.c_str(), material);
+		mModel->Create(mFileName.c_str());
 		//gameObject->RemoveComponent<MaterialComponent>();
 		//gameObject->AddComponent<MaterialComponent>(material);
 
@@ -70,7 +70,7 @@ void CameraComponent::Update(){
 
 void PostEffectComponent::Initialize(){
 	mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
-	mModelTexture.Create("", shared_ptr<MaterialComponent>());
+	mModelTexture.Create("");
 
 	mMaterial.Create("PostEffect.fx");
 	mMaterial.SetTexture(Game::GetMainViewRenderTarget().GetTexture(), 0);

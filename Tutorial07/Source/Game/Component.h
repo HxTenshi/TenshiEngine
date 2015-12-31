@@ -61,11 +61,11 @@ public:
 		Window::ViewInspector("Camera", data);
 	}
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-	}
-	void ImportData(File& f) override{
-		(void)f;
+	void IO_Data(I_ioHelper* io) override{
+		(void)io;
+#define _KEY(x) io->func( x , #x)
+
+#undef _KEY
 	}
 
 	void VSSetConstantBuffers() const
@@ -144,12 +144,6 @@ private:
 
 class ModelComponent :public Component{
 public:
-	ModelComponent(const std::string& FileName,shared_ptr<MaterialComponent> resultMaterial):
-		mFileName(FileName){
-
-		mModel = new Model();
-		mModel->Create(FileName.c_str(), resultMaterial);
-	}
 	ModelComponent(){
 		mModel = NULL;
 	}
@@ -157,6 +151,14 @@ public:
 		if (mModel){
 			mModel->Release();
 			delete mModel;
+		}
+	}
+	virtual void Initialize() override{
+		if (!mModel){
+			mModel = new Model();
+		}
+		if (!mModel->IsCreate()){
+			mModel->Create(mFileName.c_str());
 		}
 	}
 	virtual void Update() override{
@@ -169,32 +171,12 @@ public:
 		mModel->Update();
 	}
 
-	virtual bool HitChack(const XMVECTOR& pos, const XMVECTOR& vect){
-		XMVECTOR p;
-		p.x = mModel->mWorld._41;
-		p.y = mModel->mWorld._42;
-		p.z = mModel->mWorld._43;
-		p.w = mModel->mWorld._44;
-		XMVECTOR v = p - pos;
-		XMVECTOR lv = XMVector3Length(v);
-		float l = XMVectorGetX(lv);
-
-		if (mModel->CheckHitPoint(pos + vect*l)){
-			return true;
-		}
-		return false;
-	}
-
 	void CreateInspector() override;
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-		f.Out(mFileName);
-	}
-	void ImportData(File& f) override{
-		f.In(&mFileName);
-		mModel = new Model();
-		mModel->Create(mFileName.c_str(), shared_ptr<MaterialComponent>());
+	void IO_Data(I_ioHelper* io) override{
+#define _KEY(x) io->func( x , #x)
+		_KEY(mFileName);
+#undef _KEY
 	}
 
 	Model* mModel;
@@ -204,11 +186,6 @@ public:
 
 class TextureModelComponent : public ModelComponent{
 public:
-	TextureModelComponent(const char* FileName, shared_ptr<MaterialComponent> resultMaterial)
-		:ModelComponent(){
-		mModel = new ModelTexture();
-		mModel->Create(FileName, resultMaterial);
-	}
 	TextureModelComponent(){
 		mModel = NULL;
 	}
@@ -217,55 +194,25 @@ public:
 		//if (mModel)mModel->Release();
 	}
 
-	//void Update(Actor* mThis) override{
-	//	if (!mTransform){
-	//		mTransform = mThis->GetComponent<TransformComponent>();
-	//		if (!mTransform)return;
-	//	}
-	//
-	//	if (!mModel)return;
-	//
-	//	//mModel->mWorld = mTransform->mMatrix;
-	//	//mModel->Update();
-	//}
-
-	bool HitChack(const XMVECTOR& pos, const XMVECTOR& vect) override{
-		(void)vect;
-		(void)pos;
-		XMVECTOR p;
-		p.x = mModel->mWorld.m[3][0];
-		p.y = mModel->mWorld.m[3][3];
-		p.z = mModel->mWorld.m[3][2];
-		p.w = mModel->mWorld.m[3][1];
-
-		p.x = p.x * WindowState::mWidth;
-		p.y = (1 - p.y) * WindowState::mHeight;
-
-		p.z = p.z * WindowState::mWidth;
-		p.w = (1 - p.w) * WindowState::mHeight;
-
-		int x, y;
-		Input::MousePosition(&x, &y);
-
-		if (p.x <= x && p.y <= y &&
-			p.z >= x && p.w >= y){
-			return true;
+	void Initialize() override{
+		if (!mModel){
+			mModel = new ModelTexture();
 		}
-		return false;
+		if (!mModel->IsCreate()){
+			mModel->Create("");
+		}
 	}
+
 
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
 		Window::ViewInspector("TextureModel",data);
 	}
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-	}
-	void ImportData(File& f) override{
-		(void)f;
-		mModel = new ModelTexture();
-		mModel->Create("", shared_ptr<MaterialComponent>());
+	void IO_Data(I_ioHelper* io) override{
+		(void)io;
+#define _KEY(x) io->func( x , #x)
+#undef _KEY
 	}
 
 };
@@ -275,10 +222,11 @@ public:
 
 	void LoadAssetResource(const std::string& path){
 
-		mMaterials.clear();
-
 		File f(path);
 		if (!f)return;
+
+		mMaterials.clear();
+
 		std::string name;
 		f.In(&name);
 		int materialnum;
@@ -329,6 +277,24 @@ public:
 	~MaterialComponent(){
 	}
 
+	void Initialize() override{
+		auto& mate = mMaterials[0];
+		if (!mate.IsCreate()){
+			if (mMaterialPath != ""){
+				LoadAssetResource(mMaterialPath);
+				for (auto& m : mMaterials){
+					if (!m.IsCreate()){
+						m.Create();
+					}
+				}
+			}
+			else{
+				auto& m = mMaterials[0];
+				m.Create();
+			}
+		}
+	}
+
 	void SetMaterial(UINT SetNo,Material& material){
 		if (mMaterials.size() <= SetNo)mMaterials.resize(SetNo+1);
 		mMaterials[SetNo] = material;
@@ -372,52 +338,10 @@ public:
 		Window::ViewInspector("Material",data);
 	}
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-		int num = mMaterials.size();
-		f.Out(num);
-		if (mMaterialPath == "")mMaterialPath = "null";
-		f.Out(mMaterialPath);
-		//for (auto& m : *mMaterials){
-		//	m.ExportData(f);
-		//}
-	}
-	void ImportData(File& f) override{
-		int num;
-		f.In(&num);
-		mMaterials.resize(num);
-		f.In(&mMaterialPath);
-		if (mMaterialPath != "null"){
-			LoadAssetResource(mMaterialPath);
-			for (auto& m : mMaterials){
-				if (!m.mCBUseTexture.mBuffer){
-					m.Create();
-				}
-			}
-		}
-		else{
-			auto& m = mMaterials[0];
-			m.Create();
-		}
-		//for (auto& m : *mMaterials){
-		//	f.In(&num);
-		//	auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-		//	auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-		//	m.Create(cbm, cbt);
-		//	for (int i = 0; i < num; i++){
-		//		int slot;
-		//		f.In(&slot);
-		//		std::string filename;
-		//		f.In(&filename);
-		//		int ioc = filename.find("$");
-		//		while (std::string::npos != ioc){
-		//			filename.replace(ioc, 1, " ");
-		//			ioc = filename.find("$");
-		//		}
-		//
-		//		m.SetTexture(filename.c_str(), slot);
-		//	}
-		//}
+	void IO_Data(I_ioHelper* io) override{
+#define _KEY(x) io->func( x , #x)
+		_KEY(mMaterialPath);
+#undef _KEY
 	}
 
 	std::vector<Material> mMaterials;
@@ -451,11 +375,11 @@ public:
 		Window::ViewInspector("Animetion",data);
 	}
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-	}
-	void ImportData(File& f) override{
-		(void)f;
+
+	void IO_Data(I_ioHelper* io) override{
+		(void)io;
+#define _KEY(x) io->func( x , #x)
+#undef _KEY
 	}
 	
 	float mTime;
@@ -497,11 +421,11 @@ public:
 		Window::ViewInspector("MeshRender",data);
 	}
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-	}
-	void ImportData(File& f) override{
-		(void)f;
+	void IO_Data(I_ioHelper* io) override{
+		(void)io;
+#define _KEY(x) io->func( x , #x)
+
+#undef _KEY
 	}
 
 	weak_ptr<ModelComponent> mModel;
@@ -700,11 +624,11 @@ public:
 		Window::ViewInspector("Particle",data);
 	}
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-	}
-	void ImportData(File& f) override{
-		(void)f;
+	void IO_Data(I_ioHelper* io) override{
+		(void)io;
+#define _KEY(x) io->func( x , #x)
+
+#undef _KEY
 	}
 
 
@@ -744,10 +668,12 @@ public:
 		Window::ViewInspector("PostEffect", data);
 	}
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-	}
-	void ImportData(File& f) override{
+
+	void IO_Data(I_ioHelper* io) override{
+		(void)io;
+#define _KEY(x) io->func( x , #x)
+
+#undef _KEY
 	}
 private:
 
@@ -772,7 +698,7 @@ public:
 		//mPixelShader.Create("DeferredPointLightRendering.fx", "PS");
 
 		mPointLightBuffer = ConstantBuffer<cbChangesPointLight>::create(8);
-		mModel.Create("Assets/ball/ball.pmx.tesmesh", shared_ptr<MaterialComponent>());
+		mModel.Create("Assets/ball/ball.pmx.tesmesh");
 		m_Radius = 1;
 		m_AttenuationStart = 0;
 		m_AttenuationParam = 1;
@@ -827,11 +753,16 @@ public:
 		Window::ViewInspector("PointLight", data);
 	}
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-	}
-	void ImportData(File& f) override{
-		(void)f;
+	void IO_Data(I_ioHelper* io) override{
+#define _KEY(x) io->func( x , #x)
+		_KEY(m_Radius);
+		_KEY(m_AttenuationStart);
+		_KEY(m_AttenuationParam);
+		_KEY(m_Color.x);
+		_KEY(m_Color.y);
+		_KEY(m_Color.z);
+
+#undef _KEY
 	}
 
 	//‰e‹¿”ÍˆÍ”¼Œa

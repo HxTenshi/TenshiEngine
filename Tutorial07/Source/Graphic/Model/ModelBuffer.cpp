@@ -26,7 +26,7 @@ ModelBuffer::~ModelBuffer()
 }
 
 #include "Game/Component.h"
-HRESULT ModelBuffer::Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial){
+HRESULT ModelBuffer::Create(const char* FileName, Model* mpModel){
 	(void)FileName;
 	HRESULT hr = S_OK;
 	// Create vertex buffer
@@ -109,8 +109,6 @@ HRESULT ModelBuffer::Create(const char* FileName, Model* mpModel, shared_ptr<Mat
 	hr = mat.Create(cbm, cbt);
 	if (FAILED(hr))
 		return hr;
-	if (resultMaterial)
-		resultMaterial->SetMaterial(0, mat);
 
 	mStride = sizeof(SimpleVertex);
 	return S_OK;
@@ -565,7 +563,9 @@ void ModelBuffer::VMDIkAnimation()
 				Bone& link_parent = mBone[link_pidx];
 
 				Bone& tg_bone = mBone[tg_idx];
+				(void)tg_bone;
 				Bone& ik_bone = mBone[ik_idx];
+				(void)ik_bone;
 
 				XMVECTOR target_wpos = mBone[tg_idx].mMtxPose.r[3];
 				XMVECTOR ik_wpos = mBone[ik_idx].mMtxPose.r[3];
@@ -598,10 +598,13 @@ void ModelBuffer::VMDIkAnimation()
 
 					float dist_tg = XMVectorGetX(XMVector3Length(tg_pos));
 					float dist_ik = XMVectorGetX(XMVector3Length(ik_pos));
+					(void)dist_ik;
 					float dist_lp = XMVectorGetX(XMVector3Length(lp_pos));
+					(void)dist_lp;
 					float dist_pltg = XMVectorGetX(XMVector3Length(lp_pos - tg_pos));
 					float dist_plik = XMVectorGetX(XMVector3Length(lp_pos - ik_pos));
 					float dot_tgik = XMVectorGetX(XMVector3Dot(XMVector3Normalize(tg_pos), XMVector3Normalize(ik_pos)));
+					(void)dot_tgik;
 
 					// âÒì]êßå¿
 					if (/*link.bLimit*/ 1){
@@ -728,16 +731,14 @@ void ModelBuffer::VMDIkAnimation()
 #endif
 
 
-HRESULT AssetModelBuffer::Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial){
-	(void)resultMaterial;
-	HRESULT hr = S_OK;
+HRESULT AssetModelBuffer::Create(const char* FileName, Model* mpModel){
 
 	mMaxVertex = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	mMinVertex = XMVectorSet(-1.0f, -1.0f, -1.0f, 1.0f);
 
 	AssetLoader loader;
 	auto modeldata = loader.LoadAsset(FileName);
-	if (!modeldata)return S_FALSE;
+	if (!modeldata)return E_FAIL;
 
 	mpIndexBuffer = modeldata->m_pIndexBuffer;
 	mpVertexBuffer = modeldata->m_pVertexBuffer;

@@ -25,6 +25,8 @@ public:
 	}
 
 private:
+
+	MemberInfo& operator =(const MemberInfo&);
 	void* Post;
 	MemberInfo_Data& Data;
 
@@ -47,6 +49,8 @@ public:
 	}
 
 private:
+	MemberInfos& operator =(const MemberInfos&);
+
 	void* Post;
 	std::map<std::string, MemberInfo_Data>& Data;
 

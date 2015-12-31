@@ -25,7 +25,7 @@ Model::~Model()
 
 }
 #include "Game/Component.h"
-HRESULT Model::Create(const char* FileName,shared_ptr<MaterialComponent> resultMaterial){
+HRESULT Model::Create(const char* FileName){
 	HRESULT hr = S_OK;
 
 	std::string f = FileName;
@@ -42,7 +42,7 @@ HRESULT Model::Create(const char* FileName,shared_ptr<MaterialComponent> resultM
 		mModelBuffer = new ModelBuffer();
 	}
 
-	hr = mModelBuffer->Create(FileName, this, resultMaterial);
+	hr = mModelBuffer->Create(FileName, this);
 	if (FAILED(hr))
 		return hr;
 
@@ -74,6 +74,7 @@ void Model::Release(){
 	if (mModelBuffer){
 		mModelBuffer->Release();
 		delete mModelBuffer;
+		mModelBuffer = NULL;
 	}
 }
 
@@ -88,7 +89,7 @@ void Model::Update(){
 
 }
 void Model::IASet() const{
-	mModelBuffer->IASet();
+	if(mModelBuffer)mModelBuffer->IASet();
 }
 void Model::Draw(Material material) const{
 	material.SetShader();
@@ -130,36 +131,10 @@ void Model::PlayVMD(float time){
 }
 
 
-
-bool Model::CheckHitPoint(const XMVECTOR& point){
-
-	
-	XMVECTOR _max = XMVector3Transform(mModelBuffer->mMaxVertex, mWorld);
-	XMVECTOR _min = XMVector3Transform(mModelBuffer->mMinVertex, mWorld);
-
-	XMVECTOR max;
-	XMVECTOR min;
-	max.x = max(_max.x, _min.x);
-	max.y = max(_max.y, _min.y);
-	max.z = max(_max.z, _min.z);
-	min.x = min(_max.x, _min.x);
-	min.y = min(_max.y, _min.y);
-	min.z = min(_max.z, _min.z);
-
-	if (max.x < point.x)return false;
-	if (max.y < point.y)return false;
-	if (max.z < point.z)return false;
-	if (min.x > point.x)return false;
-	if (min.y > point.y)return false;
-	if (min.z > point.z)return false;
-
-	return true;
-}
-
 #include "Game/Component.h"
 class ModelBufferTexture : public ModelBuffer{
 
-	HRESULT Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial) override{
+	HRESULT Create(const char* FileName, Model* mpModel) override{
 		HRESULT hr = S_OK;
 		// Create vertex buffer
 		PMDVertex vertices[] =
@@ -199,9 +174,6 @@ class ModelBufferTexture : public ModelBuffer{
 		if (FAILED(hr))
 			return hr;
 
-		if (resultMaterial)
-			resultMaterial->SetMaterial(0, mat);
-
 		mStride = sizeof(PMDVertex);
 
 		return S_OK;
@@ -215,12 +187,12 @@ ModelTexture::ModelTexture(){
 ModelTexture::~ModelTexture(){
 
 }
-HRESULT ModelTexture::Create(const char* FileName, shared_ptr<MaterialComponent> resultMaterial){
+HRESULT ModelTexture::Create(const char* FileName){
 	HRESULT hr = S_OK;
 
 	mModelBuffer = new ModelBufferTexture();
 
-	hr = mModelBuffer->Create(FileName, this, resultMaterial);
+	hr = mModelBuffer->Create(FileName, this);
 	if (FAILED(hr))
 		return hr;
 

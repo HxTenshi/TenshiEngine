@@ -20,6 +20,10 @@ TransformComponent::TransformComponent()
 TransformComponent::~TransformComponent(){
 }
 
+void TransformComponent::Initialize(){
+	FlagSetChangeMatrix();
+}
+
 void TransformComponent::Start(){
 	if (mParentUniqueID){
 		mParent = Game::FindUID(mParentUniqueID);
@@ -213,43 +217,23 @@ void TransformComponent::CreateInspector(){
 	//Window::GetInspectorWindow()->AddParam(&mPosition.z, &mFixMatrixFlag);
 }
 
-void TransformComponent::ExportData(File& f){
-	ExportClassName(f);
-	if (!f.Out(mScale.x)){
-		return;
-	}
-	f.Out(mScale.y);
-	f.Out(mScale.z);
-	f.Out(mScale.w);
+void TransformComponent::IO_Data(I_ioHelper* io){
+#define _KEY(x) io->func( x , #x)
+	_KEY(mParentUniqueID);
+	_KEY(mScale.x);
+	_KEY(mScale.y);
+	_KEY(mScale.z);
+	_KEY(mScale.w);
+	_KEY(mRotate.x);
+	_KEY(mRotate.y);
+	_KEY(mRotate.z);
+	_KEY(mRotate.w);
+	_KEY(mPosition.x);
+	_KEY(mPosition.y);
+	_KEY(mPosition.z);
+	_KEY(mPosition.w);
 
-	f.Out(mRotate.x);
-	f.Out(mRotate.y);
-	f.Out(mRotate.z);
-	f.Out(mRotate.w);
-
-	f.Out(mPosition.x);
-	f.Out(mPosition.y);
-	f.Out(mPosition.z);
-	f.Out(mPosition.w);
-}
-void TransformComponent::ImportData(File& f){
-	if (!f.In(&mScale.x))
-		return;
-	f.In(&mScale.y);
-	f.In(&mScale.z);
-	f.In(&mScale.w);
-
-	f.In(&mRotate.x);
-	f.In(&mRotate.y);
-	f.In(&mRotate.z);
-	f.In(&mRotate.w);
-
-	f.In(&mPosition.x);
-	f.In(&mPosition.y);
-	f.In(&mPosition.z);
-	f.In(&mPosition.w);
-
-	FlagSetChangeMatrix();
+#undef _KEY
 }
 
 void TransformComponent::UpdatePhysX(PhysXChangeTransformFlag flag){

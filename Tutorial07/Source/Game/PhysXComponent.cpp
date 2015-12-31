@@ -106,13 +106,11 @@ void PhysXComponent::CreateInspector() {
 	Window::ViewInspector("PhysX",data);
 }
 
-void PhysXComponent::ExportData(File& f) {
-	ExportClassName(f);
-	f.Out(mIsKinematic);
-}
-void PhysXComponent::ImportData(File& f) {
+void PhysXComponent::IO_Data(I_ioHelper* io){
+#define _KEY(x) io->func( x , #x)
+	_KEY(mIsKinematic);
 
-	f.In(&mIsKinematic);
+#undef _KEY
 }
 
 void PhysXComponent::SetKinematic(bool flag){

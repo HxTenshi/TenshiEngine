@@ -9,9 +9,9 @@ class MaterialComponent;
 class ModelBufferPMD : public ModelBuffer{
 public:
 
-	HRESULT Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial) override;
+	HRESULT Create(const char* FileName, Model* mpModel) override;
 private:
-	HRESULT createMaterial(unsigned long count, pmd::t_material* material, const std::string& sFileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial);
+	HRESULT createMaterial(unsigned long count, pmd::t_material* material, const std::string& sFileName, Model* mpModel);
 
 	HRESULT createBone(unsigned long count, pmd::t_bone* bone);
 
@@ -23,9 +23,9 @@ private:
 class ModelBufferPMX : public ModelBuffer{
 public:
 
-	HRESULT Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial) override;
+	HRESULT Create(const char* FileName, Model* mpModel) override;
 private:
-	HRESULT createMaterial(unsigned long count, pmx::t_material* material, std::string* textures, const std::string& sFileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial);
+	HRESULT createMaterial(unsigned long count, pmx::t_material* material, std::string* textures, const std::string& sFileName, Model* mpModel);
 
 	HRESULT createBone(unsigned long count, pmx::t_bone* bone);
 

@@ -3,7 +3,7 @@
 
 #include "ScriptComponent.h"
 #include "MySTL/Reflection/Reflection.h"
-#include "Window/window.h";
+#include "Window/window.h"
 
 #include "../ScriptComponent/main.h"
 typedef IDllScriptComponent* (__cdecl *CreateInstance_)(const char*);

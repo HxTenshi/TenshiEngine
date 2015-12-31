@@ -31,7 +31,7 @@ class Model{
 public:
 	Model();
 	virtual ~Model();
-	virtual HRESULT Create(const char* FileName, shared_ptr<MaterialComponent> resultMaterial);
+	virtual HRESULT Create(const char* FileName);
 	void Release();
 	void SetConstantBuffer() const;
 	void Update();
@@ -41,7 +41,10 @@ public:
 	ModelBuffer* GetModelBuffer(){ return mModelBuffer; }
 	void PlayVMD(float time);
 
-	bool CheckHitPoint(const XMVECTOR& point);
+	//クリエイトされているか
+	bool IsCreate(){
+		return mModelBuffer != NULL;
+	}
 
 public:
 	XMMATRIX		mWorld;
@@ -70,5 +73,5 @@ class ModelTexture : public Model{
 public:
 	ModelTexture();
 	~ModelTexture();
-	HRESULT Create(const char* FileName, shared_ptr<MaterialComponent> resultMaterial) override;
+	HRESULT Create(const char* FileName) override;
 };

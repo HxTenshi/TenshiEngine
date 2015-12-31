@@ -269,8 +269,10 @@ void InspectorVector3::CreateInspector(DockPanel^ dockPanel) {
 
 static ref class ViewData{
 public:
-	static View^ window = nullptr;
+	static View^ window;
 };
+
+
 HWND Data::hWnd = NULL;
 void Data::MyPostMessage(MyWindowMessage wm, void* p){
 	Data::hWnd = FindWindow(L"TutorialWindowClass", NULL);
@@ -423,7 +425,7 @@ namespace Test {
 		}
 	}
 
-	void NativeFraction::AddTreeViewItem(std::string& Name, void* ptr){
+	void NativeFraction::AddTreeViewItem(const std::string& Name, void* ptr){
 		if (ViewData::window == nullptr)return;
 
 		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddItem);

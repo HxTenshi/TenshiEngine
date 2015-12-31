@@ -19,6 +19,15 @@ PhysXColliderComponent::~PhysXColliderComponent(){
 }
 void PhysXColliderComponent::Initialize(){
 	mIsParentPhysX = false;
+
+	if (!mShape){
+		if (mMeshFile != ""){
+			CreateMesh();
+		}
+		if (!mShape){
+			ChangeShape();
+		}
+	}
 }
 
 void PhysXColliderComponent::Start(){
@@ -249,19 +258,11 @@ void PhysXColliderComponent::CreateInspector() {
 	Window::ViewInspector("Collider",data);
 }
 
-void PhysXColliderComponent::ExportData(File& f) {
-	ExportClassName(f);
-	if (mMeshFile == "")mMeshFile = "null";
-	f.Out(mMeshFile);
-	f.Out(mIsSphere);
-}
-void PhysXColliderComponent::ImportData(File& f) {
-	f.In(&mMeshFile);
-	f.In(&mIsSphere);
-	if (mMeshFile != "null"){
-		CreateMesh();
-	}
-	else{
-		ChangeShape();
-	}
+void PhysXColliderComponent::IO_Data(I_ioHelper* io){
+#define _KEY(x) io->func( x , #x)
+	_KEY(mMeshFile);
+	_KEY(mIsSphere);
+	_KEY(mIsTrigger);
+
+#undef _KEY
 }

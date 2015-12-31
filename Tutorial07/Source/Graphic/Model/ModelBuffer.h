@@ -87,7 +87,7 @@ class ModelBuffer{
 public:
 	ModelBuffer();
 	virtual ~ModelBuffer();
-	virtual HRESULT Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial);
+	virtual HRESULT Create(const char* FileName, Model* mpModel);
 	void IASet() const;
 	void Draw(UINT IndexNum, UINT StartIndex) const;
 	void Release();
@@ -130,7 +130,7 @@ protected:
 #include "Engine/AssetLoader.h"
 class AssetModelBuffer : public ModelBuffer {
 public:
-	HRESULT Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial) override;
+	HRESULT Create(const char* FileName, Model* mpModel) override;
 private:
 	friend Model;
 };

@@ -18,7 +18,7 @@ XMMATRIX SRTMatrix(const XMVECTOR& scale, const XMVECTOR& quat_rot, const XMVECT
 }
 
 
-HRESULT ModelBufferPMD::Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial){
+HRESULT ModelBufferPMD::Create(const char* FileName, Model* mpModel){
 
 	HRESULT hr = S_OK;
 	//pmdクラスを生成する。その際にコンストラクタにファイル名を教える
@@ -74,7 +74,7 @@ HRESULT ModelBufferPMD::Create(const char* FileName, Model* mpModel, shared_ptr<
 	if (FAILED(hr))
 		return hr;
 
-	hr = createMaterial(modeldata.material_count, modeldata.material, sFileName, mpModel,resultMaterial);
+	hr = createMaterial(modeldata.material_count, modeldata.material, sFileName, mpModel);
 	if (FAILED(hr))
 		return hr;
 
@@ -88,7 +88,9 @@ HRESULT ModelBufferPMD::Create(const char* FileName, Model* mpModel, shared_ptr<
 }
 
 #include "Game/Component.h"
-HRESULT ModelBufferPMD::createMaterial(unsigned long count, pmd::t_material* material, const std::string& sFileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial){
+HRESULT ModelBufferPMD::createMaterial(unsigned long count, pmd::t_material* material, const std::string& sFileName, Model* mpModel){
+	//Resultマテリアルを消したからメッシュのみで他意味なし
+	//このクラス自体もう使われない？
 		HRESULT hr = S_OK;
 
 		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
@@ -132,7 +134,6 @@ HRESULT ModelBufferPMD::createMaterial(unsigned long count, pmd::t_material* mat
 				file.erase(loc);
 			}
 			mat.SetTexture(file.c_str(), 0);
-			resultMaterial->SetMaterial(i, mat);
 		}
 		return S_OK;
 	}
@@ -205,7 +206,8 @@ HRESULT ModelBufferPMD::createIk(unsigned long count, pmd::t_ik_data* ik){
 
 
 
-HRESULT ModelBufferPMX::Create(const char* FileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial){
+HRESULT ModelBufferPMX::Create(const char* FileName, Model* mpModel){
+
 
 	HRESULT hr = S_OK;
 	//pmdクラスを生成する。その際にコンストラクタにファイル名を教える
@@ -248,10 +250,10 @@ HRESULT ModelBufferPMX::Create(const char* FileName, Model* mpModel, shared_ptr<
 		vertices[i].BoneIndex[1] = modeldata.vertex_data.vertex[i].bone_num[1];
 		vertices[i].BoneIndex[2] = modeldata.vertex_data.vertex[i].bone_num[2];
 		vertices[i].BoneIndex[3] = modeldata.vertex_data.vertex[i].bone_num[3];
-		vertices[i].BoneWeight[0] = modeldata.vertex_data.vertex[i].bone_weight[0] * 100.0f;
-		vertices[i].BoneWeight[1] = modeldata.vertex_data.vertex[i].bone_weight[1] * 100.0f;
-		vertices[i].BoneWeight[2] = modeldata.vertex_data.vertex[i].bone_weight[2] * 100.0f;
-		vertices[i].BoneWeight[3] = modeldata.vertex_data.vertex[i].bone_weight[3] * 100.0f;
+		vertices[i].BoneWeight[0] = (UINT)(modeldata.vertex_data.vertex[i].bone_weight[0] * 100.0f);
+		vertices[i].BoneWeight[1] = (UINT)(modeldata.vertex_data.vertex[i].bone_weight[1] * 100.0f);
+		vertices[i].BoneWeight[2] = (UINT)(modeldata.vertex_data.vertex[i].bone_weight[2] * 100.0f);
+		vertices[i].BoneWeight[3] = (UINT)(modeldata.vertex_data.vertex[i].bone_weight[3] * 100.0f);
 	}
 	hr = createVertex(vertices, sizeof(PMDVertex), TYOUTEN);
 	delete[] vertices;
@@ -267,13 +269,13 @@ HRESULT ModelBufferPMX::Create(const char* FileName, Model* mpModel, shared_ptr<
 	int size = modeldata.header.config[pmx::t_header::VIDX];
 	for (UINT i = 0; i < INDEXSU; i++){
 		if (size == 1){
-			indices[i] = ((byte*)modeldata.face_vert_index)[i];
+			indices[i] = (WORD)((byte*)modeldata.face_vert_index)[i];
 		}
 		if (size == 2){
-			indices[i] = ((unsigned short*)modeldata.face_vert_index)[i];
+			indices[i] = (WORD)((unsigned short*)modeldata.face_vert_index)[i];
 		}
 		if (size == 4){
-			indices[i] = ((unsigned int*)modeldata.face_vert_index)[i];
+			indices[i] = (WORD)((unsigned int*)modeldata.face_vert_index)[i];
 		}
 	}
 	hr = createIndex(indices, INDEXSU);
@@ -281,7 +283,7 @@ HRESULT ModelBufferPMX::Create(const char* FileName, Model* mpModel, shared_ptr<
 	if (FAILED(hr))
 		return hr;
 
-	hr = createMaterial(modeldata.material_count, modeldata.material,modeldata.textureName, sFileName, mpModel,resultMaterial);
+	hr = createMaterial(modeldata.material_count, modeldata.material,modeldata.textureName, sFileName, mpModel);
 	if (FAILED(hr))
 		return hr;
 
@@ -307,7 +309,9 @@ HRESULT ModelBufferPMX::Create(const char* FileName, Model* mpModel, shared_ptr<
 //	}
 //
 //}
-HRESULT ModelBufferPMX::createMaterial(unsigned long count, pmx::t_material* material, std::string* textures, const std::string& sFileName, Model* mpModel, shared_ptr<MaterialComponent> resultMaterial){
+HRESULT ModelBufferPMX::createMaterial(unsigned long count, pmx::t_material* material, std::string* textures, const std::string& sFileName, Model* mpModel){
+	//Resultマテリアルを消したからメッシュのみで他意味なし
+	//このクラス自体もう使われない？
 	HRESULT hr = S_OK;
 
 	auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
@@ -355,9 +359,6 @@ HRESULT ModelBufferPMX::createMaterial(unsigned long count, pmx::t_material* mat
 			std::string file = sFileName + textures[material[i].TextureIdx];
 			mat.SetTexture(file.c_str(), 0);
 		}
-
-		if (resultMaterial)
-			resultMaterial->SetMaterial(i, mat);
 	}
 	return S_OK;
 }
@@ -371,12 +372,12 @@ HRESULT ModelBufferPMX::createBone(unsigned long count, pmx::t_bone* bone){
 		mBone[i].mStrName = bone[i].BoneName;// +"%0";
 		mBone[i].mHierarchy.mIdxSelf = i;
 		mBone[i].mHierarchy.mIdxParent = bone[i].parent_bidx;
-		if (bone[i].parent_bidx >= mBoneNum) mBone[i].mHierarchy.mIdxParent = UINT(-1);
+		if (bone[i].parent_bidx >= (int)mBoneNum) mBone[i].mHierarchy.mIdxParent = UINT(-1);
 
 
 		XMVECTOR head_pos = XMVectorSet(bone[i].bone_head_pos[0], bone[i].bone_head_pos[1], bone[i].bone_head_pos[2], 0.0f);
 		XMVECTOR parent_pos = { 0, 0, 0, 1 };
-		if (mBone[i].mHierarchy.mIdxParent < mBoneNum){
+		if (mBone[i].mHierarchy.mIdxParent < (int)mBoneNum){
 			UINT p = mBone[i].mHierarchy.mIdxParent;
 			parent_pos = XMVectorSet(bone[p].bone_head_pos[0], bone[p].bone_head_pos[1], bone[p].bone_head_pos[2], 0.0f);
 		}
@@ -391,11 +392,11 @@ HRESULT ModelBufferPMX::createBone(unsigned long count, pmx::t_bone* bone){
 		//ワールド行列計算
 		XMVECTOR scale = { 1, 1, 1, 1 };
 		mBone[i].mMtxPose = SRTMatrix(scale, q, local_pos);
-		if (mBone[i].mHierarchy.mIdxParent < mBoneNum){
+		if (mBone[i].mHierarchy.mIdxParent < (int)mBoneNum){
 			mBone[i].mMtxPose = XMMatrixMultiply(mBone[i].mMtxPose, mBone[mBone[i].mHierarchy.mIdxParent].mMtxPose);
 		}
 		if (bone[i].bone_flag & pmx::t_bone::BIT_IK){
-			mBone[i].mIkBoneIdx = bone[i].Ik.idx;
+			mBone[i].mIkBoneIdx = (WORD)bone[i].Ik.idx;
 
 			createIk(ikCount,i, bone[i].Ik);
 			ikCount++;

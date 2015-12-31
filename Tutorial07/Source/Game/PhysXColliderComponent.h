@@ -21,8 +21,7 @@ public:
 	void Update() override;
 	void CreateInspector() override;
 
-	void ExportData(File& f) override;
-	void ImportData(File& f) override;
+	void IO_Data(I_ioHelper* io) override;
 
 	void ChangeShape();
 	void CreateMesh();

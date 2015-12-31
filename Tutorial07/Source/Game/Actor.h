@@ -42,7 +42,6 @@ public:
 
 	void SetUpdateStageCollQueue(const std::function<void()> coll);
 
-	virtual bool ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect);
 	template<class T>
 	weak_ptr<T> GetComponent(){
 		return mComponents.GetComponent<T>();
@@ -86,7 +85,7 @@ public:
 	void ExportSceneData(const std::string& pass,File& sceneFile);
 	void ExportData(const std::string& pass);
 	void ImportData(const std::string& fileName);
-	void ImportDataAndNewID(const std::string& fileName);
+	bool ImportDataAndNewID(const std::string& fileName);
 
 	shared_ptr<ITransformComponent> mTransform;
 

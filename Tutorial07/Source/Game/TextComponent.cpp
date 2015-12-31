@@ -37,7 +37,7 @@ void TextComponent::Initialize(){
 
 	impl->mModel = gameObject->GetComponent<TextureModelComponent>();
 
-
+	ChangeText(impl->mText);
 }
 
 void TextComponent::Update(){
@@ -95,23 +95,10 @@ void TextComponent::CreateInspector(){
 	Window::ViewInspector("Text", data);
 }
 
-void TextComponent::ExportData(File& f){
-	ExportClassName(f);
-	if (impl->mText != ""){
-		f.Out(1);
-		f.Out(impl->mText);
-	}
-	else{
-		f.Out(0);
-	}
-}
-void TextComponent::ImportData(File& f){
-	int n;
-	f.In(&n);
-	if (n == 1){
-		f.In(&impl->mText);
-		ChangeText(impl->mText);
-	}
+void TextComponent::IO_Data(I_ioHelper* io){
+#define _KEY(x) io->func( x , #x)
+	_KEY(impl->mText);
+#undef _KEY
 }
 
 void TextComponent::ChangeText(const std::string& text){

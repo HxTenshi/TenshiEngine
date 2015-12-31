@@ -5,13 +5,16 @@
 
 class TestOn : public physx::PxSimulationEventCallback{
 	void onConstraintBreak(PxConstraintInfo *constraints, PxU32 count) override{
-		int a=0;
+		(void)constraints;
+		(void)count;
 	}
 	void onWake(PxActor **actors, PxU32 count) override{
-		int a=0;
+		(void)actors;
+		(void)count;
 	}
 	void onSleep(PxActor **actors, PxU32 count) override{
-		int a=0;
+		(void)actors;
+		(void)count;
 	}
 	void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs) override
 	{
@@ -80,18 +83,15 @@ class TestOn : public physx::PxSimulationEventCallback{
 			}
 			if (cp.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				break;
-
-
-				Actor* act0 = (Actor*)cp.triggerActor->userData;
-				Actor* act1 = (Actor*)cp.otherActor->userData;
-				if (!(act0&&act1))continue;
-				auto script0 = act0->GetComponent<ScriptComponent>();
-				auto script1 = act1->GetComponent<ScriptComponent>();
-				if (script0)
-					script0->OnCollide(act1);
-				if (script1)
-					script1->OnCollide(act0);
+				//Actor* act0 = (Actor*)cp.triggerActor->userData;
+				//Actor* act1 = (Actor*)cp.otherActor->userData;
+				//if (!(act0&&act1))continue;
+				//auto script0 = act0->GetComponent<ScriptComponent>();
+				//auto script1 = act1->GetComponent<ScriptComponent>();
+				//if (script0)
+				//	script0->OnCollide(act1);
+				//if (script1)
+				//	script1->OnCollide(act0);
 
 				break;
 
@@ -105,6 +105,8 @@ PxFilterFlags SampleSubmarineFilterShader(
 	PxFilterObjectAttributes attributes1, PxFilterData filterData1,
 	PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
 {
+	(void)constantBlock;
+	(void)constantBlockSize;
 	// let triggers through
 	if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
 	{
@@ -242,7 +244,6 @@ PxRigidStatic* p = NULL;
 void PhysX3Main::createPlane(){
 	//Create actors 
 	//1) Create ground plane
-	PxReal d = 0.0f;
 	PxTransform pose = PxTransform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
 	PxRigidStatic* plane = gPhysicsSDK->createRigidStatic(pose);
 	if (!plane)
@@ -521,7 +522,7 @@ void PhysX3Main::ShutdownPhysX() {
 		std::vector<physx::PxActor*> buffer(n);
 		gScene->getActors(t, buffer.data(), n);
 
-		for (int i = 0; i < buffer.size(); i++)
+		for (UINT i = 0; i < buffer.size(); i++)
 		{
 			gScene->removeActor(*buffer[i]);
 			buffer[i]->release();
@@ -539,7 +540,7 @@ void PhysX3Main::ShutdownPhysX() {
 		std::vector<physx::PxActor*> buffer(n);
 		mEngineScene->getActors(t, buffer.data(), n);
 
-		for (int i = 0; i < buffer.size(); i++)
+		for (UINT i = 0; i < buffer.size(); i++)
 		{
 			mEngineScene->removeActor(*buffer[i]);
 			buffer[i]->release();

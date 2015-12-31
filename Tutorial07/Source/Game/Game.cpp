@@ -315,8 +315,12 @@ Game::Game()
 	{
 		std::string *s = (std::string*)p;
 		auto a = new Actor();
-		a->ImportDataAndNewID(*s);
-		AddObject(a);
+		if (!a->ImportDataAndNewID(*s)){
+			delete a;
+		}
+		else{
+			AddObject(a);
+		}
 		Window::Deleter(s);
 	});
 
@@ -581,7 +585,7 @@ void Game::ChangePlayGame(bool isPlay){
 
 		//残ったアクターは新しく追加されたアクター
 		while (!mGamePlayList.empty()){
-			auto& ite = mGamePlayList.begin();
+			auto ite = mGamePlayList.begin();
 			auto& addact = *ite;
 			DestroyObject(addact.second);
 		}
@@ -621,7 +625,7 @@ PostEffectRendering::~PostEffectRendering(){
 	mModelTexture.Release();
 }
 void PostEffectRendering::Initialize(){
-	mModelTexture.Create("", shared_ptr<MaterialComponent>());
+	mModelTexture.Create("");
 	mMaterial.Create("EngineResource/PostEffectRendering.fx");
 	mMaterial.SetTexture(Game::GetMainViewRenderTarget().GetTexture(), 0);
 }

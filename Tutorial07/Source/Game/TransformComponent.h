@@ -71,6 +71,7 @@ public:
 	const XMVECTOR& Left() const override;
 	const XMVECTOR& Up() const override;
 
+	void Initialize() override;
 	void Start() override;
 	void Finish() override;
 	void Update() override;
@@ -82,8 +83,7 @@ public:
 	void CopyData(Component* post, Component* base) override;
 	void CreateInspector() override;
 
-	void ExportData(File& f) override;
-	void ImportData(File& f) override;
+	void IO_Data(I_ioHelper* io) override;
 
 	void UpdatePhysX(PhysXChangeTransformFlag flag);
 

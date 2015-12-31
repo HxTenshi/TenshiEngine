@@ -21,6 +21,10 @@ public:
 	void SetTexture(const Texture& Tex, UINT Slot = 0);
 
 	void ExportData(File& f);
+
+	bool IsCreate(){
+		return mCBMaterial.mBuffer != NULL;
+	}
 public:
 
 	XMFLOAT4 mDiffuse;

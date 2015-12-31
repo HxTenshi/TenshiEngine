@@ -11,7 +11,6 @@ Scene::Scene(){
 Scene::~Scene(){
 
 }
-bool flag = false;
 
 void Scene::LoadScene(const std::string& fileName){
 
@@ -20,11 +19,6 @@ void Scene::LoadScene(const std::string& fileName){
 	if (m_Name == ""){
 		m_Name = fileName;
 	}
-	if (flag){
-		volatile int a= 0;
-	}
-
-	flag = true;
 	File scenefile(m_FilePath);
 	if (scenefile){
 		UINT id;
@@ -35,7 +29,6 @@ void Scene::LoadScene(const std::string& fileName){
 			Game::AddObject(a);
 		}
 	}
-	flag = false;
 }
 void Scene::SaveScene(Actor* SceneRoot){
 	File scenefile;

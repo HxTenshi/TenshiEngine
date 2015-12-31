@@ -22,15 +22,12 @@ public:
 
 	void CreateInspector() override;
 
-	void ExportData(File& f) override{
-		ExportClassName(f);
-		f.Out(mClassName);
-	}
-	void ImportData(File& f) override{
-		(void)f;
-		f.In(&mClassName);
-	}
+	void IO_Data(I_ioHelper* io) override{
+#define _KEY(x) io->func( x , #x)
+		_KEY(mClassName);
 
+#undef _KEY
+	}
 	IDllScriptComponent* pDllClass;
 	std::string mClassName;
 };

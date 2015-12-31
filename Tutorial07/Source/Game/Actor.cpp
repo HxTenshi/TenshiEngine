@@ -1,8 +1,10 @@
 #include "Actor.h"
 #include "Component.h"
 #include "MySTL/File.h"
-#include "../MySTL/ptr.h"
+#include "MySTL/ptr.h"
 #include "Game.h"
+
+#include "MySTL/ioHelper.h"
 
 class UniqueIDGenerator{
 public:
@@ -102,26 +104,6 @@ void Actor::SetUpdateStageCollQueue(const std::function<void()> coll){
 	mUpdateStageCollQueue.push(coll);
 }
 
-bool Actor::ChackHitRay(const XMVECTOR& pos, const XMVECTOR& vect){
-	shared_ptr<ModelComponent> mModelComponent = mComponents.GetComponent<ModelComponent>();
-	if (mModelComponent)
-		return mModelComponent->HitChack(pos, vect);
-
-	XMVECTOR v = mTransform->Position() - pos;
-	XMVECTOR lv = XMVector3Length(v);
-	float l = XMVectorGetX(lv);
-	XMVECTOR p = pos + vect * l;
-	v = mTransform->Position() - p;
-	lv = XMVector3Length(v);
-	l = XMVectorGetX(lv);
-	float r = 0.5f;
-	if (r*r > l*l){
-		return true;
-	}
-	return false;
-}
-
-
 void Actor::CreateInspector(){
 	std::function<void(std::string)> collback = [&](std::string name){
 		mName = name;
@@ -166,79 +148,143 @@ void Actor::ExportSceneData(const std::string& pass, File& sceneFile){
 		child->ExportSceneData(pass, sceneFile);
 	}
 }
-void Actor::ExportData(const std::string& pass){
+void Actor::ExportData(const std::string& path){
 
 	File f;
 	if (!mUniqueID){
 		mUniqueID = gUniqueIDGenerator.CreateUniqueID();
 	}
+	//
+	//if (!f.Open(pass + "/Object_" + std::to_string(mUniqueID) + ".txt"))
+	//	f.FileCreate();
+	//f.Clear();
+	//if (!f)return;
+	//
+	//f.Out(mUniqueID);
+	//
+	//auto name = mName;
+	//int ioc = name.find(" ");
+	//while (std::string::npos != ioc){
+	//	name.replace(ioc, 1, "$");
+	//	ioc = name.find(" ");
+	//}
+	//
+	//f.Out(name);
+	//
+	//if (mTransform->GetParent()){
+	//	f.Out(mTransform->GetParent()->GetUniqueID());
+	//}
+	//else{
+	//	f.Out(NULL);
+	//}
+	//
+	//for (const auto& cmp : mComponents.mComponent){
+	//	cmp.second->ExportData(f);
+	//}
 
-	if (!f.Open(pass + "/Object_" + std::to_string(mUniqueID) + ".txt"))
-		f.FileCreate();
-	f.Clear();
-	if (!f)return;
+#define _KEY(x) io->func( x , #x)
+	I_ioHelper* io = new OutputHelper(path + "/Object_" + std::to_string(mUniqueID) + ".txt" + ".json");
 
-	f.Out(mUniqueID);
+	_KEY(mUniqueID);
+	_KEY(mName);
 
-	auto name = mName;
-	int ioc = name.find(" ");
-	while (std::string::npos != ioc){
-		name.replace(ioc, 1, "$");
-		ioc = name.find(" ");
-	}
 
-	f.Out(name);
 
-	if (mTransform->GetParent()){
-		f.Out(mTransform->GetParent()->GetUniqueID());
-	}
-	else{
-		f.Out(NULL);
-	}
+	io->pushObject();
 
 	for (const auto& cmp : mComponents.mComponent){
-		cmp.second->ExportData(f);
+		io->pushObject();
+
+		cmp.second->IO_Data(io);
+
+		auto obj = io->popObject();
+		io->func(obj, cmp.second->ClassName().c_str());
 	}
+
+	auto obj = io->popObject();
+	io->func(obj, "components");
+
+	delete io;
+#undef _KEY
 }
 
-void Actor::ImportDataAndNewID(const std::string& fileName){
+bool Actor::ImportDataAndNewID(const std::string& fileName){
 	ImportData(fileName);
+
+	if (!mTransform){
+		return false;
+	}
+
 	mUniqueID = gUniqueIDGenerator.CreateUniqueID();
 
+	return true;
 }
+
+
 void Actor::ImportData(const std::string& fileName){
-	
 
-	File f(fileName);
-	if (!f)return;
-
-	f.In(&mUniqueID);
-	f.In(&mName);
-	int ioc = mName.find("$");
-	while (std::string::npos != ioc){
-		mName.replace(ioc, 1, " ");
-		ioc = mName.find("$");
-	}
-
-	UINT uid;
-	f.In(&uid);
-	
-	std::string temp;
-
+	//File f(fileName);
+	//if (!f)return;
+	//
+	//f.In(&mUniqueID);
+	//f.In(&mName);
+	//int ioc = mName.find("$");
+	//while (std::string::npos != ioc){
+	//	mName.replace(ioc, 1, " ");
+	//	ioc = mName.find("$");
+	//}
+	//
+	//UINT uid;
+	//f.In(&uid);
+	//
+	//std::string temp;
+	//
 	mComponents.mComponent.clear();
+	//
+	//while (f){
+	//	if (!f.In(&temp))break;
+	//	if (auto p = ComponentFactory::Create(temp)){
+	//		p->ImportData(f);
+	//		mComponents.AddComponent_NotInitialize(p);
+	//		if (dynamic_cast<TransformComponent*>(p.Get())){
+	//			mTransform = p;
+	//		}
+	//	}
+	//}
+	//
+	//((TransformComponent*)mTransform.Get())->mParentUniqueID = uid;
+	//
+	//return;
 
-	while (f){
-		if (!f.In(&temp))break;
-		if (auto p = ComponentFactory::Create(temp)){
-			p->ImportData(f);
+#define _KEY(x) io->func( x , #x)
+	I_ioHelper* io = new InputHelper(fileName + ".json");
+	if (io->error)return;
+
+	_KEY(mUniqueID);
+	_KEY(mName);
+
+
+	picojson::object components;
+	io->func(components, "components");
+
+	for (auto com : components){
+		//if (!f.In(&temp))break;
+		io->pushObject(com.second.get<picojson::object>());
+
+		if (auto p = ComponentFactory::Create(com.first)){
+			//p->ImportData(f);
+			p->IO_Data(io);
 			mComponents.AddComponent_NotInitialize(p);
 			if (dynamic_cast<TransformComponent*>(p.Get())){
 				mTransform = p;
 			}
 		}
+
+		io->popObject();
 	}
 
-	((TransformComponent*)mTransform.Get())->mParentUniqueID = uid;
+	delete io;
+#undef _KEY
 }
 
 //https://github.com/satoruhiga/ofxEulerAngles/blob/master/src/ofxEulerAngles.h
@@ -259,8 +305,8 @@ XMVECTOR toEulerXYZ(const XMMATRIX &m)
 	const float &r11 = m._22;
 	const float &r12 = m._32;
 
-	const float &r20 = m._13;
-	const float &r21 = m._23;
+	//const float &r20 = m._13;
+	//const float &r21 = m._23;
 	const float &r22 = m._33;
 
 	if (r02 < +1)
@@ -307,23 +353,11 @@ void Actor::SetTransform(physx::PxTransform* t){
 	mTransform->Rotate(q);
 	return;
 
-	//float yaw = atan2(2 * gyro.x * gyro.y + 2 * gyro.w * gyro.z, gyro.w * gyro.w + gyro.x * gyro.x - gyro.y * gyro.y - gyro.z * gyro.z);
-	//float pitch = asin(2 * gyro.w * gyro.y - 2 * gyro.x * gyro.z);
-	//float roll = atan2(2 * gyro.y * gyro.z + 2 * gyro.w * gyro.x, -gyro.w * gyro.w + gyro.x * gyro.x + gyro.y * gyro.y - gyro.z * gyro.z);
-	//auto rotate = XMVectorSet(pitch,yaw,roll, 1);
-
-	///float roll = atan2(2 * y*w - 2 * x*z, 1 - 2 * y*y - 2 * z*z);
-	///float pitch = atan2(2 * x*w - 2 * y*z, 1 - 2 * x*x - 2 * z*z);
-	///float yaw = asin(2 * x*y + 2 * z*w);
-	///auto rotate = XMVectorSet(pitch, yaw, roll, 1);
-
-	//XMMatrixRotationRollPitchYawFromVector(,gyro);
-
-	auto rotate = toEulerXYZ(XMMatrixRotationQuaternion(q));
+	//auto rotate = toEulerXYZ(XMMatrixRotationQuaternion(q));
 	
 	//XMMatrixRotationRollPitchYawFromVector
 
-	mTransform->Rotate(rotate);
+	//mTransform->Rotate(rotate);
 }
 
 void* Actor::_GetScript(const char* name){

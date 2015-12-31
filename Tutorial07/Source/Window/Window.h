@@ -121,7 +121,7 @@ public:
 	static void Deleter(T* ptr){
 		mMainWindow_WPF.Deleter<T>(ptr);
 	}
-	static void AddTreeViewItem(std::string& name, void* ptr){
+	static void AddTreeViewItem(const std::string& name, void* ptr){
 		mMainWindow_WPF.AddTreeViewItem(name, ptr);
 	}
 	static void SetParentTreeViewItem(void* parent, void* child){

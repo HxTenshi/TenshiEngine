@@ -190,7 +190,7 @@ private:
 	template<class IndexType>
 	void createMesh(pmx& data,std::string& name){
 
-		auto itype = data.header.config[pmx::t_header::VIDX];
+		//auto itype = data.header.config[pmx::t_header::VIDX];
 
 		PolygonsData<SimpleVertex, unsigned short, int> buffer;
 		//頂点データを取得

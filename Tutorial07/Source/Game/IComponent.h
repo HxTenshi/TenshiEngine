@@ -2,6 +2,7 @@
 
 #include <String>
 #include "MySTL/File.h"
+#include "MySTL/ioHelper.h"
 
 class Actor;
 
@@ -52,8 +53,7 @@ public:
 		name.erase(0, 6);//"class "ÇçÌèú
 		return name;
 	}
-	virtual void ExportData(File& f) = 0;
-	virtual void ImportData(File& f) = 0;
+	virtual void IO_Data(I_ioHelper* io) = 0;
 
 	Actor* gameObject;
 };

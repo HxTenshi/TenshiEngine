@@ -40,12 +40,12 @@ public:
 			return cp;
 		}
 	}
-	virtual void OnPaintBackground(System::Windows::Forms::PaintEventArgs pevent) override
-	{
-	}
-	virtual void OnPaint(System::Windows::Forms::PaintEventArgs pevent) override
-	{
-	}
+	//virtual void OnPaintBackground(System::Windows::Forms::PaintEventArgs pevent) override
+	//{
+	//}
+	//virtual void OnPaint(System::Windows::Forms::PaintEventArgs pevent) override
+	//{
+	//}
 public:
 	void UpdateStyle(){
 		SetStyle(System::Windows::Forms::ControlStyles::SupportsTransparentBackColor, true);
