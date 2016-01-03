@@ -231,5 +231,5 @@ void ScriptComponent::CreateInspector(){
 
 	}
 
-	Window::ViewInspector("Script", data);
+	Window::ViewInspector("Script", this, data);
 }

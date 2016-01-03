@@ -359,11 +359,12 @@ namespace Test {
 	delegate void MyDelegate();
 	delegate IntPtr MyDelegateR();
 	//delegate void MyDelegateI(IntViewModel ^);
-	delegate void MyDelegateF(String^,array<InspectorData^>^);
+	delegate void MyDelegateF(String^,IntPtr,array<InspectorData^>^);
 	delegate void MyDelegateITEM(String^, IntPtr);
+	delegate void MyDelegateCOM(String^);
 	delegate void MyDelegateI2(IntPtr, IntPtr);
 	delegate void MyDelegateI1(IntPtr);
-	void NativeFraction::CreateComponentWindow(const std::string& ComponentName, std::vector<InspectorDataSet>& data){
+	void NativeFraction::CreateComponentWindow(const std::string& ComponentName, void* comptr, std::vector<InspectorDataSet>& data){
 		if (ViewData::window!=nullptr){
 			auto del = gcnew MyDelegateF(ViewData::window, &View::CreateComponent);
 			//System::Array<std::vector<InspectorData>> ^f;
@@ -392,7 +393,7 @@ namespace Test {
 				i++;
 			}
 			
-			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()), a);
+			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()),(IntPtr)comptr, a);
 
 		}
 	}
@@ -422,6 +423,13 @@ namespace Test {
 		if (ViewData::window != nullptr){
 			auto del = gcnew MyDelegate(ViewData::window, &View::UpdateView);
 			ViewData::window->Dispatcher->BeginInvoke(del);
+		}
+	}
+
+	void NativeFraction::CreateContextMenu_AddComponent(const std::string& ComponentName){
+		if (ViewData::window != nullptr){
+			auto del = gcnew MyDelegateCOM(ViewData::window, &View::CreateContextMenu_AddComponent);
+			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()));
 		}
 	}
 

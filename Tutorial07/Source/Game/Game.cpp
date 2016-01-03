@@ -157,6 +157,14 @@ Game::Game()
 
 	HRESULT hr = S_OK;
 
+	ComponentFactory::Initialize();
+	auto coms = ComponentFactory::GetComponents();
+	for (auto& com : coms){
+		auto name = com.first;
+		auto str = name.substr(6);
+		Window::CreateContextMenu_AddComponent(str);
+	}
+
 	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
 	if (FAILED(hr))
 		MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
@@ -285,6 +293,13 @@ Game::Game()
 	});
 	Window::SetWPFCollBack(MyWindowMessage::RemoveComponent, [&](void* p)
 	{
+		if (auto actor = mSelectActor.GetSelect()){
+			actor->RemoveComponent((Component*)p);
+			Window::ClearInspector();
+			actor->CreateInspector();
+		}
+		return;
+
 		std::string s((const char *)p);
 		if (auto actor = mSelectActor.GetSelect()){
 			if (s == "MeshDraw")actor->RemoveComponent<MeshDrawComponent>();

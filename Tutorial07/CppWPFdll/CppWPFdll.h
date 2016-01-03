@@ -48,10 +48,12 @@ public:
 	}
 
 	void ChangeTreeViewName(void* ptr, std::string& name);
-	void CreateComponentWindow(const std::string& ComponentName, std::vector<InspectorDataSet>& data);
+	void CreateComponentWindow(const std::string& ComponentName, void* comptr, std::vector<InspectorDataSet>& data);
 	void ClearAllComponentWindow();
 	void ClearTreeViewItem(void* ptr);
 	void UpdateComponentWindow();
+
+	void CreateContextMenu_AddComponent(const std::string& ComponentName);
 
 	void AddTreeViewItem(const std::string& Name, void* ptr);
 	void SetParentTreeViewItem(void* parent, void* child);

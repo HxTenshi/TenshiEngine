@@ -2,7 +2,6 @@
 
 
 decltype(ComponentFactory::mFactoryComponents) ComponentFactory::mFactoryComponents;
-bool ComponentFactory::mIsInit = false;
 
 #include "Game.h"
 void MeshDrawComponent::Update(){
@@ -44,18 +43,15 @@ void ModelComponent::CreateInspector(){
 			delete mModel;
 		}
 		mModel = new Model();
-		//mModel->Create(mFileName.c_str(), shared_ptr<MaterialComponent>());
-		shared_ptr<MaterialComponent> material = shared_ptr<MaterialComponent>(new MaterialComponent());
 		mModel->Create(mFileName.c_str());
-		//gameObject->RemoveComponent<MaterialComponent>();
-		//gameObject->AddComponent<MaterialComponent>(material);
 
 	};
 	Window::AddInspector(new InspectorStringDataSet("Model", &mFileName, collbackpath), data);
-	Window::ViewInspector("Model",data);
+	Window::ViewInspector("Model", this, data);
 }
 
 void CameraComponent::Update(){
+
 	XMVECTOR null;
 	auto lossy = gameObject->mTransform->LossyScale();
 	auto scale = gameObject->mTransform->Scale();

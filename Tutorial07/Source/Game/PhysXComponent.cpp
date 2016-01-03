@@ -103,7 +103,7 @@ void PhysXComponent::CreateInspector() {
 
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new InspectorBoolDataSet("Kinematic", &mIsKinematic, collback), data);
-	Window::ViewInspector("PhysX",data);
+	Window::ViewInspector("PhysX", this, data);
 }
 
 void PhysXComponent::IO_Data(I_ioHelper* io){

@@ -92,7 +92,7 @@ void TextComponent::CreateInspector(){
 	};
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new InspectorStringDataSet("Text", &impl->mText, collback), data);
-	Window::ViewInspector("Text", data);
+	Window::ViewInspector("Text", this, data);
 }
 
 void TextComponent::IO_Data(I_ioHelper* io){

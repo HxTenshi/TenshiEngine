@@ -69,6 +69,9 @@ public:
 	void RemoveComponent(){
 		mComponents.RemoveComponent<T>();
 	}
+	void RemoveComponent(Component* comptr){
+		mComponents.RemoveComponent(comptr);
+	}
 
 	void CreateInspector();
 

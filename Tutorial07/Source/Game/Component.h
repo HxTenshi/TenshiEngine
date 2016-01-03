@@ -58,7 +58,7 @@ public:
 
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
-		Window::ViewInspector("Camera", data);
+		Window::ViewInspector("Camera",this, data);
 	}
 
 	void IO_Data(I_ioHelper* io) override{
@@ -206,7 +206,7 @@ public:
 
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
-		Window::ViewInspector("TextureModel",data);
+		Window::ViewInspector("TextureModel", this, data);
 	}
 
 	void IO_Data(I_ioHelper* io) override{
@@ -335,7 +335,7 @@ public:
 		Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.y, collbacky), data);
 		Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.z, collbackz), data);
 		Window::AddInspector(new InspectorStringDataSet("Textre", &TextureName, collbacktex), data);
-		Window::ViewInspector("Material",data);
+		Window::ViewInspector("Material", this, data);
 	}
 
 	void IO_Data(I_ioHelper* io) override{
@@ -372,7 +372,7 @@ public:
 		};
 		Window::AddInspector(new InspectorFloatDataSet("Time",&mTime,collback), data);
 
-		Window::ViewInspector("Animetion",data);
+		Window::ViewInspector("Animetion", this, data);
 	}
 
 
@@ -418,7 +418,7 @@ public:
 
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
-		Window::ViewInspector("MeshRender",data);
+		Window::ViewInspector("MeshRender", this, data);
 	}
 
 	void IO_Data(I_ioHelper* io) override{
@@ -621,7 +621,7 @@ public:
 
 		auto data = Window::CreateInspector();
 		Window::AddInspector(new InspectorLabelDataSet("Particle"), data);
-		Window::ViewInspector("Particle",data);
+		Window::ViewInspector("Particle", this, data);
 	}
 
 	void IO_Data(I_ioHelper* io) override{
@@ -665,7 +665,7 @@ public:
 
 	void CreateInspector() override{
 		auto data = Window::CreateInspector();
-		Window::ViewInspector("PostEffect", data);
+		Window::ViewInspector("PostEffect", this, data);
 	}
 
 
@@ -750,7 +750,7 @@ public:
 		Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &m_Color.x, collbackx), data);
 		Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &m_Color.y, collbacky), data);
 		Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &m_Color.z, collbackz), data);
-		Window::ViewInspector("PointLight", data);
+		Window::ViewInspector("PointLight", this, data);
 	}
 
 	void IO_Data(I_ioHelper* io) override{
@@ -787,20 +787,17 @@ class ComponentFactory{
 
 public:
 	static
-	shared_ptr<Component> Create(const std::string& ClassName){
-		if (!mIsInit){
-			Init();
-		}
-		
+	shared_ptr<Component> Create(const std::string& ClassName){		
 		return _Create(("class " + ClassName));
 
 	}
 
-private:
-
-
+	static 
+	std::map<std::string, std::function<shared_ptr<Component>()>>& GetComponents(){
+		return mFactoryComponents;
+	}
 	static
-		void Init(){
+	void Initialize(){
 		_NewFunc<CameraComponent>();
 		_NewFunc<TransformComponent>();
 		_NewFunc<ModelComponent>();
@@ -815,8 +812,8 @@ private:
 		_NewFunc<TextComponent>();
 		_NewFunc<PostEffectComponent>();
 		_NewFunc<PointLightComponent>();
-		mIsInit = true;
 	}
+private:
 	template<class T>
 	static 
 	shared_ptr<Component> _Make(){
@@ -840,6 +837,4 @@ private:
 
 	static
 		std::map<std::string, std::function<shared_ptr<Component>()>> mFactoryComponents;
-	static
-	bool mIsInit;
 };

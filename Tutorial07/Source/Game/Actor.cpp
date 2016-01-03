@@ -112,7 +112,7 @@ void Actor::CreateInspector(){
 	};
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new InspectorStringDataSet("Name", &mName, collback), data);
-	Window::ViewInspector("Actor",data);
+	Window::ViewInspector("Actor",NULL,data);
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->CreateInspector();
 	}

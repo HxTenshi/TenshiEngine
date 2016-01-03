@@ -60,7 +60,7 @@ public:
 		mCamera.Start();
 	}
 	void Update(float deltaTime){
-		auto pos = mCamera.mTransform->Position();
+		auto pos = XMVectorSet(0,0,0,1);
 		if (Input::Down(KeyCoord::Key_A)){
 			pos.x -= 0.1f;
 		}
@@ -111,7 +111,12 @@ public:
 			mRClickMousePos = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f);
 		
 		}
-		mCamera.mTransform->Position(pos);
+		auto move = mCamera.mTransform->Position();
+		move += mCamera.mTransform->Forward() * pos.z;
+		move += mCamera.mTransform->Left() * pos.x;
+		move.y += pos.y;
+
+		mCamera.mTransform->Position(move);
 		mCamera.UpdateComponent(deltaTime);
 	}
 
@@ -1196,6 +1201,8 @@ public:
 			ClearDrawList();
 			return;
 		}
+		//ここでもアップデートしてる（仮処理）
+		mMainCamera->Update();
 		mMainCamera->VSSetConstantBuffers();
 		mMainCamera->PSSetConstantBuffers();
 		mMainCamera->GSSetConstantBuffers();

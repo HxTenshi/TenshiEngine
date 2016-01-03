@@ -29,6 +29,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 #include "../../CppWPFdll/CppWPFdll.h"
 
+class Component;
 
 class Window{
 public:
@@ -160,11 +161,15 @@ public:
 	static void AddInspector(InspectorStringDataSet* dataset, std::vector<InspectorDataSet>& data){
 		data.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
 	}
-	static void ViewInspector(const std::string& ComponentName, std::vector<InspectorDataSet>& data){
-		mMainWindow_WPF.CreateComponentWindow(ComponentName,data);
+	static void ViewInspector(const std::string& ComponentName,Component* comptr, std::vector<InspectorDataSet>& data){
+		mMainWindow_WPF.CreateComponentWindow(ComponentName, (void*)comptr, data);
 	}
 	static void UpdateInspector(){
 		mMainWindow_WPF.UpdateComponentWindow();
+	}
+
+	static void CreateContextMenu_AddComponent(const std::string& ComponentName){
+		mMainWindow_WPF.CreateContextMenu_AddComponent(ComponentName);
 	}
 
 	static void SetMouseEvents(bool* l, bool* r, int* x, int* y, int *wx, int *wy){
@@ -175,6 +180,7 @@ public:
 		mWPFCollBacks[(int)massage] = collback;
 	}
 
+	
 
 public:
 	static HMODULE mhModuleWnd;

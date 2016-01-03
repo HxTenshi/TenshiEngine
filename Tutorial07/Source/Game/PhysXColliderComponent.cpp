@@ -255,7 +255,7 @@ void PhysXColliderComponent::CreateInspector() {
 	Window::AddInspector(new InspectorStringDataSet("Mesh", &mMeshFile, collbackpath), data);
 	Window::AddInspector(new InspectorBoolDataSet("IsSphere", &mIsSphere, collback), data);
 	Window::AddInspector(new InspectorBoolDataSet("IsTrigger", &mIsTrigger, collbacktri), data);
-	Window::ViewInspector("Collider",data);
+	Window::ViewInspector("Collider", this, data);
 }
 
 void PhysXColliderComponent::IO_Data(I_ioHelper* io){

@@ -47,6 +47,10 @@ const XMVECTOR& TransformComponent::Scale() const{
 const XMVECTOR& TransformComponent::Rotate() const{
 	return mRotate;
 }
+const XMVECTOR& TransformComponent::Position() const{
+	return mPosition;
+}
+
 void TransformComponent::Scale(const XMVECTOR& scale){
 	mScale = scale;
 	FlagSetChangeMatrix();
@@ -56,6 +60,11 @@ void TransformComponent::Rotate(const XMVECTOR& rotate){
 	FlagSetChangeMatrix();
 	UpdatePhysX(PhysXChangeTransformFlag::Rotate);
 }
+void TransformComponent::Position(const XMVECTOR& position){
+	mPosition = position;
+	FlagSetChangeMatrix();
+	UpdatePhysX(PhysXChangeTransformFlag::Position);
+}
 const XMVECTOR TransformComponent::LossyScale() const{
 	auto m = GetMatrix();
 	
@@ -64,14 +73,7 @@ const XMVECTOR TransformComponent::LossyScale() const{
 const XMVECTOR& TransformComponent::WorldPosition() const{
 	return GetMatrix().r[3];
 }
-const XMVECTOR& TransformComponent::Position() const{
-	return mPosition;
-}
-void TransformComponent::Position(const XMVECTOR& position){
-	mPosition = position;
-	FlagSetChangeMatrix();
-	UpdatePhysX(PhysXChangeTransformFlag::Position);
-}
+
 
 const XMVECTOR& TransformComponent::Forward() const{
 	return GetMatrix().r[2];
@@ -209,7 +211,7 @@ void TransformComponent::CreateInspector(){
 	Window::AddInspector(new InspectorVector3DataSet("Position", &mPosition.x, collbackpx, &mPosition.y, collbackpy, &mPosition.z, collbackpz), data);
 	Window::AddInspector(new InspectorVector3DataSet("Rotate", &mRotate.x, collbackrx, &mRotate.y, collbackry, &mRotate.z, collbackrz), data);
 	Window::AddInspector(new InspectorVector3DataSet("Scale", &mScale.x, collbacksx, &mScale.y, collbacksy, &mScale.z, collbacksz), data);
-	Window::ViewInspector("Transform",data);
+	Window::ViewInspector("Transform", this, data);
 
 	//Window::GetInspectorWindow()->AddLabel("Transform");
 	//Window::GetInspectorWindow()->AddParam(&mPosition.x, &mFixMatrixFlag);
@@ -270,4 +272,5 @@ void TransformComponent::SetParent(Actor* parent){
 		parent->mTransform->Children().push_back(gameObject);
 		mParentUniqueID = parent->GetUniqueID();
 	}
+	FlagSetChangeMatrix();
 }

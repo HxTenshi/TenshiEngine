@@ -376,7 +376,6 @@ public:
 
 
 	}
-
 	void UpdateView(){
 		if (m_ComponentPanel == nullptr)return;
 		for (int i = 0; i < m_ComponentPanel->Children->Count; i++){
@@ -413,7 +412,7 @@ public:
 		m_ComponentPanel->Children->Clear();
 	}
 
-	void CreateComponent(String^ headerName, array<InspectorData^>^ data){
+	void CreateComponent(String^ headerName,IntPtr comptr, array<InspectorData^>^ data){
 		if (m_ComponentPanel == nullptr)return;
 
 		FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
@@ -426,6 +425,23 @@ public:
 		for (int i = 0; i < num; i++){
 			data[i]->CreateInspector(dock);
 		}
+		auto cm = gcnew System::Windows::Controls::ContextMenu();
+		{//コンテキストメニューの要素作成
+			auto mitem = gcnew System::Windows::Controls::MenuItem();
+			mitem->Header = "Remove";
+			mitem->Tag = comptr;
+			mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemoveComponent);
+			cm->Items->Add(mitem);
+		}
+		//ツリービューに反映
+		header->ContextMenu = cm;
+	}
+
+	void MenuItem_Click_RemoveComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		auto m = (MenuItem^)sender;
+		auto ptr = (IntPtr)m->Tag;
+		Data::MyPostMessage(MyWindowMessage::RemoveComponent, (void*)ptr);
+		e->Handled = true;
 	}
 
 	void AddItem(String ^Name, IntPtr ptr){
@@ -483,6 +499,11 @@ public:
 	void ClearTreeViewItem(IntPtr treeviewptr){
 		auto i = (gcroot<TestContent::Person^>*)(void*)treeviewptr;
 		(*i)->RemoveSelf();
+	}
+
+	//コンテキストメニューの要素作成
+	void CreateContextMenu_AddComponent(String^ componentname){
+		CreateContextMenu_AddComponent(componentname, m_TreeView->ContextMenu);
 	}
 
 private:
@@ -756,42 +777,16 @@ private:
 			auto cm = gcnew System::Windows::Controls::ContextMenu();
 			{//コンテキストメニューの要素作成
 				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "しぬ";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click);
-				cm->Items->Add(mitem);
-			}
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
 				mitem->Header = "CreateObject";
 				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_CreateObject);
 				cm->Items->Add(mitem);
 			}
 			{//コンテキストメニューの要素作成
 				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "RemoveMeshDrawComponent";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePostEffectComponent);
+				mitem->Header = "しぬ";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click);
 				cm->Items->Add(mitem);
 			}
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "RemoveScriptComponent";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemoveScriptComponent);
-				cm->Items->Add(mitem);
-			}
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "RemovePhysXComponent";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePhysXComponent);
-				cm->Items->Add(mitem);
-			}
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "RemovePhysXColliderComponent";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemovePhysXColliderComponent);
-				cm->Items->Add(mitem);
-			}
-			CreateContextMenu_AddComponent("PointLightComponent", cm);
-			CreateContextMenu_AddComponent("MeshDrawComponent", cm);
 			//ツリービューに反映
 			m_TreeView->ContextMenu = cm;
 		}
@@ -903,14 +898,7 @@ private:
 		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, new std::string("EngineResource/box.prefab"));
 		e->Handled = true;
 	}
-	void PostMessageRemoveComponent(const char* t){
-		if (m_TreeView->SelectedItem == nullptr)return;
-		Data::MyPostMessage(MyWindowMessage::RemoveComponent, (void*)t);
-	}
-	void PostMessageAddComponent(const char* t){
-		if (m_TreeView->SelectedItem == nullptr)return;
-		Data::MyPostMessage(MyWindowMessage::AddComponent, (void*)t);
-	}
+
 	void PostMessageAddComponent(std::string* str){
 		if (m_TreeView->SelectedItem == nullptr)return;
 		Data::MyPostMessage(MyWindowMessage::AddComponent, (void*)str);
@@ -924,25 +912,6 @@ private:
 		e->Handled = true;
 	}
 
-	void MenuItem_Click_RemovePostEffectComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageRemoveComponent("MeshDraw");
-		e->Handled = true;
-
-	}
-	void MenuItem_Click_RemoveScriptComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageRemoveComponent("Script");
-		e->Handled = true;
-	}
-
-	void MenuItem_Click_RemovePhysXComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageRemoveComponent("PhysX");
-		e->Handled = true;
-	}
-
-	void MenuItem_Click_RemovePhysXColliderComponent(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		PostMessageRemoveComponent("Collider");
-		e->Handled = true;
-	}
 	//MenuContext
 #pragma endregion 
 

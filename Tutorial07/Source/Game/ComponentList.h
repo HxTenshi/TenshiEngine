@@ -67,7 +67,9 @@ public:
 	void RemoveComponent(){
 		const auto& v = typeid(T).hash_code();
 		mComponent.remove_if([v](const item_type& i){return i.first == v; });
-
+	}
+	void RemoveComponent(Component* com){
+		mComponent.remove_if([com](const item_type& i){return i.second.Get() == com; });
 	}
 #ifdef COMPONENTLIST_TYPE_MAP
 	using item_type = std::pair<size_t, shared_ptr<Component>>;
