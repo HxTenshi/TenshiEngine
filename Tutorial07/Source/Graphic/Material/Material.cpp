@@ -61,8 +61,8 @@ HRESULT Material::Create(const ConstantBuffer<cbChangesMaterial>& cbMaterial,con
 	return S_OK;
 }
 
-void Material::SetShader() const{
-	mShader.SetShader();
+void Material::SetShader(bool UseAnime) const{
+	mShader.SetShader(UseAnime);
 }
 
 void Material::PSSetShaderResources() const{

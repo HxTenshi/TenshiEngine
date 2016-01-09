@@ -1,7 +1,5 @@
 #pragma once
 
-#include "MySTL/File.h"
-
 #include "IComponent.h"
 
 class ITextComponent :public Component{

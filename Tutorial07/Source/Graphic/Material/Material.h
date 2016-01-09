@@ -15,7 +15,7 @@ public:
 
 	HRESULT Create(const char* shaderFileName = "DeferredPrePass.fx");
 	HRESULT Create(ConstantBuffer<cbChangesMaterial> const& cbMaterial, ConstantBuffer<cbChangesUseTexture> const& cbUseTexture);
-	void SetShader() const;
+	void SetShader(bool UseAnime) const;
 	void PSSetShaderResources() const;
 	void SetTexture(const char* FileName, UINT Slot = 0);
 	void SetTexture(const Texture& Tex, UINT Slot = 0);

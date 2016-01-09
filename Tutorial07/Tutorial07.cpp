@@ -24,6 +24,8 @@
 #include "ConstantBuffer/ConstantBufferDif.h"
 
 #include "Game/Game.h"
+
+#include "Graphic/Font/Font.h"
 //#include "Input\InputManager.h"
 
 class InputManagerRapper{

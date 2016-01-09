@@ -2,8 +2,10 @@
 
 #include "PhysXComponent.h"
 
-#include "Game.h"
-#include "Actor.h"
+#include "TransformComponent.h"
+
+#include "Game/Game.h"
+#include "Game/Actor.h"
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h>
 
