@@ -1,6 +1,6 @@
 #include "PhysXComponent.h"
 
-#include "Game.h"
+#include "Game/Game.h"
 PhysXComponent::PhysXComponent(){
 	mIsEngineMode = false;
 	mIsKinematic = false;
@@ -41,7 +41,7 @@ void PhysXComponent::Finish(){
 	mRigidActor = NULL;
 }
 
-#include "Actor.h"
+#include "Game/Actor.h"
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h>
 

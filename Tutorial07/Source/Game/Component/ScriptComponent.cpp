@@ -11,7 +11,7 @@ typedef void(__cdecl *DeleteInstance_)(IDllScriptComponent*);
 
 typedef decltype(Reflection::map) (__cdecl *GetReflectionData_)();
 
-#include "Game.h"
+#include "Game/Game.h"
 SGame gSGame;
 
 //同じDLLを持ってるコンポーネントを管理
