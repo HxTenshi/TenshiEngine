@@ -11,6 +11,11 @@ ModelBuffer::ModelBuffer()
 	, mIndexNum(0)
 	, mStride(0)
 	//, mMaterials(NULL)
+	, mBoneNum(0)
+	, mBone(NULL)
+	, mMotion(NULL)
+	, mIkNum(0)
+	, mIk(NULL)
 {
 	mMaxVertex = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	mMinVertex = XMVectorSet(-1.0f, -1.0f, -1.0f, 1.0f);
@@ -20,7 +25,7 @@ ModelBuffer::~ModelBuffer()
 
 }
 
-#include "Game/Component/Component.h"
+#include "Game/Component.h"
 HRESULT ModelBuffer::Create(const char* FileName, Model* mpModel){
 	(void)FileName;
 	HRESULT hr = S_OK;
@@ -125,6 +130,16 @@ void ModelBuffer::Draw(UINT IndexNum, UINT StartIndex) const{
 }
 
 void ModelBuffer::Release(){
+	if (mBone){
+		delete[] mBone;
+	}
+	if (mMotion){
+		delete[] mMotion;
+	}
+	if (mIk){
+		delete[] mIk;
+	}
+
 	if (mpVertexBuffer) mpVertexBuffer->Release();
 	if (mpIndexBuffer) mpIndexBuffer->Release();
 }
@@ -194,106 +209,11 @@ float Bezier(float x1, float x2, float y1, float y2, float x)
 
 #include <algorithm>
 
-
-BoneBuffer::BoneBuffer()
-	: mMotion(NULL)
-	, mLastKeyNo(0)
-{
-
-}
-
-void BoneBuffer::Release(){
-}
-
-//--------------------------------------
-// スケール、回転、移動行列
-XMMATRIX SRTMatrix(const XMVECTOR& scale, const XMVECTOR& quat_rot, const XMVECTOR& trans)
-{
-	return XMMatrixMultiply(
-		XMMatrixMultiply(
-		XMMatrixScalingFromVector(scale),
-		XMMatrixRotationQuaternion(quat_rot)),
-		XMMatrixTranslationFromVector(trans));
-}
-void BoneBuffer::createBone(){
-
-	DWORD mBoneNum = mBoneDataPtr->mBoneBuffer.size();
-	mBone.resize(mBoneNum);
-
-	DWORD ikCount = 0;
-	for (DWORD i = 0; i < mBoneNum; i++){
-		auto& bone = mBoneDataPtr->mBoneBuffer[i];
-		auto& bones = mBoneDataPtr->mBoneBuffer;
-
-
-		mBone[i].mStrName = mBoneDataPtr->mBoneName[i];// +"%0";
-		mBone[i].mHierarchy.mIdxSelf = i;
-		mBone[i].mHierarchy.mIdxParent = bone.parent_bidx;
-		if (bone.parent_bidx >= (int)mBoneNum) mBone[i].mHierarchy.mIdxParent = UINT(-1);
-
-
-		XMVECTOR head_pos = XMVectorSet(bone.bone_head_pos[0], bone.bone_head_pos[1], bone.bone_head_pos[2], 0.0f);
-		XMVECTOR parent_pos = { 0, 0, 0, 1 };
-		if (mBone[i].mHierarchy.mIdxParent < (int)mBoneNum){
-			UINT p = mBone[i].mHierarchy.mIdxParent;
-			parent_pos = XMVectorSet(bones[p].bone_head_pos[0], bones[p].bone_head_pos[1], bones[p].bone_head_pos[2], 0.0f);
-		}
-
-		XMVECTOR local_pos = XMVectorSubtract(head_pos, parent_pos);
-
-		mBone[i].mPos = XMFLOAT3(XMVectorGetX(local_pos), XMVectorGetY(local_pos), XMVectorGetZ(local_pos));
-		mBone[i].mScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		XMVECTOR q = XMQuaternionIdentity();
-		mBone[i].mRot = XMFLOAT4(XMVectorGetX(q), XMVectorGetY(q), XMVectorGetZ(q), XMVectorGetW(q));
-
-		//ワールド行列計算
-		XMVECTOR scale = { 1, 1, 1, 1 };
-		mBone[i].mMtxPose = SRTMatrix(scale, q, local_pos);
-		if (mBone[i].mHierarchy.mIdxParent < (int)mBoneNum){
-			mBone[i].mMtxPose = XMMatrixMultiply(mBone[i].mMtxPose, mBone[mBone[i].mHierarchy.mIdxParent].mMtxPose);
-		}
-		if (bone.bone_flag & pmx::t_bone::BIT_IK){
-			mBone[i].mIkBoneIdx = (WORD)bone.t_ik_data_idx;
-
-			createIk(ikCount, i);
-			ikCount++;
-		}
-		else{
-			mBone[i].mIkBoneIdx = 0;
-		}
-
-
-		mBone[i].mMtxPoseInit = mBone[i].mMtxPose;
-
-	}
-}
-
-void BoneBuffer::createIk(DWORD ikCount, UINT bidx){
-
-
-	auto& bone = mBoneDataPtr->mBoneBuffer[bidx];
-	auto& ik = mBoneDataPtr->mIK_Links[bidx];
-
-	mIk.push_back(Ik());
-
-	mIk[ikCount].bone_index = bidx;
-	mIk[ikCount].target_bone_index = bone.t_ik_data_idx;
-	mIk[ikCount].chain_length = ik.size();
-	mIk[ikCount].iterations = bone.t_ik_data_Loop;
-	mIk[ikCount].control_weight = bone.t_ik_data_LimitAng;
-	for (auto& ikc : ik){
-		mIk[ikCount].child_bone_index.push_back(ikc.idxBone);
-	}
-}
-
-void BoneBuffer::VMDMotionCreate(vmd& anime){
+void ModelBuffer::VMDMotionCreate(vmd& anime){
 	// とりあえずモーションデータ作成
 	// ボーンごとに仕分け、キー値でソート
 
-	DWORD mBoneNum = mBone.size();
-	mMotion.resize(mBoneNum);
-
-	mLastKeyNo = 0;
+	mMotion = new Motion[mBoneNum];
 
 	for (unsigned int i = 0; i < anime.mKeyNum; i++){
 		auto& key = anime.mKeyFrame[i];
@@ -317,12 +237,6 @@ void BoneBuffer::VMDMotionCreate(vmd& anime){
 		temp.mKeyFrame.Location[2] += mBone[bid].mPos.z;
 
 		mot.mKeyFrame.push_back(temp);
-
-
-		
-		if (temp.mKeyFrame.FrameNo > mLastKeyNo){
-			mLastKeyNo = temp.mKeyFrame.FrameNo;
-		}
 
 	}
 	for (DWORD mid = 0; mid < mBoneNum; mid++){
@@ -358,13 +272,12 @@ void BoneBuffer::VMDMotionCreate(vmd& anime){
 }
 
 // とりあえずアニメーション
-void BoneBuffer::VMDAnimation(float key_time)
+void ModelBuffer::VMDAnimation(float key_time)
 {
-	if (!mBoneDataPtr)return;
-	if (mMotion.empty())return;
-	if (mBoneDataPtr->mBoneBuffer.empty())return;
+	if (mBoneNum == 0)return;
+	if (!mMotion)return;
 
-	for (DWORD mid = 0; mid < mBoneDataPtr->mBoneBuffer.size(); mid++){
+	for (DWORD mid = 0; mid < mBoneNum; mid++){
 
 		Motion& mot = mMotion[mid];
 
@@ -439,7 +352,7 @@ XMVECTOR FloatToVector(const XMFLOAT3& f){
 #ifndef PMX_IK
 //-------------------------------------------
 // とりあえずIK
-void BoneBuffer::VMDIkAnimation()
+void ModelBuffer::VMDIkAnimation()
 {
 	if (mBoneNum == 0)return;
 	if (!mMotion)return;
@@ -603,10 +516,8 @@ bool RotDir(const XMVECTOR& dir_from,const XMVECTOR& dir_to, float ang_limit, XM
 
 //--------------------------------------
 //姿勢行列更新
-void BoneBuffer::UpdatePose()
+void ModelBuffer::UpdatePose()
 {
-
-	DWORD mBoneNum = mBone.size();
 	for (DWORD mid = 0; mid < mBoneNum; mid++){
 		//ワールド行列計算
 		mBone[mid].mMtxPose = SQTMatrix(FloatToVector(mBone[mid].mScale), FloatToVector(mBone[mid].mRot), FloatToVector(mBone[mid].mPos));
@@ -619,16 +530,14 @@ void BoneBuffer::UpdatePose()
 #ifdef PMX_IK
 //-------------------------------------------
 // とりあえずIK
-void BoneBuffer::VMDIkAnimation()
+void ModelBuffer::VMDIkAnimation()
 {
 
 	//XMStoreFloat4()
 	//XMLoadFloat4()
-	if (mBone.empty())return;
-	if (mMotion.empty())return;
+	if (mBoneNum == 0)return;
+	if (!mMotion)return;
 
-	DWORD mBoneNum = mBone.size();
-	DWORD mIkNum = mIk.size();
 	// IK計算
 	for (DWORD i = 0; i < mIkNum; i++){
 	//{

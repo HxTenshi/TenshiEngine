@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+#include "MySTL/File.h"
 #include "IComponent.h"
 
 class IDllScriptComponent;

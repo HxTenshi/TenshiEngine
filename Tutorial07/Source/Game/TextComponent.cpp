@@ -4,13 +4,12 @@
 #include "Graphic/Font/Font.h"
 #include "Graphic/Material/Material.h"
 #include "TextComponent.h"
-#include "TextureModelComponent.h"
-#include "MaterialComponent.h"
-#include "Game/Game.h"
+#include "Component.h"
+#include "Game.h"
 
 class TextComponentMember{
 public:
-	weak_ptr<IModelComponent> mModel;
+	weak_ptr<ModelComponent> mModel;
 	weak_ptr<MaterialComponent> mMaterial;
 
 	Font mFont;

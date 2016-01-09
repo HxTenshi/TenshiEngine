@@ -24,12 +24,14 @@ public:
 		hr = CompileShaderFromFile(FileName, FuncName, "vs_4_0", &pVSBlob);
 		if (FAILED(hr))
 		{
+			MessageBox(NULL,
+				"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. VS", "Error", MB_OK);
 			return hr;
 		}
 
 		// Create the vertex shader
 		hr = Device::mpd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &mpVertexShader);
-		if (FAILED(hr) || hr==S_FALSE)
+		if (FAILED(hr))
 		{
 			pVSBlob->Release();
 			return hr;
@@ -49,6 +51,8 @@ public:
 		hr = CompileShaderFromFile(FileName, FuncName, "vs_4_0", &pVSBlob);
 		if (FAILED(hr))
 		{
+			MessageBox(NULL,
+				"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. VS", "Error", MB_OK);
 			return hr;
 		}
 

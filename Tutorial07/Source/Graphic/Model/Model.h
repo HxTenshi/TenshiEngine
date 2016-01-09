@@ -10,7 +10,6 @@
 #include <vector>
 
 class ModelBuffer;
-class BoneBuffer;
 class AssetModelBuffer;
 class ModelBufferPMD;
 class ModelBufferPMX;
@@ -28,29 +27,6 @@ public:
 #include "../Material/Material.h"
 
 class MaterialComponent;
-
-class BoneModel{
-public:
-	BoneModel();
-	HRESULT Create(const char* FileName);
-	void CreateAnime(vmd& VMD);
-
-	void Release();
-	void SetConstantBuffer() const;
-	void PlayVMD(float time);
-
-	bool IsCreateAnime(){ return mIsCreateAnime; }
-
-	UINT GetMaxAnimeTime();
-
-private:
-	ConstantBufferArray<cbBoneMatrix> mCBBoneMatrix;
-
-	bool mIsCreateAnime;
-
-	BoneBuffer* mBoneBuffer;
-};
-
 class Model{
 public:
 	Model();
@@ -63,6 +39,7 @@ public:
 	void Draw(Material material) const;
 	void Draw(shared_ptr<MaterialComponent> material) const;
 	ModelBuffer* GetModelBuffer(){ return mModelBuffer; }
+	void PlayVMD(float time);
 
 	//クリエイトされているか
 	bool IsCreate(){
@@ -72,8 +49,6 @@ public:
 public:
 	XMMATRIX		mWorld;
 	//std::vector<Material> mMaterials;
-
-	BoneModel* mBoneModel;
 protected:
 
 	ModelBuffer* mModelBuffer;
@@ -81,7 +56,9 @@ protected:
 	std::vector<Mesh> mMeshs;
 
 	ConstantBuffer<CBChangesEveryFrame> mCBuffer;
+	ConstantBufferArray<cbBoneMatrix> mCBBoneMatrix;
 
+	vmd mVMD;
 
 	friend ModelBuffer;
 	friend AssetModelBuffer;

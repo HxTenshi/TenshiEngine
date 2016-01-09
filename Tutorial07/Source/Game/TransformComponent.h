@@ -4,6 +4,7 @@
 #include "XNAMath/xnamath.h"
 #include <String>
 #include <list>
+#include "MySTL/File.h"
 #include "PhysXComponent.h"
 #include "IComponent.h"
 

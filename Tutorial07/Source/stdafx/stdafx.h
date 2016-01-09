@@ -11,9 +11,5 @@
 #define NULL 0
 #endif
 
-#include <d3d11.h>
-#define _XM_NO_INTRINSICS_
-#include "XNAMath/XNAMath.h"
-
 // デバッグ時のSTLのアロケーターをリリース仕様にする
 //#define _NO_DEBUG_HEAP 1
