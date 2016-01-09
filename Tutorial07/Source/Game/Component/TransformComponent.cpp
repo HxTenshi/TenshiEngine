@@ -2,8 +2,8 @@
 #include "TransformComponent.h"
 #include "Window/Window.h"
 
-#include "Actor.h"
-#include "Game.h"
+#include "Game/Actor.h"
+#include "Game/Game.h"
 
 TransformComponent::TransformComponent()
 	:mFixMatrixFlag(false)

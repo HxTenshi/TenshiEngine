@@ -1,12 +1,12 @@
 #include "Script.h"
-#include "MySTL\File.h"
 //#include "Game\Game.h"
-#include "Game\Actor.h"
-#include "Game\TransformComponent.h"
-#include "Game\PhysXComponent.h"
-#include "Input\Input.h"
-#include "MySTL\ptr.h"
-#include "Game\IGame.h"
+#include "Game/Actor.h"
+#include "Game/Component/TransformComponent.h"
+#include "Game/Component/PhysXComponent.h"
+#include "Game/Component/TextComponent.h"
+#include "Input/Input.h"
+#include "MySTL/ptr.h"
+#include "Game/IGame.h"
 
 #include <functional>
 #include <map>
@@ -204,9 +204,6 @@ void CoinScript::Update(){
 	mRotateY += 0.01f;
 	gameObject->mTransform->Rotate(XMVectorSet(0, mRotateY, 0,1));
 }
-
-
-#include "Game\TextComponent.h"
 
 void CoinManagerScript::Start(){
 	mGetCoinCount = 0;

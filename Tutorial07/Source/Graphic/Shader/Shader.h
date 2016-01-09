@@ -14,16 +14,25 @@ public:
 	}
 
 	void Create(const char* fileName){
-		mVertexShader = shared_ptr<VertexShader>(new VertexShader());
-		mPixelShader = shared_ptr<PixelShader>(new PixelShader());
+		mVertexShader = make_shared<VertexShader>();
+		mVertexShaderAnime = make_shared<VertexShader>();
+		mPixelShader = make_shared<PixelShader>();
 
-		mVertexShader->Create(fileName, "VS");
+		if (FAILED(mVertexShader->Create(fileName, "VS"))){
+			MessageBox(NULL, "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. VS", "Error", MB_OK);
+		}
+		mVertexShaderAnime->Create(fileName, "VSSkin");
 		mPixelShader->Create(fileName);
 	}
 
-	void SetShader() const{
-		if (mVertexShader)
-			mVertexShader->SetShader();
+	void SetShader(bool UseAnime) const{
+		if (UseAnime){
+			if (mVertexShaderAnime)
+				mVertexShaderAnime->SetShader();
+		}else{
+			if (mVertexShader)
+				mVertexShader->SetShader();
+		}
 		if (mPixelShader)
 			mPixelShader->SetShader();
 	}
@@ -31,4 +40,5 @@ public:
 private:
 	shared_ptr<PixelShader> mPixelShader;
 	shared_ptr<VertexShader> mVertexShader;
+	shared_ptr<VertexShader> mVertexShaderAnime;
 };

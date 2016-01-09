@@ -3,7 +3,6 @@
 #include <d3d11.h>
 #include "XNAMath/xnamath.h"
 #include <String>
-#include "MySTL/File.h"
 #include "MySTL/Ptr.h"
 #include "IComponent.h"
 

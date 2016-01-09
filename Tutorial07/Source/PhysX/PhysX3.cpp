@@ -3,6 +3,10 @@
 #include "PhysX3.h"
 #include <algorithm>
 
+#include "Game/Actor.h"
+#include "Game/Component/ScriptComponent.h"
+
+
 class TestOn : public physx::PxSimulationEventCallback{
 	void onConstraintBreak(PxConstraintInfo *constraints, PxU32 count) override{
 		(void)constraints;

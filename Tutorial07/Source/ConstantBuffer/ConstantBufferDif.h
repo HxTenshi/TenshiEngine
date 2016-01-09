@@ -1,7 +1,5 @@
 #pragma once
 
-#include "XNAMath/xnamath.h"
-
 struct CBNeverChanges
 {
 	XMMATRIX mView;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <d3d11.h>
 #include "Device/DirectX11Device.h"
 #include "MySTL\ptr.h"
 #include <functional>

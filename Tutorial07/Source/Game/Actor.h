@@ -4,7 +4,7 @@
 #include "XNAMath/xnamath.h"
 #include <functional>
 #include <queue>
-#include "ComponentList.h"
+#include "Game/Component/ComponentList.h"
 class ITransformComponent;
 class File;
 //PhysXテスト用

@@ -1,5 +1,9 @@
-#include "Game.h"
-#include "Component.h"
+#include "Game/Game.h"
+#include "Game/Component/ComponentFactory.h"
+
+#include "Game/Component/TransformComponent.h"
+#include "Game/Component/ScriptComponent.h"
+#include "Game/Component/CameraComponent.h"
 
 #include <stack>
 
@@ -16,23 +20,7 @@ Game* mGame = NULL;
 
 static bool gIsPlay;
 
-#include <algorithm>
-#include <filesystem>
 #include <vector>
-void file_(const std::string& pass, std::vector<std::string>& fileList) {
-	namespace sys = std::tr2::sys;
-	sys::path p = pass;
-	std::for_each(sys::directory_iterator(p), sys::directory_iterator(),
-		//  再帰的に走査するならコチラ↓
-		//std::for_each(sys::recursive_directory_iterator(p), sys::recursive_directory_iterator(),
-		[&](const sys::path& p) {
-		if (sys::is_regular_file(p)) { // ファイルなら...
-			fileList.push_back(p.filename());
-		}
-		else if (sys::is_directory(p)) { // ディレクトリなら...
-		}
-	});
-}
 
 //ツリービューが完成するまで繰り返す関数
 std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
@@ -47,117 +35,14 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 }
 
 #include "Engine/AssetLoader.h"
-void SelectActor::SelectActorDraw(){
-	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
-		auto mModel = mSelect->GetComponent<ModelComponent>();
-		if (!mModel)return;
-		Model& model = *mModel->mModel;
 
-		ID3D11DepthStencilState* pBackDS;
-		UINT ref;
-		Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
-
-		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		//descDS.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-		descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
-		ID3D11DepthStencilState* pDS = NULL;
-		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-		Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
-
-		D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-		descRS.CullMode = D3D11_CULL_BACK;
-		descRS.FillMode = D3D11_FILL_WIREFRAME;
-
-		ID3D11RasterizerState* pRS = NULL;
-		Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
-
-		Device::mpImmediateContext->RSSetState(pRS);
-
-
-		model.Draw(mSelectWireMaterial);
-
-
-		Device::mpImmediateContext->RSSetState(NULL);
-		if (pRS)pRS->Release();
-
-		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-		pDS->Release();
-
-		Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
-		if (pBackDS)pBackDS->Release();
-	}));
-	//Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
-	//	auto mModel = mVectorBox[0].GetComponent<ModelComponent>();
-	//	if (!mModel)return;
-	//	Model& model1 = *mModel->mModel;
-	//	mModel = mVectorBox[1].GetComponent<ModelComponent>();
-	//	if (!mModel)return;
-	//	Model& model2 = *mModel->mModel;
-	//	mModel = mVectorBox[2].GetComponent<ModelComponent>();
-	//	if (!mModel)return;
-	//	Model& model3 = *mModel->mModel;
-	//
-	//	ID3D11DepthStencilState* pBackDS;
-	//	UINT ref;
-	//	Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
-	//
-	//	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-	//	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	//	//descDS.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-	//	descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
-	//	ID3D11DepthStencilState* pDS = NULL;
-	//	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-	//	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
-	//
-	//	D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-	//	descRS.CullMode = D3D11_CULL_BACK;
-	//	descRS.FillMode = D3D11_FILL_SOLID;
-	//
-	//	ID3D11RasterizerState* pRS = NULL;
-	//	Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
-	//
-	//	Device::mpImmediateContext->RSSetState(pRS);
-	//
-	//
-	//	model1.Draw(mVectorBox[0].GetComponent<MaterialComponent>());
-	//	model2.Draw(mVectorBox[1].GetComponent<MaterialComponent>());
-	//	model3.Draw(mVectorBox[2].GetComponent<MaterialComponent>());
-	//
-	//
-	//	Device::mpImmediateContext->RSSetState(NULL);
-	//	if (pRS)pRS->Release();
-	//
-	//	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-	//	pDS->Release();
-	//
-	//	Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
-	//	if (pBackDS)pBackDS->Release();
-	//}));
-}
-
-void SelectActor::SetSelect(Actor* select){
-	mDragBox = -1;
-
-	if (mGame->FindActor(select)){
-		mSelect = select;
-	}
-	else{
-		mSelect = NULL;
-	}
-	Window::ClearInspector();
-	if (mSelect)mSelect->CreateInspector();
-}
-
-Game::Game()
-	:mWorldGrid(1.0f){
+Game::Game(){
 
 	mGame = this;
 	mIsPlay = false;
 
 	HRESULT hr = S_OK;
 
-	ComponentFactory::Initialize();
 	auto coms = ComponentFactory::GetComponents();
 	for (auto& com : coms){
 		auto name = com.first;
@@ -183,9 +68,6 @@ Game::Game()
 	mRootObject->Initialize();
 
 	mCamera.Initialize();
-	//hr = mCamera.Init();
-	//if (FAILED(hr))
-	//	MessageBox(NULL, "Camera Create Error.", "Error", MB_OK);
 
 	mPhysX3Main = new PhysX3Main();
 	mPhysX3Main->InitializePhysX();
@@ -193,28 +75,7 @@ Game::Game()
 
 	mSelectActor.Initialize();
 
-	//std::vector<std::string> fList;
-	//file_("./Scene/", fList);
-	//for (auto& f : fList){
-	//	auto a = new Actor();
-	//	a->ImportData("./Scene/" + f);
-	//	AddObject(a);
-	//}
-
 	m_Scene.LoadScene("./Assets/Scene_.scene");
-
-	//File scenefile("./Assets/Scene.scene");
-	//if (scenefile){
-	//	UINT id;
-	//	while (scenefile){
-	//		if (!scenefile.In(&id))break;
-	//		auto a = new Actor();
-	//		a->ImportData("./Scene/Object_" + std::to_string(id) + ".txt");
-	//		AddObject(a);
-	//	}
-	//}
-
-
 	
 	mSoundPlayer.Play();
 	
@@ -244,6 +105,8 @@ Game::Game()
 		//ツリービューで親子関係のセット関数
 		if (auto par = act->mTransform->GetParent()){
 			if (par == mRootObject)return;
+
+			//ツリービューが完成するまで繰り返す関数
 			auto coll = CreateSetParentTreeViewItemColl(par, act);
 			//とりあえず１回実行
 			coll();
@@ -295,17 +158,6 @@ Game::Game()
 	{
 		if (auto actor = mSelectActor.GetSelect()){
 			actor->RemoveComponent((Component*)p);
-			Window::ClearInspector();
-			actor->CreateInspector();
-		}
-		return;
-
-		std::string s((const char *)p);
-		if (auto actor = mSelectActor.GetSelect()){
-			if (s == "MeshDraw")actor->RemoveComponent<MeshDrawComponent>();
-			if (s == "Script")actor->RemoveComponent<ScriptComponent>();
-			if (s == "PhysX")actor->RemoveComponent<PhysXComponent>();
-			if (s == "Collider")actor->RemoveComponent<PhysXColliderComponent>();
 			Window::ClearInspector();
 			actor->CreateInspector();
 		}
@@ -623,16 +475,82 @@ void Game::ChangePlayGame(bool isPlay){
 	}
 }
 
+void Game::Draw(){
+	if (!mMainCamera){
+		Device::mRenderTargetBack->ClearView();
+		mMainViewRenderTarget.ClearView();
+		ClearDrawList();
+		return;
+	}
+	//ここでもアップデートしてる（仮処理）
+	mMainCamera->Update();
+	mMainCamera->VSSetConstantBuffers();
+	mMainCamera->PSSetConstantBuffers();
+	mMainCamera->GSSetConstantBuffers();
+
+	Device::mRenderTargetBack->ClearView();
+	mMainViewRenderTarget.ClearView();
+
+
+	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	descDS.DepthFunc = D3D11_COMPARISON_LESS;
+	ID3D11DepthStencilState* pDS = NULL;
+	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
+	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
+
+
+	const RenderTarget* r[1] = { &mMainViewRenderTarget };
+	RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+
+	//今は意味なし
+	PlayDrawList(DrawStage::Depth);
+
+
+	//if (mIsPlay){
+	//	//mMainViewRenderTarget.SetRendererTarget();
+	//	RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+	//}
+	//else{
+	//	Device::mRenderTargetBack->ClearView();
+	//	Device::mRenderTargetBack->SetRendererTarget();
+	//}
+
+
+
+	ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
+	Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
+	ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
+	Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
+
+	m_DeferredRendering.Start_G_Buffer_Rendering();
+	PlayDrawList(DrawStage::Diffuse);
+	m_DeferredRendering.Start_Light_Rendering();
+	PlayDrawList(DrawStage::Light);
+	m_DeferredRendering.End_Light_Rendering();
+	m_DeferredRendering.Start_Deferred_Rendering(&mMainViewRenderTarget);
+	PlayDrawList(DrawStage::PostEffect);
+
+	mPostEffectRendering.Rendering();
+
+	PlayDrawList(DrawStage::Engine);
+	PlayDrawList(DrawStage::UI);
+
+	ClearDrawList();
+
+	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+	if (pDS)pDS->Release();
+
+	SetMainCamera(NULL);
+
+	if (mIsPlay){
+		ActorMoveStage();
+	}
+
+}
+
 
 void Game::SaveScene(){
-	//File scenefile;
-	//if (scenefile.Open("./Assets/Scene.scene")){
-	//	scenefile.FileCreate();
-	//}
-	//scenefile.Clear();
-
-	//mRootObject->ExportSceneDataStart("./Scene", scenefile);
-
 	m_Scene.SaveScene(mRootObject);
 }
 
