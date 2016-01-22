@@ -20,7 +20,7 @@ vmd::vmd(const char * filename){
 		mLoadResult = true;
 	}
 	else{
-		MessageBox(NULL, "VMD fopen", "Err", MB_ICONSTOP);
+		//MessageBox(NULL, "VMD fopen", "Err", MB_ICONSTOP);
 		mLoadResult = false;
 	}
 }

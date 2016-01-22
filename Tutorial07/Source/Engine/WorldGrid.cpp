@@ -12,7 +12,7 @@ WorldGrid::WorldGrid(){
 
 	create();
 
-	mShader.Create("Line.fx");
+	mShader.Create("EngineResource/Line.fx");
 
 	mMaterial.mDiffuse = XMFLOAT4{ 0.2f, 0.2f, 0.2f, 1 };
 	mMaterial.Create();

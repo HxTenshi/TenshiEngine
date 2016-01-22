@@ -6,10 +6,10 @@ void PostEffectComponent::Initialize(){
 	mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
 	mModelTexture.Create("");
 
-	mMaterial.Create("PostEffect.fx");
+	mMaterial.Create("EngineResource/PostEffect.fx");
 	mMaterial.SetTexture(Game::GetMainViewRenderTarget().GetTexture(), 0);
 
-	mMaterialEnd.Create("PostEffect.fx");
+	mMaterialEnd.Create("EngineResource/PostEffect.fx");
 	mMaterialEnd.SetTexture(mRenderTarget.GetTexture(), 0);
 
 }

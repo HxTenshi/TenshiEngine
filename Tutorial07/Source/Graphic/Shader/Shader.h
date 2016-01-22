@@ -19,7 +19,7 @@ public:
 		mPixelShader = make_shared<PixelShader>();
 
 		if (FAILED(mVertexShader->Create(fileName, "VS"))){
-			MessageBox(NULL, "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. VS", "Error", MB_OK);
+			//MessageBox(NULL, "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. VS", "Error", MB_OK);
 		}
 		mVertexShaderAnime->Create(fileName, "VSSkin");
 		mPixelShader->Create(fileName);

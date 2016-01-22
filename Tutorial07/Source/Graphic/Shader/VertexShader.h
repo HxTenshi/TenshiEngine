@@ -54,7 +54,7 @@ public:
 
 		// Create the vertex shader
 		hr = Device::mpd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &mpVertexShader);
-		if (FAILED(hr))
+		if (FAILED(hr) || hr == S_FALSE)
 		{
 			pVSBlob->Release();
 			return hr;

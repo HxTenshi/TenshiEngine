@@ -124,9 +124,9 @@
     <Page Include="WindowXAML\TreeView.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CustomControls\CustomControls.vcxproj">
+    <ProjectReference Include="..\CustomControls\CustomControls.vcxproj">
       <Project>{ef80af75-97de-49ea-804c-2c9f4fdaf88c}</Project>
-      <Private>false</Private>
+      <Private>true</Private>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>

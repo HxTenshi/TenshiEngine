@@ -324,6 +324,9 @@ private:
 			if (data.vertex_data.vertex[i].weight_type == pmx::t_vertex_data::SDEF){
 				data.vertex_data.vertex[i].bone_weight[1] = 1.0f - data.vertex_data.vertex[i].bone_weight[0];
 			}
+			if (data.vertex_data.vertex[i].weight_type == pmx::t_vertex_data::QDEF){
+				//data.vertex_data.vertex[i].bone_weight[1] = 1.0f - data.vertex_data.vertex[i].bone_weight[0];
+			}
 
 			v.BoneWeight[0] = (UINT)(data.vertex_data.vertex[i].bone_weight[0] * 100.0f);
 			v.BoneWeight[1] = (UINT)(data.vertex_data.vertex[i].bone_weight[1] * 100.0f);
@@ -573,9 +576,6 @@ private:
 	HRESULT CreateMaterial(unsigned long count, pmx::t_material* material, std::string* textures, const std::string& sFileName, shared_ptr<MaterialComponent> resultMaterial){
 		HRESULT hr = S_OK;
 
-		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-		auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-
 		//mpModel->mMeshs.resize(count);
 		//UINT vertcount = 0;
 		for (DWORD i = 0; i < count; i++){
@@ -587,7 +587,7 @@ private:
 			//mpModel->mMeshs[i].mpModelBuffer = this;
 			//mpModel->mMeshs[i].mFace_vert_start_count = vertcount;
 			//vertcount += material[i].face_vert_count;
-			hr = mat.Create(cbm, cbt);
+			hr = mat.Create();
 			if (FAILED(hr))
 				return hr;
 			if (material[i].ToonMode == 1){

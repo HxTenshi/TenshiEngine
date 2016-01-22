@@ -783,7 +783,7 @@ private:
 			}
 			{//コンテキストメニューの要素作成
 				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "しぬ";
+				mitem->Header = "Remove";
 				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click);
 				cm->Items->Add(mitem);
 			}

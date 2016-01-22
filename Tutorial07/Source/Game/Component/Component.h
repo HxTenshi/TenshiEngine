@@ -38,10 +38,10 @@ public:
 				{ 0, "NORMAL", 0, 0, 3, 0 },
 				{ 0, "TEXCOORD", 0, 0, 1, 0 },
 		};
-		mGeometryShader0.Create("ParticleGS.fx", "GS0_Main", decl, _countof(decl), stride, _countof(stride));
-		mGeometryShader1.Create("ParticleGS.fx", "GS1_Main");
-		mVertexShader.Create("ParticleGS.fx", "VS0_Main", layout, 3);
-		mPixelShader.Create("ParticleGS.fx", "PS1_Main");
+		mGeometryShader0.Create("EngineResource/ParticleGS.fx", "GS0_Main", decl, _countof(decl), stride, _countof(stride));
+		mGeometryShader1.Create("EngineResource/ParticleGS.fx", "GS1_Main");
+		mVertexShader.Create("EngineResource/ParticleGS.fx", "VS0_Main", layout, 3);
+		mPixelShader.Create("EngineResource/ParticleGS.fx", "PS1_Main");
 
 
 		// パーティクルの初期値を設定

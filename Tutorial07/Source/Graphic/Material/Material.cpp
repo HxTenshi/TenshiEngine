@@ -36,30 +36,30 @@ HRESULT Material::Create(const char* shaderFileName){
 
 }
 
-HRESULT Material::Create(const ConstantBuffer<cbChangesMaterial>& cbMaterial,const ConstantBuffer<cbChangesUseTexture>& cbUseTexture){
-	HRESULT hr = S_OK;
-	mCBMaterial = cbMaterial.Duplicate();
-	if (!mCBMaterial.mBuffer)
-		return S_FALSE;
-
-
-	mCBMaterial.mParam.Diffuse = mDiffuse;
-	mCBMaterial.mParam.Specular = mSpecular;
-	mCBMaterial.mParam.Ambient = mAmbient;
-
-	//mCBMaterial->UpdateSubresource();
-
-
-	mCBUseTexture = cbUseTexture.Duplicate();
-	if (!mCBUseTexture.mBuffer)
-		return S_FALSE;
-	mCBUseTexture.mParam.UseTexture = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-
-	//mCBUseTexture->UpdateSubresource();
-	mShader.Create("Tutorial07.fx");
-
-	return S_OK;
-}
+//HRESULT Material::Create(const ConstantBuffer<cbChangesMaterial>& cbMaterial,const ConstantBuffer<cbChangesUseTexture>& cbUseTexture){
+//	HRESULT hr = S_OK;
+//	mCBMaterial = cbMaterial.Duplicate();
+//	if (!mCBMaterial.mBuffer)
+//		return S_FALSE;
+//
+//
+//	mCBMaterial.mParam.Diffuse = mDiffuse;
+//	mCBMaterial.mParam.Specular = mSpecular;
+//	mCBMaterial.mParam.Ambient = mAmbient;
+//
+//	//mCBMaterial->UpdateSubresource();
+//
+//
+//	mCBUseTexture = cbUseTexture.Duplicate();
+//	if (!mCBUseTexture.mBuffer)
+//		return S_FALSE;
+//	mCBUseTexture.mParam.UseTexture = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+//
+//	//mCBUseTexture->UpdateSubresource();
+//	mShader.Create("Tutorial07.fx");
+//
+//	return S_OK;
+//}
 
 void Material::SetShader(bool UseAnime) const{
 	mShader.SetShader(UseAnime);

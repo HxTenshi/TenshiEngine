@@ -109,7 +109,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
-    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\Tutorial07\dll;$(ExecutablePath)</ExecutablePath>
     <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -451,7 +451,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="lua\call_c_func.lua" />
-    <None Include="Tutorial07.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectXTex\DirectXTex.h" />
@@ -513,6 +512,7 @@
     <ClInclude Include="Source\Graphic\Shader\VertexShader.h" />
     <ClInclude Include="Source\Input\Input.h" />
     <ClInclude Include="Source\Library\picojson.h" />
+    <ClInclude Include="Source\Library\sqlite3.h" />
     <ClInclude Include="Source\MySTL\deleter.h" />
     <ClInclude Include="Source\MySTL\File.h" />
     <ClInclude Include="Source\MySTL\ioHelper.h" />
@@ -527,11 +527,6 @@
     <ClInclude Include="Source\Window\Window.h" />
     <ClInclude Include="Source\XNAMath\xnamath.h" />
     <ResourceCompile Include="Resource\Tutorial07.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="texture.fx">
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="CppWPFdll\CppWPFdll.vcxproj">

@@ -10,7 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppWPFdll", "CppWPFdll\CppW
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ScriptComponent", "ScriptComponent\ScriptComponent.vcxproj", "{8C9555B5-0D9C-4C4C-8CB5-DB3038CD014E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CustomControls", "..\CustomControls\CustomControls.vcxproj", "{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CustomControls", "CustomControls\CustomControls.vcxproj", "{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

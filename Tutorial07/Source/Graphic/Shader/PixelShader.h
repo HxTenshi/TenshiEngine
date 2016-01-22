@@ -23,8 +23,7 @@ public:
 		hr = CompileShaderFromFile(FileName, FuncName, "ps_4_0", &pPSBlob);
 		if (FAILED(hr))
 		{
-			MessageBox(NULL,
-				"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. PS", "Error", MB_OK);
+			//MessageBox(NULL,"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. PS", "Error", MB_OK);
 			return hr;
 		}
 

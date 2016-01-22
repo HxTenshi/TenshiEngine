@@ -82,9 +82,6 @@ HRESULT ModelBufferPMD::createMaterial(unsigned long count, pmd::t_material* mat
 	//このクラス自体もう使われない？
 		HRESULT hr = S_OK;
 
-		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-		auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-
 		//mMaterialNum = count;
 		//mMaterials = new Material[mMaterialNum];
 		mpModel->mMeshs.resize(count);
@@ -99,7 +96,7 @@ HRESULT ModelBufferPMD::createMaterial(unsigned long count, pmd::t_material* mat
 			mpModel->mMeshs[i].mFace_vert_count = material[i].face_vert_count;
 			vartcount += material[i].face_vert_count;
 			DWORD ti = material[i].toon_index;
-			hr = mat.Create(cbm, cbt);
+			hr = mat.Create();
 			if (FAILED(hr))
 				return hr;
 			if (ti != 255){
@@ -303,9 +300,6 @@ HRESULT ModelBufferPMX::createMaterial(unsigned long count, pmx::t_material* mat
 	//このクラス自体もう使われない？
 	HRESULT hr = S_OK;
 
-	auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-	auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-
 	mpModel->mMeshs.resize(count);
 	UINT vertcount = 0;
 	for (DWORD i = 0; i < count; i++){
@@ -317,7 +311,7 @@ HRESULT ModelBufferPMX::createMaterial(unsigned long count, pmx::t_material* mat
 		mpModel->mMeshs[i].mpModelBuffer = this;
 		mpModel->mMeshs[i].mFace_vert_start_count = vertcount;
 		vertcount += material[i].face_vert_count;
-		hr = mat.Create(cbm, cbt);
+		hr = mat.Create();
 		if (FAILED(hr))
 			return hr;
 		if (material[i].ToonMode == 1){

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<header>
+			<link rel="stylesheet" href="../Assets/stylesheets/bootstrap.min.css">
+			<script src="../Assets/javascripts/jquery-2.1.4.min.js"></script>
+			<script src="../Assets/javascripts/bootstrap.min.js"></script>
+
+			<div class="navbar navbar-default">
+			  <div class="container">
+			    <div class="navbar-header">
+			      <a href="../html/index.html" class="navbar-brand">TenshiEngine</a>
+			      <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			      </button>
+			    </div>
+			    <div class="navbar-collapse collapse" id="navbar-main">
+			      <ul class="nav navbar-nav">
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">エディター<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/Editor.html">エディター</a></li>
+			            <li><a href="../html/Inspector.html">Inspector</a></li>
+			            <li><a href="../html/Assets.html">Assets</a></li>
+			            <li><a href="../html/Scene.html">Scene</a></li>
+			            <li><a href="../html/View.html">View</a></li>
+			          </ul>
+			        </li>
+
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">コンポーネント<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/Components.html">トップ</a></li>
+			            <li><a href="../html/Components.html#Transform">Transform</a></li>
+			            <li><a href="../html/Components.html#Model">Model</a></li>
+			            <li><a href="../html/Components.html#TextureModel">TextureModel</a></li>
+			            <li><a href="../html/Components.html#Material">Material</a></li>
+			            <li><a href="../html/Components.html#Text">Text</a></li>
+			            <li><a href="../html/Components.html#Animation">Animation</a></li>
+			            <li><a href="../html/Components.html#Camera">Camera</a></li>
+			            <li><a href="../html/Components.html#Script">Script</a></li>
+			            <li><a href="../html/Components.html#PhysX">PhysX</a></li>
+			            <li><a href="../html/Components.html#PhysXCollider">PhysXCollider</a></li>
+			            <li><a href="../html/Components.html#PostEffect">PostEffect</a></li>
+			            <li><a href="../html/Components.html#PointLight">PointLight</a></li>
+			            <li><a href="../html/Components.html#Particle">Particle</a></li>
+			          </ul>
+			        </li>
+
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">スクリプト<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/Script.html">トップ</a></li>
+			          </ul>
+			        </li>
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">サンプル<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/Sample.html">ボール転がしゲーム</a></li>
+			          </ul>
+			        </li>
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">情報<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/File.html">プロジェクト</a></li>
+			            <li><a href="../html/Other.html">てんしエンジンについて</a></li>
+			          </ul>
+			        </li>
+			      </ul>
+			    </div>
+			  </div>
+			</div>
+
+		</header>
+	</head>
+	<body>
+		<div class="container">
+      <div class="page-header">
+				<h1>Assets</h1>
+			</div>
+			<div class="well" id="e1">
+				<h2>Assetsの概要</h2>
+        <p>ゲームに使用するリソース一覧を表示したり、追加をする事が出来ます。</p>
+        <p>ゲームシーンの変更をする事も出来ます。</p>
+			</div>
+			<div class="well" id="e2">
+				<h2>Assetsの見方</h2>
+        <img src="../res/Assets.jpg" class="img-thumbnail img-responsive">
+
+			</div>
+      <div class="well" id="e3">
+        <h3>Assets機能説明</h3>
+        <legend>基本機能</legend>
+        <p>__.sceneファイルをダブルクリックするとゲームシーンを開けます。</p>
+        <p>一部ファイルをAssetsウィンドウ内にドラッグアンドドロップするとファイルの変換を行うことが出来ます。</p>
+        <legend>変換対応ファイル</legend>
+        <p>pmx => tesmesh,tedmesh,txt(マテリアル情報),tebone</p>
+      </div>
+
+      <div class="well" id="e4">
+        <h3>注意</h3>
+        <p>現在フォルダの中身を見ることが出来ない。</p>
+        <p>てんしエンジンを起動した後にファイルの変更を行っても表示が更新されない。</p>
+        <p>pmxの変換も100%は対応出来ていない。</p>
+        <p>変換時にAssets/Texture/のパスを相対にテクスチャーが存在しないと出力されるマテリアル情報でテクスチャーが反映されない。</p>
+      </div>
+		</div>
+	</body>
+</html>

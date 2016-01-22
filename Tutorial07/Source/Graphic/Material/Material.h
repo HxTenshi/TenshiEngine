@@ -13,8 +13,8 @@ public:
 	Material();
 	~Material();
 
-	HRESULT Create(const char* shaderFileName = "DeferredPrePass.fx");
-	HRESULT Create(ConstantBuffer<cbChangesMaterial> const& cbMaterial, ConstantBuffer<cbChangesUseTexture> const& cbUseTexture);
+	HRESULT Create(const char* shaderFileName = "EngineResource/DeferredPrePass.fx");
+	//HRESULT Create(ConstantBuffer<cbChangesMaterial> const& cbMaterial, ConstantBuffer<cbChangesUseTexture> const& cbUseTexture);
 	void SetShader(bool UseAnime) const;
 	void PSSetShaderResources() const;
 	void SetTexture(const char* FileName, UINT Slot = 0);

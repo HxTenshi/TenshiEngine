@@ -29,7 +29,7 @@ TextComponent::~TextComponent()
 }
 
 void TextComponent::Initialize(){
-	impl->mTexMaterial.Create("texture.fx");
+	impl->mTexMaterial.Create("EngineResource/texture.fx");
 	impl->mTexMaterial.SetTexture(impl->mFont.GetTexture());
 
 

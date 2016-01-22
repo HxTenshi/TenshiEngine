@@ -99,9 +99,7 @@ HRESULT ModelBuffer::Create(const char* FileName, Model* mpModel){
 	mpModel->mMeshs[0].mFace_vert_count = 36;
 
 	Material mat;
-	auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-	auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-	hr = mat.Create(cbm, cbt);
+	hr = mat.Create();
 	if (FAILED(hr))
 		return hr;
 

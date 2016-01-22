@@ -18,11 +18,15 @@
 class FuctorySetter{
 public:
 	FuctorySetter(){
-		mFactory[typeid(DllScriptComponent).name()] = [](){ return new DllScriptComponent(); };
-		mFactory[typeid(CameraScript).name()] = [](){ return new CameraScript(); };
-		mFactory[typeid(PlayerScript).name()] = [](){ return new PlayerScript(); };
-		mFactory[typeid(CoinScript).name()] = [](){ return new CoinScript(); };
-		mFactory[typeid(CoinManagerScript).name()] = [](){ return new CoinManagerScript(); };
+#define _ADD(x) mFactory[typeid(x).name()] = [](){ return new x(); }
+
+		_ADD(DllScriptComponent);
+		_ADD(CameraScript);
+		_ADD(PlayerScript);
+		_ADD(CoinScript);
+		_ADD(CoinManagerScript);
+
+#undef _ADD
 	}
 	std::map<std::string, std::function<IDllScriptComponent*()>> mFactory;
 };

@@ -224,9 +224,7 @@ class ModelBufferTexture : public ModelBuffer{
 
 		Material mat;
 		mat.SetTexture(FileName, 0);
-		auto cbm = ConstantBuffer<cbChangesMaterial>::create(4);
-		auto cbt = ConstantBuffer<cbChangesUseTexture>::create(6);
-		hr = mat.Create(cbm, cbt);
+		hr = mat.Create();
 		if (FAILED(hr))
 			return hr;
 
