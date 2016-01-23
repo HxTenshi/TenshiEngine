@@ -4,7 +4,7 @@
 
 void PostEffectComponent::Initialize(){
 	mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
-	mModelTexture.Create("");
+	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 
 	mMaterial.Create("EngineResource/PostEffect.fx");
 	mMaterial.SetTexture(Game::GetMainViewRenderTarget().GetTexture(), 0);

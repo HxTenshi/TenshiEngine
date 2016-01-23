@@ -26,12 +26,7 @@ void ModelComponent::Initialize(){
 		if (!mModel->IsCreate()){
 			mModel->Create(mFileName.c_str());
 			if (!mBoneFileName.empty() || !mModel->mBoneModel){
-				mModel->mBoneModel = new BoneModel();
-				if (FAILED(mModel->mBoneModel->Create(mBoneFileName.c_str()))){
-					mModel->mBoneModel->Release();
-					delete mModel->mBoneModel;
-					mModel->mBoneModel = NULL;
-				}
+				mModel->CreateBoneModel(mBoneFileName.c_str());
 			}
 		}
 	}
@@ -51,12 +46,7 @@ void ModelComponent::CreateInspector(){
 		mModel = new Model();
 		mModel->Create(mFileName.c_str());
 		if (!mBoneFileName.empty()){
-			mModel->mBoneModel = new BoneModel();
-			if (FAILED(mModel->mBoneModel->Create(mBoneFileName.c_str()))){
-				mModel->mBoneModel->Release();
-				delete mModel->mBoneModel;
-				mModel->mBoneModel = NULL;
-			}
+			mModel->CreateBoneModel(mBoneFileName.c_str());
 		}
 
 	};
@@ -64,17 +54,7 @@ void ModelComponent::CreateInspector(){
 		mBoneFileName = name;
 
 		if (!mBoneFileName.empty()){
-			if (mModel->mBoneModel){
-				mModel->mBoneModel->Release();
-				delete mModel->mBoneModel;
-				mModel->mBoneModel = NULL;
-			}
-			mModel->mBoneModel = new BoneModel();
-			if (FAILED(mModel->mBoneModel->Create(mBoneFileName.c_str()))){
-				mModel->mBoneModel->Release();
-				delete mModel->mBoneModel;
-				mModel->mBoneModel = NULL;
-			}
+			mModel->CreateBoneModel(mBoneFileName.c_str());
 		}
 	};
 	Window::AddInspector(new InspectorStringDataSet("Model", &mFileName, collbackpath), data);

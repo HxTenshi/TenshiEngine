@@ -42,9 +42,6 @@ PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = input.Pos;
-	output.Pos.x = input.Pos.x;
-	output.Pos.y = input.Pos.y;
-	output.Pos.xy = output.Pos.xy * 2-1;
 	output.Tex = input.Tex;
 	
 	return output;
@@ -58,12 +55,12 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 
 	// 法線の準備
-	float3 N = NormalTex.Sample(NormalSamLinear, input.Tex);
+	float3 N = NormalTex.Sample(NormalSamLinear, input.Tex).xyz;
 	N = N * 2 - 1;
 
 	// ライトのベクトル
 	float3 L = LightVect.xyz;
-	L = mul(L, View).xyz;
+	L = mul(L, (float3x3)View).xyz;
 	L = normalize(L);
 
 	// ディフューズ角度減衰率計算

@@ -1,172 +1,107 @@
 
-#include "ModelBuffer.h"
 
-#include "Graphic/Material/Material.h"
+#include <algorithm>
 
-#include "Model.h"
 
-ModelBuffer::ModelBuffer()
-	: mpVertexBuffer(NULL)
-	, mpIndexBuffer(NULL)
-	, mIndexNum(0)
-	, mStride(0)
-	//, mMaterials(NULL)
+#include "BoneModel.h"
+
+
+#include "Graphic/Loader/Model/pmx.h"
+
+
+
+
+
+
+
+
+
+
+
+// スケール、回転、移動行列
+XMMATRIX SRTMatrix(const XMVECTOR& scale, const XMVECTOR& quat_rot, const XMVECTOR& trans)
 {
-	mMaxVertex = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-	mMinVertex = XMVectorSet(-1.0f, -1.0f, -1.0f, 1.0f);
+	return XMMatrixMultiply(
+		XMMatrixMultiply(
+		XMMatrixScalingFromVector(scale),
+		XMMatrixRotationQuaternion(quat_rot)),
+		XMMatrixTranslationFromVector(trans));
 }
-ModelBuffer::~ModelBuffer()
+// スケール、回転、移動行列
+XMMATRIX SQTMatrix(const XMVECTOR& scale, const XMVECTOR& quat_rot, const XMVECTOR& trans)
 {
-
+	return XMMatrixMultiply(
+		XMMatrixMultiply(
+		XMMatrixScalingFromVector(scale),
+		XMMatrixRotationQuaternion(quat_rot)),
+		XMMatrixTranslationFromVector(trans));
 }
 
-#include "Game/Component/Component.h"
-HRESULT ModelBuffer::Create(const char* FileName, Model* mpModel){
-	(void)FileName;
-	HRESULT hr = S_OK;
-	// Create vertex buffer
-	SimpleVertex vertices[] =
-	{
-		{ XMFLOAT3(-0.5f, 0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, 0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-0.5f, 0.5f, 0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) },
-
-		{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) },
-
-		{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(-0.5f, 0.5f, -0.5f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-0.5f, 0.5f, 0.5f), XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) },
-
-		{ XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, 0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) },
-
-		{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, 0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-0.5f, 0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) },
-
-		{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, -0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
-		{ XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-		{ XMFLOAT3(-0.5f, 0.5f, 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-	};
-
-	mMaxVertex = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-	mMinVertex = XMVectorSet(-1.0f, -1.0f, -1.0f, 1.0f);
-
-	hr = createVertex(vertices, sizeof(SimpleVertex), 24);
-	if (FAILED(hr))
-		return hr;
-
-	// Create index buffer
-	WORD indices[] =
-	{
-		3, 1, 0,
-		2, 1, 3,
-
-		6, 4, 5,
-		7, 4, 6,
-
-		11, 9, 8,
-		10, 9, 11,
-
-		14, 12, 13,
-		15, 12, 14,
-
-		19, 17, 16,
-		18, 17, 19,
-
-		22, 20, 21,
-		23, 20, 22
-	};
-	hr = createIndex(indices, 36);
-	if (FAILED(hr))
-		return hr;
-
-	//mMaterialNum = 1;
-	//mMaterials = new Material[mMaterialNum];
-	//mMaterials[0].face_vert_count = 36;
-	mpModel->mMeshs.resize(1);
-	mpModel->mMeshs[0].mpModelBuffer = this;
-	mpModel->mMeshs[0].mFace_vert_start_count = 0;
-	mpModel->mMeshs[0].mFace_vert_count = 36;
-
-	Material mat;
-	hr = mat.Create();
-	if (FAILED(hr))
-		return hr;
-
-	mStride = sizeof(SimpleVertex);
-	return S_OK;
+XMFLOAT4 VectorToFloat(const XMVECTOR& vec){
+	return XMFLOAT4(XMVectorGetX(vec), XMVectorGetY(vec), XMVectorGetZ(vec), XMVectorGetW(vec));
+}
+XMVECTOR FloatToVector(const XMFLOAT4& f){
+	return XMVectorSet(f.x, f.y, f.z, f.w);
+}
+XMVECTOR FloatToVector(const XMFLOAT3& f){
+	return XMVectorSet(f.x, f.y, f.z, 0.0f);
 }
 
-void ModelBuffer::IASet() const{
-	// Set vertex buffer
-	UINT offset = 0;
-	Device::mpImmediateContext->IASetVertexBuffers(0, 1, &mpVertexBuffer, &mStride, &offset);
+XMVECTOR GetAngle(XMVECTOR quat)
+{
+	XMMATRIX mtx = XMMatrixRotationQuaternion(quat);
 
-	// Set index buffer
-	Device::mpImmediateContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	//ZYX　Y=-90～90°Y軸＝ねじり方向
+	float rx = -atan2f(XMVectorGetY(mtx.r[2]), XMVectorGetZ(mtx.r[2]));
+	float ry = asinf(XMVectorGetX(mtx.r[2]));
+	float rz = -atan2f(XMVectorGetX(mtx.r[1]), XMVectorGetX(mtx.r[0]));
+	return XMVectorSet(rx, ry, rz, 0);
 }
 
-void ModelBuffer::Draw(UINT IndexNum, UINT StartIndex) const{
+XMVECTOR LimitAngle(const XMVECTOR& quat, const XMVECTOR& rotmin, const XMVECTOR& rotmax)
+{
+	XMVECTOR rot_xyz = GetAngle(quat);
+	/*	XMMATRIX mtx = XMMatrixRotationQuaternion(quat);
 
-	Device::mpImmediateContext->DrawIndexed(IndexNum, StartIndex, 0);
+	//ZYX　Y=-90～90°Y軸＝ねじり方向
+	float rx = -atan2f(XMVectorGetY(mtx.r[2]),XMVectorGetZ(mtx.r[2]));
+	float ry = asinf(XMVectorGetX(mtx.r[2]));
+	float rz = -atan2f(XMVectorGetX(mtx.r[1]),XMVectorGetX(mtx.r[0]));
+	XMVECTOR rot_xyz = {rx,ry,rz,0};
+	*rotang_before = rot_xyz;
+	*/
+	rot_xyz = XMVectorMax(rot_xyz, rotmin);
+	rot_xyz = XMVectorMin(rot_xyz, rotmax);
+	XMMATRIX mtx = XMMatrixRotationZ(XMVectorGetZ(rot_xyz));
+	mtx = XMMatrixMultiply(mtx, XMMatrixRotationY(XMVectorGetY(rot_xyz)));
+	mtx = XMMatrixMultiply(mtx, XMMatrixRotationX(XMVectorGetX(rot_xyz)));
 
+	return XMQuaternionRotationMatrix(mtx);
 }
 
-void ModelBuffer::Release(){
-	if (mpVertexBuffer) mpVertexBuffer->Release();
-	if (mpIndexBuffer) mpIndexBuffer->Release();
+bool RotDir(const XMVECTOR& dir_from, const XMVECTOR& dir_to, float ang_limit, XMVECTOR* axis, float* ang)
+{
+	XMVECTOR eps0 = XMVectorSet(0.0005f, 0.0005f, 0.0005f, 1.0f);
+	//XMVECTOR eps0 = { 0.0000001f, 0.0000001f, 0.0000001f, 0.0000001f };
+	XMVECTOR ik_dir = XMVector3Normalize(dir_to);
+	XMVECTOR tg_dir = XMVector3Normalize(dir_from);
+	if (XMVector3NearEqual(tg_dir, ik_dir, eps0)){
+		return false;
+	}
+	// 回転軸と角度 
+	eps0 = XMVectorSet(0.0000001f, 0.0000001f, 0.0000001f, 1.0f); //XMVectorSet(0.0005f, 0.0005f, 0.0005f, 0.0f);
+	XMVECTOR rot_axis = XMVector3Cross(tg_dir, ik_dir);
+	if (XMVector3NearEqual(rot_axis, XMVectorSet(0, 0, 0, 0), eps0)){
+		return false;
+	}
+	*axis = XMVector3Normalize(rot_axis);
+	*ang = XMVectorGetX(XMVectorACos(XMVector3Dot(tg_dir, ik_dir)));
+
+	// 回転量制限
+	if (*ang > ang_limit)*ang = ang_limit;
+	if (*ang < -ang_limit)*ang = -ang_limit;
+	return true;
 }
-
-HRESULT ModelBuffer::createVertex(void* Vertices, UINT TypeSize, UINT VertexNum){
-	HRESULT hr = S_OK;
-
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = TypeSize * VertexNum;
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = Vertices;
-	hr = Device::mpd3dDevice->CreateBuffer(&bd, &InitData, &mpVertexBuffer);
-	if (FAILED(hr))
-		return hr;
-
-	return S_OK;
-}
-
-HRESULT ModelBuffer::createIndex(WORD* Indices, UINT IndexNum){
-	HRESULT hr = S_OK;
-
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(WORD) * IndexNum;
-	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bd.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData;
-	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = Indices;
-	hr = Device::mpd3dDevice->CreateBuffer(&bd, &InitData, &mpIndexBuffer);
-	if (FAILED(hr))
-		return hr;
-
-	mIndexNum = IndexNum;
-
-	return S_OK;
-}
-
 
 // http://d.hatena.ne.jp/edvakf/20111016/1318716097
 float Bezier(float x1, float x2, float y1, float y2, float x)
@@ -190,41 +125,62 @@ float Bezier(float x1, float x2, float y1, float y2, float x)
 	return (3 * s*s *t *y1) + (3 * s *t*t *y2) + (t*t*t);
 }
 
-#include <algorithm>
 
 
-BoneBuffer::BoneBuffer()
-	: mMotion(NULL)
+
+
+
+BoneModel::BoneModel()
+	: mIsCreateAnime(false)
 	, mLastKeyNo(0)
 {
-
 }
-
-void BoneBuffer::Release(){
-}
-
-//--------------------------------------
-// スケール、回転、移動行列
-XMMATRIX SRTMatrix(const XMVECTOR& scale, const XMVECTOR& quat_rot, const XMVECTOR& trans)
+BoneModel::~BoneModel()
 {
-	return XMMatrixMultiply(
-		XMMatrixMultiply(
-		XMMatrixScalingFromVector(scale),
-		XMMatrixRotationQuaternion(quat_rot)),
-		XMMatrixTranslationFromVector(trans));
 }
-void BoneBuffer::createBone(){
 
-	DWORD mBoneNum = mBoneDataPtr->mBoneBuffer.size();
+HRESULT BoneModel::Create(const char* FileName){
+
+	mBoneAssetDataPtr = AssetDataBase::Instance(FileName);
+	if (!mBoneAssetDataPtr)return E_FAIL;
+
+	createBone();
+
+	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
+
+	if (bones.size()){
+		mCBBoneMatrix = ConstantBufferArray<cbBoneMatrix>::create(7, bones.size());
+		if (!mCBBoneMatrix.mBuffer)
+			return E_FAIL;
+		DWORD mBoneNum = mBone.size();
+		for (DWORD mid = 0; mid < mBoneNum; mid++){
+			mCBBoneMatrix.mParam[mid].BoneMatrix[0] = XMFLOAT4(1,0,0,0);
+			mCBBoneMatrix.mParam[mid].BoneMatrix[1] = XMFLOAT4(0,1,0,0);
+			mCBBoneMatrix.mParam[mid].BoneMatrix[2] = XMFLOAT4(0,0,1,0);
+		}
+		mCBBoneMatrix.UpdateSubresource();
+		SetConstantBuffer();
+	}
+	return S_OK;
+}
+
+
+void BoneModel::createBone(){
+
+	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
+	auto& boneName = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneName;
+
+	DWORD mBoneNum = bones.size();
+	mBone.clear();
+	mIk.clear();
 	mBone.resize(mBoneNum);
 
 	DWORD ikCount = 0;
 	for (DWORD i = 0; i < mBoneNum; i++){
-		auto& bone = mBoneDataPtr->mBoneBuffer[i];
-		auto& bones = mBoneDataPtr->mBoneBuffer;
+		auto& bone = bones[i];
 
 
-		mBone[i].mStrName = mBoneDataPtr->mBoneName[i];// +"%0";
+		mBone[i].mStrName = boneName[i];
 		mBone[i].mHierarchy.mIdxSelf = i;
 		mBone[i].mHierarchy.mIdxParent = bone.parent_bidx;
 		if (bone.parent_bidx >= (int)mBoneNum) mBone[i].mHierarchy.mIdxParent = UINT(-1);
@@ -266,11 +222,14 @@ void BoneBuffer::createBone(){
 	}
 }
 
-void BoneBuffer::createIk(DWORD ikCount, UINT bidx){
+void BoneModel::createIk(DWORD ikCount, UINT bidx){
 
 
-	auto& bone = mBoneDataPtr->mBoneBuffer[bidx];
-	auto& ik = mBoneDataPtr->mIK_Links[bidx];
+	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
+	auto& iks = mBoneAssetDataPtr->GetFileData().GetBoneData().mIK_Links;
+
+	auto& bone = bones[bidx];
+	auto& ik = iks[bidx];
 
 	mIk.push_back(Ik());
 
@@ -284,17 +243,25 @@ void BoneBuffer::createIk(DWORD ikCount, UINT bidx){
 	}
 }
 
-void BoneBuffer::VMDMotionCreate(vmd& anime){
-	// とりあえずモーションデータ作成
-	// ボーンごとに仕分け、キー値でソート
+void BoneModel::SetConstantBuffer() const{
+	if (mCBBoneMatrix.mBuffer)mCBBoneMatrix.VSSetConstantBuffers();
+}
+
+void BoneModel::CreateAnime(vmd& VMD){
+
+	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
+	if (bones.size() == 0)return;
+	mIsCreateAnime = true;
+
+	mMotion.clear();
 
 	DWORD mBoneNum = mBone.size();
 	mMotion.resize(mBoneNum);
 
 	mLastKeyNo = 0;
 
-	for (unsigned int i = 0; i < anime.mKeyNum; i++){
-		auto& key = anime.mKeyFrame[i];
+	for (unsigned int i = 0; i < VMD.mKeyNum; i++){
+		auto& key = VMD.mKeyFrame[i];
 
 		DWORD bid = 0;
 		for (; bid < mBoneNum; bid++){
@@ -317,7 +284,7 @@ void BoneBuffer::VMDMotionCreate(vmd& anime){
 		mot.mKeyFrame.push_back(temp);
 
 
-		
+
 		if (temp.mKeyFrame.FrameNo > mLastKeyNo){
 			mLastKeyNo = temp.mKeyFrame.FrameNo;
 		}
@@ -355,14 +322,34 @@ void BoneBuffer::VMDMotionCreate(vmd& anime){
 	}
 }
 
-// とりあえずアニメーション
-void BoneBuffer::VMDAnimation(float key_time)
-{
-	if (!mBoneDataPtr)return;
+void BoneModel::PlayVMD(float time){
+	if (!mBoneAssetDataPtr)return;
 	if (mMotion.empty())return;
-	if (mBoneDataPtr->mBoneBuffer.empty())return;
+	VMDAnimation(time);
 
-	for (DWORD mid = 0; mid < mBoneDataPtr->mBoneBuffer.size(); mid++){
+	// ボーン差分行列の作成、定数バッファに転送
+	for (UINT ib = 0; ib<mBone.size(); ++ib){
+		XMVECTOR Determinant;
+		XMMATRIX invmtx = XMMatrixInverse(&Determinant, mBone[ib].mMtxPoseInit);
+		XMMATRIX mtx = XMMatrixMultiplyTranspose(invmtx, mBone[ib].mMtxPose);
+		mCBBoneMatrix.mParam[ib].BoneMatrix[0] = XMFLOAT4(mtx.r[0].x, mtx.r[0].y, mtx.r[0].z, mtx.r[0].w);//mtx.r[0];
+		mCBBoneMatrix.mParam[ib].BoneMatrix[1] = XMFLOAT4(mtx.r[1].x, mtx.r[1].y, mtx.r[1].z, mtx.r[1].w);//mtx.r[1];
+		mCBBoneMatrix.mParam[ib].BoneMatrix[2] = XMFLOAT4(mtx.r[2].x, mtx.r[2].y, mtx.r[2].z, mtx.r[2].w);//mtx.r[2];
+	}
+
+	mCBBoneMatrix.UpdateSubresource();
+}
+
+// とりあえずアニメーション
+void BoneModel::VMDAnimation(float key_time)
+{
+	if (!mBoneAssetDataPtr)return;
+	if (mMotion.empty())return;
+
+	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
+	if (bones.empty())return;
+
+	for (DWORD mid = 0; mid < bones.size(); mid++){
 
 		Motion& mot = mMotion[mid];
 
@@ -421,187 +408,9 @@ void BoneBuffer::VMDAnimation(float key_time)
 	VMDIkAnimation();
 }
 
-XMFLOAT4 VectorToFloat(const XMVECTOR& vec){
-	return XMFLOAT4(XMVectorGetX(vec), XMVectorGetY(vec), XMVectorGetZ(vec), XMVectorGetW(vec));
-}
-XMVECTOR FloatToVector(const XMFLOAT4& f){
-	return XMVectorSet(f.x, f.y, f.z, f.w);
-}
-XMVECTOR FloatToVector(const XMFLOAT3& f){
-	return XMVectorSet(f.x, f.y, f.z, 0.0f);
-}
-
-
-
-#define PMX_IK
-#ifndef PMX_IK
-//-------------------------------------------
-// とりあえずIK
-void BoneBuffer::VMDIkAnimation()
-{
-	if (mBoneNum == 0)return;
-	if (!mMotion)return;
-
-	// IK計算
-	XMVECTOR eps0 = { 0.0000001f, 0.0000001f, 0.0000001f, 0.0000001f };
-	for (int i = 0; i < mIkNum;i++){
-		Ik& ik = mIk[i];
-		UINT tg_idx = ik.target_bone_index;
-		UINT ik_idx = ik.bone_index;
-
-		for (UINT ite = 0; ite<ik.iterations; ++ite){
-			XMVECTOR target_pos = mBone[tg_idx].mMtxPose.r[3];
-			for (UINT chn = 0; chn<ik.chain_length; ++chn){
-				UINT pa_idx = ik.child_bone_index[chn];//
-
-				XMVECTOR Determinant;
-				//親のローカル空間に変換
-				XMMATRIX inv_mtx = XMMatrixInverse(&Determinant, mBone[pa_idx].mMtxPose);
-				XMVECTOR tg_pos = XMVector4Transform(target_pos, inv_mtx);
-				XMVECTOR ik_pos = XMVector4Transform(mBone[ik_idx].mMtxPose.r[3], inv_mtx);
-
-				//目標方向
-				XMVECTOR ik_dir = XMVector3Normalize(ik_pos);
-				XMVECTOR tg_dir = XMVector3Normalize(tg_pos);
-				if (XMVector3NearEqual(tg_dir, ik_dir, eps0)){
-					continue;
-				}
-
-				// 回転軸と角度 
-				XMVECTOR rot_axis = XMVector3Cross(tg_dir, ik_dir);
-				if (XMVector3NearEqual(rot_axis, XMVectorSet(0, 0, 0, 0), eps0)){
-					continue;
-				}
-				rot_axis = XMVector3Normalize(rot_axis);
-				float ang = XMVectorGetX(XMVectorACos(XMVector3Dot(tg_dir, ik_dir)));
-
-				//tg_dirをik_dirに一致させるための回転
-				XMVECTOR rot = XMQuaternionRotationAxis(rot_axis, ang*ik.control_weight);
-
-				mBone[pa_idx].mRot = VectorToFloat(XMQuaternionMultiply(rot, FloatToVector(mBone[pa_idx].mRot)));
-
-				// 回転制限
-				XMMATRIX mtx = XMMatrixRotationQuaternion(FloatToVector(mBone[pa_idx].mRot));
-
-				//ZYX　Y=-90～90°Y軸＝ねじり方向
-				//通常X軸がボーンの方向（X軸回転＝ねじり）だけど、PMDの足ボーンはY軸
-				float rx = -atan2f(XMVectorGetY(mtx.r[2]), XMVectorGetZ(mtx.r[2]));
-				float ry = asinf(XMVectorGetX(mtx.r[2]));
-				float rz = -atan2f(XMVectorGetX(mtx.r[1]), XMVectorGetX(mtx.r[0]));
-				XMVECTOR rot_xyz = { rx, ry, rz, 0 };
-
-
-				float a = 1;
-				XMVECTOR ik_min = XMVectorSet(-a, -a, -a, 0);
-				XMVECTOR ik_max = XMVectorSet(a, a, a, 0);
-
-				//名前に"ひざ"があったら回転制限
-				if (std::string::npos != mBone[pa_idx].mStrName.find("ひざ")){
-					ik_min = XMVectorSet(-XM_PI, 0, 0, 0);
-					ik_max = XMVectorSet(-XM_PI/180.0f*0.5f, 0, 0, 0);
-				}
-
-
-				rot_xyz = XMVectorMax(rot_xyz, ik_min);
-				rot_xyz = XMVectorMin(rot_xyz, ik_max);
-				mtx = XMMatrixRotationZ(XMVectorGetZ(rot_xyz));
-				mtx = XMMatrixMultiply(mtx, XMMatrixRotationY(XMVectorGetY(rot_xyz)));
-				mtx = XMMatrixMultiply(mtx, XMMatrixRotationX(XMVectorGetX(rot_xyz)));
-				mBone[pa_idx].mRot = VectorToFloat(XMQuaternionRotationMatrix(mtx));
-
-				//ワールド行列更新
-				mBone[pa_idx].mMtxPose = SRTMatrix(FloatToVector(mBone[pa_idx].mScale), FloatToVector(mBone[pa_idx].mRot), FloatToVector(mBone[pa_idx].mPos));
-				if (mBone[pa_idx].mHierarchy.mIdxParent < mBoneNum){
-					mBone[pa_idx].mMtxPose = XMMatrixMultiply(mBone[pa_idx].mMtxPose, mBone[mBone[pa_idx].mHierarchy.mIdxParent].mMtxPose);
-				}
-				mBone[tg_idx].mMtxPose = SRTMatrix(FloatToVector(mBone[tg_idx].mScale), FloatToVector(mBone[tg_idx].mRot), FloatToVector(mBone[tg_idx].mPos));
-				if (mBone[tg_idx].mHierarchy.mIdxParent < mBoneNum){
-					mBone[tg_idx].mMtxPose = XMMatrixMultiply(mBone[tg_idx].mMtxPose, mBone[mBone[tg_idx].mHierarchy.mIdxParent].mMtxPose);
-				}
-
-				//目標位置更新
-				target_pos = mBone[tg_idx].mMtxPose.r[3];
-			}
-		}
-
-		//IKの計算結果を子階層に反映
-		//UpdatePose();
-	}
-	UpdatePose();
-}
-#endif
-
-//--------------------------------------
-// スケール、回転、移動行列
-XMMATRIX SQTMatrix(const XMVECTOR& scale,const XMVECTOR& quat_rot,const XMVECTOR& trans)
-{
-	return XMMatrixMultiply(
-		XMMatrixMultiply(
-		XMMatrixScalingFromVector(scale),
-		XMMatrixRotationQuaternion(quat_rot)),
-		XMMatrixTranslationFromVector(trans));
-}
-
-
-XMVECTOR GetAngle(XMVECTOR quat)
-{
-	XMMATRIX mtx = XMMatrixRotationQuaternion(quat);
-
-	//ZYX　Y=-90～90°Y軸＝ねじり方向
-	float rx = -atan2f(XMVectorGetY(mtx.r[2]), XMVectorGetZ(mtx.r[2]));
-	float ry = asinf(XMVectorGetX(mtx.r[2]));
-	float rz = -atan2f(XMVectorGetX(mtx.r[1]), XMVectorGetX(mtx.r[0]));
-	return XMVectorSet(rx, ry, rz, 0);
-}
-
-XMVECTOR LimitAngle(const XMVECTOR& quat,const XMVECTOR& rotmin,const XMVECTOR& rotmax)
-{
-	XMVECTOR rot_xyz = GetAngle(quat);
-	/*	XMMATRIX mtx = XMMatrixRotationQuaternion(quat);
-
-	//ZYX　Y=-90～90°Y軸＝ねじり方向
-	float rx = -atan2f(XMVectorGetY(mtx.r[2]),XMVectorGetZ(mtx.r[2]));
-	float ry = asinf(XMVectorGetX(mtx.r[2]));
-	float rz = -atan2f(XMVectorGetX(mtx.r[1]),XMVectorGetX(mtx.r[0]));
-	XMVECTOR rot_xyz = {rx,ry,rz,0};
-	*rotang_before = rot_xyz;
-	*/
-	rot_xyz = XMVectorMax(rot_xyz, rotmin);
-	rot_xyz = XMVectorMin(rot_xyz, rotmax);
-	XMMATRIX mtx = XMMatrixRotationZ(XMVectorGetZ(rot_xyz));
-	mtx = XMMatrixMultiply(mtx, XMMatrixRotationY(XMVectorGetY(rot_xyz)));
-	mtx = XMMatrixMultiply(mtx, XMMatrixRotationX(XMVectorGetX(rot_xyz)));
-
-	return XMQuaternionRotationMatrix(mtx);
-}
-
-bool RotDir(const XMVECTOR& dir_from,const XMVECTOR& dir_to, float ang_limit, XMVECTOR* axis, float* ang)
-{
-	XMVECTOR eps0 = XMVectorSet(0.0005f, 0.0005f, 0.0005f, 1.0f);
-	//XMVECTOR eps0 = { 0.0000001f, 0.0000001f, 0.0000001f, 0.0000001f };
-	XMVECTOR ik_dir = XMVector3Normalize(dir_to);
-	XMVECTOR tg_dir = XMVector3Normalize(dir_from);
-	if (XMVector3NearEqual(tg_dir, ik_dir, eps0)){
-		return false;
-	}
-	// 回転軸と角度 
-	eps0 = XMVectorSet(0.0000001f, 0.0000001f, 0.0000001f, 1.0f); //XMVectorSet(0.0005f, 0.0005f, 0.0005f, 0.0f);
-	XMVECTOR rot_axis = XMVector3Cross(tg_dir, ik_dir);
-	if (XMVector3NearEqual(rot_axis, XMVectorSet(0, 0, 0, 0), eps0)){
-		return false;
-	}
-	*axis = XMVector3Normalize(rot_axis);
-	*ang = XMVectorGetX(XMVectorACos(XMVector3Dot(tg_dir, ik_dir)));
-
-	// 回転量制限
-	if (*ang > ang_limit)*ang = ang_limit;
-	if (*ang < -ang_limit)*ang = -ang_limit;
-	return true;
-}
-
 //--------------------------------------
 //姿勢行列更新
-void BoneBuffer::UpdatePose()
+void BoneModel::UpdatePose()
 {
 
 	DWORD mBoneNum = mBone.size();
@@ -614,10 +423,9 @@ void BoneBuffer::UpdatePose()
 	}
 }
 
-#ifdef PMX_IK
 //-------------------------------------------
 // とりあえずIK
-void BoneBuffer::VMDIkAnimation()
+void BoneModel::VMDIkAnimation()
 {
 
 	//XMStoreFloat4()
@@ -629,8 +437,8 @@ void BoneBuffer::VMDIkAnimation()
 	DWORD mIkNum = mIk.size();
 	// IK計算
 	for (DWORD i = 0; i < mIkNum; i++){
-	//{
-	//	int i = 0;
+		//{
+		//	int i = 0;
 		Ik& ik = mIk[i];
 		UINT tg_idx = ik.target_bone_index;
 		UINT ik_idx = ik.bone_index;
@@ -817,36 +625,9 @@ void BoneBuffer::VMDIkAnimation()
 	}
 	UpdatePose();
 }
-#endif
 
 
-HRESULT AssetModelBuffer::Create(const char* FileName, Model* mpModel){
 
-	mMaxVertex = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-	mMinVertex = XMVectorSet(-1.0f, -1.0f, -1.0f, 1.0f);
-
-	AssetLoader loader;
-	auto modeldata = loader.LoadAsset(FileName);
-	if (!modeldata)return E_FAIL;
-
-	mpIndexBuffer = modeldata->m_pIndexBuffer;
-	mpVertexBuffer = modeldata->m_pVertexBuffer;
-	mIndexNum = modeldata->m_Polygons->GetIndexNum();
-
-	auto &poly = modeldata->m_Polygons;
-
-	mpModel->mMeshs.resize(poly->GetMeshNum());
-	int i = 0;
-	int total = 0;
-	for (auto& mesh : mpModel->mMeshs){
-		mesh.mpModelBuffer = this;
-		mesh.mFace_vert_start_count = total;
-		auto count = poly->GetMesh(i);
-		mesh.mFace_vert_count = count;
-		total += count;
-		i++;
-	}
-
-	mStride = poly->VertexSize;
-	return S_OK;
+UINT BoneModel::GetMaxAnimeTime(){
+	return mLastKeyNo;
 }

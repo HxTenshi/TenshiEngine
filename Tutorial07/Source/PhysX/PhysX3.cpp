@@ -6,6 +6,7 @@
 #include "Game/Actor.h"
 #include "Game/Component/ScriptComponent.h"
 
+#include "Engine/AssetLoader.h"
 
 class TestOn : public physx::PxSimulationEventCallback{
 	void onConstraintBreak(PxConstraintInfo *constraints, PxU32 count) override{
@@ -327,7 +328,7 @@ PxShape* PhysX3Main::CreateShapeSphere(){
 
 }
 
-PxShape* PhysX3Main::CreateTriangleMesh(IPolygonsData* poly){
+PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 
 	auto vnum = poly->GetVertexNum();
 	//std::vector<PxVec3> vertexVec3(VertexNum);

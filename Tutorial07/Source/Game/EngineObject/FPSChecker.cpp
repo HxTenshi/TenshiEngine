@@ -26,18 +26,32 @@ public:
 		mComponents.AddComponent<TextComponent>();
 
 
-		auto mPixelTopLeft = TopLeft;
-		auto mPixelDownRight = DownRight;
-		XMFLOAT2 mTopLeft;
-		XMFLOAT2 mDownRight;
-		mTopLeft.x = TopLeft.x / WindowState::mWidth;
-		mTopLeft.y = 1 - DownRight.y / WindowState::mHeight;
+		//auto mPixelTopLeft = TopLeft;
+		//auto mPixelDownRight = DownRight;
+		//XMFLOAT2 mTopLeft;
+		//XMFLOAT2 mDownRight;
 
-		mDownRight.x = DownRight.x / WindowState::mWidth;
-		mDownRight.y = 1 - TopLeft.y / WindowState::mHeight;
+		float x = DownRight.x - TopLeft.x;
+		float y = DownRight.y - TopLeft.y;
+
+		float sx = x / WindowState::mWidth;
+		float sy = y / WindowState::mHeight;
 
 
-		mTransform->Position(XMVectorSet(mTopLeft.x, mTopLeft.y, mDownRight.x, mDownRight.y));
+		x = TopLeft.x + x / 2;
+		y = TopLeft.y + y / 2;
+		x = x / WindowState::mWidth;
+		y = y / WindowState::mHeight;
+		y = y - 1;
+		//mTopLeft.x = TopLeft.x / WindowState::mWidth;
+		//mTopLeft.y = 1 - DownRight.y / WindowState::mHeight;
+		//
+		//mDownRight.x = DownRight.x / WindowState::mWidth;
+		//mDownRight.y = 1 - TopLeft.y / WindowState::mHeight;
+
+
+		mTransform->Position(XMVectorSet(-0.8f,0.5f, 0, 1));
+		mTransform->Scale(XMVectorSet(0.5f, 0.5f,1,1));
 	}
 	~Text(){
 		Finish();

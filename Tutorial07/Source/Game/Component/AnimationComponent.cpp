@@ -7,6 +7,7 @@
 #include "Component.h"
 #include "Graphic/Loader/Animation/VMD.h"
 #include "Graphic/Model/Model.h"
+#include "Graphic/Model/BoneModel.h"
 
 AnimationComponent::AnimationComponent()
 		:mTime(0.0f)

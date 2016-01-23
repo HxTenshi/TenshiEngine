@@ -9,6 +9,8 @@
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h>
 
+#include "Engine/AssetDataBase.h"
+
 PhysXColliderComponent::PhysXColliderComponent(){
 	mIsSphere = false;
 	mShape = NULL;
@@ -202,16 +204,11 @@ void PhysXColliderComponent::ChangeShape(){
 
 void PhysXColliderComponent::CreateMesh(){
 
-	AssetLoader loader;
-	auto data = loader.LoadAsset(mMeshFile);
+	MeshAssetDataPtr data = AssetDataBase::Instance(mMeshFile.c_str());
 	if (!data)return;
-	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->m_Polygons);
+	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->GetFileData().GetPolygonsData());
 
 	ShapeAttach(shape);
-
-	//ŠJ•ú‚³‚ê‚È‚¢‚Ì‚ÅŽd•û‚È‚­‚±‚±‚Å‰ð•ú
-	data->m_pVertexBuffer->Release();
-	data->m_pIndexBuffer->Release();
 }
 
 void PhysXColliderComponent::SetIsTrigger(bool flag){

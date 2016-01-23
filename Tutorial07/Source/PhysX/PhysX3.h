@@ -54,7 +54,8 @@
 #endif
 
 using namespace physx;
-#include "Graphic/Model/ModelBuffer.h"
+class Actor;
+class IPolygonsData;
 
 class PhysX3Main{
 public:
@@ -87,7 +88,7 @@ public:
 
 	PxShape* CreateShape();
 	PxShape* CreateShapeSphere();
-	PxShape* CreateTriangleMesh(IPolygonsData* poly);
+	PxShape* CreateTriangleMesh(const IPolygonsData* poly);
 
 private:
 	void getColumnMajor(PxMat33& m, PxVec3& t, float* mat);

@@ -34,10 +34,8 @@ cbuffer cbChangesEveryFrame : register(b2)
 PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.Pos = input.Pos;
-	output.Pos.x = (1 - input.Pos.x) * World[3][0] + input.Pos.x * World[3][2];
-	output.Pos.y = (1 - input.Pos.y) * World[3][1] + input.Pos.y * World[3][3];
-	output.Pos.xy = output.Pos.xy * 2-1;
+	output.Pos = mul(input.Pos, World);
+	output.Pos.z = 0;
 	output.Tex = input.Tex;
 	
 	return output;

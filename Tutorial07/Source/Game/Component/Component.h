@@ -256,7 +256,7 @@ private:
 
 	RenderTarget mRenderTarget;
 
-	ModelTexture mModelTexture;
+	Model mModelTexture;
 
 	Material mMaterial;
 	Material mMaterialEnd;

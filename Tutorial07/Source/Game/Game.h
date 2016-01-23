@@ -85,7 +85,7 @@ public:
 	}
 
 private:
-	ModelTexture mModelTexture;
+	Model mModelTexture;
 	Material mMaterial;
 };
 
@@ -108,7 +108,7 @@ public:
 		m_DepthRT.Create(w, h);
 		m_LightRT.Create(w, h);
 
-		mModelTexture.Create("");
+		mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 
 
 		mMaterialLight.Create("EngineResource/DeferredLightRendering.fx");
@@ -254,7 +254,7 @@ private:
 	RenderTarget m_NormalRT;
 	RenderTarget m_DepthRT;
 	RenderTarget m_LightRT;
-	ModelTexture mModelTexture;
+	Model mModelTexture;
 	Material mMaterialLight;
 	Material mMaterialDeferred;
 

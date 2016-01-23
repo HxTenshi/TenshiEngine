@@ -11,10 +11,6 @@
 
 #include "Graphic/model/ModelStructs.h"
 
-enum class PMXFileVer{
-	v0x01 = 0x0001//pos normal tex ‚P‚Â‚Ã‚Â
-};
-
 class ModelData;
 using ModelDataPtr = shared_ptr < ModelData > ;
 
@@ -28,10 +24,10 @@ struct IPolygonsData{
 	unsigned int VertexSize;
 	unsigned int IndexSize;
 	unsigned int MeshSize;
-	
-	virtual void* GetVertexPtr() = 0;
-	virtual void* GetIndexPtr() = 0;
-	virtual void* GetMeshPtr() = 0;
+
+	virtual const void* GetVertexPtr() const = 0;
+	virtual const void* GetIndexPtr() const = 0;
+	virtual const void* GetMeshPtr() const = 0;
 	virtual int GetVertexNum() const = 0;
 	virtual int GetIndexNum() const = 0;
 	virtual int GetMeshNum() const = 0;
@@ -55,13 +51,13 @@ struct PolygonsData : public IPolygonsData{
 		MeshSize = sizeof(MeshType);
 	}
 
-	void* GetVertexPtr() override{
+	const void* GetVertexPtr() const override{
 		return Vertexs.data();
 	}
-	void* GetIndexPtr() override{
+	const void* GetIndexPtr() const override{
 		return Indices.data();
 	}
-	void* GetMeshPtr() override{
+	const void* GetMeshPtr() const override{
 		return Meshs.data();
 	}
 	int GetVertexNum() const override{
@@ -87,9 +83,6 @@ struct PolygonsData : public IPolygonsData{
 	std::vector<VertexType> Vertexs;
 	std::vector<IndexType> Indices;
 	std::vector<MeshType> Meshs;
-	//unsigned int VertexNum;
-	//unsigned int IndexNum;
-	//unsigned int MeshCount;
 };
 
 class ModelData{
@@ -108,6 +101,7 @@ public:
 	}
 
 private:
+
 	ModelData(){
 		m_Polygons = NULL;
 		m_pVertexBuffer = NULL;
@@ -151,7 +145,7 @@ public:
 	ID3D11Buffer *m_pIndexBuffer;
 };
 
-
+#include <vector>
 class BoneData{
 public:
 	std::vector<OutputSimpleBone> mBoneBuffer;

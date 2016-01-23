@@ -611,7 +611,7 @@ HRESULT Font::SetText(const std::string& text){
 
 		brush->SetColor(D2D1::ColorF(1.0f, 0.0f, 0.0f, 1.0f));
 
-		rect = D2D1::RectF(0, 200, 1000, 201);
+		rect = D2D1::RectF(0, 0, 1000, 201);
 
 		//–ˆƒtƒŒ[ƒ€•`‰æ‚µ‚Ä‚é‚Æãè‚­•`‰æ‚³‚ê‚È‚¢H
 		UINT s = wcslen(wtext.c_str());

@@ -30,9 +30,6 @@ PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = input.Pos;
-	output.Pos.x = input.Pos.x;
-	output.Pos.y = input.Pos.y;
-	output.Pos.xy = output.Pos.xy * 2-1;
 	output.Tex = input.Tex;
 	
 	return output;

@@ -203,8 +203,7 @@ public:
 		Device::mpImmediateContext->VSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
 	void PSSetConstantBuffers() const{
-
-		Device::mpImmediateContext->PSSetConstantBuffers(mSlot 1, &mBuffer->mpBuffer);
+		Device::mpImmediateContext->PSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
 
 public:

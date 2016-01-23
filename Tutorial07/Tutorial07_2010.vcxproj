@@ -403,6 +403,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Device\DirectX11Device.cpp" />
+    <ClCompile Include="Source\Engine\AssetDataBase.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\Bone\BoneFileData.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshBufferData.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshFileData.cpp" />
     <ClCompile Include="Source\Engine\SelectActor.cpp" />
     <ClCompile Include="Source\Engine\WorldGrid.cpp" />
     <ClCompile Include="Source\Game\Actor.cpp" />
@@ -430,9 +434,8 @@
     <ClCompile Include="Source\Graphic\Loader\Model\PMX.cpp" />
     <ClCompile Include="Source\Graphic\Material\Material.cpp" />
     <ClCompile Include="Source\Graphic\Material\Texture.cpp" />
+    <ClCompile Include="Source\Graphic\Model\BoneModel.cpp" />
     <ClCompile Include="Source\Graphic\Model\Model.cpp" />
-    <ClCompile Include="Source\Graphic\Model\ModelBuffer.cpp" />
-    <ClCompile Include="Source\Graphic\Model\ModelBufferPMD.cpp" />
     <ClCompile Include="Source\Graphic\Shader\InputLayout.cpp" />
     <ClCompile Include="Source\Graphic\Shader\ShaderFile.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
@@ -464,6 +467,10 @@
     <ClInclude Include="Source\ConstantBuffer\ConstantBufferDif.h" />
     <ClInclude Include="Source\Device\DirectX11Device.h" />
     <CLInclude Include="Resource\resource.h" />
+    <ClInclude Include="Source\Engine\AssetDataBase.h" />
+    <ClInclude Include="Source\Engine\AssetFile\Bone\BoneFileData.h" />
+    <ClInclude Include="Source\Engine\AssetFile\Mesh\MeshBufferData.h" />
+    <ClInclude Include="Source\Engine\AssetFile\Mesh\MeshFileData.h" />
     <ClInclude Include="Source\Engine\AssetLoader.h" />
     <ClInclude Include="Source\Engine\ICommand.h" />
     <ClInclude Include="Source\Engine\SelectActor.h" />
@@ -499,9 +506,8 @@
     <ClInclude Include="Source\Graphic\Loader\Model\PMX.h" />
     <ClInclude Include="Source\Graphic\Material\Material.h" />
     <ClInclude Include="Source\Graphic\Material\Texture.h" />
+    <ClInclude Include="Source\Graphic\Model\BoneModel.h" />
     <ClInclude Include="Source\Graphic\Model\Model.h" />
-    <ClInclude Include="Source\Graphic\Model\ModelBuffer.h" />
-    <ClInclude Include="Source\Graphic\Model\ModelBufferPMD.h" />
     <ClInclude Include="Source\Graphic\Model\ModelStructs.h" />
     <ClInclude Include="Source\Graphic\RenderTarget\RenderTarget.h" />
     <ClInclude Include="Source\Graphic\Shader\GeometryShader.h" />
@@ -519,6 +525,7 @@
     <ClInclude Include="Source\MySTL\ptr.h" />
     <ClInclude Include="Source\MySTL\Reflection\MemberInfo_Data.h" />
     <ClInclude Include="Source\MySTL\Reflection\Reflection.h" />
+    <ClInclude Include="Source\MySTL\Release_self.h" />
     <ClInclude Include="Source\MySTL\Utility.h" />
     <ClInclude Include="Source\PhysX\PhysX3.h" />
     <ClInclude Include="Source\PhysX\PxMat33Legacy.h" />

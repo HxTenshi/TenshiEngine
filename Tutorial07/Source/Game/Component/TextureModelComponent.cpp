@@ -21,10 +21,10 @@ TextureModelComponent::~TextureModelComponent(){
 
 void TextureModelComponent::Initialize(){
 	if (!mModel){
-		mModel = new ModelTexture();
+		mModel = new Model();
 	}
 	if (!mModel->IsCreate()){
-		mModel->Create("");
+		mModel->Create("EngineResource/TextureModel.tesmesh");
 	}
 }
 

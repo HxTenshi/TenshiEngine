@@ -558,7 +558,7 @@ PostEffectRendering::~PostEffectRendering(){
 	mModelTexture.Release();
 }
 void PostEffectRendering::Initialize(){
-	mModelTexture.Create("");
+	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 	mMaterial.Create("EngineResource/PostEffectRendering.fx");
 	mMaterial.SetTexture(Game::GetMainViewRenderTarget().GetTexture(), 0);
 }
