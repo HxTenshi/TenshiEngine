@@ -191,6 +191,19 @@ Game::Game(){
 		Window::Deleter(s);
 	});
 
+	Window::SetWPFCollBack(MyWindowMessage::CreateActorToPrefab, [&](void* p)
+	{
+
+		int intptr = gIntPtrStack.top();
+		gIntPtrStack.pop();
+		auto obj = ((Actor*)intptr);
+
+
+		std::string *s = (std::string*)p;
+		obj->ExportData("Assets", *s);
+		Window::Deleter(s);
+	});
+
 	Window::SetWPFCollBack(MyWindowMessage::PlayGame, [&](void* p)
 	{
 		ChangePlayGame(true);

@@ -25,7 +25,7 @@ void ModelComponent::Initialize(){
 		}
 		if (!mModel->IsCreate()){
 			mModel->Create(mFileName.c_str());
-			if (!mBoneFileName.empty() || !mModel->mBoneModel){
+			if (!mModel->mBoneModel){
 				mModel->CreateBoneModel(mBoneFileName.c_str());
 			}
 		}
@@ -45,17 +45,12 @@ void ModelComponent::CreateInspector(){
 		}
 		mModel = new Model();
 		mModel->Create(mFileName.c_str());
-		if (!mBoneFileName.empty()){
-			mModel->CreateBoneModel(mBoneFileName.c_str());
-		}
+		mModel->CreateBoneModel(mBoneFileName.c_str());
 
 	};
 	std::function<void(std::string)> collbackbonepath = [&](std::string name){
 		mBoneFileName = name;
-
-		if (!mBoneFileName.empty()){
-			mModel->CreateBoneModel(mBoneFileName.c_str());
-		}
+		mModel->CreateBoneModel(mBoneFileName.c_str());
 	};
 	Window::AddInspector(new InspectorStringDataSet("Model", &mFileName, collbackpath), data);
 	Window::AddInspector(new InspectorStringDataSet("Bone", &mBoneFileName, collbackbonepath), data);

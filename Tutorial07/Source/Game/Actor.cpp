@@ -151,46 +151,18 @@ void Actor::ExportSceneData(const std::string& pass, File& sceneFile){
 		child->ExportSceneData(pass, sceneFile);
 	}
 }
-void Actor::ExportData(const std::string& path){
 
-	File f;
+void Actor::ExportData(const std::string& path, const std::string& fileName){
+
 	if (!mUniqueID){
 		mUniqueID = gUniqueIDGenerator.CreateUniqueID();
 	}
-	//
-	//if (!f.Open(pass + "/Object_" + std::to_string(mUniqueID) + ".txt"))
-	//	f.FileCreate();
-	//f.Clear();
-	//if (!f)return;
-	//
-	//f.Out(mUniqueID);
-	//
-	//auto name = mName;
-	//int ioc = name.find(" ");
-	//while (std::string::npos != ioc){
-	//	name.replace(ioc, 1, "$");
-	//	ioc = name.find(" ");
-	//}
-	//
-	//f.Out(name);
-	//
-	//if (mTransform->GetParent()){
-	//	f.Out(mTransform->GetParent()->GetUniqueID());
-	//}
-	//else{
-	//	f.Out(NULL);
-	//}
-	//
-	//for (const auto& cmp : mComponents.mComponent){
-	//	cmp.second->ExportData(f);
-	//}
 
 #define _KEY(x) io->func( x , #x)
-	I_ioHelper* io = new OutputHelper(path + "/Object_" + std::to_string(mUniqueID) + ".txt" + ".json");
+	I_ioHelper* io = new OutputHelper(path + "/" + fileName + ".json");
 
 	_KEY(mUniqueID);
 	_KEY(mName);
-
 
 
 	io->pushObject();
@@ -210,6 +182,13 @@ void Actor::ExportData(const std::string& path){
 	delete io;
 #undef _KEY
 }
+void Actor::ExportData(const std::string& path){
+
+	if (!mUniqueID){
+		mUniqueID = gUniqueIDGenerator.CreateUniqueID();
+	}
+	ExportData(path, "Object_" + std::to_string(mUniqueID));
+}
 
 bool Actor::ImportDataAndNewID(const std::string& fileName){
 	ImportData(fileName);
@@ -226,42 +205,14 @@ bool Actor::ImportDataAndNewID(const std::string& fileName){
 
 void Actor::ImportData(const std::string& fileName){
 
-	//File f(fileName);
-	//if (!f)return;
-	//
-	//f.In(&mUniqueID);
-	//f.In(&mName);
-	//int ioc = mName.find("$");
-	//while (std::string::npos != ioc){
-	//	mName.replace(ioc, 1, " ");
-	//	ioc = mName.find("$");
-	//}
-	//
-	//UINT uid;
-	//f.In(&uid);
-	//
-	//std::string temp;
-	//
 	mComponents.mComponent.clear();
-	//
-	//while (f){
-	//	if (!f.In(&temp))break;
-	//	if (auto p = ComponentFactory::Create(temp)){
-	//		p->ImportData(f);
-	//		mComponents.AddComponent_NotInitialize(p);
-	//		if (dynamic_cast<TransformComponent*>(p.Get())){
-	//			mTransform = p;
-	//		}
-	//	}
-	//}
-	//
-	//((TransformComponent*)mTransform.Get())->mParentUniqueID = uid;
-	//
-	//return;
 
 #define _KEY(x) io->func( x , #x)
-	I_ioHelper* io = new InputHelper(fileName + ".json");
-	if (io->error)return;
+	I_ioHelper* io = new InputHelper(fileName);
+	if (io->error){
+		io = new InputHelper(fileName + ".json");
+		if (io->error)return;
+	}
 
 	_KEY(mUniqueID);
 	_KEY(mName);

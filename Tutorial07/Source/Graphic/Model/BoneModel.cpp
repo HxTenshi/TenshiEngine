@@ -141,7 +141,7 @@ BoneModel::~BoneModel()
 
 HRESULT BoneModel::Create(const char* FileName){
 
-	mBoneAssetDataPtr = AssetDataBase::Instance(FileName);
+	AssetDataBase::Instance(FileName, mBoneAssetDataPtr);
 	if (!mBoneAssetDataPtr)return E_FAIL;
 
 	createBone();

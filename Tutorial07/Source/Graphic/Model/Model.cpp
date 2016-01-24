@@ -25,7 +25,8 @@ Model::~Model()
 HRESULT Model::Create(const char* FileName){
 	HRESULT hr = S_OK;
 
-	m_MeshAssetDataPtr = AssetDataBase::Instance(FileName);
+	AssetDataBase::Instance(FileName, m_MeshAssetDataPtr);
+
 
 	mCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
 	if (!mCBuffer.mBuffer)

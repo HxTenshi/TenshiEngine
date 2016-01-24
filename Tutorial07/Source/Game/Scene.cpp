@@ -25,7 +25,7 @@ void Scene::LoadScene(const std::string& fileName){
 		while (scenefile){
 			if (!scenefile.In(&id))break;
 			auto a = new Actor();
-			a->ImportData("./Scenes/" + m_Name + "/Object_" + std::to_string(id) + ".txt");
+			a->ImportData("./Scenes/" + m_Name + "/Object_" + std::to_string(id) + ".json");
 			Game::AddObject(a);
 		}
 	}

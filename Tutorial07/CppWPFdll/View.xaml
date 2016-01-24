@@ -43,8 +43,7 @@
             </Grid>
             <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Center"/>
             <Border Grid.Column="2" Background="#FF646464" BorderBrush="#FF191919" BorderThickness="1" Padding="2" Margin="2">
-                <StackPanel Name="MainDock">
-                </StackPanel>
+                <StackPanel Name="MainDock" Background="#FF646464"/>
             </Border>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center"/>

@@ -13,6 +13,13 @@
 #include "ViewModel.h"
 
 
+
+#include <vcclr.h>
+
+#pragma comment(lib, "user32.lib")
+
+#include "../Source/Application/Define.h"
+
 //リソースからXAMLを作成する
 FrameworkElement ^LoadContentsFromResource(int resourceId) {
 	// モジュールハンドルの取得
@@ -46,6 +53,11 @@ FrameworkElement ^LoadContentsFromResource(int resourceId) {
 
 
 #include "MainWindow.h"
+static ref class ViewData{
+public:
+	static View^ window;
+};
+
 
 void OnKeyDownHandler(Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
@@ -100,13 +112,28 @@ void CreateInspectorTextBlock(DockPanel^ dockPanel, String ^text){
 	dockPanel->Children->Add(com);
 	DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
 }
+
+delegate void d(DragEventArgs^);
 void CreateInspectorString(DockPanel^ dockPanel, String^ text, std::string* p, StringCollback collback){
 	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_FLOAT);
 	dockPanel->Children->Add(com);
 	DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
 	auto tb = (TextBlock^)com->FindName("FloatName");
 	if (tb)tb->Text = text;
-	BindingInspectorString((TextBox^)com->FindName("Value"), p, collback);
+
+	auto textbox = (TextBox^)com->FindName("Value");
+	BindingInspectorString(textbox, p, collback);
+
+	textbox->AllowDrop = true;
+
+	textbox->AddHandler(TextBox::PreviewDragEnterEvent, gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDragOver), true);
+	textbox->AddHandler(TextBox::PreviewDragOverEvent, gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDragOver), true);
+	textbox->AddHandler(TextBox::DragEnterEvent, gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDragOver), true);
+	textbox->AddHandler(TextBox::DragOverEvent, gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDragOver), true);
+
+	textbox->PreviewDrop += gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDrop);
+	textbox->Drop += gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDrop);
+
 }
 void CreateInspectorFloat(DockPanel^ dockPanel, String^ text, float* p, FloatCollback collback){
 	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_FLOAT);
@@ -258,19 +285,6 @@ void InspectorVector3::CreateInspector(DockPanel^ dockPanel) {
 	CreateInspectorTextBlock(dockPanel, gcnew String(m_data->Text.c_str()));
 	CreateInspectorVector3(dockPanel, m_data->datax, m_data->collbackX, m_data->datay, m_data->collbackY, m_data->dataz, m_data->collbackZ);
 }
-
-
-#include <vcclr.h>
-
-#pragma comment(lib, "user32.lib")
-
-#include "../Source/Application/Define.h"
-
-
-static ref class ViewData{
-public:
-	static View^ window;
-};
 
 
 HWND Data::hWnd = NULL;

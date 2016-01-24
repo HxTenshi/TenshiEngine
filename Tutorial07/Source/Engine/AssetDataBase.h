@@ -3,8 +3,8 @@
 #include "MySTL/ptr.h"
 
 enum class AssetFileType{
-	Tesmesh,
-	Tedmesh,
+	None,
+	Temesh,
 	Tebone,
 	Vmd,
 	Image,
@@ -14,9 +14,15 @@ enum class AssetFileType{
 class AssetData{
 public:
 
+	AssetData(AssetFileType type = AssetFileType::None)
+		:m_AssetFileType(type){
+
+	}
+
+	const AssetFileType m_AssetFileType;
+
 protected:
 	void* m_Data;
-	AssetFileType m_AssetFileType;
 	char m_GUID[33];
 
 };
@@ -38,7 +44,24 @@ protected:
 class AssetDataBase{
 public:
 	
-	static AssetDataPtr Instance(const char* filename);
+	template <class T>
+	static void Instance(const char* filename, shared_ptr<T>& out){
+
+		auto file = m_AssetCache.find(filename);
+		AssetDataPtr data;
+		if (file == m_AssetCache.end()){
+
+			data = AssetFactory::Create(filename);
+			m_AssetCache.insert(std::make_pair(filename, data));
+		}
+		else{
+			data = file->second;
+		}
+		
+		if (data && T::_AssetFileType == data->m_AssetFileType){
+			out = data;
+		}
+	}
 
 private:
 
@@ -59,6 +82,8 @@ public:
 
 	const MeshFileData& GetFileData() const;
 	const MeshBufferData& GetBufferData() const;
+
+	static const AssetFileType _AssetFileType = AssetFileType::Temesh;
 
 private:
 
@@ -86,6 +111,8 @@ public:
 	static AssetDataPtr BoneAssetData::Create(const char* filename);
 
 	const BoneFileData& GetFileData() const;
+
+	static const AssetFileType _AssetFileType = AssetFileType::Tebone;
 
 private:
 

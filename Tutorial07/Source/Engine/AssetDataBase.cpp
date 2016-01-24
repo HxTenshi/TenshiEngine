@@ -35,22 +35,25 @@ AssetDataPtr AssetFactory::Create(const char* filename){
 //static
 decltype(AssetDataBase::m_AssetCache) AssetDataBase::m_AssetCache;
 
-//static
-AssetDataPtr AssetDataBase::Instance(const char* filename){
-
-	auto file = m_AssetCache.find(filename);
-	AssetDataPtr data;
-	if (file == m_AssetCache.end()){
-
-		auto data = AssetFactory::Create(filename);
-		m_AssetCache.insert(std::make_pair(filename, data));
-
-		return data;
-
-	}
-
-	return file->second;
-}
+////static
+//template <class T>
+//void AssetDataBase::Instance(const char* filename, shared_ptr<T> out){
+//
+//	auto file = m_AssetCache.find(filename);
+//	AssetDataPtr data;
+//	if (file == m_AssetCache.end()){
+//
+//		data = AssetFactory::Create(filename);
+//		m_AssetCache.insert(std::make_pair(filename, data));
+//	}
+//	else{
+//		data = file->second;
+//	}
+//	//}
+//	if (T::_AssetFileType == data->m_AssetFileType){
+//		out = data;
+//	}
+//}
 
 
 
@@ -60,12 +63,14 @@ MeshAssetData::~MeshAssetData()
 }
 
 MeshAssetData::MeshAssetData()
+	:AssetData(_AssetFileType)
 {
 }
 
 //static
 AssetDataPtr MeshAssetData::Create(const char* filename)
 {
+	
 	//auto temp = make_shared<MeshAssetData>();
 
 	struct PrivateFactory : public  MeshAssetData{
@@ -102,6 +107,7 @@ BoneAssetData::~BoneAssetData()
 }
 
 BoneAssetData::BoneAssetData()
+	:AssetData(_AssetFileType)
 {
 }
 

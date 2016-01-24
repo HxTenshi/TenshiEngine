@@ -204,7 +204,8 @@ void PhysXColliderComponent::ChangeShape(){
 
 void PhysXColliderComponent::CreateMesh(){
 
-	MeshAssetDataPtr data = AssetDataBase::Instance(mMeshFile.c_str());
+	MeshAssetDataPtr data;
+	AssetDataBase::Instance(mMeshFile.c_str(),data);
 	if (!data)return;
 	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->GetFileData().GetPolygonsData());
 
