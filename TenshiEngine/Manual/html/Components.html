@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<header>
+			<link rel="stylesheet" href="../Assets/stylesheets/bootstrap.min.css">
+			<script src="../Assets/javascripts/jquery-2.1.4.min.js"></script>
+			<script src="../Assets/javascripts/bootstrap.min.js"></script>
+
+			<div class="navbar navbar-default">
+			  <div class="container">
+			    <div class="navbar-header">
+			      <a href="../html/index.html" class="navbar-brand">TenshiEngine</a>
+			      <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			        <span class="icon-bar"></span>
+			      </button>
+			    </div>
+			    <div class="navbar-collapse collapse" id="navbar-main">
+			      <ul class="nav navbar-nav">
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">エディター<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/Editor.html">エディター</a></li>
+			            <li><a href="../html/Inspector.html">Inspector</a></li>
+			            <li><a href="../html/Assets.html">Assets</a></li>
+			            <li><a href="../html/Scene.html">Scene</a></li>
+			            <li><a href="../html/View.html">View</a></li>
+			          </ul>
+			        </li>
+
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">コンポーネント<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/Components.html">トップ</a></li>
+			            <li><a href="../html/Components.html#Transform">Transform</a></li>
+			            <li><a href="../html/Components.html#Model">Model</a></li>
+			            <li><a href="../html/Components.html#TextureModel">TextureModel</a></li>
+			            <li><a href="../html/Components.html#Material">Material</a></li>
+			            <li><a href="../html/Components.html#Text">Text</a></li>
+			            <li><a href="../html/Components.html#Animation">Animation</a></li>
+			            <li><a href="../html/Components.html#Camera">Camera</a></li>
+			            <li><a href="../html/Components.html#Script">Script</a></li>
+			            <li><a href="../html/Components.html#PhysX">PhysX</a></li>
+			            <li><a href="../html/Components.html#PhysXCollider">PhysXCollider</a></li>
+			            <li><a href="../html/Components.html#PostEffect">PostEffect</a></li>
+			            <li><a href="../html/Components.html#PointLight">PointLight</a></li>
+			            <li><a href="../html/Components.html#Particle">Particle</a></li>
+			          </ul>
+			        </li>
+
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">スクリプト<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/Script.html">トップ</a></li>
+			          </ul>
+			        </li>
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">サンプル<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/Sample.html">ボール転がしゲーム</a></li>
+  			          <li><a href="../html/Sample2.html">デファードシェーディングデモ</a></li>
+			          </ul>
+			        </li>
+			        <li class="dropdown active">
+			          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">情報<span class="caret"></span></a>
+			          <ul class="dropdown-menu" role="menu">
+			            <li><a href="../html/File.html">プロジェクト</a></li>
+			            <li><a href="../html/Other.html">てんしエンジンについて</a></li>
+			          </ul>
+			        </li>
+			      </ul>
+			    </div>
+			  </div>
+			</div>
+
+		</header>
+	</head>
+	<body>
+		<div class="container">
+      <div class="page-header">
+				<h1>コンポーネント一覧</h1>
+			</div>
+
+			<div class="well" id="Transform">
+				<h2>Transform</h2>
+        <legend>機能</legend>
+        <p>全てのオブジェクトが持っているコンポーネント。</p>
+        <p>ゲームオブジェクトの位置、向き、大きさの情報を持っています。</p>
+        <p>ゲームオブジェクトの親子関係の情報も持っています。</p>
+        <legend>Inspectorパラメーター</legend>
+        <p>Position : ローカルの座標。</p>
+        <p>Rotate : ローカルの回転。2πで１回転。</p>
+        <p>Sacle : ローカルの大きさ。</p>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+        <p>現在インスペクター上で削除する事が出来るが、実際には削除されていない。（してはならない。）</p>
+        <p>PhysXコンポーネントがあるとRotateのパラメーターがクォータニオンになる。さらにwを弄れないのでエディター上では操作不能。</p>
+			</div>
+
+      <div class="well" id="Model">
+				<h2>Model</h2>
+        <legend>機能</legend>
+        <p>モデルファイルのデータを持つコンポーネント。</p>
+        <p>描画をするにはMeshDraw、Materialのコンポーネントが必要。</p>
+        <legend>Inspectorパラメーター</legend>
+        <p>Model : モデルのパスを指定してファイルを読み込む。</p>
+        <p>　　　　例[ Assets/__.tesmesh ]</p>
+        <p>　　　　対応ファイルはtesmesh,tedmesh</p>
+        <p>Bone : ボーンファイルのパスを指定してファイルを読み込む。</p>
+        <p>　　　　例[ Assets/__.tebone ]</p>
+        <p>　　　　対応ファイルはtebone</p>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+        <p>アニメ無しはtesmeshのみ読み込む。</p>
+        <p>アニメ有りはtedmeshとteboneを読み込む。さらにアニメーションコンポーネントとvmdの読み込みもする。</p>
+        <p>IKの計算が不完全。</p>
+        <p>SDEFのウェイトの計算に未対応。</p>
+			</div>
+
+      <div class="well" id="TextureModel">
+        <h2>TextureModel</h2>
+        <legend>機能</legend>
+        <p>画像やテキストの表示用のメッシュを持つコンポーネント。</p>
+        <p>画像を描画をするにはMeshDraw、Materialのコンポーネントが必要。</p>
+        <p>テキストを描画するにはTextコンポーネントが必要。</p>
+        <legend>Inspectorパラメーター</legend>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+        <p>画像描画ではMaterialでTextureとTexture.fxの読み込みも必要。</p>
+        <p>このコンポーネントを入れるとTransformコンポーネントのポジションなどのパラメータが独自の指定になるがGUIは変更されないので現在描画位置設定は困難。</p>
+      </div>
+
+      <div class="well" id="Material">
+        <h2>Material</h2>
+        <legend>機能</legend>
+        <p>モデルの描画に必要なマテリアルの設定をするコンポーネント。</p>
+        <legend>Inspectorパラメーター</legend>
+        <p>Material : マテリアルのパスを指定してファイルを読み込む。</p>
+        <p>　　　　例[ Assets/__.txt ]</p>
+        <p>　　　　対応ファイルはpmxの変換によって出力されたtxt</p>
+        <p>r,g,b : マテリアルの色。</p>
+        <p>Texture : テクスチャのパスを指定してファイルを読み込む。</p>
+        <p>　　　　例[ Assets/__.png ]</p>
+        <p>　　　　対応ファイルはpng,jpg,bmpなど</p>
+        <p>Shader : シェーダーのパスを指定してファイルを読み込む。</p>
+        <p>　　　　例[ Assets/__.fx ]</p>
+        <p>　　　　対応ファイルはfx,hlsl</p>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+        <p>テクスチャーを指定してもマテリアルの０番にしか反映されない。</p>
+      </div>
+
+      <div class="well" id="Text">
+        <h2>Text</h2>
+        <legend>機能</legend>
+        <p>テキストの文章を持つコンポーネント。</p>
+        <p>テキストを描画するにはTextureModelコンポーネントが必要。</p>
+        <legend>Inspectorパラメーター</legend>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+        <p>ゲームプレイ中でないと表示が見えない。</p>
+      </div>
+
+      <div class="well" id="Animation">
+        <h2>Animation</h2>
+        <legend>機能</legend>
+        <p>モデルのアニメーションファイルを読み込みと再生を行うコンポーネント。</p>
+        <legend>Inspectorパラメーター</legend>
+        <p>Time : アニメーションの再生位置。</p>
+        <p>VMD : アニメーションファイルのパスを指定してファイルを読み込む。</p>
+        <p>　　　　例[ Assets/__.vmd ]</p>
+        <p>　　　　対応ファイルはvmd</p>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+      </div>
+
+      <div class="well" id="Camera">
+        <h2>Camera</h2>
+        <legend>機能</legend>
+        <p>ゲームプレイ中のカメラを設定するコンポーネント。</p>
+        <legend>Inspectorパラメーター</legend>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+        <p>現在ゲームシーンに複数このコンポーネントが存在しても片方が無視される。</p>
+      </div>
+
+      <div class="well" id="Script">
+        <h2>Script</h2>
+        <legend>機能</legend>
+        <p>スクリプトで作成したクラスを導入するコンポーネント。</p>
+        <p>またスクリプトのリフレクションで指定した変数をInspector上に表示する。</p>
+        <legend>Inspectorパラメーター</legend>
+        <p>Class : スクリプトで作成したクラス名を入力すると反映される。</p>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+      </div>
+
+      <div class="well" id="PhysX">
+        <h2>PhysX</h2>
+        <legend>機能</legend>
+        <p>オブジェクトに重力を与える。</p>
+        <p>当たり判定の処理などを行う。</p>
+        <p>PhysXColliderコンポーネントが自分自身または子に存在しないと誰とも当たらない。</p>
+        <legend>Inspectorパラメーター</legend>
+        <p>Kinematic : 有効にすると重力の影響を受けなくなり、別のオブジェクトに当たっても押されなくなる。</p>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+      </div>
+
+      <div class="well" id="PhysXCollider">
+        <h2>PhysXCollider</h2>
+        <legend>機能</legend>
+        <p>オブジェクトに当たり判定を与える。</p>
+        <p>PhysXコンポーネントが自分自身または親に存在しないと誰とも当たらない。</p>
+        <legend>Inspectorパラメーター</legend>
+        <p>Mesh : モデルのパスを指定するとメッシュ形状の当たり判定を作成する。</p>
+        <p>       有効になるとBox,Sphereの当たり判定は無効化される。</p>
+        <p>　　　　例[ Assets/__.tesmesh ]</p>
+        <p>　　　　対応ファイルはtesmesh</p>
+        <p>IsSphere : 無効の場合、Box形状の当たり判定が作成される。</p>
+        <p>           有効になるとSphere形状の当たり判定が作成される。</p>
+        <p>IsTrigger : 有効になるとこのオブジェクトとの当たり判定が消える。</p>
+        <p>            ヒット時にスクリプトではヒットコールバック関数が呼ばれる。</p>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+      </div>
+
+      <div class="well" id="PostEffect">
+        <h2>PostEffect</h2>
+        <legend>機能</legend>
+        <p>ポストエフェクトの描画を追加する。</p>
+        <legend>Inspectorパラメーター</legend>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+        <p>現在ポストエフェクトの変更なども行えない。</p>
+      </div>
+
+      <div class="well" id="PointLight">
+        <h2>PointLight</h2>
+        <legend>機能</legend>
+        <p>デファードシェーディングのポイントライトを追加します。</p>
+        <legend>Inspectorパラメーター</legend>
+        <p>radius : ポイントライトの影響範囲。</p>
+        <p>AttenuationStart : ポイントライトの計算パラメーター。</p>
+        <p>AttenuationParam : ポイントライトの計算パラメーター。</p>
+        <p>r,g,b : ポイントライトの色。</p>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+      </div>
+
+      <div class="well" id="Particle">
+        <h2>Particle</h2>
+        <legend>機能</legend>
+        <p>GPUで計算したパーティクルを表示する。</p>
+        <legend>Inspectorパラメーター</legend>
+        <legend>Script変数</legend>
+        <legend>Script関数</legend>
+        <legend>注意</legend>
+        <p>現在描画周りの変更などにより利用できない。</p>
+      </div>
+		</div>
+	</body>
+</html>
