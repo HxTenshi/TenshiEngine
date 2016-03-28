@@ -5,6 +5,9 @@
 
 #include "ConstantBuffer/ConstantBuffer.h"
 #include "ConstantBuffer/ConstantBufferDif.h"
+#include "Game/Component/MaterialComponent.h"
+#include "Graphic/Material/Material.h"
+#include "Graphic/Model/Model.h"
 
 class EditorCamera;
 
@@ -27,6 +30,17 @@ public:
 
 	const XMMATRIX& GetViewMatrix();
 
+	enum class ScreenClearType{
+		Color,
+		Sky,
+		None,
+		Count
+	};
+
+	void ScreenClear();
+
+	void SetPerspective();
+	void SetOrthographic();
 private:
 	void UpdateView();
 
@@ -39,6 +53,14 @@ private:
 	XMVECTOR							Eye;
 	XMVECTOR							At;
 	XMVECTOR							Up;
+
+	ScreenClearType mScreenClearType;
+	//MaterialComponent mSkyMaterial;
+	Material mSkyMaterial;
+	Model mSkyModel;
+
+
+
 
 	friend EditorCamera;
 };

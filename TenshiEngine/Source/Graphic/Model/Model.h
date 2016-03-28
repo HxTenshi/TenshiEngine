@@ -23,8 +23,8 @@ public:
 	void SetConstantBuffer() const;
 	void Update();
 	void IASet() const;
-	void Draw(Material material) const;
-	void Draw(shared_ptr<MaterialComponent> material) const;
+	void Draw(const Material& material) const;
+	void Draw(const shared_ptr<MaterialComponent> material) const;
 
 	//クリエイトされているか
 	bool IsCreate(){
@@ -32,6 +32,10 @@ public:
 	}
 
 public:
+
+	//強制的にこのマテリアルを使用
+	static Material* mForcedMaterial;
+
 	XMMATRIX		mWorld;
 
 	BoneModel* mBoneModel;

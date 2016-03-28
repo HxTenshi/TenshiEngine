@@ -79,5 +79,7 @@
     <Page Include="WindowXAML\InspectorSlideBar.xaml" />
     <Page Include="WindowXAML\InspectorCheckBox.xaml" />
     <Page Include="WindowXAML\CommandBar.xaml" />
+    <Page Include="WindowXAML\ColorPicker.xaml" />
+    <Page Include="WindowXAML\InspectorColor.xaml" />
   </ItemGroup>
 </Project>

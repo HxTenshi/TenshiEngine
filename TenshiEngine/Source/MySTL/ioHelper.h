@@ -143,6 +143,8 @@ public:
 		mOut_json = picojson::value(popObject());
 	}
 private:
+	void operator =(const MemoryOutputHelper&);
+	MemoryOutputHelper(const MemoryOutputHelper&);
 	picojson::value& mOut_json;
 };
 

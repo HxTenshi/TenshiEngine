@@ -17,8 +17,8 @@ using ModelDataPtr = shared_ptr < ModelData > ;
 class BoneData;
 using BoneDataPtr = shared_ptr < BoneData >;
 
-struct IPolygonsData{
-
+class IPolygonsData{
+public:
 	virtual ~IPolygonsData(){}
 
 	unsigned int VertexSize;
@@ -38,8 +38,8 @@ struct IPolygonsData{
 };
 
 template <class Vertex, class Index, class Mesh>
-struct PolygonsData : public IPolygonsData{
-
+class PolygonsData : public IPolygonsData{
+public:
 	using VertexType = Vertex;
 	//using IndexType = unsigned int;
 	using IndexType = Index;

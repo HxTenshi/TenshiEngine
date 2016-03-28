@@ -9,7 +9,7 @@
 
 
 //‘O•ûéŒ¾
-class Reflection;
+struct Reflection;
 
 //ƒƒ“ƒo•Ï”î•ñ
 struct MemberInfo{

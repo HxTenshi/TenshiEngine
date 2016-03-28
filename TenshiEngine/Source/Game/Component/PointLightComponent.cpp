@@ -152,9 +152,11 @@ void PointLightComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<float>("radius", &m_Radius, collbackr), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("AttenuationStart", &m_AttenuationStart, collbackas), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("AttenuationParam", &m_AttenuationParam, collbackap), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &m_Color.x, collbackx), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &m_Color.y, collbacky), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &m_Color.z, collbackz), data);
+	Window::AddInspector(new InspectorColorDataSet("Color", &m_Color.x, collbackx, &m_Color.y, collbacky, &m_Color.z, collbackz, NULL, [](float){}), data);
+
+	//Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &m_Color.x, collbackx), data);
+	//Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &m_Color.y, collbacky), data);
+	//Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &m_Color.z, collbackz), data);
 	Window::ViewInspector("PointLight", this, data);
 }
 

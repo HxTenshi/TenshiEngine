@@ -49,6 +49,30 @@ void BindingInspector(Slider^ slide, T min, T max, T* pf, std::function<void(T)>
 	slide->Minimum = min;
 	slide->Maximum = max;
 }
+template <class T>
+void BindingInspector(System::Windows::Shapes::Rectangle^ rectangle, T* pf1, std::function<void(T)> collback1, T* pf2, std::function<void(T)> collback2, T* pf3, std::function<void(T)> collback3, T* pf4, std::function<void(T)> collback4){
+	//rectangle->SetBinding(Slider::ValueProperty, "Value");
+	rectangle->Fill = gcnew SolidColorBrush(Color::FromArgb(255, 255, 255, 255));
+	auto scb = (SolidColorBrush^)rectangle->Fill;
+	//rectangle->SetBinding(SolidColorBrush::ColorProperty, "Value");
+	auto binding = gcnew System::Windows::Data::Binding("Value");
+
+	if (pf4 == NULL){
+
+		auto vm = gcnew Color3ViewModel<T>(pf1, collback1, pf2, collback2, pf3, collback3);
+		rectangle->DataContext = vm;
+	}
+	else{
+		auto vm = gcnew ColorViewModel<T>(pf1, collback1, pf2, collback2, pf3, collback3, pf4, collback4);
+		rectangle->DataContext = vm;
+	}
+
+
+	binding->Mode = BindingMode::TwoWay;
+	System::Windows::Data::BindingOperations::SetBinding(scb, SolidColorBrush::ColorProperty, binding);
+
+	rectangle->AddHandler(System::Windows::Controls::Canvas::MouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(ViewData::window, &View::CreateColorPickerWindow), true);
+}
 
 //リソースからXAMLを作成する
 FrameworkElement ^LoadContentsFromResource(int resourceId) {
@@ -70,6 +94,8 @@ FrameworkElement ^LoadContentsFromResource(int resourceId) {
 	// リソースの解放
 	UnlockResource(dataHandle);
 	FreeResource(dataHandle);
+	//System::Xaml::XamlObjectWriterSettings a;
+	//System::Xaml::Permissions::XamlAccessLevel ac;
 
 	// XAMLからオブジェクト化
 	StringReader ^reader = gcnew StringReader(gcnew String(xaml.data()));

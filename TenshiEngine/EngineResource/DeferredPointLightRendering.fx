@@ -118,17 +118,17 @@ float4 PS(PS_INPUT input) : SV_Target
 	//ジオメトリバッファのテクスチャ座標（法線、デプス値取得用）
 	float2 tex = input.Pos.xy/float2(1200,800);
 
+	// 法線(view座標系) 0~1を-1～+1に変換
+	float3 nor = NormalTex.Sample(NormalSamLinear, tex).xyz * 2 - 1;
+	if (nor.x == 0 && nor.y == 0 && nor.z == 0){
+		return float4(0, 0, 0, 0);
+	}
 
 	// 位置(view座標系)
 	float dep = DepthTex.Sample(DepthSamLinear, tex).r;
 	dep = ToPerspectiveDepth(dep);
 	float3 vpos = DepthToPosition2(tex, dep);
 
-
-	// 位置(view座標系) = -視線方向
-
-	// 法線(view座標系) 0~1を-1～+1に変換
-	float3 nor = NormalTex.Sample(NormalSamLinear, tex).xyz * 2 - 1;
 
 	//float3 lpos = mul(PtLVPos, View).xyz;
 	float3 lpos = PtLVPos.xyz;

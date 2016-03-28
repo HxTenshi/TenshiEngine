@@ -1,6 +1,7 @@
 
 #include "SelectActor.h"
 
+#include <set>
 
 #include "Device/DirectX11Device.h"
 
@@ -38,8 +39,8 @@ public:
 		mComponents.AddComponent<ModelComponent>(model);
 		auto material = make_shared<MaterialComponent>();
 		mComponents.AddComponent<MaterialComponent>(material);
-		material->LoadAssetResource("EngineResource/Arrow.pmx.txt");
-		mComponents.AddComponent<MeshDrawComponent>();
+
+		//mComponents.AddComponent<MeshDrawComponent>();
 
 		mComponents.AddComponent<PhysXComponent>();
 		auto phy = mComponents.GetComponent<PhysXComponent>();
@@ -141,7 +142,7 @@ XMVECTOR Selects::GetPosition(){
 	}
 	int num = (int)mSelects.size();
 	if (num){
-		pos = pos / num;
+		pos = pos / (FLOAT)num;
 	}
 	return pos;
 }
@@ -184,27 +185,36 @@ void SelectActor::Initialize(){
 	if (mVectorBox == NULL){
 		mVectorBox = new Arrow[3];
 
+		float s = 0.1f;
+
 		for (int i = 0; i < 3; i++){
 			Game::AddEngineObject(&mVectorBox[i]);
+
+			mVectorBox[i].mTransform->Scale(XMVectorSet(s,s,s, 1));
 
 		}
 
 		mVectorBox[0].mTransform->Rotate(XMVectorSet(0, 0, -XM_PI / 2, 1));
+		mVectorBox[1].mTransform->Rotate(XMVectorSet(0, 0, 0, 1));
 		mVectorBox[2].mTransform->Rotate(XMVectorSet(XM_PI / 2, 0, 0, 1));
 
 		auto mate = mVectorBox[0].GetComponent<MaterialComponent>();
 		if (mate){
 			auto m = mate->GetMaterial(0);
+
+			m.Create("EngineResource/NoLighting.fx");
 			auto& d = m.mCBMaterial.mParam.Diffuse;
 			d.x = 1;
 			d.y = 0;
 			d.z = 0;
 			d.w = 1;
+
 			mate->SetMaterial(0, m);
 		}
 		mate = mVectorBox[1].GetComponent<MaterialComponent>();
 		if (mate){
 			auto m = mate->GetMaterial(0);
+			m.Create("EngineResource/NoLighting.fx");
 			auto& d = m.mCBMaterial.mParam.Diffuse;
 			d.x = 0;
 			d.y = 1;
@@ -215,6 +225,7 @@ void SelectActor::Initialize(){
 		mate = mVectorBox[2].GetComponent<MaterialComponent>();
 		if (mate){
 			auto m = mate->GetMaterial(0);
+			m.Create("EngineResource/NoLighting.fx");
 			auto& d = m.mCBMaterial.mParam.Diffuse;
 			d.x = 0;
 			d.y = 0;
@@ -360,22 +371,13 @@ void SelectActor::SelectActorDraw(){
 		}));
 	}
 	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
-		auto mModel = mVectorBox[0].GetComponent<ModelComponent>();
-		if (!mModel)return;
-		Model& model1 = *mModel->mModel;
-		mModel = mVectorBox[1].GetComponent<ModelComponent>();
-		if (!mModel)return;
-		Model& model2 = *mModel->mModel;
-		mModel = mVectorBox[2].GetComponent<ModelComponent>();
-		if (!mModel)return;
-		Model& model3 = *mModel->mModel;
 	
 		ID3D11DepthStencilState* pBackDS;
 		UINT ref;
 		Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
 	
 		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		//descDS.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 		descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
 		ID3D11DepthStencilState* pDS = NULL;
@@ -391,10 +393,48 @@ void SelectActor::SelectActorDraw(){
 	
 		Device::mpImmediateContext->RSSetState(pRS);
 	
-	
-		model1.Draw(mVectorBox[0].GetComponent<MaterialComponent>());
-		model2.Draw(mVectorBox[1].GetComponent<MaterialComponent>());
-		model3.Draw(mVectorBox[2].GetComponent<MaterialComponent>());
+
+		auto f = Game::GetMainCamera()->gameObject->mTransform->Forward();
+
+		auto func = [](const std::pair<float, std::function<void()>>& p1, const std::pair<float, std::function<void()>>& p2)
+		{
+			return p1.first > p2.first;
+		};
+		std::set<std::pair<float, std::function<void()>>, std::function<bool(const std::pair<float, std::function<void()>>&, const std::pair<float, std::function<void()>>&)> > draws(func);
+
+
+		for (int _i = 0; _i < 3; _i++){
+			int i = _i;
+
+			auto mModel = mVectorBox[i].GetComponent<ModelComponent>();
+			Model& model = *mModel->mModel;
+
+			auto au = mVectorBox[i].mTransform->Up();
+			auto dot = XMVector3Dot(au, f);
+
+			auto result = draws.insert(std::pair<float, std::function<void()>>((float)dot.x, [=](){
+				mModel->SetMatrix();
+				model.Draw(mVectorBox[i].GetComponent<MaterialComponent>());
+			}));
+			if (!result.second){
+				dot.x -= 0.01f;
+				draws.insert(std::pair<float, std::function<void()>>((float)dot.x, [=](){
+					mModel->SetMatrix();
+					model.Draw(mVectorBox[i].GetComponent<MaterialComponent>());
+				}));
+			}
+		}
+		//Game::GetMainCamera()->SetOrthographic();
+
+		for (auto & d : draws){
+			d.second();
+		}
+
+		//Game::GetMainCamera()->SetPerspective();
+
+		//model1.Draw(mVectorBox[0].GetComponent<MaterialComponent>());
+		//model2.Draw(mVectorBox[1].GetComponent<MaterialComponent>());
+		//model3.Draw(mVectorBox[2].GetComponent<MaterialComponent>());
 	
 	
 		Device::mpImmediateContext->RSSetState(NULL);

@@ -25,6 +25,10 @@ protected:
 	void* m_Data;
 	char m_GUID[33];
 
+private:
+	void operator = (const AssetData&);
+	AssetData(const AssetData&);
+
 };
 using AssetDataPtr = shared_ptr < AssetData > ;
 

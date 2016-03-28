@@ -22,15 +22,15 @@
 
 #include "../DirectXTex/DirectXTex.h"
 
-Texture Texture::mNullTexture;
+//Texture Texture::mNullTexture;
 
 Texture::Texture()
 {
 	mTexturePtr = shared_ptr<TextureData>(new TextureData());
-	if (!mNullTexture.mTexturePtr->mpTextureRV){
-		//‚Q‰ñŒÄ‚Î‚ê‚Ä‚éH
-		mNullTexture.Create("EngineResource/null.png");
-	}
+	//if (!mNullTexture.mTexturePtr->mpTextureRV){
+	//	//‚Q‰ñŒÄ‚Î‚ê‚Ä‚éH
+	//	mNullTexture.Create("EngineResource/null.png");
+	//}
 }
 Texture::~Texture()
 {
@@ -149,6 +149,8 @@ HRESULT Texture::LoadDirectXTex(){
 		return hr;
 	}
 	image.Release();
+
+	return hr;
 }
 
 #else

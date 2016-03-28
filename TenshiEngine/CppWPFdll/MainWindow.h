@@ -222,6 +222,352 @@ private:
 	int* m_WX;
 	int* m_WY;
 };
+// ビュー
+ref class ColorPickerWindow : public Window {
+public:
+	static ColorPickerWindow ^mUnique = nullptr;
+
+	ColorPickerWindow(Window^ owner, SolidColorBrush^ brush)
+	{
+		if (mUnique){
+			mUnique->Close();
+		}
+		mUnique = this;
+
+		mTargetBrush = brush;
+		Owner = owner;
+		Title = "ColorPicker";
+		Width = 400;
+		Height = 420;
+		Show();
+		Visibility = System::Windows::Visibility::Visible;
+
+
+
+
+		FrameworkElement ^colwnd = LoadContentsFromResource(IDR_INSWND_COLOR);
+		Content = colwnd;
+
+#pragma push_macro("FindResource")
+#undef FindResource
+#pragma pop_macro("FindResource")
+		auto colbrush = (VisualBrush ^)colwnd->TryFindResource("LevelSaturationBrush");
+
+		auto vis = colbrush->Visual;
+		auto can = (System::Windows::Controls::Canvas ^)colbrush->Visual;
+		auto rect = (System::Windows::Shapes::Rectangle^) can->Children[0];
+		auto lb = (LinearGradientBrush^)rect->Fill;
+		auto gs = (GradientStop^)lb->GradientStops[1];
+
+		mTargetColor = gs;
+
+		//can->AddHandler(System::Windows::Controls::Canvas::MouseLeftButtonUpEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &View::canvas_MouseUp),true);
+		//rect->AddHandler(System::Windows::Controls::Canvas::MouseLeftButtonUpEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &View::canvas_MouseUp),true);
+
+
+		auto colpickPanel = (System::Windows::Shapes::Rectangle ^)colwnd->FindName("ColorPickerPanel");
+		colpickPanel->AddHandler(System::Windows::Controls::Canvas::MouseMoveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &ColorPickerWindow::canvas_MouseMove), true);
+		colpickPanel->AddHandler(System::Windows::Controls::Canvas::MouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &ColorPickerWindow::canvas_MouseDown), true);
+
+		auto hpickPanel = (System::Windows::Shapes::Rectangle ^)colwnd->FindName("HPickerPanel");
+		hpickPanel->AddHandler(System::Windows::Controls::Canvas::MouseMoveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &ColorPickerWindow::color_MouseMove), true);
+		hpickPanel->AddHandler(System::Windows::Controls::Canvas::MouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &ColorPickerWindow::color_MouseDown), true);
+
+		mViewColor = (System::Windows::Shapes::Rectangle ^)colwnd->FindName("ColorViewPanel");
+		mCursor = (System::Windows::Controls::Canvas ^)colwnd->FindName("ColorPickerCursor");
+		mHCursor = (System::Windows::Controls::Canvas ^)colwnd->FindName("HColorPickerCursor");
+
+
+		double h, s, v;
+		rgb2hsv(mTargetBrush->Color,&h,&s,&v);
+		
+		auto rgb = ToRgb(h * 2 * System::Math::PI / 360, 1, 1);
+
+		mTargetColor->Color = rgb;
+		h_CursorUpdate(h);
+		
+		double x = 0;
+		if (v != 0.0){
+			double pow = 1.0 / v;
+			double cr = mTargetBrush->Color.R * pow;
+			double cg = mTargetBrush->Color.G * pow;
+			double cb = mTargetBrush->Color.B * pow;
+
+
+			double sr = rgb.R;
+			double sg = rgb.G;
+			double sb = rgb.B;
+
+			double hr = sr - cr;
+			double hg = sg - cg;
+			double hb = sb - cb;
+
+			if (rgb.R == 0){
+				x = hr;
+			}else if(rgb.G == 0){
+				x = hg;
+			}else if (rgb.B == 0){
+				x = hb;
+			}
+
+		}
+
+		canvas_CursorUpdate(255+x, 255-v*255);
+		color_Update();
+
+	}
+private:
+	void rgb2hsv(Color in, double* ph, double* ps, double* pv)
+	{
+		double h, s, v;
+		double      min, max, delta;
+		double R = in.R / 255.0;
+		double G = in.G / 255.0;
+		double B = in.B / 255.0;
+
+		min = R < G ? R : G;
+		min = min  < B ? min : B;
+
+		max = R > G ? R : G;
+		max = max  > B ? max : B;
+
+		v = max;                                // v
+		delta = max - min;
+		if (delta < 0.00001)
+		{
+			s = 0;
+			h = 0; // undefined, maybe nan?
+
+			*ph = h;
+			*ps = s;
+			*pv = v;
+
+			return;
+		}
+		if (max > 0.0) { // NOTE: if Max is == 0, this divide would cause a crash
+			s = (delta / max);                  // s
+		}
+		else {
+			// if max is 0, then r = g = b = 0              
+			// s = 0, v is undefined
+			s = 0.0;
+			h = NAN;                            // its now undefined
+
+			*ph = h;
+			*ps = s;
+			*pv = v;
+			return;
+		}
+		if (R >= max)                           // > is bogus, just keeps compilor happy
+			h = (G - B) / delta;        // between yellow & magenta
+		else
+			if (G >= max)
+				h = 2.0 + (B - R) / delta;  // between cyan & yellow
+			else
+				h = 4.0 + (R - G) / delta;  // between magenta & cyan
+
+		h *= 60.0;                              // degrees
+
+		if (h < 0.0)
+			h += 360.0;
+
+
+		*ph = h;
+		*ps = s;
+		*pv = v;
+
+	}
+
+
+	byte ToByte(double d)
+	{
+		if (d < 0)
+		{
+			return 0;
+		}
+		else if (d > 255)
+		{
+			return 255;
+		}
+		return (byte)System::Math::Round(d);
+	}
+
+	Color ToRgb(double H, double S, double V)
+	{
+		auto v = ToByte(255 * V);
+		if (S == 0)
+		{
+			return Color::FromRgb(v, v, v);
+		}
+		auto hr = H / (2 * System::Math::PI);
+		auto hd = (float)(6 * (hr - System::Math::Floor(hr)));
+		auto h = (int)System::Math::Floor(hd);
+		auto p = ToByte(v * (1 - S));
+		auto q = ToByte(v * (1 - S * (hd - h)));
+		auto t = ToByte(v * (1 - S * (1 - hd + h)));
+
+		switch (h)
+		{
+		case 0:
+			return Color::FromRgb(v, t, p);
+		case 1:
+			return Color::FromRgb(q, v, p);
+		case 2:
+			return Color::FromRgb(p, v, t);
+		case 3:
+			return Color::FromRgb(p, q, v);
+		case 4:
+			return Color::FromRgb(t, p, v);
+		default:
+			return Color::FromRgb(v, p, q);
+		}
+	}
+
+	void h_CursorUpdate(double y){
+		auto path = (System::Windows::Shapes::Path^)mHCursor->Children[0];
+		auto trns = gcnew TranslateTransform();
+		trns->Y = y - 2;
+
+		path->RenderTransform = trns;
+	}
+
+	void color_MouseMove(Object ^sender, System::Windows::Input::MouseEventArgs ^e)
+	{
+		if (e->LeftButton == MouseButtonState::Released)return;
+
+		// 対象Rectangleの取得
+		auto r = (System::Windows::Shapes::Rectangle^)e->OriginalSource;
+		// 色の表示
+
+		// 位置計算
+		auto cp = e->GetPosition(r);
+		auto v = 0;
+		auto h = (int)System::Math::Round(cp.Y);
+
+		//if (0 <= h && h < 256 && 0 <= v && v < 256)
+		{
+
+
+			auto rgb = ToRgb(h * 2 * System::Math::PI / 360, 1, 1 - v / 255.0);
+
+			mTargetColor->Color = rgb;
+
+
+		}
+		{
+			h_CursorUpdate(cp.Y);
+		}
+
+		color_Update();
+	}
+
+	void color_MouseDown(Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
+	{
+		// 対象Rectangleの取得
+		auto r = (System::Windows::Shapes::Rectangle^)e->OriginalSource;
+		// 色の表示
+
+		// 位置計算
+		auto cp = e->GetPosition(r);
+		auto v = 1;
+		auto h = (int)System::Math::Round(cp.Y);
+
+		//if (0 <= h && h < 256 && 0 <= v && v < 256)
+		{
+
+
+			auto rgb = ToRgb(h * 2 * System::Math::PI / 360, 1, 1 - v / 255.0);
+
+			mTargetColor->Color = rgb;
+
+
+		}
+		{
+			h_CursorUpdate(cp.Y);
+		}
+
+		color_Update();
+	}
+
+	void color_Update(){
+		// 色の表示
+		auto h = (int)System::Math::Round(mCursorPoint.X);
+		auto v = (int)System::Math::Round(mCursorPoint.Y);
+
+		//if (0 <= h && h < 256 && 0 <= v && v < 256)
+		{
+
+			auto col = mTargetColor->Color;
+			auto r = 255 - col.R;
+			auto g = 255 - col.G;
+			auto b = 255 - col.B;
+			float fh = (255 - h) / 255.0f;
+			float fv = (255 - v) / 255.0f;
+			col.R += (unsigned char)r*fh;
+			col.G += (unsigned char)g*fh;
+			col.B += (unsigned char)b*fh;
+			col.R = (unsigned char)(col.R * fv);
+			col.G = (unsigned char)(col.G * fv);
+			col.B = (unsigned char)(col.B * fv);
+
+
+			mViewColor->Fill = gcnew SolidColorBrush(col);
+			mTargetBrush->Color = col;
+
+		}
+	}
+
+	void canvas_CursorUpdate(double x,double y){
+
+		mCursorPoint.X = x;
+		mCursorPoint.Y = y;
+
+		auto path = (System::Windows::Shapes::Path^)mCursor->Children[0];
+		auto trns = gcnew TranslateTransform();
+		trns->X = mCursorPoint.X + 10 - 18 + 1;
+		trns->Y = mCursorPoint.Y + 10 - 18 + 1;
+
+
+		path->RenderTransform = trns;
+	}
+
+	void canvas_MouseMove(Object ^sender, System::Windows::Input::MouseEventArgs ^e)
+	{
+		if (e->LeftButton == MouseButtonState::Released)return;
+
+
+		// 対象Rectangleの取得
+		auto r = (System::Windows::Shapes::Rectangle^)e->OriginalSource;
+
+		auto pos = e->GetPosition(r);
+
+		canvas_CursorUpdate(pos.X, pos.Y);
+		color_Update();
+	}
+
+	void canvas_MouseDown(Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
+	{
+		if (e->LeftButton == MouseButtonState::Released)return;
+
+
+		// 対象Rectangleの取得
+		auto r = (System::Windows::Shapes::Rectangle^)e->OriginalSource;
+
+		// 位置計算
+		auto pos = e->GetPosition(r);
+
+		canvas_CursorUpdate(pos.X, pos.Y);
+		color_Update();
+	}
+
+	SolidColorBrush^ mTargetBrush;
+	GradientStop^ mTargetColor;
+	System::Windows::Point mCursorPoint;
+	System::Windows::Shapes::Rectangle^ mViewColor;
+	System::Windows::Controls::Canvas^ mCursor;
+	System::Windows::Controls::Canvas^ mHCursor;
+	
+};
 
 // ビュー
 ref class View : public Window {
@@ -276,8 +622,9 @@ public:
 		Title = "TenshiEngine";
 		SetSelectItemReturnPoint();
 
-		//((TestContent::Contents^)tv->DataContext)->TextChange("dacsdv");
 
+		//((TestContent::Contents^)tv->DataContext)->TextChange("dacsdv");
+		
 		//System::Windows::Controls::TreeView a; 
 		//auto i = a.Items;
 		//i->CurrentItem
@@ -341,6 +688,7 @@ public:
 
 
 	}
+
 
 #pragma region コンポーネントウィンドウ
 
@@ -417,6 +765,13 @@ public:
 			Commponent_ViewModel_AssetDrop(s, dragitem);
 		}
 		e->Handled = true;
+	}
+
+	void CreateColorPickerWindow(Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e){
+		auto r = (System::Windows::Shapes::Rectangle^)sender;
+		auto scb = (SolidColorBrush^)r->Fill;
+
+		Window^ w = gcnew ColorPickerWindow(this,scb);
 	}
 
 private:

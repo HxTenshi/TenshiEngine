@@ -34,9 +34,6 @@ public:
 		float x = DownRight.x - TopLeft.x;
 		float y = DownRight.y - TopLeft.y;
 
-		float sx = x / WindowState::mWidth;
-		float sy = y / WindowState::mHeight;
-
 
 		x = TopLeft.x + x / 2;
 		y = TopLeft.y + y / 2;

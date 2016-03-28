@@ -90,6 +90,15 @@ void CreateInspectorVector3(DockPanel^ dockPanel, float* px, FloatCollback collb
 	BindingInspector<float>((TextBox^)com->FindName("yValue"), py,collbacky);
 	BindingInspector<float>((TextBox^)com->FindName("zValue"), pz,collbackz);
 }
+void CreateInspectorColor(DockPanel^ dockPanel, String^ text, float* pr, FloatCollback collbackR, float* pg, FloatCollback collbackG, float* pb, FloatCollback collbackB, float* pa, FloatCollback collbackA){
+	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_COLOR);
+	dockPanel->Children->Add(com);
+	DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
+	auto tb = (TextBlock^)com->FindName("FloatName");
+	if (tb)tb->Text = text;
+
+	BindingInspector<float>((System::Windows::Shapes::Rectangle^)com->FindName("Value"), pr, collbackR, pg, collbackG, pb, collbackB, pa, collbackA);
+}
 
 ref class InspectorLabel : public InspectorData{
 public:
@@ -184,6 +193,24 @@ private:
 	InspectorVector3DataSet *m_data;
 };
 
+ref class InspectorColor : public InspectorData{
+public:
+	InspectorColor(InspectorColorDataSet* data)
+		: m_data(data){
+	}
+	~InspectorColor(){
+		this->!InspectorColor();
+	}
+	!InspectorColor(){
+		delete m_data;
+	}
+
+	void CreateInspector(DockPanel^ dockPanel) override;
+private:
+	InspectorColorDataSet *m_data;
+};
+
+
 void InspectorLabel::CreateInspector(DockPanel^ dockPanel){
 	CreateInspectorTextBlock(dockPanel, Text);
 }
@@ -193,6 +220,9 @@ void InspectorFloatSlideBar::CreateInspector(DockPanel^ dockPanel){
 void InspectorVector3::CreateInspector(DockPanel^ dockPanel) {
 	CreateInspectorTextBlock(dockPanel, gcnew String(m_data->Text.c_str()));
 	CreateInspectorVector3(dockPanel, m_data->datax, m_data->collbackX, m_data->datay, m_data->collbackY, m_data->dataz, m_data->collbackZ);
+}
+void InspectorColor::CreateInspector(DockPanel^ dockPanel) {
+	CreateInspectorColor(dockPanel, gcnew String(m_data->Text.c_str()), m_data->datar, m_data->collbackR, m_data->datag, m_data->collbackG, m_data->datab, m_data->collbackB, m_data->dataa, m_data->collbackA);
 }
 
 
@@ -293,6 +323,9 @@ namespace Test {
 				}
 				if (d.format == InspectorDataFormat::SlideBar){
 					a[i] = gcnew InspectorFloatSlideBar((InspectorSlideBarDataSet*)d.data);
+				}
+				if (d.format == InspectorDataFormat::Color){
+					a[i] = gcnew InspectorColor((InspectorColorDataSet*)d.data);
 				}
 				i++;
 			}

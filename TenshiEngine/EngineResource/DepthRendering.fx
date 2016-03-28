@@ -75,20 +75,9 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 Pos		: SV_POSITION;
-	float3 Normal	: NORMAL;
-	float2 Tex		: TEXCOORD0;
-	float4 VPos		: TEXCOORD1;
-
-	//float4 LVPos	: TEXCOORD2;
-	float4 LPos[4]		: TEXCOORD2;
+	//float4 VPos		: TEXCOORD0;
 };
 
-struct PS_OUTPUT_1
-{
-	float4 ColorAlbedo : SV_Target0;
-	float4 ColorNormal : SV_Target1;
-	float4 ColorDepth : SV_Target2;
-};
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
@@ -96,26 +85,12 @@ PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = mul( input.Pos, World );
-
-	//output.LVPos = mul(output.Pos, LView);
-	//output.LPos = mul(output.LVPos, LProjection);
-	output.LPos[0] = mul(output.Pos, LViewProjection[0]);
-	output.LPos[1] = mul(output.Pos, LViewProjection[1]);
-	output.LPos[2] = mul(output.Pos, LViewProjection[2]);
-	output.LPos[3] = mul(output.Pos, LViewProjection[3]);
-
-
-	output.VPos = mul( output.Pos, View );
-	output.Pos = mul( output.VPos, Projection);
-
-	output.Normal = mul(input.Normal, (float3x3)World);
-	output.Normal = mul(output.Normal, (float3x3)View);
-
-	output.Tex = input.Tex;
+	//output.VPos = mul(output.Pos, LView);
+	//output.Pos = mul(output.VPos, LProjection);
+	output.Pos = mul(output.Pos, LViewProjection[0]);
 	
 	return output;
 }
-
 
 
 float4x3 getBoneMatrix(int idx)
@@ -130,40 +105,22 @@ PS_INPUT VSSkin(VS_INPUT input)
 {
 
 	float4 pos = input.Pos;
-	float3 nor = input.Normal;
 
 
 	float3 bpos = float3(0, 0, 0);
-	float3 bnor = float3(0, 0, 0);
 	[unroll]
 	for (uint i = 0; i < 4; i++){
 		float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
 		bpos += input.BoneWeight[i] * mul(pos, bm).xyz;
-		bnor += input.BoneWeight[i] * mul(nor, (float3x3)bm);
 	}
 
 	pos.xyz = bpos / 100.0;
-	nor = bnor / 100.0;
-
-
 
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = mul(pos, World);
-
-	//output.LVPos = mul(output.Pos, LView);
-	//output.LPos = mul(output.LVPos, LProjection);
-	output.LPos[0] = mul(output.Pos, LViewProjection[0]);
-	output.LPos[1] = mul(output.Pos, LViewProjection[1]);
-	output.LPos[2] = mul(output.Pos, LViewProjection[2]);
-	output.LPos[3] = mul(output.Pos, LViewProjection[3]);
-
-	output.VPos = mul(output.Pos, View);
-	output.Pos = mul(output.VPos, Projection);
-
-	output.Normal = mul(nor, (float3x3)World);
-	output.Normal = mul(output.Normal, (float3x3)View);
-
-	output.Tex = input.Tex;
+	//output.VPos = mul(output.Pos, LView);
+	//output.Pos = mul(output.VPos, LProjection);
+	output.Pos = mul(output.Pos, LViewProjection[0]);
 
 	return output;
 }
@@ -171,55 +128,9 @@ PS_INPUT VSSkin(VS_INPUT input)
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
-PS_OUTPUT_1 PS(PS_INPUT input)
+float4 PS(PS_INPUT input) : SV_Target
 {
-	PS_OUTPUT_1 Out;
-
-	// 法線の準備
-	float3 N = normalize(input.Normal);
-	N = N * 0.5 + 0.5;
-
 	float farClip = 100;
-	float D = input.VPos.z / farClip;
-	//float D2 = input.Pos.z / input.Pos.w;
-
-
-	float3 LD;
-
-	float dist = input.VPos.z;
-	if (dist < SplitPosition.x)
-	{
-		LD.xy = (input.LPos[0].xy + 1.0) / 2.0;
-		LD.z = input.LPos[0].z / input.LPos[0].w;
-	}
-	else if (dist < SplitPosition.y)
-	{
-		LD.xy = (input.LPos[1].xy + 1.0) / 2.0;
-		LD.z = input.LPos[1].z / input.LPos[1].w;
-	}
-	else if (dist < SplitPosition.z)
-	{
-		LD.xy = (input.LPos[2].xy + 1.0) / 2.0;
-		LD.z = input.LPos[2].z / input.LPos[2].w;
-	}
-	else
-	{
-		LD.xy = (input.LPos[3].xy + 1.0) / 2.0;
-		LD.z = input.LPos[3].z / input.LPos[3].w;
-	}
-
-	
-	//MSpecular
-
-	// 出力カラー計算 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++( 開始 )
-
-	float4 DifColor = float4(1.0, 1.0, 1.0, 1.0);
-	if (UseTexture.x != 0.0)
-		DifColor = txDiffuse.Sample(samLinear, input.Tex);
-
-
-	Out.ColorAlbedo = DifColor * MDiffuse;
-	Out.ColorNormal = float4(N,1);
-	Out.ColorDepth = float4(D, 1-LD.z, LD.x, 1.0-LD.y);
-	return Out;
+	float D = input.Pos.z / input.Pos.w;
+	return float4(1 - D, 0, 0, 1);
 }

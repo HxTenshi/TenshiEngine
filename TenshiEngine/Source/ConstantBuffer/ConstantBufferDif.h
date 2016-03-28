@@ -51,3 +51,9 @@ struct cbChangesPointLight
 	XMFLOAT4 Color;
 	XMFLOAT4 Param;
 };
+
+struct cbChangesLightCamera
+{
+	XMMATRIX mLViewProjection[4];
+	XMFLOAT4 mSplitPosition;
+};

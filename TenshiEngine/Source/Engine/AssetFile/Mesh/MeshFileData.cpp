@@ -29,7 +29,7 @@ void MeshFileData::Create(const char* filename){
 	std::string str = filename;
 	auto type = behind_than_find_last_of(str, ".");
 
-	IPolygonsData* _data;
+	IPolygonsData* _data = NULL;
 	if (type == "tesmesh"){
 		auto data = new PolygonsData<SimpleVertex, unsigned short, int>();
 		fstd::r_vector(data->Vertexs, hFP);

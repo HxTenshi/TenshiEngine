@@ -129,5 +129,5 @@ XMVECTOR EditorCamera::PointRayVector(const XMVECTOR& point){
 }
 
 XMVECTOR EditorCamera::GetPosition(){
-	return mCamera.mTransform->Position();;
+	return mCamera.mTransform->Position();
 }

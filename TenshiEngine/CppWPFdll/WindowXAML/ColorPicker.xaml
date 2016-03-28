@@ -1,0 +1,72 @@
+<Border
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+    Background="#FF4B4B4B">
+
+
+    <Border.Resources>
+
+        <!-- Change this to any pure hue i.e. no more than 2 rgb components set and at least 1 set to FF -->
+
+
+        <LinearGradientBrush x:Key="HueBrush" StartPoint="0,0" EndPoint="0,1">
+            <LinearGradientBrush.GradientStops>
+                <GradientStop Color="#FF0000" Offset="0" />
+                <GradientStop Color="#FFFF00" Offset="0.167" />
+                <GradientStop Color="#00FF00" Offset="0.333" />
+                <GradientStop Color="#00FFFF" Offset="0.5" />
+                <GradientStop Color="#0000FF" Offset="0.667" />
+                <GradientStop Color="#FF00FF" Offset="0.833" />
+                <GradientStop Color="#FF0000" Offset="1" />
+            </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+
+        <VisualBrush x:Key="LevelSaturationBrush" TileMode="None">
+            <VisualBrush.Visual>
+                <Canvas Background="Black" Width="1" Height="1" SnapsToDevicePixels="True">
+                    <Rectangle Width="1" Height="1" SnapsToDevicePixels="True">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <LinearGradientBrush.GradientStops>
+                                    <GradientStop Color="White" Offset="0" />
+                                    <GradientStop Color="#FF0000" Offset="1"/>
+                                </LinearGradientBrush.GradientStops>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                        <Rectangle.OpacityMask>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <LinearGradientBrush.GradientStops>
+                                    <GradientStop Color="#FFFFFFFF" Offset="0"/>
+                                    <GradientStop Color="#00FFFFFF" Offset="1"/>
+                                </LinearGradientBrush.GradientStops>
+                            </LinearGradientBrush>
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                </Canvas>
+            </VisualBrush.Visual>
+        </VisualBrush>
+
+    </Border.Resources>
+
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
+        <Rectangle Width="255" Height="255" Margin="10" Stroke="Black" StrokeThickness="1" SnapsToDevicePixels="True" Fill="{StaticResource LevelSaturationBrush}" x:Name="ColorPickerPanel" VerticalAlignment="Top"/>
+        <Rectangle Fill="{StaticResource HueBrush}" Width="20" Height="360" Margin="10" Stroke="Black" StrokeThickness="1" SnapsToDevicePixels="True" x:Name="HPickerPanel" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+        <Rectangle Fill="Red" Width="20" Height="255" Margin="10" Stroke="Black" StrokeThickness="1" SnapsToDevicePixels="True" x:Name="ColorViewPanel" VerticalAlignment="Top"/>
+        <Canvas x:Name="ColorPickerCursor">
+
+            <Path Width="18" Height="18" Stretch="Fill" Fill="#FFB8B8B8" Data="F1 M 22.2448,39.5833L 19,39.5833L 19,36.4167L 22.2448,36.4167C 22.9875,28.9363 28.9363,22.9875 36.4167,22.2448L 36.4167,19L 39.5833,19L 39.5833,22.2448C 47.0637,22.9875 53.0125,28.9363 53.7552,36.4167L 57,36.4167L 57,39.5833L 53.7552,39.5833C 53.0125,47.0637 47.0637,53.0125 39.5833,53.7552L 39.5833,57L 36.4167,57L 36.4167,53.7552C 28.9363,53.0125 22.9875,47.0637 22.2448,39.5833 Z M 25.4313,36.4167L 28.5,36.4167L 28.5,39.5833L 25.4313,39.5833C 26.1458,45.313 30.687,49.8542 36.4167,50.5687L 36.4167,47.5L 39.5833,47.5L 39.5833,50.5687C 45.313,49.8542 49.8542,45.313 50.5686,39.5833L 47.5,39.5833L 47.5,36.4167L 50.5686,36.4167C 49.8542,30.687 45.313,26.1458 39.5833,25.4314L 39.5833,28.5L 36.4167,28.5L 36.4167,25.4314C 30.687,26.1458 26.1458,30.687 25.4313,36.4167 Z " Canvas.Left="-348" Canvas.Top="8" Stroke="Black"/>
+
+            <!--<Path Width="16" Height="16" Stretch="Fill" Fill="White" Data="F1 M 22.2448,39.5833L 19,39.5833L 19,36.4167L 22.2448,36.4167C 22.9875,28.9363 28.9363,22.9875 36.4167,22.2448L 36.4167,19L 39.5833,19L 39.5833,22.2448C 47.0637,22.9875 53.0125,28.9363 53.7552,36.4167L 57,36.4167L 57,39.5833L 53.7552,39.5833C 53.0125,47.0637 47.0637,53.0125 39.5833,53.7552L 39.5833,57L 36.4167,57L 36.4167,53.7552C 28.9363,53.0125 22.9875,47.0637 22.2448,39.5833 Z M 25.4313,36.4167L 28.5,36.4167L 28.5,39.5833L 25.4313,39.5833C 26.1458,45.313 30.687,49.8542 36.4167,50.5687L 36.4167,47.5L 39.5833,47.5L 39.5833,50.5687C 45.313,49.8542 49.8542,45.313 50.5686,39.5833L 47.5,39.5833L 47.5,36.4167L 50.5686,36.4167C 49.8542,30.687 45.313,26.1458 39.5833,25.4314L 39.5833,28.5L 36.4167,28.5L 36.4167,25.4314C 30.687,26.1458 26.1458,30.687 25.4313,36.4167 Z " Canvas.Left="-339" Canvas.Top="19"/>
+            <Path Width="14" Height="14" Stretch="Fill" Fill="#FF000000" Data="F1 M 22.2448,39.5833L 19,39.5833L 19,36.4167L 22.2448,36.4167C 22.9875,28.9363 28.9363,22.9875 36.4167,22.2448L 36.4167,19L 39.5833,19L 39.5833,22.2448C 47.0637,22.9875 53.0125,28.9363 53.7552,36.4167L 57,36.4167L 57,39.5833L 53.7552,39.5833C 53.0125,47.0637 47.0637,53.0125 39.5833,53.7552L 39.5833,57L 36.4167,57L 36.4167,53.7552C 28.9363,53.0125 22.9875,47.0637 22.2448,39.5833 Z M 25.4313,36.4167L 28.5,36.4167L 28.5,39.5833L 25.4313,39.5833C 26.1458,45.313 30.687,49.8542 36.4167,50.5687L 36.4167,47.5L 39.5833,47.5L 39.5833,50.5687C 45.313,49.8542 49.8542,45.313 50.5686,39.5833L 47.5,39.5833L 47.5,36.4167L 50.5686,36.4167C 49.8542,30.687 45.313,26.1458 39.5833,25.4314L 39.5833,28.5L 36.4167,28.5L 36.4167,25.4314C 30.687,26.1458 26.1458,30.687 25.4313,36.4167 Z " Canvas.Left="-338" Canvas.Top="20"/>-->
+        </Canvas>
+        <Canvas x:Name="HColorPickerCursor">
+            <Path Width="19.624" Height="14" Canvas.Left="-89.812" Canvas.Top="3.5" Stretch="Fill" Fill="#FF000000" Data="F1 M 19.0002,34L 19.0002,42L 43.7502,42L 33.7502,52L 44.2502,52L 58.2502,38L 44.2502,24L 33.7502,24L 43.7502,34L 19.0002,34 Z "/>
+        </Canvas>
+    </StackPanel>
+    <!--
+    Width="1920" Height="1080"
+    >
+    -->
+</Border>

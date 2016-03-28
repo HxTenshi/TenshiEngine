@@ -164,6 +164,9 @@ public:
 	static void AddInspector(TemplateInspectorDataSet<std::string>* dataset, std::vector<InspectorDataSet>& data){
 		data.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
 	}
+	static void AddInspector(InspectorColorDataSet* dataset, std::vector<InspectorDataSet>& data){
+		data.push_back(InspectorDataSet(InspectorDataFormat::Color, dataset));
+	}
 	static void ViewInspector(const std::string& ComponentName,Component* comptr, std::vector<InspectorDataSet>& data){
 		mMainWindow_WPF.CreateComponentWindow(ComponentName, (void*)comptr, data);
 	}

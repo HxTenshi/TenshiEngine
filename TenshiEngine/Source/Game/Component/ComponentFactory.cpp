@@ -11,6 +11,7 @@
 #include "AnimationComponent.h"
 #include "MeshDrawComponent.h"
 #include "ScriptComponent.h"
+#include "DirectionalLightComponent.h"
 #include "PointLightComponent.h"
 #include "Component.h"
 
@@ -35,6 +36,7 @@ ComponentFactory::ComponentFactory(){
 	_NewFunc<PhysXColliderComponent>();
 	_NewFunc<TextComponent>();
 	_NewFunc<PostEffectComponent>();
+	_NewFunc<DirectionalLightComponent>();
 	_NewFunc<PointLightComponent>();
 }
 

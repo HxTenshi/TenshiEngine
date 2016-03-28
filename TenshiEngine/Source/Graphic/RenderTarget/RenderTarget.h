@@ -27,7 +27,7 @@ public:
 		tex_desc.Height = Height;
 		tex_desc.MipLevels = 1;
 		tex_desc.ArraySize = 1;
-		tex_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		tex_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		tex_desc.SampleDesc.Count = 1;
 		tex_desc.SampleDesc.Quality = 0;
 		tex_desc.Usage = D3D11_USAGE_DEFAULT;
@@ -204,10 +204,8 @@ public:
 		//
 		float ClearColor[4] = { 0.125f, 0.125f, 0.125f, 1.0f };
 		if (mpRenderTargetView)Device::mpImmediateContext->ClearRenderTargetView(mpRenderTargetView, ClearColor);
-
-		//
-		// Clear the depth buffer to 1.0 (max depth)
-		//
+	}
+	void ClearDepth() const{
 		if (mpDepthStencilView)Device::mpImmediateContext->ClearDepthStencilView(mpDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 

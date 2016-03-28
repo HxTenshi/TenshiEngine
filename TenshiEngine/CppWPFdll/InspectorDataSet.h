@@ -14,6 +14,7 @@ enum class InspectorDataFormat{
 	Bool,
 	Int,
 	SlideBar,
+	Color,
 	Count,
 };
 struct InspectorDataSet{
@@ -72,3 +73,31 @@ struct InspectorVector3DataSet{
 private:
 	InspectorVector3DataSet& operator =(const InspectorVector3DataSet&);
 };
+
+struct InspectorColorDataSet{
+	InspectorColorDataSet(std::string t
+		, float* r, FloatCollback collbackr
+		, float* g, FloatCollback collbackg
+		, float* b, FloatCollback collbackb
+		, float* a, FloatCollback collbacka)
+		:Text(t)
+		, datar(r), collbackR(collbackr)
+		, datag(g), collbackG(collbackg)
+		, datab(b), collbackB(collbackb)
+		, dataa(a), collbackA(collbacka)
+	{}
+	const std::string Text;
+	float* datar;
+	FloatCollback collbackR;
+	float* datag;
+	FloatCollback collbackG;
+	float* datab;
+	FloatCollback collbackB;
+	float* dataa;
+	FloatCollback collbackA;
+	void* com;
+
+private:
+	InspectorColorDataSet& operator =(const InspectorColorDataSet&);
+};
+

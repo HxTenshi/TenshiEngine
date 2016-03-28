@@ -7,8 +7,22 @@
 
 #include "Game/Game.h"
 
-CameraComponent::CameraComponent(){}
-CameraComponent::~CameraComponent(){}
+CameraComponent::CameraComponent()
+{
+	mScreenClearType = ScreenClearType::Color;
+	//mSkyMaterial.mMaterialPath = "EngineResource/Sky/Sky.pmx.txt";
+	//mSkyMaterial.Initialize();
+
+	mSkyMaterial.Create("EngineResource/NoLighting.fx");
+	mSkyMaterial.SetTexture("EngineResource/Sky/a.png");
+
+	mSkyModel.Create("EngineResource/Sky/Sky.pmx.tesmesh");
+}
+CameraComponent::~CameraComponent()
+{
+	//mSkyMaterial.Finish();
+	mSkyModel.Release();
+}
 
 void CameraComponent::Initialize()
 {
@@ -25,29 +39,49 @@ void CameraComponent::Initialize()
 	UpdateView();
 
 
+	SetPerspective();
+
+}
+
+void CameraComponent::SetPerspective(){
 	UINT width = WindowState::mWidth;
 	UINT height = WindowState::mHeight;
 	// Initialize the projection matrix
 	mProjection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
 
+
 	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
 	XMVECTOR null;
 	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
 	mCBChangeOnResize.UpdateSubresource();
+}
+void CameraComponent::SetOrthographic(){
+	UINT width = WindowState::mWidth;
+	UINT height = WindowState::mHeight;
+	mProjection = XMMatrixOrthographicLH((FLOAT)width, (FLOAT)height, 0.01f, 4000.0f);
 
+
+	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
+	XMVECTOR null;
+	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
+	mCBChangeOnResize.UpdateSubresource();
 }
 
 void CameraComponent::Update(){
 
-	XMVECTOR null;
-	auto lossy = gameObject->mTransform->LossyScale();
-	auto scale = gameObject->mTransform->Scale();
-	gameObject->mTransform->Scale(XMVectorSet(lossy.x * scale.x, lossy.y * scale.y, lossy.z * scale.z, 1));
+	//XMVECTOR null;
+	//auto lossy = gameObject->mTransform->LossyScale();
+	//auto scale = gameObject->mTransform->Scale();
+	//gameObject->mTransform->Scale(XMVectorSet(lossy.x * scale.x, lossy.y * scale.y, lossy.z * scale.z, 1));
+	//
+	//mView = XMMatrixInverse(&null, gameObject->mTransform->GetMatrix());
+	//mCBNeverChanges.mParam.mView = XMMatrixTranspose(mView);
+	//mCBNeverChanges.mParam.mViewInv = XMMatrixTranspose(gameObject->mTransform->GetMatrix());
+	//mCBNeverChanges.UpdateSubresource();
+	Eye = gameObject->mTransform->WorldPosition();
+	At = Eye + gameObject->mTransform->Forward();
+	UpdateView();
 
-	mView = XMMatrixInverse(&null, gameObject->mTransform->GetMatrix());
-	mCBNeverChanges.mParam.mView = XMMatrixTranspose(mView);
-	mCBNeverChanges.mParam.mViewInv = XMMatrixTranspose(gameObject->mTransform->GetMatrix());
-	mCBNeverChanges.UpdateSubresource();
 	Game::SetMainCamera(this);
 }
 
@@ -121,4 +155,35 @@ void CameraComponent::UpdateView(){
 	//}
 
 	//gameObject->mTransform->Rotate(XMVectorSet(roll, pitch, yaw, 1.0f));
+}
+
+void CameraComponent::ScreenClear(){
+	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	ID3D11DepthStencilState* pDS = NULL;
+	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
+	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
+
+
+	XMVECTOR pos = gameObject->mTransform->WorldPosition();
+	XMMATRIX pm = XMMatrixTranslation(pos.x, pos.y, pos.z);
+	
+	//UINT width = WindowState::mWidth;
+	//UINT height = WindowState::mHeight;
+	//auto wh = XMVectorSet(width, height, 0, 1);
+	//auto l = XMVector2Length(wh);
+	//l.x *= 2;
+	//float scale1 = 1.0f / 200.0f;
+	//float s = l.x*scale1;
+	float s = 0.1f;
+	XMMATRIX sm = XMMatrixScaling(s,s,s);
+	mSkyModel.mWorld = sm * pm;
+	mSkyModel.Update();
+
+	mSkyModel.Draw(mSkyMaterial);
+
+
+	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+	if (pDS)pDS->Release();
 }

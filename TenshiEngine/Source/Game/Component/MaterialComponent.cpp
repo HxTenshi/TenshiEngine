@@ -107,6 +107,11 @@ void MaterialComponent::CreateInspector(){
 	std::function<void(float)> collbackz = [&](float f){
 		mMaterials[0].mCBMaterial.mParam.Diffuse.z = f;
 	};
+
+	std::function<void(float)> collbacka = [&](float f){
+		mMaterials[0].mCBMaterial.mParam.Diffuse.w = f;
+	};
+
 	std::function<void(std::string)> collbacktex = [&](std::string name){
 		mMaterials[0].SetTexture(name.c_str(), 0);
 		TextureName = name;
@@ -122,9 +127,10 @@ void MaterialComponent::CreateInspector(){
 	};
 
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Material", &mMaterialPath, collbackpath), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.x, collbackx), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.y, collbacky), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.z, collbackz), data);
+	Window::AddInspector(new InspectorColorDataSet("Diffuse", &mMaterials[0].mCBMaterial.mParam.Diffuse.x, collbackx, &mMaterials[0].mCBMaterial.mParam.Diffuse.y, collbacky, &mMaterials[0].mCBMaterial.mParam.Diffuse.z, collbackz, &mMaterials[0].mCBMaterial.mParam.Diffuse.w, collbacka), data);
+	//Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.x, collbackx), data);
+	//Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.y, collbacky), data);
+	//Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.z, collbackz), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Textre", &TextureName, collbacktex), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collbacksha), data);
 	Window::ViewInspector("Material", this, data);

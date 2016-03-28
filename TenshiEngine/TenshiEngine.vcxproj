@@ -414,6 +414,7 @@
     <ClCompile Include="Source\Game\Component\CameraComponent.cpp" />
     <ClCompile Include="Source\Game\Component\Component.cpp" />
     <ClCompile Include="Source\Game\Component\ComponentFactory.cpp" />
+    <ClCompile Include="Source\Game\Component\DirectionalLightComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MaterialComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MeshDrawComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ModelComponent.cpp" />
@@ -483,6 +484,7 @@
     <ClInclude Include="Source\Game\Component\Component.h" />
     <ClInclude Include="Source\Game\Component\ComponentFactory.h" />
     <ClInclude Include="Source\Game\Component\ComponentList.h" />
+    <ClInclude Include="Source\Game\Component\DirectionalLightComponent.h" />
     <ClInclude Include="Source\Game\Component\IModelComponent.h" />
     <ClInclude Include="Source\Game\Component\MaterialComponent.h" />
     <ClInclude Include="Source\Game\Component\MeshDrawComponent.h" />

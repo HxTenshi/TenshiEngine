@@ -12,6 +12,10 @@
 #include "BoneModel.h"
 
 
+//強制的にこのマテリアルを使用
+//static
+Material* Model::mForcedMaterial = NULL;
+
 Model::Model()
 	: mBoneModel(NULL)
 {
@@ -23,7 +27,6 @@ Model::~Model()
 }
 
 HRESULT Model::Create(const char* FileName){
-	HRESULT hr = S_OK;
 
 	AssetDataBase::Instance(FileName, m_MeshAssetDataPtr);
 
@@ -91,40 +94,52 @@ void Model::IASet() const{
 	// Set index buffer
 	Device::mpImmediateContext->IASetIndexBuffer(i, DXGI_FORMAT_R16_UINT, 0);
 }
-void Model::Draw(Material material) const{
+void Model::Draw(const Material& material) const{
 	if (!m_MeshAssetDataPtr)return;
-	material.SetShader((bool)mBoneModel);
+
+	if (mForcedMaterial){
+		mForcedMaterial->SetShader((bool)mBoneModel != NULL);
+		mForcedMaterial->PSSetShaderResources();
+	}
+	else{
+		material.SetShader((bool)mBoneModel != NULL);
+		material.PSSetShaderResources();
+	}
+
 	IASet();
 	SetConstantBuffer();
 	if (mBoneModel){
 		mBoneModel->SetConstantBuffer();
 	}
 
-	material.PSSetShaderResources();
-
 	auto& buf = m_MeshAssetDataPtr->GetBufferData();
 	auto& mesh = buf.GetMesh();
-
 	for (auto& m : mesh){
 		Device::mpImmediateContext->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 	}
 }
 
-void Model::Draw(shared_ptr<MaterialComponent> material) const{
+void Model::Draw(const shared_ptr<MaterialComponent> material) const{
 	if (!m_MeshAssetDataPtr)return;
 	if (mBoneModel){
 		mBoneModel->SetConstantBuffer();
 	}
 
-	IASet();
+	if (mForcedMaterial){
+		mForcedMaterial->SetShader((bool)mBoneModel != NULL);
+		mForcedMaterial->PSSetShaderResources();
+	}
 
+	IASet();
+	SetConstantBuffer();
 	auto& buf = m_MeshAssetDataPtr->GetBufferData();
 	auto& mesh = buf.GetMesh();
 	UINT i = 0;
 	for (auto& m : mesh){
-		material->GetMaterial(i).SetShader((bool)mBoneModel);
-		SetConstantBuffer();
-		material->GetMaterial(i).PSSetShaderResources();
+		if (!mForcedMaterial){
+			material->GetMaterial(i).SetShader((bool)mBoneModel != NULL);
+			material->GetMaterial(i).PSSetShaderResources();
+		}
 		Device::mpImmediateContext->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 		i++;
 	}

@@ -90,6 +90,61 @@ public:
 protected:
 	DataModel<T, Func> *_dataModel;
 };
+template<class T, class Func>
+ref class TemlateViewModel3 : public IViewModel{
+public:
+
+	TemlateViewModel3(T* pf1, Func collback1, T* pf2, Func collback2, T* pf3, Func collback3)
+		: _dataModel1(new DataModel<T, Func>(pf1, collback1))
+		, _dataModel2(new DataModel<T, Func>(pf2, collback2))
+		, _dataModel3(new DataModel<T, Func>(pf3, collback3))
+	{
+	}
+
+	virtual ~TemlateViewModel3() {
+		this->!TemlateViewModel3();
+	}
+
+	!TemlateViewModel3() {
+		delete _dataModel1;
+		delete _dataModel2;
+		delete _dataModel3;
+	}
+
+protected:
+	DataModel<T, Func> *_dataModel1;
+	DataModel<T, Func> *_dataModel2;
+	DataModel<T, Func> *_dataModel3;
+};
+template<class T, class Func>
+ref class TemlateViewModel4 : public IViewModel{
+public:
+
+	TemlateViewModel4(T* pf1, Func collback1, T* pf2, Func collback2, T* pf3, Func collback3, T* pf4, Func collback4)
+		: _dataModel1(new DataModel<T, Func>(pf1, collback1))
+		, _dataModel2(new DataModel<T, Func>(pf2, collback2))
+		, _dataModel3(new DataModel<T, Func>(pf3, collback3))
+		, _dataModel4(new DataModel<T, Func>(pf4, collback4))
+	{
+	}
+
+	virtual ~TemlateViewModel4() {
+		this->!TemlateViewModel4();
+	}
+
+	!TemlateViewModel4() {
+		delete _dataModel1;
+		delete _dataModel2;
+		delete _dataModel3;
+		delete _dataModel4;
+	}
+
+protected:
+	DataModel<T, Func> *_dataModel1;
+	DataModel<T, Func> *_dataModel2;
+	DataModel<T, Func> *_dataModel3;
+	DataModel<T, Func> *_dataModel4;
+};
 
 //template <class R, class T>
 //R^ lexical_cast(const T* p){
@@ -122,6 +177,54 @@ public:
 		void set(String^ value) {
 			if (_dataModel->set(lexical_cast<T,String>(value)))
 				NotifyPropertyChanged("Value");
+		}
+
+	}
+};
+
+template <class T>
+ref class ColorViewModel : public TemlateViewModel4<T, std::function<void(T)>> {
+public:
+
+	ColorViewModel(T* fp1, std::function<void(T)> collback1, T* fp2, std::function<void(T)> collback2, T* fp3, std::function<void(T)> collback3, T* fp4, std::function<void(T)> collback4)
+		:TemlateViewModel4(fp1, collback1, fp2, collback2, fp3, collback3, fp4, collback4){
+	}
+	property Color Value {
+
+		Color get() {
+			return Color::FromArgb(_dataModel4->get() * 255, _dataModel1->get() * 255, _dataModel2->get() * 255, _dataModel3->get() * 255);
+		}
+
+		void set(Color value) {
+			_dataModel1->set(lexical_cast<T, String>((value.R / 255.0f).ToString()));
+			_dataModel2->set(lexical_cast<T, String>((value.G / 255.0f).ToString()));
+			_dataModel3->set(lexical_cast<T, String>((value.B / 255.0f).ToString()));
+			_dataModel4->set(lexical_cast<T, String>((value.A / 255.0f).ToString()));
+
+			NotifyPropertyChanged("Value");
+		}
+
+	}
+};
+template <class T>
+ref class Color3ViewModel : public TemlateViewModel3<T, std::function<void(T)>> {
+public:
+
+	Color3ViewModel(T* fp1, std::function<void(T)> collback1, T* fp2, std::function<void(T)> collback2, T* fp3, std::function<void(T)> collback3)
+		:TemlateViewModel3(fp1, collback1, fp2, collback2, fp3, collback3){
+	}
+	property Color Value {
+
+		Color get() {
+			return Color::FromRgb(_dataModel1->get() * 255, _dataModel2->get() * 255, _dataModel3->get() * 255);
+		}
+
+		void set(Color value) {
+			_dataModel1->set(lexical_cast<T, String>((value.R / 255.0f).ToString()));
+			_dataModel2->set(lexical_cast<T, String>((value.G / 255.0f).ToString()));
+			_dataModel3->set(lexical_cast<T, String>((value.B / 255.0f).ToString()));
+
+			NotifyPropertyChanged("Value");
 		}
 
 	}

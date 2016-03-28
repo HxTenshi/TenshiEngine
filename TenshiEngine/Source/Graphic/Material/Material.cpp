@@ -70,7 +70,7 @@ void Material::PSSetShaderResources() const{
 		return;
 	}
 
-	for (UINT i = 0; i < 4; i++)
+	for (UINT i = 0; i < 8; i++)
 		mTexture[i].PSSetShaderResources(i);
 
 	mCBMaterial.UpdateSubresource();
@@ -81,7 +81,6 @@ void Material::PSSetShaderResources() const{
 }
 
 void Material::SetTexture(const char* FileName, UINT Slot){
-	if (Slot > 4)return;
 	HRESULT hr = mTexture[Slot].Create(FileName);
 	float flag = 1.0f;
 	if (FAILED(hr))
@@ -98,7 +97,6 @@ void Material::SetTexture(const char* FileName, UINT Slot){
 	//mCBUseTexture->UpdateSubresource();
 }
 void Material::SetTexture(const Texture& Tex, UINT Slot){
-	if (Slot > 4)return;
 	mTexture[Slot] = Tex;
 	mTexture[Slot].mFileName = "ref";
 	if (Slot == 0)

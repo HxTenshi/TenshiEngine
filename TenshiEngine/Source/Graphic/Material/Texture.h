@@ -56,5 +56,5 @@ public:
 
 private:
 	shared_ptr<TextureData> mTexturePtr;
-	static Texture mNullTexture;
+	//static Texture mNullTexture;
 };

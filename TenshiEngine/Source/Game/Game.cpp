@@ -539,8 +539,15 @@ void Game::Draw(){
 	mMainCamera->PSSetConstantBuffers();
 	mMainCamera->GSSetConstantBuffers();
 
-	Device::mRenderTargetBack->ClearView();
-	mMainViewRenderTarget.ClearView();
+	//Device::mRenderTargetBack->ClearView();
+	Device::mRenderTargetBack->ClearDepth();
+	//mMainViewRenderTarget.ClearView();
+	
+	const RenderTarget* r[1] = { &mMainViewRenderTarget };
+	RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+
+	//mMainCamera->ScreenClear();
+
 
 
 	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
@@ -551,8 +558,8 @@ void Game::Draw(){
 	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
 
 
-	const RenderTarget* r[1] = { &mMainViewRenderTarget };
-	RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+	//const RenderTarget* r[1] = { &mMainViewRenderTarget };
+	//RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
 
 	//¡‚ÍˆÓ–¡‚È‚µ
 	PlayDrawList(DrawStage::Depth);
@@ -564,7 +571,15 @@ void Game::Draw(){
 	Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
 
 	m_DeferredRendering.Start_G_Buffer_Rendering();
+	mMainCamera->ScreenClear();
 	PlayDrawList(DrawStage::Diffuse);
+
+	for (int i = 0; i < 4; i++){
+		m_DeferredRendering.Start_ShadowDepth_Buffer_Rendering(i);
+		PlayDrawList(DrawStage::Diffuse);
+	}
+	m_DeferredRendering.End_ShadowDepth_Buffer_Rendering();
+
 	m_DeferredRendering.Start_Light_Rendering();
 	PlayDrawList(DrawStage::Light);
 	m_DeferredRendering.End_Light_Rendering();

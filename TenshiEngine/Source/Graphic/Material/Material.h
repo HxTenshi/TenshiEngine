@@ -38,5 +38,5 @@ public:
 	Shader mShader;
 	ConstantBuffer<cbChangesMaterial> mCBMaterial;
 	ConstantBuffer<cbChangesUseTexture> mCBUseTexture;
-	Texture mTexture[4];
+	Texture mTexture[8];
 };

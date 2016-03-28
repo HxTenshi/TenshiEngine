@@ -41,7 +41,8 @@ public:
 		//}
 		std::string path = "";
 		auto fullpath = mFileName;
-		while (true){
+		bool roop = true;
+		while (roop){
 			auto dir = forward_than_find_first_of(fullpath, "/");
 			if (dir == "")break;
 			if (path != "")path += "\\";
