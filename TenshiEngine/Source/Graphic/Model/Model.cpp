@@ -60,6 +60,7 @@ HRESULT Model::CreateBoneModel(const char* FileName){
 void Model::SetConstantBuffer() const
 {
 	if (mCBuffer.mBuffer)mCBuffer.VSSetConstantBuffers();
+	if (mCBuffer.mBuffer)mCBuffer.PSSetConstantBuffers();
 }
 
 void Model::Release(){
@@ -103,6 +104,7 @@ void Model::Draw(const Material& material) const{
 	}
 	else{
 		material.SetShader((bool)mBoneModel != NULL);
+		material.VSSetShaderResources();
 		material.PSSetShaderResources();
 	}
 
@@ -127,6 +129,7 @@ void Model::Draw(const shared_ptr<MaterialComponent> material) const{
 
 	if (mForcedMaterial){
 		mForcedMaterial->SetShader((bool)mBoneModel != NULL);
+		mForcedMaterial->VSSetShaderResources();
 		mForcedMaterial->PSSetShaderResources();
 	}
 
@@ -138,6 +141,7 @@ void Model::Draw(const shared_ptr<MaterialComponent> material) const{
 	for (auto& m : mesh){
 		if (!mForcedMaterial){
 			material->GetMaterial(i).SetShader((bool)mBoneModel != NULL);
+			material->GetMaterial(i).VSSetShaderResources();
 			material->GetMaterial(i).PSSetShaderResources();
 		}
 		Device::mpImmediateContext->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);

@@ -10,6 +10,7 @@ enum class InspectorDataFormat{
 	Label,
 	String,
 	Float,
+	Vector2,
 	Vector3,
 	Bool,
 	Int,
@@ -72,6 +73,24 @@ struct InspectorVector3DataSet{
 
 private:
 	InspectorVector3DataSet& operator =(const InspectorVector3DataSet&);
+};
+struct InspectorVector2DataSet{
+	InspectorVector2DataSet(std::string t
+		, float* x, FloatCollback collbackx
+		, float* y, FloatCollback collbacky)
+		:Text(t)
+		, datax(x), collbackX(collbackx)
+		, datay(y), collbackY(collbacky)
+	{}
+	const std::string Text;
+	float* datax;
+	FloatCollback collbackX;
+	float* datay;
+	FloatCollback collbackY;
+	void* com;
+
+private:
+	InspectorVector2DataSet& operator =(const InspectorVector2DataSet&);
 };
 
 struct InspectorColorDataSet{

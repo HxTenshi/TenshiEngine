@@ -51,15 +51,20 @@ public:
 
 private:
 	RenderTarget m_AlbedoRT;
+	RenderTarget m_SpecularRT;
 	RenderTarget m_NormalRT;
 	RenderTarget m_DepthRT;
 	RenderTarget m_LightRT;
+	RenderTarget m_LightSpecularRT;
 
+	Texture mEnvironmentMap;
+	Texture mEnvironmentRMap;
 	Model mModelTexture;
 	//Material mMaterialDebugDraw;
 	Material mMaterialLight;
 	Material mMaterialDeferred;
 	Material mMaterialDepthShadow;
+	Material mMaterialPostEffect;
 
 	CascadeShadow mCascadeShadow;
 

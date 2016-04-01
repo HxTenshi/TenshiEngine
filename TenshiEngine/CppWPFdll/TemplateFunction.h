@@ -80,10 +80,12 @@ FrameworkElement ^LoadContentsFromResource(int resourceId) {
 	HMODULE module = GetModuleHandle(L"CppWPFdll");
 	// リソースを見つける
 	HRSRC resource = FindResource(module, MAKEINTRESOURCE(resourceId), RT_HTML);
+	if (resource == NULL)return nullptr;
 	// リソースのデータサイズを取得する
 	DWORD dataSize = SizeofResource(module, resource);
 	// リソースデータのグローバルハンドルを取得する
 	HGLOBAL dataHandle = LoadResource(module, resource);
+	if (dataHandle == NULL)return nullptr;
 	// リソースのデータを取得する
 	const char *data = static_cast<const char *>(LockResource(dataHandle));
 

@@ -126,6 +126,7 @@
     <Page Include="View.xaml" />
     <Page Include="WindowXAML\TreeView.xaml" />
     <Page Include="WindowXAML\ColorPicker.xaml" />
+    <Page Include="WindowXAML\InspectorVector2.xaml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CustomControls\CustomControls.vcxproj">

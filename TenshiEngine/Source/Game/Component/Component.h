@@ -231,7 +231,9 @@ public:
 	}
 
 	void Initialize() override;
-	
+	void EngineUpdate() override{
+		PostDraw();
+	}
 	void Update() override{
 		PostDraw();
 	}
@@ -240,18 +242,9 @@ public:
 
 	void PostDraw();
 
-	void CreateInspector() override{
-		auto data = Window::CreateInspector();
-		Window::ViewInspector("PostEffect", this, data);
-	}
+	void CreateInspector() override;
 
-
-	void IO_Data(I_ioHelper* io) override{
-		(void)io;
-#define _KEY(x) io->func( x , #x)
-
-#undef _KEY
-	}
+	void IO_Data(I_ioHelper* io) override;
 private:
 
 	RenderTarget mRenderTarget;
@@ -260,5 +253,7 @@ private:
 
 	Material mMaterial;
 	Material mMaterialEnd;
+
+	std::string mShaderName;
 	
 };

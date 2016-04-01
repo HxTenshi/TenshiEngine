@@ -155,6 +155,7 @@ public:
 	//	e->Handled = true;
 	//}
 	void SetMouseEvents(bool* l, bool* r, int* x, int* y, int* wx, int* wy){
+
 		m_ML = l;
 		m_MR = r;
 		m_MX = x;

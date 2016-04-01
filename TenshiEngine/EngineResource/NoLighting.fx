@@ -75,8 +75,9 @@ struct PS_INPUT
 struct PS_OUTPUT_1
 {
 	float4 ColorAlbedo : SV_Target0;
-	float4 ColorNormal : SV_Target1;
-	float4 ColorDepth : SV_Target2;
+	float4 ColorSpecular : SV_Target1;
+	float4 ColorNormal : SV_Target2;
+	float4 ColorDepth : SV_Target3;
 };
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -145,6 +146,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 
 	Out.ColorAlbedo = DifColor * MDiffuse;
+	Out.ColorSpecular = float4(0,0,0,0);
 	Out.ColorNormal = float4(0.5, 0.5, 0.5, 1);
 	Out.ColorDepth = float4(0, 0, 0, 1);
 	return Out;

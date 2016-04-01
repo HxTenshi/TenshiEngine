@@ -6,8 +6,7 @@ void PostEffectComponent::Initialize(){
 	mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
 	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 
-	mMaterial.Create("EngineResource/PostEffect.fx");
-	mMaterial.SetTexture(Game::GetMainViewRenderTarget().GetTexture(), 0);
+	mMaterial.Create(mShaderName.c_str());
 
 	mMaterialEnd.Create("EngineResource/PostEffect.fx");
 	mMaterialEnd.SetTexture(mRenderTarget.GetTexture(), 0);
@@ -23,6 +22,9 @@ void PostEffectComponent::PostDraw(){
 	mModelTexture.Update();
 
 	Game::AddDrawList(DrawStage::PostEffect, [&](){
+		if (mShaderName == ""){
+			return;
+		}
 
 		mRenderTarget.ClearView();
 		mRenderTarget.SetRendererTarget();
@@ -51,11 +53,14 @@ void PostEffectComponent::PostDraw(){
 
 		mModelTexture.Draw(mMaterial);
 
-		Game::GetMainViewRenderTarget().ClearView();
-		Game::GetMainViewRenderTarget().SetRendererTarget();
+
+
+		Device::mpImmediateContext->CopyResource(Game::GetMainViewRenderTarget().GetTexture2D(), mRenderTarget.GetTexture2D());
+		//Game::GetMainViewRenderTarget().ClearView();
+		//Game::GetMainViewRenderTarget().SetRendererTarget();
 		//Device::mRenderTargetBack->SetRendererTarget();
 
-		mModelTexture.Draw(mMaterialEnd);
+		//mModelTexture.Draw(mMaterialEnd);
 
 
 		Device::mpImmediateContext->RSSetState(NULL);
@@ -75,4 +80,28 @@ void PostEffectComponent::PostDraw(){
 
 
 	});
+}
+
+void PostEffectComponent::CreateInspector(){
+	auto data = Window::CreateInspector();
+
+	std::function<void(std::string)> collback = [&](std::string name){
+		mShaderName = name;
+
+		mMaterial.Create(mShaderName.c_str());
+	};
+
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collback), data);
+
+	Window::ViewInspector("PostEffect", this, data);
+}
+
+
+void PostEffectComponent::IO_Data(I_ioHelper* io){
+	(void)io;
+#define _KEY(x) io->func( x , #x)
+
+	_KEY(mShaderName);
+
+#undef _KEY
 }

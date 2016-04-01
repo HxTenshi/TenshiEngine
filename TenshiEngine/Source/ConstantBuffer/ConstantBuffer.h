@@ -30,10 +30,16 @@ public:
 	static
 	create_type create(UINT ByteWidth)
 	{
+
+		if (ByteWidth%16){
+			_ASSERT("16ÇÃî{êîÇ∂Ç·Ç»Ç¢Ç∆É_ÉÅ");
+		}
+
 		create_type temp(new ConstantBufferPtr());
 
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
+
 		// Create the constant buffers
 		bd.Usage = D3D11_USAGE_DEFAULT;
 		bd.ByteWidth = ByteWidth;//sizeof(T);

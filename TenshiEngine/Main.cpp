@@ -159,7 +159,6 @@ class db{
 };
 
 
-
 class Application{
 public:
 	Application()
@@ -182,8 +181,6 @@ public:
 		Device::mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		mInputManagerRapper.Initialize(window.GetGameScreenHWND(), window.mhInstance);
-
-
 
 		mGame = new Game();
 

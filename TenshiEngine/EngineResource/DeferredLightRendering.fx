@@ -66,6 +66,12 @@ PS_INPUT VS( VS_INPUT input )
 	
 	return output;
 }
+struct PS_OUTPUT_1
+{
+	float4 Diffuse : SV_Target0;
+	float4 Specular : SV_Target1;
+};
+
 
 //projection depth 0~1
 float3 DepthToPosition2(float2 textureCoord, float depth)
@@ -86,19 +92,68 @@ float ToPerspectiveDepth(float viewDepth)
 		return 1.0 - (projectedPosition.z / projectedPosition.w);
 }
 
+// V を計算するための便利関数
+float G1V(float dotNV, float k)
+{
+	return 1.0f / (dotNV * (1.0f - k) + k);
+}
+
+// GGX を使ったスペキュラシェーディングの値を返す関数
+float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
+	// ラフネス
+	float roughness,
+	// フレネル反射率 F(0°)
+	float F0)
+{
+	// α = ラフネス^2
+	float alpha = roughness * roughness;
+
+	// ハーフベクトル
+	float3 H = normalize(V + L);
+
+		// ベクトルの内積関連
+		float dotNL = saturate(dot(N, L));
+	float dotNV = saturate(dot(N, V));
+	float dotNH = saturate(dot(N, H));
+	float dotLH = saturate(dot(L, H));
+
+	float F, D, vis;
+
+	// D
+	float alphaSqr = alpha * alpha;
+	float pi = 3.14159f;
+	float denom = dotNH * dotNH * (alphaSqr - 1.0) + 1.0f;
+	D = alphaSqr / (pi * denom * denom);
+
+	// F
+	float dotLH5 = pow(1.0f - dotLH, 5);
+	F = F0 + (1.0 - F0) * (dotLH5);
+
+	// V
+	float k = alpha / 2.0f;
+	vis = G1V(dotNL, k) * G1V(dotNV, k);
+
+	float specular = dotNL * D * F * vis;
+
+	return specular;
+}
 
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
-float4 PS(PS_INPUT input) : SV_Target
+PS_OUTPUT_1 PS(PS_INPUT input)
 {
+	PS_OUTPUT_1 Out;
+	Out.Diffuse = float4(1, 1, 1, 1);
+	Out.Specular = float4(0, 0, 0, 1);
 
+	float4 norCol = NormalTex.Sample(NormalSamLinear, input.Tex);
 	// 法線の準備
-	float3 N = NormalTex.Sample(NormalSamLinear, input.Tex).xyz;
+	float3 N = norCol.xyz;
 	N = N * 2 - 1;
 
 	if (N.x == 0 && N.y == 0 && N.z == 0){
-		return float4(1, 1, 1, 1);
+		return Out;
 	}
 
 	// ライトのベクトル
@@ -167,7 +222,15 @@ float4 PS(PS_INPUT input) : SV_Target
 	//debugColor *= float4(DifGen, DifGen, DifGen, 1);
 	//debugColor = float4(1, 1, 1, 2) - debugColor;
 
-	float4 col = LightColor * DifGen;
-	col.a = LightColor.a;
-	return col;
+	float roughness = norCol.a;
+	float spec = LightingFuncGGX_REF(N, -normalize(vpos), -L, roughness, 1);
+
+
+	Out.Diffuse = LightColor * DifGen;
+	Out.Diffuse.a = LightColor.a;
+
+	Out.Specular = LightColor * DifGen * spec;
+	Out.Specular.a = LightColor.a;
+
+	return Out;
 }

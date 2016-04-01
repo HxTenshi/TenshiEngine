@@ -289,9 +289,11 @@ void CascadeShadow::SetLightVect(const XMVECTOR& vect){
 
 DeferredRendering::~DeferredRendering(){
 	m_AlbedoRT.Release();
+	m_SpecularRT.Release();
 	m_NormalRT.Release();
 	m_DepthRT.Release();
 	m_LightRT.Release();
+	m_LightSpecularRT.Release();
 	mModelTexture.Release();
 
 	pBlendState->Release();
@@ -300,9 +302,15 @@ void DeferredRendering::Initialize(){
 	auto w = WindowState::mWidth;
 	auto h = WindowState::mHeight;
 	m_AlbedoRT.Create(w, h);
+	m_SpecularRT.Create(w,h);
 	m_NormalRT.Create(w, h);
 	m_DepthRT.Create(w, h);
 	m_LightRT.Create(w, h);
+	m_LightSpecularRT.Create(w, h);
+
+	mEnvironmentMap.Create("EngineResource/Sky/spheremap.jpg");
+	//mEnvironmentMap.Create("EngineResource/Sky/a.png");
+	mEnvironmentRMap.Create("EngineResource/Sky/spheremapr.jpg");
 
 	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 
@@ -317,9 +325,23 @@ void DeferredRendering::Initialize(){
 
 	mMaterialDeferred.Create("EngineResource/DeferredRendering.fx");
 	mMaterialDeferred.SetTexture(m_AlbedoRT.GetTexture(), 0);
-	mMaterialDeferred.SetTexture(m_LightRT.GetTexture(), 1);
+	mMaterialDeferred.SetTexture(m_SpecularRT.GetTexture(), 1);
+	mMaterialDeferred.SetTexture(m_NormalRT.GetTexture(), 2);
+	mMaterialDeferred.SetTexture(m_LightRT.GetTexture(), 3);
+	mMaterialDeferred.SetTexture(m_LightSpecularRT.GetTexture(), 4);
+	mMaterialDeferred.SetTexture(mEnvironmentMap, 5);
+	mMaterialDeferred.SetTexture(mEnvironmentRMap, 6);
 
 	mMaterialDepthShadow.Create("EngineResource/DepthRendering.fx");
+
+	mMaterialPostEffect.Create("");
+	mMaterialPostEffect.SetTexture(Game::GetMainViewRenderTarget().GetTexture(),1);
+	mMaterialPostEffect.SetTexture(m_AlbedoRT.GetTexture(), 2);
+	mMaterialPostEffect.SetTexture(m_SpecularRT.GetTexture(), 3);
+	mMaterialPostEffect.SetTexture(m_NormalRT.GetTexture(), 4);
+	mMaterialPostEffect.SetTexture(m_DepthRT.GetTexture(), 5);
+	mMaterialPostEffect.SetTexture(m_LightRT.GetTexture(), 6);
+	mMaterialPostEffect.SetTexture(m_LightSpecularRT.GetTexture(), 7);
 
 	//mMaterialDebugDraw.Create("EngineResource/Texture.fx");
 	//mMaterialDebugDraw.SetTexture(mCascadeShadow.GetRTTexture(0), 0);
@@ -360,8 +382,8 @@ void DeferredRendering::Start_G_Buffer_Rendering(){
 	mCascadeShadow.Update();
 
 
-	const RenderTarget* r[3] = { &m_AlbedoRT, &m_NormalRT, &m_DepthRT };
-	RenderTarget::SetRendererTarget((UINT)3, r[0], Device::mRenderTargetBack);
+	const RenderTarget* r[4] = { &m_AlbedoRT, &m_SpecularRT , &m_NormalRT, &m_DepthRT };
+	RenderTarget::SetRendererTarget((UINT)4, r[0], Device::mRenderTargetBack);
 }
 void DeferredRendering::Start_ShadowDepth_Buffer_Rendering(int no){
 
@@ -377,9 +399,10 @@ void DeferredRendering::End_ShadowDepth_Buffer_Rendering(){
 void DeferredRendering::Start_Light_Rendering(){
 
 	m_LightRT.ClearView();
+	m_LightSpecularRT.ClearView();
 
-	const RenderTarget* r[1] = { &m_LightRT };
-	RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+	const RenderTarget* r[2] = { &m_LightRT, &m_LightSpecularRT };
+	RenderTarget::SetRendererTarget((UINT)2, r[0], Device::mRenderTargetBack);
 
 
 	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -436,4 +459,8 @@ void DeferredRendering::Start_Deferred_Rendering(RenderTarget* rt){
 
 	Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
 	if (pBackDS)pBackDS->Release();
+
+
+	RenderTarget::NullSetRendererTarget();
+	mMaterialPostEffect.PSSetShaderResources();
 }

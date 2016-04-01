@@ -1,5 +1,8 @@
 #pragma once
 
+
+//16ÇÃî{êîÇ…Ç»ÇÈÇÊÇ§Ç…Ç∑ÇÈ
+
 struct CBNeverChanges
 {
 	XMMATRIX mView;
@@ -29,6 +32,8 @@ struct cbChangesMaterial
 	XMFLOAT4 Diffuse;
 	XMFLOAT4 Specular;
 	XMFLOAT4 Ambient;
+	XMFLOAT2 TexScale;
+	XMFLOAT2 HeightPower;
 };
 struct cbChangesUseTexture
 {

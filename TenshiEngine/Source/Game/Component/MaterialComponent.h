@@ -19,14 +19,20 @@ public:
 	void CreateInspector() override;
 	Material GetMaterial(UINT GetNo) const;
 
-	void IO_Data(I_ioHelper* io) override{
-#define _KEY(x) io->func( x , #x)
-		_KEY(mMaterialPath);
-#undef _KEY
-	}
+	void SetAlbedoColor(const XMFLOAT4& col);
+	void SetSpecularColor(const XMFLOAT4& col);
 
-	std::string mTextureName;
+	void IO_Data(I_ioHelper* io) override;
+
+	std::string mAlbedoTextureName;
+	std::string mNormalTextureName;
+	std::string mHeightTextureName;
 	std::vector<Material> mMaterials;
 	std::string mMaterialPath;
 	std::string mShaderName;
+
+	XMFLOAT4 mAlbedo;
+	XMFLOAT4 mSpecular;
+	XMFLOAT2 mTexScale;
+	XMFLOAT2 mHeightPower;
 };

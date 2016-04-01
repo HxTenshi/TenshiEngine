@@ -90,6 +90,13 @@ void CreateInspectorVector3(DockPanel^ dockPanel, float* px, FloatCollback collb
 	BindingInspector<float>((TextBox^)com->FindName("yValue"), py,collbacky);
 	BindingInspector<float>((TextBox^)com->FindName("zValue"), pz,collbackz);
 }
+void CreateInspectorVector2(DockPanel^ dockPanel, float* px, FloatCollback collbackx, float* py, FloatCollback collbacky){
+	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_VEC2);
+	dockPanel->Children->Add(com);
+	DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
+	BindingInspector<float>((TextBox^)com->FindName("xValue"), px, collbackx);
+	BindingInspector<float>((TextBox^)com->FindName("yValue"), py, collbacky);
+}
 void CreateInspectorColor(DockPanel^ dockPanel, String^ text, float* pr, FloatCollback collbackR, float* pg, FloatCollback collbackG, float* pb, FloatCollback collbackB, float* pa, FloatCollback collbackA){
 	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_COLOR);
 	dockPanel->Children->Add(com);
@@ -193,6 +200,22 @@ private:
 	InspectorVector3DataSet *m_data;
 };
 
+ref class InspectorVector2 : public InspectorData{
+public:
+	InspectorVector2(InspectorVector2DataSet* data)
+		: m_data(data){
+	}
+	~InspectorVector2(){
+		this->!InspectorVector2();
+	}
+	!InspectorVector2(){
+		delete m_data;
+	}
+
+	void CreateInspector(DockPanel^ dockPanel) override;
+private:
+	InspectorVector2DataSet *m_data;
+};
 ref class InspectorColor : public InspectorData{
 public:
 	InspectorColor(InspectorColorDataSet* data)
@@ -220,6 +243,10 @@ void InspectorFloatSlideBar::CreateInspector(DockPanel^ dockPanel){
 void InspectorVector3::CreateInspector(DockPanel^ dockPanel) {
 	CreateInspectorTextBlock(dockPanel, gcnew String(m_data->Text.c_str()));
 	CreateInspectorVector3(dockPanel, m_data->datax, m_data->collbackX, m_data->datay, m_data->collbackY, m_data->dataz, m_data->collbackZ);
+}
+void InspectorVector2::CreateInspector(DockPanel^ dockPanel) {
+	CreateInspectorTextBlock(dockPanel, gcnew String(m_data->Text.c_str()));
+	CreateInspectorVector2(dockPanel, m_data->datax, m_data->collbackX, m_data->datay, m_data->collbackY);
 }
 void InspectorColor::CreateInspector(DockPanel^ dockPanel) {
 	CreateInspectorColor(dockPanel, gcnew String(m_data->Text.c_str()), m_data->datar, m_data->collbackR, m_data->datag, m_data->collbackG, m_data->datab, m_data->collbackB, m_data->dataa, m_data->collbackA);
@@ -317,6 +344,9 @@ namespace Test {
 				}
 				if (d.format == InspectorDataFormat::Int){
 					a[i] = gcnew Inspector<int>((TemplateInspectorDataSet<int>*)d.data);
+				}
+				if (d.format == InspectorDataFormat::Vector2){
+					a[i] = gcnew InspectorVector2((InspectorVector2DataSet*)d.data);
 				}
 				if (d.format == InspectorDataFormat::Vector3){
 					a[i] = gcnew InspectorVector3((InspectorVector3DataSet*)d.data);

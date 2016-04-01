@@ -6,6 +6,8 @@ Material::Material()
 	mDiffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	mSpecular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	mAmbient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	mTexScale = XMFLOAT2(1.0f, 1.0f);
+	mHeightPower = XMFLOAT2(2.0f, 1.0f);
 }
 Material::~Material()
 {
@@ -13,7 +15,6 @@ Material::~Material()
 }
 
 HRESULT Material::Create(const char* shaderFileName){
-
 
 	mCBMaterial = ConstantBuffer<cbChangesMaterial>::create(4);
 	if (!mCBMaterial.mBuffer)
@@ -23,6 +24,8 @@ HRESULT Material::Create(const char* shaderFileName){
 	mCBMaterial.mParam.Diffuse = mDiffuse;
 	mCBMaterial.mParam.Specular = mSpecular;
 	mCBMaterial.mParam.Ambient = mAmbient;
+	mCBMaterial.mParam.TexScale = mTexScale;
+	mCBMaterial.mParam.HeightPower = mHeightPower;
 
 
 	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
@@ -34,6 +37,10 @@ HRESULT Material::Create(const char* shaderFileName){
 
 	return S_OK;
 
+}
+
+void Material::CreateShader(const char* shaderFileName){
+	mShader.Create(shaderFileName);
 }
 
 //HRESULT Material::Create(const ConstantBuffer<cbChangesMaterial>& cbMaterial,const ConstantBuffer<cbChangesUseTexture>& cbUseTexture){
@@ -64,14 +71,25 @@ HRESULT Material::Create(const char* shaderFileName){
 void Material::SetShader(bool UseAnime) const{
 	mShader.SetShader(UseAnime);
 }
+void Material::VSSetShaderResources() const{
+	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
+		return;
+	}
 
+	mCBMaterial.UpdateSubresource();
+	mCBUseTexture.UpdateSubresource();
+
+	mCBMaterial.VSSetConstantBuffers();
+	mCBUseTexture.VSSetConstantBuffers();
+}
 void Material::PSSetShaderResources() const{
 	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
 		return;
 	}
 
-	for (UINT i = 0; i < 8; i++)
+	for (UINT i = 0; i < 8; i++){
 		mTexture[i].PSSetShaderResources(i);
+	}
 
 	mCBMaterial.UpdateSubresource();
 	mCBUseTexture.UpdateSubresource();

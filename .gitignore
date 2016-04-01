@@ -25,6 +25,13 @@ Release/
 ipch/
 *.vcxproj.user
 
+êÖìπ/
+Assets/
+Scenes/
+DustBox/
+DB/
+Release_/
+
 Tutorial07/anim/
 Tutorial07/model/
 

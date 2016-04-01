@@ -59,6 +59,10 @@ void MaterialComponent::SaveAssetResource(const std::string& path){
 
 MaterialComponent::MaterialComponent(){
 	mMaterials.resize(1);
+	mAlbedo = XMFLOAT4(1, 1, 1, 1);
+	mSpecular = XMFLOAT4(0, 0, 0, 1);
+	mTexScale = XMFLOAT2(1, 1);
+	mHeightPower = XMFLOAT2(2.0f, 1);
 }
 MaterialComponent::~MaterialComponent(){
 }
@@ -79,6 +83,15 @@ void MaterialComponent::Initialize(){
 			m.Create();
 		}
 	}
+
+	SetAlbedoColor(mAlbedo);
+	SetSpecularColor(mSpecular);
+	mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
+	mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
+
+	if (mAlbedoTextureName != "")mMaterials[0].SetTexture(mAlbedoTextureName.c_str(), 0);
+	if (mNormalTextureName != "")mMaterials[0].SetTexture(mNormalTextureName.c_str(), 1);
+	if (mHeightTextureName != "")mMaterials[0].SetTexture(mHeightTextureName.c_str(), 2);
 }
 
 void MaterialComponent::SetMaterial(UINT SetNo, Material& material){
@@ -92,29 +105,60 @@ Material MaterialComponent::GetMaterial(UINT GetNo) const{
 	}
 	return mMaterials[GetNo];
 }
-std::string TextureName = "";
 void MaterialComponent::CreateInspector(){
 
 	auto data = Window::CreateInspector();
 	std::function<void(float)> collbackx = [&](float f){
-		mMaterials[0].mCBMaterial.mParam.Diffuse.x = f;
+		mAlbedo.x = f;
+		SetAlbedoColor(mAlbedo);
 	};
 
 	std::function<void(float)> collbacky = [&](float f){
-		mMaterials[0].mCBMaterial.mParam.Diffuse.y = f;
+		mAlbedo.y = f;
+		SetAlbedoColor(mAlbedo);
 	};
 
 	std::function<void(float)> collbackz = [&](float f){
-		mMaterials[0].mCBMaterial.mParam.Diffuse.z = f;
+		mAlbedo.z = f;
+		SetAlbedoColor(mAlbedo);
 	};
 
 	std::function<void(float)> collbacka = [&](float f){
-		mMaterials[0].mCBMaterial.mParam.Diffuse.w = f;
+		mAlbedo.w = f;
+		SetAlbedoColor(mAlbedo);
+	};
+
+	std::function<void(float)> collbackxs = [&](float f){
+		mSpecular.x = f;
+		SetSpecularColor(mSpecular);
+	};
+
+	std::function<void(float)> collbackys = [&](float f){
+		mSpecular.y = f;
+		SetSpecularColor(mSpecular);
+	};
+
+	std::function<void(float)> collbackzs = [&](float f){
+		mSpecular.z = f;
+		SetSpecularColor(mSpecular);
+	};
+
+	std::function<void(float)> collbackas = [&](float f){
+		mSpecular.w = f;
+		SetSpecularColor(mSpecular);
 	};
 
 	std::function<void(std::string)> collbacktex = [&](std::string name){
 		mMaterials[0].SetTexture(name.c_str(), 0);
-		TextureName = name;
+		mAlbedoTextureName = name;
+	};
+	std::function<void(std::string)> collbackntex = [&](std::string name){
+		mMaterials[0].SetTexture(name.c_str(), 1);
+		mNormalTextureName = name;
+	};
+	std::function<void(std::string)> collbackhtex = [&](std::string name){
+		mMaterials[0].SetTexture(name.c_str(), 2);
+		mHeightTextureName = name;
 	};
 	std::function<void(std::string)> collbackpath = [&](std::string name){
 		mMaterialPath = name;
@@ -123,15 +167,65 @@ void MaterialComponent::CreateInspector(){
 	};
 	std::function<void(std::string)> collbacksha = [&](std::string name){
 		mShaderName = name;
-		mMaterials[0].Create(mShaderName.c_str());
+		mMaterials[0].CreateShader(mShaderName.c_str());
+	};
+
+	std::function<void(float)> collbacktexsx = [&](float f){
+		mTexScale.x = f;
+		mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
+	};
+
+	std::function<void(float)> collbacktexsy = [&](float f){
+		mTexScale.y = f;
+		mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
+	};
+	std::function<void(float)> collbackH = [&](float f){
+		mHeightPower.x = f;
+		mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
 	};
 
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Material", &mMaterialPath, collbackpath), data);
-	Window::AddInspector(new InspectorColorDataSet("Diffuse", &mMaterials[0].mCBMaterial.mParam.Diffuse.x, collbackx, &mMaterials[0].mCBMaterial.mParam.Diffuse.y, collbacky, &mMaterials[0].mCBMaterial.mParam.Diffuse.z, collbackz, &mMaterials[0].mCBMaterial.mParam.Diffuse.w, collbacka), data);
-	//Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.x, collbackx), data);
-	//Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.y, collbacky), data);
-	//Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &mMaterials[0].mCBMaterial.mParam.Diffuse.z, collbackz), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Textre", &TextureName, collbacktex), data);
+	Window::AddInspector(new InspectorColorDataSet("Albedo", &mAlbedo.x, collbackx, &mAlbedo.y, collbacky, &mAlbedo.z, collbackz, &mAlbedo.w, collbacka), data);
+	Window::AddInspector(new InspectorColorDataSet("Specular", &mSpecular.x, collbackxs, &mSpecular.y, collbackys, &mSpecular.z, collbackzs, NULL, [](float){}), data);
+	Window::AddInspector(new InspectorSlideBarDataSet("Roughness",0,1,&mSpecular.w, collbackas), data);
+	//Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &mAlbedo.x, collbackx), data);
+	//Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &mAlbedo.y, collbacky), data);
+	//Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &mAlbedo.z, collbackz), data);
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("AlbedoTextre", &mAlbedoTextureName, collbacktex), data);
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("NormalTextre", &mNormalTextureName, collbackntex), data);
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("HeightTextre", &mHeightTextureName, collbackhtex), data);
+	Window::AddInspector(new InspectorVector2DataSet("TextureScale", &mTexScale.x, collbacktexsx, &mTexScale.y, collbacktexsy), data);
+	Window::AddInspector(new InspectorSlideBarDataSet("HightPower", -10, 10, &mHeightPower.x, collbackH), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collbacksha), data);
 	Window::ViewInspector("Material", this, data);
+}
+
+void MaterialComponent::SetAlbedoColor(const XMFLOAT4& col){
+	mAlbedo = col;
+	mMaterials[0].mCBMaterial.mParam.Diffuse = mAlbedo;
+}
+void MaterialComponent::SetSpecularColor(const XMFLOAT4& col){
+	mSpecular = col;
+	mMaterials[0].mCBMaterial.mParam.Specular = mSpecular;
+}
+
+void MaterialComponent::IO_Data(I_ioHelper* io){
+#define _KEY(x) io->func( x , #x)
+	_KEY(mMaterialPath);
+	_KEY(mAlbedo.x);
+	_KEY(mAlbedo.y);
+	_KEY(mAlbedo.z);
+	_KEY(mAlbedo.w);
+	_KEY(mSpecular.x);
+	_KEY(mSpecular.y);
+	_KEY(mSpecular.z);
+	_KEY(mSpecular.w);
+	_KEY(mAlbedoTextureName);
+	_KEY(mNormalTextureName);
+	_KEY(mHeightTextureName);
+	_KEY(mTexScale.x);
+	_KEY(mTexScale.y);
+	_KEY(mHeightPower.x);
+	_KEY(mHeightPower.y);
+#undef _KEY
 }

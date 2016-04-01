@@ -57,6 +57,7 @@ HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MipLODBias = 0;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	hr = Device::mpd3dDevice->CreateSamplerState(&sampDesc, &mTexturePtr->mpSamplerLinear);
@@ -88,6 +89,7 @@ HRESULT Texture::Create(const char* FileName){
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MipLODBias = 0;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 

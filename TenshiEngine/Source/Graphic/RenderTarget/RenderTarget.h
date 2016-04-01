@@ -250,6 +250,7 @@ public:
 	}
 
 
+	ID3D11RenderTargetView*	GetRT(){ return mpRenderTargetView; };
 	ID3D11Texture2D* GetTexture2D(){ return mpTexture2D; };
 
 private:
