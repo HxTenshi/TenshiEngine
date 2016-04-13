@@ -74,10 +74,13 @@ void BindingInspector(System::Windows::Shapes::Rectangle^ rectangle, T* pf1, std
 	rectangle->AddHandler(System::Windows::Controls::Canvas::MouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(ViewData::window, &View::CreateColorPickerWindow), true);
 }
 
+//ここでエラー？
 //リソースからXAMLを作成する
 FrameworkElement ^LoadContentsFromResource(int resourceId) {
 	// モジュールハンドルの取得
 	HMODULE module = GetModuleHandle(L"CppWPFdll");
+
+	if (module == NULL)return nullptr;
 	// リソースを見つける
 	HRSRC resource = FindResource(module, MAKEINTRESOURCE(resourceId), RT_HTML);
 	if (resource == NULL)return nullptr;
@@ -92,6 +95,8 @@ FrameworkElement ^LoadContentsFromResource(int resourceId) {
 	// リソースを最後がヌル文字の文字列にするためにバッファーにコピーする
 	std::vector<char> xaml(dataSize + 1);
 	std::copy(data, data + dataSize, xaml.begin());
+	xaml[dataSize] = '\0';
+
 
 	// リソースの解放
 	UnlockResource(dataHandle);
@@ -101,11 +106,14 @@ FrameworkElement ^LoadContentsFromResource(int resourceId) {
 
 	// XAMLからオブジェクト化
 	StringReader ^reader = gcnew StringReader(gcnew String(xaml.data()));
+
 	XamlXmlReader ^xamlXmlReader = gcnew XamlXmlReader(reader);
+
 	XamlObjectWriter ^xamlObjectWriter = gcnew XamlObjectWriter(xamlXmlReader->SchemaContext);
 	while (xamlXmlReader->Read()) {
 		xamlObjectWriter->WriteNode(xamlXmlReader);
 	}
+	
 	return (FrameworkElement ^)xamlObjectWriter->Result;
 }
 

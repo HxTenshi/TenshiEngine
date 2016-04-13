@@ -5,7 +5,6 @@
 
 
 //static
-bool InputManager::mKeyCoordBool[(int)KeyCoord::Count];
 int InputManager::mKeyCoord[(int)KeyCoord::Count];
 bool InputManager::mMouseBool[(int)MouseCoord::Count];
 int InputManager::mMouse[(int)MouseCoord::Count];
@@ -33,7 +32,6 @@ void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
 	}
 	for (int i = 0; i < (int)KeyCoord::Count; i++){
 		mKeyCoord[i] = 0;
-		mKeyCoordBool[i] = false;
 	}
 
 	//LPDIRECTINPUTDEVICE8	pDIJoypad = NULL;			// ジョイパッドデバイス
@@ -57,8 +55,9 @@ void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
 
 	//モードを設定（フォアグラウンド＆非排他モード）
 	hr = pDIKeyboard->SetCooperativeLevel(hWnd, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND);
-	if (FAILED(hr))
+	if (FAILED(hr)){
 		return; // モードの設定に失敗
+	}
 
 	//キーボード入力制御開始
 	pDIKeyboard->Acquire();
@@ -72,7 +71,7 @@ void InputManager::Release(){
 	if (pDInput)pDInput->Release();
 }
 
-void InputManager::Update(){
+void InputManager::Update(bool TargetFocus){
 
 	for (int i = 0; i < (int)MouseCoord::Count; i++){
 		if (mMouseBool[i]){
@@ -101,7 +100,7 @@ void InputManager::Update(){
 	}
 	for (int i = 0; i < (int)KeyCoord::Count; i++){
 
-		if (diKeyState[i]){
+		if (diKeyState[i] && TargetFocus){
 			mKeyCoord[i]++;
 			diKeyState[i] = 0;
 		}

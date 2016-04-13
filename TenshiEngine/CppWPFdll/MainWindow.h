@@ -23,11 +23,22 @@ std::string* string_cast(String^ str){
 
 }
 
+
+//フォルダのルートからの相対パスを取得
+String^ GetFolderPath(TestContent::Person^ item){
+	if (item->Name == "__Assets__root__")return "Assets/";
+	return GetFolderPath(item->Parent) + item->Name + "/";
+}
+//ファイルのルートからの相対パスを取得
+String^ GetFilePath(TestContent::Person^ item){
+	if (item->Name == "__Assets__root__")return "Assets";
+	return GetFilePath(item->Parent) + "/" + item->Name;
+}
+
 //using namespace System::Windows::Input;
 //using namespace System::Windows;
 using System::Windows::Controls::MenuItem;
 using System::Runtime::InteropServices::Marshal;
-static int cre = 0;
 ref class GameScreenPanel : public System::Windows::Forms::Panel{
 public:
 	property System::Windows::Forms::CreateParams^ CreateParams
@@ -80,7 +91,14 @@ public:
 
 	GameScreen(WindowsFormsHost ^wfh)
 		:m_wfh(wfh)
+		,m_ML(NULL)
+		,m_MR(NULL)
+		,m_MX(NULL)
+		,m_MY(NULL)
+		,m_WX(NULL)
+		,m_WY(NULL)
 	{
+
 		auto panel = gcnew GameScreenPanel();
 		m_wfh->Child = panel;
 		auto par = panel->Parent;
@@ -103,10 +121,21 @@ public:
 		//wfh->DragEnter += gcnew DragEventHandler(this, &GameScreen::OnDragOver2);
 		//wfh->DragOver += gcnew DragEventHandler(this, &GameScreen::OnDragOver2);
 		//wfh->MouseDown += gcnew MouseButtonEventHandler(this, &GameScreen::md2);
-		wfh->Child->AllowDrop = true;
-		wfh->Child->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDrop);
-		wfh->Child->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
-		wfh->Child->DragOver += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
+		m_wfh->Child->AllowDrop = true;
+		m_wfh->Child->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDrop);
+		m_wfh->Child->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
+		m_wfh->Child->DragOver += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
+
+		//十字キーやTABでフォーカスをロックする
+		m_wfh->PreviewKeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &GameScreen::keyLock);
+
+		m_wfh->IsKeyboardFocusedChanged += gcnew System::Windows::DependencyPropertyChangedEventHandler(this, &GameScreen::focusChanged);
+		
+		//if (!m_wfh->IsFocused)return;
+
+
+		//wfh->InputBindings->Add(new InputBinding(gcSpreadGrid1.NavigationCommands.MoveNextThenControl, new KeyGesture(Key.Tab)));
+		//wfh->FlowDirection = System::Windows::FlowDirection::LeftToRight;
 
 		//auto image = gcnew System::Windows::Controls::Image();
 		//mD3DImageEx = gcnew System::Windows::Interop::D3DImageEx();
@@ -121,9 +150,17 @@ public:
 	//	*m_MR = (bool)e->RightButton;
 	//}
 
+	void focusChanged(Object^ sender, System::Windows::DependencyPropertyChangedEventArgs e){
+		*m_Focus = (bool)e.NewValue;
+	}
 
+	//十字キーやTABでフォーカスをロックする
+	void keyLock(Object^ sender, System::Windows::Input::KeyEventArgs ^e){
+		e->Handled = true;
+	}
 
 	void md(Object^ sender, System::Windows::Forms::MouseEventArgs ^e){
+
 		if (e->Button == System::Windows::Forms::MouseButtons::Left){
 			*m_ML = true;
 		}
@@ -140,11 +177,11 @@ public:
 		}
 	}
 	void mm(Object^ sender, System::Windows::Forms::MouseEventArgs ^e){
+		auto scr = (System::Windows::Forms::Panel^)sender;
 		//auto p = e->P(m_wfh);
 		*m_MX = (int)e->X;
 		*m_MY = (int)e->Y;
 
-		auto scr = (System::Windows::Forms::Panel^)m_wfh->Child;
 		*m_WX = scr->Width;
 		*m_WY = scr->Height;
 	}
@@ -154,8 +191,9 @@ public:
 	//void keynull(Object^ sender, System::Windows::Forms::KeyEventArgs ^e){
 	//	e->Handled = true;
 	//}
-	void SetMouseEvents(bool* l, bool* r, int* x, int* y, int* wx, int* wy){
+	void SetMouseEvents(bool* focus,bool* l, bool* r, int* x, int* y, int* wx, int* wy){
 
+		m_Focus = focus;
 		m_ML = l;
 		m_MR = r;
 		m_MX = x;
@@ -181,9 +219,6 @@ public:
 	//OnSourceInitializedイベント以降じゃないと取得できない
 	HWND GetHWND(){
 		//HWNDを取得
-		//auto source = gcnew System::Windows::Interop::WindowInteropHelper(this);
-		//HwndSource ^source = (HwndSource^)HwndSource::FromVisual(this);
-		//RemoveFrame();
 		System::IntPtr handle = m_wfh->Child->Handle;
 
 		return reinterpret_cast<HWND>(handle.ToPointer());
@@ -216,6 +251,7 @@ private:
 	}
 
 	WindowsFormsHost ^m_wfh;
+	bool* m_Focus;
 	bool* m_ML;
 	bool* m_MR;
 	int* m_MX;
@@ -223,7 +259,7 @@ private:
 	int* m_WX;
 	int* m_WY;
 };
-// ビュー
+
 ref class ColorPickerWindow : public Window {
 public:
 	static ColorPickerWindow ^mUnique = nullptr;
@@ -570,6 +606,302 @@ private:
 	
 };
 
+ref class SceneTreeView{
+public:
+
+	SceneTreeView(System::Windows::Controls::Decorator ^dec){
+		CreateTreeView(dec);
+	}
+
+private:
+	TreeView ^ m_TreeView;
+	TestContent::Person ^m_TreeViewItemRoot;
+	TextBlock ^m_ActorIntPtrDataBox;
+
+	//シーンツリービュー作成
+	void CreateTreeView(System::Windows::Controls::Decorator ^dec){
+		//ツリービュー作成
+			{
+				auto sp = (Panel^)LoadContentsFromResource(IDR_TREEVIEW);
+
+				dec->Child = sp;
+				auto treeView = (TreeView^)sp->FindName("treeView1");
+				m_TreeView = treeView;
+
+				//選択中のアイテム表示
+				auto tblock = (TextBlock ^)sp->FindName("textBlock1");
+				m_ActorIntPtrDataBox = tblock;
+			}
+
+		//アイテムリスト作成
+		{
+			auto list = gcnew TestContent::MyList();
+			//アイテムリストのルートを作成
+			auto root = gcnew TestContent::Person("root", list);
+			m_TreeView->DataContext = root;
+			auto source = gcnew System::Windows::Data::Binding("Children");
+			source->Mode = System::Windows::Data::BindingMode::TwoWay;
+			m_TreeView->SetBinding(TreeView::ItemsSourceProperty, source);
+			m_TreeViewItemRoot = root;
+		}
+
+		//アイテムリストのデータ構造
+		{
+			auto datatemp = gcnew System::Windows::HierarchicalDataTemplate();
+			//アイテムのリストバインド
+			auto datasource = gcnew System::Windows::Data::Binding("Children");
+			datasource->Mode = System::Windows::Data::BindingMode::TwoWay;
+			datatemp->ItemsSource = datasource;
+
+			//追加するアイテムのコントロール
+			auto fact = gcnew System::Windows::FrameworkElementFactory();
+			fact->Type = TextBlock::typeid;
+			auto itembind = gcnew System::Windows::Data::Binding("Name");
+			itembind->Mode = BindingMode::TwoWay;
+			fact->SetBinding(TextBlock::TextProperty, itembind);
+			fact->SetValue(TextBlock::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(24, 24, 24)));
+
+			datatemp->VisualTree = fact;
+
+			m_TreeView->ItemTemplate = datatemp;
+		}
+
+		//styleのセット
+		{
+			//今のところ上で設定しているので意味なし?
+			auto s = gcnew System::Windows::Style(TreeViewItem::typeid);
+			auto setter = s->Setters;
+			//setter->Add(gcnew System::Windows::Setter(TreeViewItem::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(240, 240, 240))));
+			//setter->Add(gcnew System::Windows::Setter(TreeViewItem::BackgroundProperty, gcnew SolidColorBrush(Color::FromRgb(5, 147, 14 * 16 + 2))));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDrop)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &SceneTreeView::TreeViewItem_OnMouseLeave)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDragOver)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDragOver)));
+			m_TreeView->ItemContainerStyle = s;
+
+
+			m_TreeView->AllowDrop = true;
+			m_TreeView->Drop += gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDrop);
+			m_TreeView->DragEnter += gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDragOver);
+			m_TreeView->DragOver += gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDragOver);
+		}
+
+
+		//コンテキストメニュー作成
+		{
+			auto cm = gcnew System::Windows::Controls::ContextMenu();
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "CreateObject";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &SceneTreeView::MenuItem_Click_CreateObject);
+				cm->Items->Add(mitem);
+			}
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "Remove";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &SceneTreeView::MenuItem_Click_Remove);
+				cm->Items->Add(mitem);
+			}
+			//ツリービューに反映
+			m_TreeView->ContextMenu = cm;
+		}
+
+
+		SetSelectItemReturnPoint();
+
+	}
+
+
+
+public:
+
+	//ツリービューにゲームオブジェクトを追加
+	void AddItem(String ^Name, IntPtr ptr){
+		if (m_TreeViewItemRoot == nullptr)return;
+		auto item = gcnew TestContent::Person(Name, gcnew TestContent::MyList());
+		item->DataPtr = ptr;
+		m_TreeViewItemRoot->Add(item);
+		Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)item->DataPtr);
+		Data::MyPostMessage(MyWindowMessage::ReturnTreeViewIntPtr, (void*)item->ThisIntPtr);
+	}
+
+	//ツリービューで親子関係の登録
+	void SetParent(IntPtr parent, IntPtr child){
+		auto p = (gcroot<TestContent::Person^>*)(void*)parent;
+		auto c = (gcroot<TestContent::Person^>*)(void*)child;
+		(*p)->Add(*c);
+	}
+
+	//ツリービューアイテムの名前変更
+	void ChangeTreeViewName(String^ name, IntPtr treeviewptr){
+		auto i = (gcroot<TestContent::Person^>*)(void*)treeviewptr;
+		(*i)->Name = name;
+	}
+	//ツリービューアイテムの削除
+	void ClearTreeViewItem(IntPtr treeviewptr){
+		auto i = (gcroot<TestContent::Person^>*)(void*)treeviewptr;
+		(*i)->RemoveSelf();
+	}
+
+private:
+
+
+
+	//シーンビューでゲームオブジェクトを選択した時の処理
+	void ActorIntPtr_TargetUpdated(Object ^sender, System::Windows::Data::DataTransferEventArgs ^e){
+		auto text = ((TextBlock^)sender);
+		if (text->Text == ""){
+			Data::MyPostMessage(MyWindowMessage::SelectActor, NULL);
+			return;
+		}
+		//System::Windows::MessageBox::Show("text:" + text->Text + "a:" + ((TestContent::Person^)m_TreeView->SelectedValue)->Name);
+		//if (text->Text != ((TestContent::Person^)m_TreeView->SelectedValue)->DataPtr.ToString()){
+		//	text->Text = "0";
+		//}
+		//((IntViewModel^)text->DataContext)->Value = text->Text;
+		//auto item = dynamic_cast<TestContent::Person^>(m_TreeView->SelectedItem);
+		Data::MyPostMessage(MyWindowMessage::SelectActor, (void*)int::Parse(text->Text));
+
+	}
+
+	//選択しているオブジェクトをテキストで表示処理をバインド
+	void SetSelectItemReturnPoint(){
+		if (!m_ActorIntPtrDataBox)return;
+
+		m_ActorIntPtrDataBox->Text = "0";
+
+		auto bind = gcnew System::Windows::Data::Binding("SelectedValue.DataPtr");
+		bind->Source = m_TreeView;
+		//更新イベントを呼ぶ
+		bind->NotifyOnTargetUpdated = true;
+		m_ActorIntPtrDataBox->SetBinding(TextBlock::TextProperty, bind);
+		//更新イベント
+		m_ActorIntPtrDataBox->TargetUpdated += gcnew System::EventHandler<System::Windows::Data::DataTransferEventArgs^>(this, &SceneTreeView::ActorIntPtr_TargetUpdated);
+		//アクターのIntPtrViewModelをバインド
+		//m_ActorIntPtrDataBox->DataContext = vm;
+
+	}
+
+	//コンテキストメニューのオブジェクト作成
+	void MenuItem_Click_CreateObject(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, new std::string("EngineResource/box.prefab"));
+		e->Handled = true;
+	}
+	//コンテキストメニューのゲームオブジェクトの削除処理
+	void MenuItem_Click_Remove(Object ^sender, System::Windows::RoutedEventArgs ^e){
+
+		//カーソルを変えないとダメ
+		//要素があるときのみ
+		//if (m_TreeViewItemRoot->Children->Count != 0){
+		//セレクトし直す
+		//m_ActorIntPtrDataBox
+		ActorIntPtr_TargetUpdated(gcnew TextBlock, nullptr);
+		//}
+
+		if (m_TreeView->SelectedItem == nullptr)return;
+		auto i = (TestContent::Person^)m_TreeView->SelectedItem;
+		Data::MyPostMessage(MyWindowMessage::ActorDestroy, (void*)i->DataPtr);
+
+		//デストロイ時にアクターから消される
+		//i->RemoveSelf();
+
+		e->Handled = true;
+	}
+
+
+
+	//ドラッグ中の判定
+	void ActorTreeView_OnDragOver(Object ^sender, DragEventArgs ^e)
+	{
+		if (e->Data->GetDataPresent(TreeViewItem::typeid))
+		{
+			e->Effects = DragDropEffects::Copy;
+			return;
+		}
+
+		e->Effects = DragDropEffects::None;
+	}
+
+	//シーンツリービューでドロップ処理
+	void ActorTreeView_OnDrop(Object ^s, DragEventArgs ^e)
+	{
+
+		auto dragtreeitem = (TreeViewItem^)e->Data->GetData(TreeViewItem::typeid);
+		auto dragitem = dynamic_cast<TestContent::Person^>(dragtreeitem->DataContext);
+
+		//アクターをD&Dしているか
+		if (dragitem->DataPtr != (IntPtr)NULL){
+
+			ActorDrop(s, dragitem);
+		}
+		else{
+			OtherDrop(s, dragitem);
+		}
+		e->Handled = true;
+	}
+
+	//ゲームオブジェクトをドロップした処理
+	void ActorDrop(Object ^s, TestContent::Person^ dragitem){
+		auto targettreeitem = dynamic_cast<TreeViewItem^>(s);
+		//ツリービューアイテムに対してDropしたか
+		if (targettreeitem){
+			auto targetitem = dynamic_cast<TestContent::Person^>(targettreeitem->DataContext);
+			//アクターに対してDropしたか
+			if (targetitem->DataPtr != (IntPtr)NULL){
+				//ドロップ先が自分の子ならTRUE
+				if (ParentCheck(dragitem, targetitem))return;
+
+				targetitem->Add(dragitem);
+				Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)targetitem->DataPtr);
+				Data::MyPostMessage(MyWindowMessage::SetActorParent, (void*)dragitem->DataPtr);
+			}
+		}
+		//ツリービューアイテム外に対してDropしたなら
+		else{
+			m_TreeViewItemRoot->Add(dragitem);
+			Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)NULL);
+			Data::MyPostMessage(MyWindowMessage::SetActorParent, (void*)dragitem->DataPtr);
+		}
+	}
+	//ゲームオブジェクト以外をドロップした処理
+	void OtherDrop(Object ^s, TestContent::Person^ dragitem){
+
+		auto name = GetFilePath(dragitem);
+		if (!name->Contains(".json"))return;
+		std::string* str = string_cast(name);
+		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, (void*)str);
+	}
+
+	//ターゲットがペアレントの親ならTRUE
+	bool ParentCheck(TestContent::Person^ target, TestContent::Person^ parent){
+		if (parent == m_TreeViewItemRoot){
+			return false;
+		}
+		if (target == parent){
+			return true;
+		}
+
+		return ParentCheck(target, parent->Parent);
+
+	}
+
+	//ツリービュー共通ドラッグ開始処理
+	void TreeViewItem_OnMouseLeave(Object ^s, System::Windows::Input::MouseEventArgs ^e)
+	{
+		auto item = (TreeViewItem^)s;
+		if (e->LeftButton == MouseButtonState::Pressed
+			&& e->RightButton == MouseButtonState::Released
+			&& e->MiddleButton == MouseButtonState::Released)
+			DragDrop::DoDragDrop(
+			item, // ドラッグされる物
+			item, // 渡すデータ
+			DragDropEffects::Copy); // D&Dで許可するオペレーション
+	}
+
+};
+
+
+
 // ビュー
 ref class View : public Window {
 public:
@@ -578,18 +910,23 @@ public:
 		: Window()
 		, m_GameScreen(nullptr)
 		, mGameScreenHWND(NULL)
+		, mWindowHWND(NULL)
 		, m_ComponentPanel(nullptr)
-		, m_TreeViewItemRoot(nullptr)
+		, mSceneTreeView(nullptr)
 	{
+
 		//DataContext = gcnew ViewModel();
 		Background = Brushes::Black;
 		//w:1184, h : 762
 		//Width = 1605 + 16 + 200;
 		//Height = 800 + 38;
+
 		this->WindowState = System::Windows::WindowState::Maximized;
 
 		FrameworkElement ^contents = LoadContentsFromResource(IDR_VIEW);
-		Content = contents;
+		if (contents){
+			Content = contents;
+		}
 
 		auto wfh = (WindowsFormsHost ^)contents->FindName("GameScreenWFH");
 		m_GameScreen = gcnew GameScreen(wfh);
@@ -599,13 +936,41 @@ public:
 		m_ComponentPanel->ContextMenu = cm;
 
 		auto TreeViewDec = (Border ^)contents->FindName("TreeView");
-		CreateTreeView(TreeViewDec);
+		mSceneTreeView = gcnew SceneTreeView(TreeViewDec);
+
 		auto AssetTreeViewDec = (Border ^)contents->FindName("AssetTreeView");
 		CreateAssetTreeView(AssetTreeViewDec);
 
 		auto commandBarPanel = (StackPanel ^)contents->FindName("CommandBarPanel");
 		auto commandBar = LoadContentsFromResource(IDR_COMMAND_BAR);
 		commandBarPanel->Children->Add(commandBar);
+
+		auto logPanel = (Border ^)contents->FindName("LogPanel");
+		auto logBox = (Border ^)LoadContentsFromResource(IDR_LOG_LIST_BOX);
+		logPanel->Child = logBox;
+		m_LogBox = (System::Windows::Controls::ListBox^)logBox->Child;
+
+		//アイテムリストのデータ構造
+		{
+			auto datatemp = gcnew System::Windows::DataTemplate();
+
+			//追加するアイテムのコントロール
+			auto templateElement = gcnew System::Windows::FrameworkElementFactory(Border::typeid);
+
+			auto templateElementtext = gcnew System::Windows::FrameworkElementFactory(TextBlock::typeid);
+			//templateElementtext->SetValue(TextBlock::HorizontalAlignmentProperty, System::Windows::HorizontalAlignment::Stretch);
+			templateElementtext->SetValue(TextBlock::TextWrappingProperty, System::Windows::TextWrapping::Wrap);
+			templateElementtext->SetBinding(TextBlock::TextProperty, gcnew System::Windows::Data::Binding());
+
+			templateElement->AppendChild(templateElementtext);
+			//templateElement->SetValue(Border::HorizontalAlignmentProperty, System::Windows::HorizontalAlignment::Stretch);
+			templateElement->SetValue(Border::BorderThicknessProperty, gcnew System::Windows::Thickness(0, 0, 0, 1));
+			templateElement->SetValue(Border::BorderBrushProperty, gcnew SolidColorBrush(Color::FromRgb(64, 64, 64)));
+
+			datatemp->VisualTree = templateElement;
+
+			m_LogBox->ItemTemplate = datatemp;
+		}
 
 
 		//メニューバー作成
@@ -621,8 +986,6 @@ public:
 		}
 
 		Title = "TenshiEngine";
-		SetSelectItemReturnPoint();
-
 
 		//((TestContent::Contents^)tv->DataContext)->TextChange("dacsdv");
 		
@@ -688,6 +1051,11 @@ public:
 		//DockPanel::SetDock(contents, System::Windows::Controls::Dock::Top);
 
 
+	}
+
+	void AddLog(String^ log){
+		m_LogBox->Items->Add(log);
+		m_LogBox->ScrollIntoView(m_LogBox->Items[m_LogBox->Items->Count - 1]);
 	}
 
 
@@ -817,182 +1185,13 @@ private:
 		}
 	}
 
-
-//コンポーネントウィンドウ
-#pragma endregion 
-
-#pragma region シーンウィンドウ
-
 public:
-
-	//ツリービューにゲームオブジェクトを追加
-	void AddItem(String ^Name, IntPtr ptr){
-		if (m_TreeViewItemRoot == nullptr)return;
-		auto item = gcnew TestContent::Person(Name, gcnew TestContent::MyList());
-		item->DataPtr = ptr;
-		m_TreeViewItemRoot->Add(item);
-		Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)item->DataPtr);
-		Data::MyPostMessage(MyWindowMessage::ReturnTreeViewIntPtr, (void*)item->ThisIntPtr);
-	}
-
-	//ツリービューで親子関係の登録
-	void SetParent(IntPtr parent, IntPtr child){
-		auto p = (gcroot<TestContent::Person^>*)(void*)parent;
-		auto c = (gcroot<TestContent::Person^>*)(void*)child;
-		(*p)->Add(*c);
-	}
-
-	//ツリービューアイテムの名前変更
-	void ChangeTreeViewName(String^ name, IntPtr treeviewptr){
-		auto i = (gcroot<TestContent::Person^>*)(void*)treeviewptr;
-		(*i)->Name = name;
-	}
-	//ツリービューアイテムの削除
-	void ClearTreeViewItem(IntPtr treeviewptr){
-		auto i = (gcroot<TestContent::Person^>*)(void*)treeviewptr;
-		(*i)->RemoveSelf();
-	}
-
 	//コンテキストメニューの要素作成
 	void CreateContextMenu_AddComponent(String^ componentname){
-		CreateContextMenu_AddComponent(componentname, m_TreeView->ContextMenu);
 		CreateContextMenu_AddComponent(componentname, m_ComponentPanel->ContextMenu);
 	}
 
 private:
-
-	//シーンツリービュー作成
-	void CreateTreeView(System::Windows::Controls::Decorator ^dec){
-		//ツリービュー作成
-			{
-				auto sp = (Panel^)LoadContentsFromResource(IDR_TREEVIEW);
-
-				dec->Child = sp;
-				auto treeView = (TreeView^)sp->FindName("treeView1");
-				m_TreeView = treeView;
-
-				//選択中のアイテム表示
-				auto tblock = (TextBlock ^)sp->FindName("textBlock1");
-				m_ActorIntPtrDataBox = tblock;
-			}
-
-		//アイテムリスト作成
-		{
-			auto list = gcnew TestContent::MyList();
-			//アイテムリストのルートを作成
-			auto root = gcnew TestContent::Person("root", list);
-			m_TreeView->DataContext = root;
-			auto source = gcnew System::Windows::Data::Binding("Children");
-			source->Mode = System::Windows::Data::BindingMode::TwoWay;
-			m_TreeView->SetBinding(TreeView::ItemsSourceProperty, source);
-			m_TreeViewItemRoot = root;
-		}
-
-		//アイテムリストのデータ構造
-		{
-			auto datatemp = gcnew System::Windows::HierarchicalDataTemplate();
-			//アイテムのリストバインド
-			auto datasource = gcnew System::Windows::Data::Binding("Children");
-			datasource->Mode = System::Windows::Data::BindingMode::TwoWay;
-			datatemp->ItemsSource = datasource;
-
-			//追加するアイテムのコントロール
-			auto fact = gcnew System::Windows::FrameworkElementFactory();
-			fact->Type = TextBlock::typeid;
-			auto itembind = gcnew System::Windows::Data::Binding("Name");
-			itembind->Mode = BindingMode::TwoWay;
-			fact->SetBinding(TextBlock::TextProperty, itembind);
-			fact->SetValue(TextBlock::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(24, 24, 24)));
-
-			//fact->AddHandler(TreeViewItem::LostFocusEvent, gcnew System::Windows::RoutedEventHandler(this, &View::TreeViewItem_ForcusLost));
-			//fact->AddHandler(TreeViewItem::MouseLeftButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown), true);
-			//fact->AddHandler(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop));
-			//fact->AddHandler(TreeViewItem::MouseRightButtonDownEvent, gcnew MouseButtonEventHandler(this, &View::OnMouseDown));
-			//fact->AddHandler(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave));
-			//fact->AddHandler(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
-			//fact->AddHandler(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver));
-			datatemp->VisualTree = fact;
-
-			m_TreeView->ItemTemplate = datatemp;
-		}
-
-		//styleのセット
-		{
-			//今のところ上で設定しているので意味なし?
-			auto s = gcnew System::Windows::Style(TreeViewItem::typeid);
-			auto setter = s->Setters;
-			//setter->Add(gcnew System::Windows::Setter(TreeViewItem::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(240, 240, 240))));
-			//setter->Add(gcnew System::Windows::Setter(TreeViewItem::BackgroundProperty, gcnew SolidColorBrush(Color::FromRgb(5, 147, 14 * 16 + 2))));
-			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop)));
-			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &View::TreeViewItem_OnMouseLeave)));
-			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
-			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
-			m_TreeView->ItemContainerStyle = s;
-
-
-			m_TreeView->AllowDrop = true;
-			m_TreeView->Drop += gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop);
-			m_TreeView->DragEnter += gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver);
-			m_TreeView->DragOver += gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver);
-		}
-
-
-		//コンテキストメニュー作成
-		{
-			auto cm = gcnew System::Windows::Controls::ContextMenu();
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "CreateObject";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_CreateObject);
-				cm->Items->Add(mitem);
-			}
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "Remove";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_Remove);
-				cm->Items->Add(mitem);
-			}
-			//ツリービューに反映
-			m_TreeView->ContextMenu = cm;
-		}
-
-	}
-
-	//シーンビューでゲームオブジェクトを選択した時の処理
-	void ActorIntPtr_TargetUpdated(Object ^sender, System::Windows::Data::DataTransferEventArgs ^e){
-		auto text = ((TextBlock^)sender);
-		if (text->Text == ""){
-			Data::MyPostMessage(MyWindowMessage::SelectActor, NULL);
-			return;
-		}
-		//System::Windows::MessageBox::Show("text:" + text->Text + "a:" + ((TestContent::Person^)m_TreeView->SelectedValue)->Name);
-		//if (text->Text != ((TestContent::Person^)m_TreeView->SelectedValue)->DataPtr.ToString()){
-		//	text->Text = "0";
-		//}
-		//((IntViewModel^)text->DataContext)->Value = text->Text;
-		//auto item = dynamic_cast<TestContent::Person^>(m_TreeView->SelectedItem);
-		Data::MyPostMessage(MyWindowMessage::SelectActor, (void*)int::Parse(text->Text));
-
-	}
-
-	//選択しているオブジェクトをテキストで表示処理をバインド
-	void SetSelectItemReturnPoint(){
-		if (!m_ActorIntPtrDataBox)return;
-
-		m_ActorIntPtrDataBox->Text = "0";
-
-		auto bind = gcnew System::Windows::Data::Binding("SelectedValue.DataPtr");
-		bind->Source = m_TreeView;
-		//更新イベントを呼ぶ
-		bind->NotifyOnTargetUpdated = true;
-		m_ActorIntPtrDataBox->SetBinding(TextBlock::TextProperty, bind);
-		//更新イベント
-		m_ActorIntPtrDataBox->TargetUpdated += gcnew System::EventHandler<System::Windows::Data::DataTransferEventArgs^>(this, &View::ActorIntPtr_TargetUpdated);
-		//アクターのIntPtrViewModelをバインド
-		//m_ActorIntPtrDataBox->DataContext = vm;
-
-	}
-
 	//コンテキストメニューのコンポーネント追加の追加
 	void CreateContextMenu_AddComponent(String^ text, System::Windows::Controls::ContextMenu^ cm){
 		auto mitem = gcnew System::Windows::Controls::MenuItem();
@@ -1010,116 +1209,31 @@ private:
 	}
 	//コンテキストメニューのコンポーネント追加のコールバックを送信
 	void PostMessageAddComponent(std::string* str){
-		if (m_TreeView->SelectedItem == nullptr)return;
 		Data::MyPostMessage(MyWindowMessage::AddComponent, (void*)str);
 	}
 
-	//コンテキストメニューのオブジェクト作成
-	void MenuItem_Click_CreateObject(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, new std::string("EngineResource/box.prefab"));
-		e->Handled = true;
-	}
-	//コンテキストメニューのゲームオブジェクトの削除処理
-	void MenuItem_Click_Remove(Object ^sender, System::Windows::RoutedEventArgs ^e){
+	//コンポーネントウィンドウ
+#pragma endregion 
 
-		//カーソルを変えないとダメ
-		//要素があるときのみ
-		//if (m_TreeViewItemRoot->Children->Count != 0){
-		//セレクトし直す
-		//m_ActorIntPtrDataBox
-		ActorIntPtr_TargetUpdated(gcnew TextBlock, nullptr);
-		//}
-
-		if (m_TreeView->SelectedItem == nullptr)return;
-		auto i = (TestContent::Person^)m_TreeView->SelectedItem;
-		Data::MyPostMessage(MyWindowMessage::ActorDestroy, (void*)i->DataPtr);
-
-		//デストロイ時にアクターから消される
-		//i->RemoveSelf();
-
-		e->Handled = true;
-	}
-
-
-
-	//ドラッグ中の判定
-	void ActorTreeView_OnDragOver(Object ^sender, DragEventArgs ^e)
-	{
-		if (e->Data->GetDataPresent(TreeViewItem::typeid))
-		{
-			e->Effects = DragDropEffects::Copy;
-			return;
+	public:
+		//ツリービューにゲームオブジェクトを追加
+		void AddItem(String ^Name, IntPtr ptr){
+			mSceneTreeView->AddItem(Name, ptr);
 		}
 
-		e->Effects = DragDropEffects::None;
-	}
-
-	//シーンツリービューでドロップ処理
-	void ActorTreeView_OnDrop(Object ^s, DragEventArgs ^e)
-	{
-
-		auto dragtreeitem = (TreeViewItem^)e->Data->GetData(TreeViewItem::typeid);
-		auto dragitem = dynamic_cast<TestContent::Person^>(dragtreeitem->DataContext);
-
-		//アクターをD&Dしているか
-		if (dragitem->DataPtr != (IntPtr)NULL){
-
-			ActorDrop(s, dragitem);
-		}
-		else{
-			OtherDrop(s, dragitem);
-		}
-		e->Handled = true;
-	}
-
-	//ゲームオブジェクトをドロップした処理
-	void ActorDrop(Object ^s, TestContent::Person^ dragitem){
-		auto targettreeitem = dynamic_cast<TreeViewItem^>(s);
-		//ツリービューアイテムに対してDropしたか
-		if (targettreeitem){
-			auto targetitem = dynamic_cast<TestContent::Person^>(targettreeitem->DataContext);
-			//アクターに対してDropしたか
-			if (targetitem->DataPtr != (IntPtr)NULL){
-				//ドロップ先が自分の子ならTRUE
-				if (ParentCheck(dragitem, targetitem))return;
-
-				targetitem->Add(dragitem);
-				Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)targetitem->DataPtr);
-				Data::MyPostMessage(MyWindowMessage::SetActorParent, (void*)dragitem->DataPtr);
-			}
-		}
-		//ツリービューアイテム外に対してDropしたなら
-		else{
-			m_TreeViewItemRoot->Add(dragitem);
-			Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)NULL);
-			Data::MyPostMessage(MyWindowMessage::SetActorParent, (void*)dragitem->DataPtr);
-		}
-	}
-	//ゲームオブジェクト以外をドロップした処理
-	void OtherDrop(Object ^s, TestContent::Person^ dragitem){
-
-		auto name = GetFilePath(dragitem);
-		if (!name->Contains(".json"))return;
-		std::string* str = string_cast(name);
-		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, (void*)str);
-	}
-
-	//ターゲットがペアレントの親ならTRUE
-	bool ParentCheck(TestContent::Person^ target, TestContent::Person^ parent){
-		if (parent == m_TreeViewItemRoot){
-			return false;
-		}
-		if (target == parent){
-			return true;
+		//ツリービューで親子関係の登録
+		void SetParent(IntPtr parent, IntPtr child){
+			mSceneTreeView->SetParent(parent, child);
 		}
 
-		return ParentCheck(target, parent->Parent);
-
-	}
-
-
-//シーンウィンドウ
-#pragma endregion
+		//ツリービューアイテムの名前変更
+		void ChangeTreeViewName(String^ name, IntPtr treeviewptr){
+			mSceneTreeView->ChangeTreeViewName(Name, treeviewptr);
+		}
+		//ツリービューアイテムの削除
+		void ClearTreeViewItem(IntPtr treeviewptr){
+			mSceneTreeView->ClearTreeViewItem(treeviewptr);
+		}
 
 #pragma region アセットツリービュー
 
@@ -1314,16 +1428,6 @@ private:
 		}
 
 	}
-	//フォルダのルートからの相対パスを取得
-	String^ GetFolderPath(TestContent::Person^ item){
-		if (item->Name == "__Assets__root__")return "Assets/";
-		return GetFolderPath(item->Parent) + item->Name + "/";
-	}
-	//ファイルのルートからの相対パスを取得
-	String^ GetFilePath(TestContent::Person^ item){
-		if (item->Name == "__Assets__root__")return "Assets";
-		return GetFilePath(item->Parent) + "/" + item->Name;
-	}
 
 	//ツリービューでフォルダを展開する処理
 	void TreeView_Expanded(Object ^s, System::Windows::RoutedEventArgs ^e)
@@ -1474,6 +1578,13 @@ protected:
 		Window::OnSourceInitialized(e);
 		mGameScreenHWND = m_GameScreen->GetHWND();
 
+
+		//HWNDを取得
+		auto source = gcnew System::Windows::Interop::WindowInteropHelper(this);
+		//HwndSource ^source = (HwndSource^)HwndSource::FromVisual(this);
+		mWindowHWND = reinterpret_cast<HWND>(source->Handle.ToPointer());
+		
+
 	}
 
 public:
@@ -1487,16 +1598,22 @@ public:
 			return mGameScreenHWND;
 		}
 	}
+	property HWND WindowHWND{
+		HWND get(){
+			return mWindowHWND;
+		}
+	}
 private:
+
+	System::Windows::Controls::ListBox^ m_LogBox;
 
 	GameScreen ^m_GameScreen;
 	HWND mGameScreenHWND;
+	HWND mWindowHWND;
 
 	StackPanel ^m_ComponentPanel;
 
-	TreeView ^ m_TreeView;
-	TestContent::Person ^m_TreeViewItemRoot;
-	TextBlock ^m_ActorIntPtrDataBox;
+	SceneTreeView ^mSceneTreeView;
 
 
 };

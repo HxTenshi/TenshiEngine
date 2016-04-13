@@ -51,7 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -66,7 +66,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -82,10 +82,12 @@
     <ClCompile Include="main.h" />
     <ClCompile Include="Reflection\ReflectionSetter.cpp" />
     <ClCompile Include="Script.cpp" />
+    <ClCompile Include="Scripts\PlayerScript.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Reflection\ReflectionSetter.h" />
     <ClInclude Include="Script.h" />
+    <ClInclude Include="Scripts\PlayerScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dll.def" />

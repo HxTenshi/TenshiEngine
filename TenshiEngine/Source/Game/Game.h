@@ -29,6 +29,7 @@
 class CameraComponent;
 
 enum class DrawStage{
+	Init,
 	Diffuse,
 	Depth,
 	Normal,

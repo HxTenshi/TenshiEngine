@@ -15,6 +15,7 @@
 //強制的にこのマテリアルを使用
 //static
 Material* Model::mForcedMaterial = NULL;
+Material* Model::mForcedMaterialUseTexture = NULL;
 
 Model::Model()
 	: mBoneModel(NULL)
@@ -73,9 +74,8 @@ void Model::Release(){
 
 
 void Model::Update(){
-	//
-	// Update variables that change once per frame
-	//
+
+	mCBuffer.mParam.mBeforeWorld = mCBuffer.mParam.mWorld;
 	mCBuffer.mParam.mWorld = XMMatrixTranspose(mWorld);
 
 	mCBuffer.UpdateSubresource();
@@ -101,6 +101,11 @@ void Model::Draw(const Material& material) const{
 	if (mForcedMaterial){
 		mForcedMaterial->SetShader((bool)mBoneModel != NULL);
 		mForcedMaterial->PSSetShaderResources();
+	}
+	else if (mForcedMaterialUseTexture){
+		mForcedMaterialUseTexture->SetShader((bool)mBoneModel != NULL);
+		material.VSSetShaderResources();
+		material.PSSetShaderResources();
 	}
 	else{
 		material.SetShader((bool)mBoneModel != NULL);
@@ -132,6 +137,9 @@ void Model::Draw(const shared_ptr<MaterialComponent> material) const{
 		mForcedMaterial->VSSetShaderResources();
 		mForcedMaterial->PSSetShaderResources();
 	}
+	else if (mForcedMaterialUseTexture){
+		mForcedMaterialUseTexture->SetShader((bool)mBoneModel != NULL);
+	}
 
 	IASet();
 	SetConstantBuffer();
@@ -139,7 +147,11 @@ void Model::Draw(const shared_ptr<MaterialComponent> material) const{
 	auto& mesh = buf.GetMesh();
 	UINT i = 0;
 	for (auto& m : mesh){
-		if (!mForcedMaterial){
+		if (mForcedMaterialUseTexture){
+			material->GetMaterial(i).VSSetShaderResources();
+			material->GetMaterial(i).PSSetShaderResources();
+		}
+		else if (!mForcedMaterial){
 			material->GetMaterial(i).SetShader((bool)mBoneModel != NULL);
 			material->GetMaterial(i).VSSetShaderResources();
 			material->GetMaterial(i).PSSetShaderResources();

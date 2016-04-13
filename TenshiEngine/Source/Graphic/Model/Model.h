@@ -35,6 +35,7 @@ public:
 
 	//強制的にこのマテリアルを使用
 	static Material* mForcedMaterial;
+	static Material* mForcedMaterialUseTexture;
 
 	XMMATRIX		mWorld;
 

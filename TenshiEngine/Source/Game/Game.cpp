@@ -526,6 +526,8 @@ void Game::ChangePlayGame(bool isPlay){
 	}
 }
 
+bool g_DebugRender = true;
+
 void Game::Draw(){
 	if (!mMainCamera){
 		Device::mRenderTargetBack->ClearView();
@@ -570,20 +572,38 @@ void Game::Draw(){
 	ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
 	Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
 
-	m_DeferredRendering.Start_G_Buffer_Rendering();
-	mMainCamera->ScreenClear();
-	PlayDrawList(DrawStage::Diffuse);
-
-	for (int i = 0; i < 4; i++){
-		m_DeferredRendering.Start_ShadowDepth_Buffer_Rendering(i);
-		PlayDrawList(DrawStage::Diffuse);
+	if( Input::Trigger(KeyCoord::Key_F1)){
+		g_DebugRender = !g_DebugRender;
 	}
-	m_DeferredRendering.End_ShadowDepth_Buffer_Rendering();
 
-	m_DeferredRendering.Start_Light_Rendering();
-	PlayDrawList(DrawStage::Light);
-	m_DeferredRendering.End_Light_Rendering();
-	m_DeferredRendering.Start_Deferred_Rendering(&mMainViewRenderTarget);
+
+	PlayDrawList(DrawStage::Init);
+	if (!g_DebugRender){
+		m_DeferredRendering.Start_G_Buffer_Rendering();
+		mMainCamera->ScreenClear();
+		PlayDrawList(DrawStage::Diffuse);
+
+		for (int i = 0; i < 4; i++){
+			m_DeferredRendering.Start_ShadowDepth_Buffer_Rendering(i);
+			PlayDrawList(DrawStage::Diffuse);
+		}
+		m_DeferredRendering.End_ShadowDepth_Buffer_Rendering();
+		
+		m_DeferredRendering.Start_Light_Rendering();
+		PlayDrawList(DrawStage::Light);
+		m_DeferredRendering.End_Light_Rendering();
+		m_DeferredRendering.Start_Deferred_Rendering(&mMainViewRenderTarget);
+
+	}
+	else{
+
+		m_DeferredRendering.Debug_G_Buffer_Rendering();
+		mMainCamera->ScreenClear();
+		PlayDrawList(DrawStage::Diffuse);
+
+		m_DeferredRendering.Debug_AlbedoOnly_Rendering(&mMainViewRenderTarget);
+	}
+
 	PlayDrawList(DrawStage::PostEffect);
 
 	mPostEffectRendering.Rendering();

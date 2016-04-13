@@ -533,6 +533,7 @@ void Font::Initialize(){
 		}
 		if FAILED(resource11->GetSharedHandle(&sharedHandle))
 		{
+			resource11->Release();
 			return;
 		}
 		resource11->Release();
@@ -577,6 +578,7 @@ void Font::Initialize(){
 		return;
 
 	mInitializeComplete = true;
+
 }
 HRESULT Font::SetText(const std::string& text){
 	HRESULT hr;

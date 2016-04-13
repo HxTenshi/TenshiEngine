@@ -32,9 +32,10 @@ void MeshDrawComponent::Update(){
 		mMaterial = gameObject->GetComponent<MaterialComponent>();
 	}
 	if (!mMaterial)return;
-
-	Game::AddDrawList(DrawStage::Diffuse, std::function<void()>([&](){
+	Game::AddDrawList(DrawStage::Init, std::function<void()>([&](){
 		mModel->SetMatrix();
+	}));
+	Game::AddDrawList(DrawStage::Diffuse, std::function<void()>([&](){
 		Model& model = *mModel->mModel;
 
 		model.Draw(mMaterial);

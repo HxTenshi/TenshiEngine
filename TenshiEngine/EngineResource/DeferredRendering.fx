@@ -13,14 +13,16 @@ Texture2D SpecularTex : register(t1);
 SamplerState SpecularSamLinear : register(s1);
 Texture2D NormalTex : register(t2);
 SamplerState NormalSamLinear : register(s2);
-Texture2D LightTex : register(t3);
-SamplerState LightSamLinear : register(s3);
-Texture2D LightSpeTex : register(t4);
-SamplerState LightSpeSamLinear : register(s4);
-Texture2D EnvironmentTex : register(t5);
-SamplerState EnvironmentSamLinear : register(s5);
-Texture2D EnvironmentRTex : register(t6);
-SamplerState EnvironmentRSamLinear : register(s6);
+Texture2D VelocityTex : register(t3);
+SamplerState VelocitySamLinear : register(s3);
+Texture2D LightTex : register(t4);
+SamplerState LightSamLinear : register(s4);
+Texture2D LightSpeTex : register(t5);
+SamplerState LightSpeSamLinear : register(s5);
+Texture2D EnvironmentTex : register(t6);
+SamplerState EnvironmentSamLinear : register(s6);
+Texture2D EnvironmentRTex : register(t7);
+SamplerState EnvironmentRSamLinear : register(s7);
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -94,15 +96,53 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	//float s = LightingFuncGGX_REF(nor, -ray, -LightVect.xyz, roughness, 1);
 
+	float x = 3.0/1200.0;
+	float4 c;
+	float count = 1;
+	for (int i = 0; i < 30; i++){
+		{
+			float x_ = x * i;
+
+			float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
+				vel = vel * 2 - 1.0;
+			if (vel.x > x_){
+				float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
+					albedo += albedo2;
+				count++;
+			}
+		}
+		{
+			float x_ = -x * i;
+
+			float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
+				vel = vel * 2 - 1.0;
+			if (vel.x < x_){
+				float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
+					albedo += albedo2;
+				count++;
+			}
+		}
+		
+	}
+
+	albedo /= count;
+	albedo.a = 1;
+
+	//float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex);
+	//vel = vel * 2 - 1.0;
+	//float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex - vel);
+	//albedo = lerp(albedo, albedo2, 0.5);
+
 
 	float4 col = albedo * dif;
 	//col.rgb += env * spcPow;
-	col.rgb = lerp(col.rgb, env, spcPow);
-	col.rgb += lSpe.rgb * spcPow;
+	col.rgb = lerp(col.rgb , env, spcPow);
+	col.rgb += lSpe.rgb;
 
 	//float l = length( -ray - nor);
 	//l = abs(l);
 	//col = float4(l,l,l, 1);
+
 
 	return saturate(col);
 }

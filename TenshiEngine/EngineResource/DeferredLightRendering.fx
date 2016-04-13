@@ -223,13 +223,13 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	//debugColor = float4(1, 1, 1, 2) - debugColor;
 
 	float roughness = norCol.a;
-	float spec = LightingFuncGGX_REF(N, -normalize(vpos), -L, roughness, 1);
+	float spec = LightingFuncGGX_REF(N, -normalize(vpos), -L, roughness, 0.1);
 
 
 	Out.Diffuse = LightColor * DifGen;
 	Out.Diffuse.a = LightColor.a;
 
-	Out.Specular = LightColor * DifGen * spec;
+	Out.Specular = LightColor * spec;
 	Out.Specular.a = LightColor.a;
 
 	return Out;

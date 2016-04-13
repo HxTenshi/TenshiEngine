@@ -26,15 +26,10 @@
 
 Texture::Texture()
 {
-	mTexturePtr = shared_ptr<TextureData>(new TextureData());
-	//if (!mNullTexture.mTexturePtr->mpTextureRV){
-	//	//‚Q‰ñŒÄ‚Î‚ê‚Ä‚éH
-	//	mNullTexture.Create("EngineResource/null.png");
-	//}
+	mTexturePtr = make_shared<TextureData>();
 }
 Texture::~Texture()
 {
-
 }
 
 //static Texture Create(){
@@ -46,6 +41,7 @@ Texture::~Texture()
 
 
 HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
+	mTexturePtr->Release();
 	mTexturePtr->mpTextureRV = pTexture;
 
 	HRESULT hr = S_OK;

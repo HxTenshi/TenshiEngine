@@ -222,38 +222,3 @@ public:
 	bool mFirstDraw;
 
 };
-
-#include "Graphic/RenderTarget/RenderTarget.h"
-class PostEffectComponent :public Component{
-public:
-	PostEffectComponent()
-	{
-	}
-
-	void Initialize() override;
-	void EngineUpdate() override{
-		PostDraw();
-	}
-	void Update() override{
-		PostDraw();
-	}
-
-	void Finish() override;
-
-	void PostDraw();
-
-	void CreateInspector() override;
-
-	void IO_Data(I_ioHelper* io) override;
-private:
-
-	RenderTarget mRenderTarget;
-
-	Model mModelTexture;
-
-	Material mMaterial;
-	Material mMaterialEnd;
-
-	std::string mShaderName;
-	
-};

@@ -18,6 +18,7 @@ struct CBChangeOnResize
 struct CBChangesEveryFrame
 {
 	XMMATRIX mWorld;
+	XMMATRIX mBeforeWorld;
 };
 
 

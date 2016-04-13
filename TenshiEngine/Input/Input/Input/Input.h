@@ -46,7 +46,7 @@ public:
 	CLASS_DECLSPEC static void InitDirectInput(HWND hWnd, HINSTANCE hInst);
 	CLASS_DECLSPEC static void Release();
 
-	CLASS_DECLSPEC static void Update();
+	CLASS_DECLSPEC static void Update(bool TargetFocus);
 
 	CLASS_DECLSPEC static void SetMouseP(const LPARAM& lParam);
 	CLASS_DECLSPEC static void SetMouseXY(int x, int y);
@@ -54,7 +54,6 @@ public:
 	CLASS_DECLSPEC static void SetMouseR(bool donw);
 
 private:
-	static bool mKeyCoordBool[(int)KeyCoord::Count];
 	static int mKeyCoord[(int)KeyCoord::Count];
 	static bool mMouseBool[(int)MouseCoord::Count];
 	static int mMouse[(int)MouseCoord::Count];

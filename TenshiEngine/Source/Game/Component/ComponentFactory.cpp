@@ -13,6 +13,7 @@
 #include "ScriptComponent.h"
 #include "DirectionalLightComponent.h"
 #include "PointLightComponent.h"
+#include "PostEffectComponent.h"
 #include "Component.h"
 
 

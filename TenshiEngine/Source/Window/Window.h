@@ -46,6 +46,7 @@ public:
 		while (!hWnd){
 			hWnd = (HWND)mMainWindow_WPF.GetGameScreenHWND();
 		}
+		mhWnd = (HWND)mMainWindow_WPF.GetEditorHWND();
 		//RECT rc;
 		//GetClientRect(hWnd, &rc);
 		//WindowState::mWidth = rc.right - rc.left;
@@ -60,7 +61,7 @@ public:
 		// Register class
 		WNDCLASSEX wcex;
 		wcex.cbSize = sizeof(WNDCLASSEX);
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
+		wcex.style = NULL;
 		wcex.lpfnWndProc = WndProc;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
@@ -69,20 +70,64 @@ public:
 		wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 		wcex.lpszMenuName = NULL;
-		wcex.lpszClassName = "TutorialWindowClass";
+		wcex.lpszClassName = "TenshiEngineDummyWindowClass";
 		wcex.hIconSm = LoadIcon(wcex.hInstance, (LPCTSTR)IDI_TUTORIAL1);
 		if (!RegisterClassEx(&wcex))
 			return E_FAIL;
-
+		
 		// Create window
-		RECT rc = { 0, 0, WindowState::mWidth, WindowState::mHeight };
+		RECT rc = { 0, 0, 1,1 };
 		AdjustWindowRect(&rc, NULL, FALSE);
-		mhWnd = CreateWindow("TutorialWindowClass", "Direct3D 11 Tutorial 7", NULL,
+		mDummyhWnd = CreateWindow("TenshiEngineDummyWindowClass", "TenshiEngineDummyWindow", NULL,
 			CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, mhInstance,
 			NULL);
-		if (!mhWnd)
+		if (!mDummyhWnd)
 			return E_FAIL;
 
+		//CreateProcess(NULL, lpszPathName, NULL, NULL, TRUE,
+		//	DEBUG_PROCESS | CREATE_NEW_CONSOLE | NORMAL_PRIORITY_CLASS,
+		//	NULL, NULL, &si, &pi);
+		//hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessId);
+		///* プロセスにアタッチする */
+		//DebugActiveProcess(dwProcessId);
+		//
+		//while (TRUE){
+		//	/* イベントを待つ */
+		//	if (!WaitForDebugEvent(&debug, INFINITE)){
+		//		return;
+		//	}
+		//
+		//	switch (debug.dwDebugEventCode){
+		//	case OUTPUT_DEBUG_STRING_EVENT:   /* デバッグ文字列を受信した */
+		//		/* デバッグ文字列を読み出す */
+		//		ReadProcessMemory(hProcess,
+		//			debug.u.DebugString.lpDebugStringData,
+		//			szBuff, debug.u.DebugString.nDebugStringLength, &dwRead);
+		//		*(szBuff + dwRead) = '\0';
+		//		break;
+		//	case CREATE_PROCESS_DEBUG_EVENT:  /* プロセスを生成した */
+		//		break;
+		//	case CREATE_THREAD_DEBUG_EVENT:   /* スレッドを生成した */
+		//		break;
+		//	case EXIT_THREAD_DEBUG_EVENT:     /* スレッドが終了した */
+		//		break;
+		//	case LOAD_DLL_DEBUG_EVENT:        /* DLLをロードした */
+		//		break;
+		//	case UNLOAD_DLL_DEBUG_EVENT:      /* DLLをアンロードした */
+		//		break;
+		//	case EXCEPTION_DEBUG_EVENT:       /* 例外が発生した */
+		//		break;
+		//	case RIP_EVENT:                   /* RIPイベント */
+		//		break;
+		//
+		//	case EXIT_PROCESS_DEBUG_EVENT:    /* プロセスが終了した */
+		//		return;
+		//	default:
+		//		break;
+		//	}
+		//	/* デバッグを続行する */
+		//	ContinueDebugEvent(dwProcessId, debug.dwThreadId, DBG_CONTINUE);
+		//}
 
 		//InitCommonControls();
 
@@ -135,6 +180,9 @@ public:
 	static void ClearTreeViewItem(void* ptr){
 		if (ptr)mMainWindow_WPF.ClearTreeViewItem(ptr);
 	}
+	static void AddLog(const std::string& log){
+		mMainWindow_WPF.AddLog(log);
+	}
 
 	static void ClearInspector(){
 		mMainWindow_WPF.ClearAllComponentWindow();
@@ -181,8 +229,8 @@ public:
 		mMainWindow_WPF.CreateContextMenu_AddComponent(ComponentName);
 	}
 
-	static void SetMouseEvents(bool* l, bool* r, int* x, int* y, int *wx, int *wy){
-		mMainWindow_WPF.SetMouseEvents(l, r, x, y, wx, wy);
+	static void SetMouseEvents(bool* focus,bool* l, bool* r, int* x, int* y, int *wx, int *wy){
+		mMainWindow_WPF.SetMouseEvents(focus,l, r, x, y, wx, wy);
 	}
 
 	static void SetWPFCollBack(MyWindowMessage massage, const std::function<void(void*)>& collback){
@@ -194,6 +242,7 @@ public:
 public:
 	static HMODULE mhModuleWnd;
 	static HWND mhWnd;
+	HWND mDummyhWnd;
 	HINSTANCE mhInstance;
 	int mnCmdShow;
 

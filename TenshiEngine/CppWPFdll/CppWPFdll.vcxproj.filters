@@ -82,5 +82,6 @@
     <Page Include="WindowXAML\ColorPicker.xaml" />
     <Page Include="WindowXAML\InspectorColor.xaml" />
     <Page Include="WindowXAML\InspectorVector2.xaml" />
+    <Page Include="WindowXAML\LogListBox.xaml" />
   </ItemGroup>
 </Project>

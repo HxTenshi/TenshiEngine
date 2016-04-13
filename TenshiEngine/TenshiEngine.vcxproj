@@ -419,6 +419,7 @@
     <ClCompile Include="Source\Game\Component\MeshDrawComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ModelComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PointLightComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\PostEffectComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TextureModelComponent.cpp" />
     <ClCompile Include="Source\Game\DeferredRendering.cpp" />
     <ClCompile Include="Source\Game\EngineObject\EditorCamera.cpp" />
@@ -490,6 +491,7 @@
     <ClInclude Include="Source\Game\Component\MeshDrawComponent.h" />
     <ClInclude Include="Source\Game\Component\ModelComponent.h" />
     <ClInclude Include="Source\Game\Component\PointLightComponent.h" />
+    <ClInclude Include="Source\Game\Component\PostEffectComponent.h" />
     <ClInclude Include="Source\Game\Component\TextureModelComponent.h" />
     <ClInclude Include="Source\Game\DeferredRendering.h" />
     <ClInclude Include="Source\Game\EngineObject\EditorCamera.h" />

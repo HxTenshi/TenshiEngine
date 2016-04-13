@@ -32,6 +32,7 @@ class InputManagerRapper{
 public:
 
 	void Initialize(HWND hWnd, HINSTANCE hInstance){
+		mScreenFocus = false;
 		mr = false;
 		ml = false;
 		mx = 0;
@@ -40,7 +41,7 @@ public:
 		wy = 1;
 
 		InputManager::InitDirectInput(hWnd, hInstance);
-		Window::SetMouseEvents(&ml, &mr, &mx, &my, &wx, &wy);
+		Window::SetMouseEvents(&mScreenFocus,&ml, &mr, &mx, &my, &wx, &wy);
 	}
 
 	void Update(){
@@ -50,7 +51,7 @@ public:
 		int x = (int)((float)mx / wx * WindowState::mWidth);
 		int y = (int)((float)my / wy * WindowState::mHeight);
 		InputManager::SetMouseXY(x, y);
-		InputManager::Update();
+		InputManager::Update(mScreenFocus);
 	}
 
 	void Release(){
@@ -58,6 +59,7 @@ public:
 	}
 
 private:
+	bool mScreenFocus;
 	bool mr, ml;
 	int mx, my;
 	int wx, wy;
@@ -180,7 +182,7 @@ public:
 		//インデックスの並び　Z字など
 		Device::mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		mInputManagerRapper.Initialize(window.GetGameScreenHWND(), window.mhInstance);
+		mInputManagerRapper.Initialize(window.GetMainHWND(), window.mhInstance);
 
 		mGame = new Game();
 
@@ -190,37 +192,21 @@ public:
 	void Render()
 	{
 
-		static unsigned long time_start = timeGetTime();
-		static int count_frames = 0;
 
-		if (count_frames > 60){
-			time_start = timeGetTime();
-			count_frames = 1;
-		}
-		{
+		mInputManagerRapper.Update();
 
-			mInputManagerRapper.Update();
+		mGame->Update();
 
-			mGame->Update();
-
-			mGame->Draw();
+		mGame->Draw();
 
 
-			ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
-			Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
-			ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
-			Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
+		ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
+		Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
+		ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
+		Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
 
-			Device::mpSwapChain->Present(1, 0);
+		Device::mpSwapChain->Present(1, 0);
 
-		}
-
-		unsigned long current_time = timeGetTime();
-		double fps = double(count_frames) / (current_time - time_start) * 1000;
-		std::string title = "fps: "+std::to_string(fps);
-
-		Window::SetWindowTitle(title);
-		count_frames++;
 	}
 
 

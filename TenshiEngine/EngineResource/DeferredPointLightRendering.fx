@@ -217,7 +217,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	//float spec_pow = 255 * txSpecPow.Sample(samSpecPow, tex).x;
 	//float3 spec = pow(saturate(dot(nor, h)), spec_pow);
 	float roughness = norCol.a;
-	float spec = LightingFuncGGX_REF(nor, -normalize(vpos), dir, roughness, 1);
+	float spec = LightingFuncGGX_REF(nor, -normalize(vpos), dir, roughness, 0.1);
 
 	Out.Diffuse = float4(atte*df*PtLCol.xyz, 1);
 	Out.Specular = float4(atte*spec*PtLCol.xyz, 1);

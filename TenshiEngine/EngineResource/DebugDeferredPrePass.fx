@@ -7,8 +7,12 @@
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
-Texture2D txDiffuse : register( t0 );
-SamplerState samLinear : register(s0);
+Texture2D AlbedoTex : register( t0 );
+SamplerState AlbedoSamLinear : register(s0);
+Texture2D NormalTex : register(t1);
+SamplerState NormalSamLinear : register(s1);
+Texture2D HeightTex : register(t2);
+SamplerState HeightSamLinear : register(s2);
 
 cbuffer cbNeverChanges : register( b0 )
 {
@@ -24,6 +28,7 @@ cbuffer cbChangeOnResize : register( b1 )
 cbuffer cbChangesEveryFrame : register( b2 )
 {
 	matrix World;
+	matrix BeforeWorld;
 };
 
 cbuffer cbChangesLight : register( b3 )
@@ -36,6 +41,8 @@ cbuffer cbChangesMaterial : register( b4 )
 	float4 MDiffuse;
 	float4 MSpecular;
 	float4 MAmbient;
+	float2 MTexScale;
+	float2 MHightPower;
 };
 cbuffer cbChangesLightMaterial : register( b5 )
 {
@@ -56,11 +63,19 @@ cbuffer cbBoneMatrix : register(b7)
 	float4x3 BoneMatrixEnd :  packoffset(c765);
 }
 
+cbuffer cbChangesLightCamera : register(b10)
+{
+	matrix LViewProjection[4];
+	float4 SplitPosition;
+};
+
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
 	float4 Pos		: POSITION;
 	float3 Normal	: NORMAL;
+	float3 Bin	: BINORMAL;
+	float3 Tan	: TANGENT;
 	float2 Tex		: TEXCOORD0;
 	uint4 BoneIdx		: BONEINDEX;
 	uint4 BoneWeight	: BONEWEIGHT;
@@ -69,16 +84,13 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 Pos		: SV_POSITION;
-	float2 Tex		: TEXCOORD0;
+	float2 Tex		: TEXCOORD2;
+	float4 VPos		: TEXCOORD3;
 };
 
 struct PS_OUTPUT_1
 {
 	float4 ColorAlbedo : SV_Target0;
-	float4 ColorSpecular : SV_Target1;
-	float4 ColorNormal : SV_Target2;
-	float4 ColorDepth : SV_Target3;
-	float4 ColorVelocity : SV_Target4;
 };
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -86,11 +98,11 @@ struct PS_OUTPUT_1
 PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.Pos = mul( input.Pos, World );
-	output.Pos = mul(output.Pos, View);
-	output.Pos = mul(output.Pos, Projection);
+	output.Pos = mul(input.Pos, World);
+	output.VPos = mul( output.Pos, View );
+	output.Pos = mul( output.VPos, Projection);
 
-	output.Tex = input.Tex;
+	output.Tex = input.Tex * MTexScale;
 	
 	return output;
 }
@@ -124,8 +136,10 @@ PS_INPUT VSSkin(VS_INPUT input)
 
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = mul(pos, World);
-	output.Pos = mul(output.Pos, View);
-	output.Pos = mul(output.Pos, Projection);
+
+	output.VPos = mul(output.Pos, View);
+	output.Pos = mul(output.VPos, Projection);
+
 
 	output.Tex = input.Tex;
 
@@ -139,17 +153,11 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 {
 	PS_OUTPUT_1 Out;
 
-	// 出力カラー計算 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++( 開始 )
-
+	float2 texcood = input.Tex;
 	float4 DifColor = float4(1.0, 1.0, 1.0, 1.0);
-	if (UseTexture.x != 0.0)
-		DifColor = txDiffuse.Sample(samLinear, input.Tex);
-
+		if (UseTexture.x != 0.0)
+			DifColor = AlbedoTex.Sample(AlbedoSamLinear, texcood);
 
 	Out.ColorAlbedo = DifColor * MDiffuse;
-	Out.ColorSpecular = float4(0,0,0,0);
-	Out.ColorNormal = float4(0.5, 0.5, 0.5, 1);
-	Out.ColorDepth = float4(0, 0, 0, 1);
-	Out.ColorVelocity = float4(0.5, 0.5, 0, 1);
 	return Out;
 }

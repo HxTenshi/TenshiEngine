@@ -58,7 +58,11 @@ public:
 	void AddTreeViewItem(const std::string& Name, void* ptr);
 	void SetParentTreeViewItem(void* parent, void* child);
 
-	void SetMouseEvents(bool* l, bool* r, int* x, int* y, int* wx, int* wy);
+	void SetMouseEvents(bool* focus, bool* l, bool* r, int* x, int* y, int* wx, int* wy);
+
+
+	void AddLog(const std::string& log);
 	
 	void* GetGameScreenHWND() const;
+	void* GetEditorHWND() const;
 };

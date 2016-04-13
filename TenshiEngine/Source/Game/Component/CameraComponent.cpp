@@ -20,7 +20,6 @@ CameraComponent::CameraComponent()
 }
 CameraComponent::~CameraComponent()
 {
-	//mSkyMaterial.Finish();
 	mSkyModel.Release();
 }
 

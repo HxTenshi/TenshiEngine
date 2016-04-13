@@ -11,7 +11,6 @@
 class TextComponentMember{
 public:
 	weak_ptr<IModelComponent> mModel;
-	weak_ptr<MaterialComponent> mMaterial;
 
 	Font mFont;
 	std::string mText;
@@ -22,6 +21,8 @@ public:
 TextComponent::TextComponent()
 {
 	impl = new TextComponentMember();
+	impl->mTexMaterial.Create("EngineResource/texture.fx");
+	impl->mTexMaterial.SetTexture(impl->mFont.GetTexture());
 }
 TextComponent::~TextComponent()
 {
@@ -29,16 +30,15 @@ TextComponent::~TextComponent()
 }
 
 void TextComponent::Initialize(){
-	impl->mTexMaterial.Create("EngineResource/texture.fx");
-	impl->mTexMaterial.SetTexture(impl->mFont.GetTexture());
-
-
-	impl->mMaterial = gameObject->GetComponent<MaterialComponent>();
-	if (impl->mMaterial)impl->mMaterial->SetMaterial(0, impl->mTexMaterial);
 
 	impl->mModel = gameObject->GetComponent<TextureModelComponent>();
 
 	ChangeText(impl->mText);
+}
+void TextComponent::Finish(){
+}
+void TextComponent::EngineUpdate(){
+	DrawTextUI();
 }
 
 void TextComponent::Update(){
@@ -46,6 +46,11 @@ void TextComponent::Update(){
 }
 
 void TextComponent::DrawTextUI(){
+
+	if (!impl->mModel){
+		impl->mModel = gameObject->GetComponent<TextureModelComponent>();
+	}
+
 	Game::AddDrawList(DrawStage::UI, [&](){
 
 		if (!impl->mModel)return;

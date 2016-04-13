@@ -124,6 +124,7 @@
     <Page Include="WindowXAML\InspectorSlideBar.xaml" />
     <Page Include="WindowXAML\InspectorVector3.xaml" />
     <Page Include="View.xaml" />
+    <Page Include="WindowXAML\LogListBox.xaml" />
     <Page Include="WindowXAML\TreeView.xaml" />
     <Page Include="WindowXAML\ColorPicker.xaml" />
     <Page Include="WindowXAML\InspectorVector2.xaml" />

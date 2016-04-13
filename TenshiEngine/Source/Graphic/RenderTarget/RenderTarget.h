@@ -223,7 +223,9 @@ public:
 	}
 	static void SetRendererTarget(UINT num, const RenderTarget* render, const RenderTarget* depth){
 
-		ID3D11RenderTargetView* r[4];
+		_ASSERT(num<9);
+
+		ID3D11RenderTargetView* r[8];
 		for (UINT i = 0; i < num; i++){
 			r[i] = render[i].mpRenderTargetView;
 		}
@@ -233,19 +235,40 @@ public:
 	}
 	static void NullSetRendererTarget(){
 
-		ID3D11RenderTargetView* r[4];
-		for (UINT i = 0; i < 4; i++){
+		ID3D11RenderTargetView* r[8];
+		for (UINT i = 0; i < 8; i++){
 			r[i] = NULL;
 		}
 		//レンダーターゲットと深度ステンシルの関連付け
-		Device::mpImmediateContext->OMSetRenderTargets(4, r, NULL);
+		Device::mpImmediateContext->OMSetRenderTargets(8, r, NULL);
 	}
 
 	void Release()
 	{
-		if (mpTexture2D) mpTexture2D->Release();
-		if (mpDepthStencilView) mpDepthStencilView->Release();
-		if (mpRenderTargetView) mpRenderTargetView->Release();
+		if (mpTexture2D){
+			mpTexture2D->Release();
+			mpTexture2D = NULL;
+		}
+		//ID3D11RenderTargetView* rt[8];
+		//ID3D11DepthStencilView* ds;
+		//Device::mpImmediateContext->OMGetRenderTargets(8, rt, &ds);
+
+		if (mpDepthStencilView){
+			//if (ds == mpDepthStencilView){
+			//	NullSetRendererTarget();
+			//}
+			mpDepthStencilView->Release();
+			mpDepthStencilView = NULL;
+		}
+		if (mpRenderTargetView){
+			//for (int i = 0; i < 8; i++){
+			//	if (rt[i] == mpRenderTargetView){
+			//		NullSetRendererTarget();
+			//	}
+			//}
+			mpRenderTargetView->Release();
+			mpRenderTargetView = NULL;
+		}
 
 	}
 

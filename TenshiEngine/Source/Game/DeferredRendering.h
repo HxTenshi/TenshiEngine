@@ -49,18 +49,24 @@ public:
 	void End_Light_Rendering();
 	void Start_Deferred_Rendering(RenderTarget* rt);
 
+
+	void Debug_G_Buffer_Rendering();
+	void Debug_AlbedoOnly_Rendering(RenderTarget* rt);
+
 private:
 	RenderTarget m_AlbedoRT;
 	RenderTarget m_SpecularRT;
 	RenderTarget m_NormalRT;
 	RenderTarget m_DepthRT;
+	RenderTarget m_VelocityRT;
 	RenderTarget m_LightRT;
 	RenderTarget m_LightSpecularRT;
 
 	Texture mEnvironmentMap;
 	Texture mEnvironmentRMap;
 	Model mModelTexture;
-	//Material mMaterialDebugDraw;
+	Material mMaterialDebugDraw;
+	Material mMaterialDebugDrawPrePass;
 	Material mMaterialLight;
 	Material mMaterialDeferred;
 	Material mMaterialDepthShadow;

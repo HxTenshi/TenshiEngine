@@ -292,6 +292,7 @@ DeferredRendering::~DeferredRendering(){
 	m_SpecularRT.Release();
 	m_NormalRT.Release();
 	m_DepthRT.Release();
+	m_VelocityRT.Release();
 	m_LightRT.Release();
 	m_LightSpecularRT.Release();
 	mModelTexture.Release();
@@ -305,6 +306,7 @@ void DeferredRendering::Initialize(){
 	m_SpecularRT.Create(w,h);
 	m_NormalRT.Create(w, h);
 	m_DepthRT.Create(w, h);
+	m_VelocityRT.Create(w, h);
 	m_LightRT.Create(w, h);
 	m_LightSpecularRT.Create(w, h);
 
@@ -327,10 +329,11 @@ void DeferredRendering::Initialize(){
 	mMaterialDeferred.SetTexture(m_AlbedoRT.GetTexture(), 0);
 	mMaterialDeferred.SetTexture(m_SpecularRT.GetTexture(), 1);
 	mMaterialDeferred.SetTexture(m_NormalRT.GetTexture(), 2);
-	mMaterialDeferred.SetTexture(m_LightRT.GetTexture(), 3);
-	mMaterialDeferred.SetTexture(m_LightSpecularRT.GetTexture(), 4);
-	mMaterialDeferred.SetTexture(mEnvironmentMap, 5);
-	mMaterialDeferred.SetTexture(mEnvironmentRMap, 6);
+	mMaterialDeferred.SetTexture(m_VelocityRT.GetTexture(), 3);
+	mMaterialDeferred.SetTexture(m_LightRT.GetTexture(), 4);
+	mMaterialDeferred.SetTexture(m_LightSpecularRT.GetTexture(), 5);
+	mMaterialDeferred.SetTexture(mEnvironmentMap, 6);
+	mMaterialDeferred.SetTexture(mEnvironmentRMap, 7);
 
 	mMaterialDepthShadow.Create("EngineResource/DepthRendering.fx");
 
@@ -343,8 +346,10 @@ void DeferredRendering::Initialize(){
 	mMaterialPostEffect.SetTexture(m_LightRT.GetTexture(), 6);
 	mMaterialPostEffect.SetTexture(m_LightSpecularRT.GetTexture(), 7);
 
-	//mMaterialDebugDraw.Create("EngineResource/Texture.fx");
-	//mMaterialDebugDraw.SetTexture(mCascadeShadow.GetRTTexture(0), 0);
+
+	mMaterialDebugDrawPrePass.Create("EngineResource/DebugDeferredPrePass.fx");
+	mMaterialDebugDraw.Create("EngineResource/Texture.fx");
+	mMaterialDebugDraw.SetTexture(m_AlbedoRT.GetTexture(), 0);
 
 	//ブレンドモード設定
 
@@ -382,8 +387,8 @@ void DeferredRendering::Start_G_Buffer_Rendering(){
 	mCascadeShadow.Update();
 
 
-	const RenderTarget* r[4] = { &m_AlbedoRT, &m_SpecularRT , &m_NormalRT, &m_DepthRT };
-	RenderTarget::SetRendererTarget((UINT)4, r[0], Device::mRenderTargetBack);
+	const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
+	RenderTarget::SetRendererTarget((UINT)5, r[0], Device::mRenderTargetBack);
 }
 void DeferredRendering::Start_ShadowDepth_Buffer_Rendering(int no){
 
@@ -460,6 +465,60 @@ void DeferredRendering::Start_Deferred_Rendering(RenderTarget* rt){
 	Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
 	if (pBackDS)pBackDS->Release();
 
+
+	RenderTarget::NullSetRendererTarget();
+	mMaterialPostEffect.PSSetShaderResources();
+}
+
+
+
+void DeferredRendering::Debug_G_Buffer_Rendering(){
+	const RenderTarget* r[1] = { &m_AlbedoRT};
+	RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+
+	Model::mForcedMaterialUseTexture = &mMaterialDebugDrawPrePass;
+
+}
+
+void DeferredRendering::Debug_AlbedoOnly_Rendering(RenderTarget* rt){
+
+	Model::mForcedMaterialUseTexture = NULL;
+
+	rt->SetRendererTarget();
+
+	mModelTexture.Update();
+
+	ID3D11DepthStencilState* pBackDS;
+	UINT ref;
+	Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
+
+	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	ID3D11DepthStencilState* pDS_tex = NULL;
+	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS_tex);
+	Device::mpImmediateContext->OMSetDepthStencilState(pDS_tex, 0);
+
+
+	D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+	descRS.CullMode = D3D11_CULL_NONE;
+	descRS.FillMode = D3D11_FILL_SOLID;
+
+	ID3D11RasterizerState* pRS = NULL;
+	Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
+
+	Device::mpImmediateContext->RSSetState(pRS);
+
+	mModelTexture.Draw(mMaterialDebugDraw);
+
+	Device::mpImmediateContext->RSSetState(NULL);
+	if (pRS)pRS->Release();
+
+	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+	pDS_tex->Release();
+
+	Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
+	if (pBackDS)pBackDS->Release();
 
 	RenderTarget::NullSetRendererTarget();
 	mMaterialPostEffect.PSSetShaderResources();

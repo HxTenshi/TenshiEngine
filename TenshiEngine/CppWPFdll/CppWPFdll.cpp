@@ -253,12 +253,15 @@ void InspectorColor::CreateInspector(DockPanel^ dockPanel) {
 }
 
 
-HWND Data::hWnd = NULL;
+HWND Data::mhWnd = NULL;
 void Data::MyPostMessage(MyWindowMessage wm, void* p){
-	Data::hWnd = FindWindow(L"TutorialWindowClass", NULL);
+	auto hWnd = GetHWND();
+	if (hWnd!=NULL)
 	PostMessage(hWnd, WM_MYWMCOLLBACK, (int)wm, (LPARAM)p);
 }
 void Data::_SendMessage(UINT wm, WPARAM p1, LPARAM p2){
+	auto hWnd = GetHWND();
+	if (hWnd != NULL)
 	SendMessage(hWnd, wm, p1,p2);
 }
 
@@ -267,8 +270,6 @@ void WindowMainThred(){
 	ViewData::window = gcnew View();
 	a.Run(ViewData::window);
 	delete ViewData::window;
-	Data::hWnd = FindWindow(L"TutorialWindowClass", NULL);
-	//DestroyWindow(hwnd);
 	Data::_SendMessage(WM_DESTROY);
 }
 
@@ -317,13 +318,13 @@ namespace Test {
 	delegate void MyDelegate();
 	delegate IntPtr MyDelegateR();
 	//delegate void MyDelegateI(IntViewModel ^);
-	delegate void MyDelegateF(String^,IntPtr,array<InspectorData^>^);
+	delegate void MyDelegateF(String^, IntPtr, array<InspectorData^>^);
 	delegate void MyDelegateITEM(String^, IntPtr);
 	delegate void MyDelegateCOM(String^);
 	delegate void MyDelegateI2(IntPtr, IntPtr);
 	delegate void MyDelegateI1(IntPtr);
 	void NativeFraction::CreateComponentWindow(const std::string& ComponentName, void* comptr, std::vector<InspectorDataSet>& data){
-		if (ViewData::window!=nullptr){
+		if (ViewData::window != nullptr){
 			auto del = gcnew MyDelegateF(ViewData::window, &View::CreateComponent);
 			//System::Array<std::vector<InspectorData>> ^f;
 			int num = data.size();
@@ -359,8 +360,8 @@ namespace Test {
 				}
 				i++;
 			}
-			
-			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()),(IntPtr)comptr, a);
+
+			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()), (IntPtr)comptr, a);
 
 		}
 	}
@@ -413,14 +414,28 @@ namespace Test {
 		ViewData::window->Dispatcher->BeginInvoke(del, (IntPtr)parent, (IntPtr)child);
 	}
 
-	void NativeFraction::SetMouseEvents(bool* l, bool* r, int* x, int* y, int* wx, int* wy){
+	void NativeFraction::SetMouseEvents(bool* focus, bool* l, bool* r, int* x, int* y, int* wx, int* wy){
 		if (ViewData::window == nullptr)return;
-		ViewData::window->GameScreenData->SetMouseEvents(l, r, x, y, wx, wy);
+		ViewData::window->GameScreenData->SetMouseEvents(focus, l, r, x, y, wx, wy);
 	}
+
+	void NativeFraction::AddLog(const std::string& log){
+		if (ViewData::window == nullptr)return;
+		auto del = gcnew MyDelegateCOM(ViewData::window, &View::AddLog);
+		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(log.c_str()));
+	}
+
 	void* NativeFraction::GetGameScreenHWND() const {
 		void* temp = NULL;
 		if (ViewData::window != nullptr){
 			temp = ViewData::window->GameScreenHWND;
+		}
+		return temp;
+	}
+	void* NativeFraction::GetEditorHWND() const {
+		void* temp = NULL;
+		if (ViewData::window != nullptr){
+			temp = ViewData::window->WindowHWND;
 		}
 		return temp;
 	}
