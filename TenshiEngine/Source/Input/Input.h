@@ -73,6 +73,25 @@ private:
 
 
 };
+class EngineInput
+{
+public:
+	static bool Trigger(KeyCoord key){
+		return DLLInput::Trigger_Engine(key);
+	}
+	static int Down(KeyCoord key){
+		return DLLInput::Down_Engine(key);
+
+	}
+	static bool Up(KeyCoord key){
+		return DLLInput::Up_Engine(key);
+
+	}
+
+private:
+
+
+};
 
 //class InputManager{
 //public:

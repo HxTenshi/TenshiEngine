@@ -13,7 +13,7 @@ PlayerScript::PlayerScript(){
 	mRotateY = 0.0f;
 }
 void PlayerScript::Update(){
-
+	
 	auto& list = gameObject->mTransform->Children();
 	Actor* camera = NULL;
 	for (auto act : list){
@@ -24,16 +24,16 @@ void PlayerScript::Update(){
 
 	if (!camera)return;
 	float speed = 50.0f;
-	if (Input::Down(KeyCoord::Key_A)){
+	if (Input::Down(KeyCoord::Key_LEFT)){
 		gameObject->mTransform->AddTorque(camera->mTransform->Forward()*speed);
 	}
-	if (Input::Down(KeyCoord::Key_D)){
+	if (Input::Down(KeyCoord::Key_RIGHT)){
 		gameObject->mTransform->AddTorque(camera->mTransform->Forward()*-speed);
 	}
-	if (Input::Down(KeyCoord::Key_W)){
+	if (Input::Down(KeyCoord::Key_UP)){
 		gameObject->mTransform->AddTorque(camera->mTransform->Left()*speed);
 	}
-	if (Input::Down(KeyCoord::Key_S)){
+	if (Input::Down(KeyCoord::Key_DOWN)){
 		gameObject->mTransform->AddTorque(camera->mTransform->Left()*-speed);
 	}
 	if (Input::Down(KeyCoord::Key_Z)){

@@ -88,6 +88,15 @@ public:
 		return NULL;
 	}
 
+	shared_ptr<Component> GetComponent(const std::string& name) const{
+		for (auto& p : mComponent){
+			if (p.second->ClassName() == name)
+				return p.second;
+		}
+		return NULL;
+	}
+
+
 	template<class T>
 	void RemoveComponent(){
 		const auto& v = typeid(T).hash_code();

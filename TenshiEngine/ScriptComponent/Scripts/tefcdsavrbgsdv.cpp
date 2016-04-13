@@ -1,27 +1,27 @@
-#include "$temp$.h"
+#include "tefcdsavrbgsdv.h"
 
 
 //生成時に呼ばれます（エディター中も呼ばれます）
-void $temp$::Initialize(){
+void tefcdsavrbgsdv::Initialize(){
 
 }
 
 //initializeとupdateの前に呼ばれます（エディター中は呼ばれません）
-void $temp$::Start(){
+void tefcdsavrbgsdv::Start(){
 
 }
 
 //毎フレーム呼ばれます
-void $temp$::Update(){
+void tefcdsavrbgsdv::Update(){
 
 }
 
 //開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）
-void $temp$::Finish(){
+void tefcdsavrbgsdv::Finish(){
 
 }
 
 //コライダーとのヒット時に呼ばれます
-void $temp$::OnCollide(Actor* target){
+void tefcdsavrbgsdv::OnCollide(Actor* target){
 	(void)target;
 }

@@ -108,13 +108,6 @@ void PhysXComponent::RemoveShape(physx::PxShape& shape){
 		mRigidActor->detachShape(shape);
 }
 
-void PhysXComponent::CopyData(Component* post, Component* base){
-	auto Post = (PhysXComponent*)post;
-	auto Base = (PhysXComponent*)base;
-
-	Post->mIsKinematic = Base->mIsKinematic;
-}
-
 void PhysXComponent::CreateInspector() {
 
 	std::function<void(bool)> collback = [&](bool value){

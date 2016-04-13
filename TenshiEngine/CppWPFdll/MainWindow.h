@@ -787,6 +787,8 @@ private:
 		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, new std::string("EngineResource/box.prefab"));
 		e->Handled = true;
 	}
+
+	
 	//コンテキストメニューのゲームオブジェクトの削除処理
 	void MenuItem_Click_Remove(Object ^sender, System::Windows::RoutedEventArgs ^e){
 
@@ -900,6 +902,50 @@ private:
 
 };
 
+ref class CreateScriptWindow : public Window {
+public:
+	static CreateScriptWindow ^mUnique = nullptr;
+
+	CreateScriptWindow(Window^ owner)
+	{
+		if (mUnique){
+			mUnique->Close();
+		}
+		mUnique = this;
+
+		Owner = owner;
+		Title = "CreateScritp";
+		Width = 400;
+		Height = 50+36;
+		Show();
+		Visibility = System::Windows::Visibility::Visible;
+
+
+
+
+		FrameworkElement ^colwnd = LoadContentsFromResource(IDR_POPWND_CREATE);
+		Content = colwnd;
+		auto createbutton = (Button^)colwnd->FindName("CreateButton");
+		createbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &CreateScriptWindow::CreateButton);
+		auto cancelbutton = (Button^)colwnd->FindName("CancelButton");
+		cancelbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &CreateScriptWindow::CancelButton);
+
+
+		mTextBox = (TextBox^)colwnd->FindName("CreateTextBox");
+
+	}
+private:
+
+	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+		Data::MyPostMessage(MyWindowMessage::CreateScriptFile, string_cast(mTextBox->Text));
+		Close();
+	}
+	void CancelButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+		Close();
+	}
+	TextBox ^mTextBox;
+
+};
 
 
 // ビュー
@@ -1228,7 +1274,7 @@ private:
 
 		//ツリービューアイテムの名前変更
 		void ChangeTreeViewName(String^ name, IntPtr treeviewptr){
-			mSceneTreeView->ChangeTreeViewName(Name, treeviewptr);
+			mSceneTreeView->ChangeTreeViewName(name, treeviewptr);
 		}
 		//ツリービューアイテムの削除
 		void ClearTreeViewItem(IntPtr treeviewptr){
@@ -1309,18 +1355,26 @@ private:
 
 		FileSystemEvent();
 
-		////コンテキストメニュー作成
-		//{
-		//	auto cm = gcnew System::Windows::Controls::ContextMenu();
-		//	{//コンテキストメニューの要素作成
-		//		auto mitem = gcnew System::Windows::Controls::MenuItem();
-		//		mitem->Header = "Remove";
-		//		mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::test);
-		//		cm->Items->Add(mitem);
-		//	}
-		//	//ツリービューに反映
-		//	m_AssetTreeView->ContextMenu = cm;
-		//}
+		//コンテキストメニュー作成
+		{
+			auto cm = gcnew System::Windows::Controls::ContextMenu();
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "CreateScritp";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_CreateScript);
+				cm->Items->Add(mitem);
+			}
+			//ツリービューに反映
+			m_AssetTreeView->ContextMenu = cm;
+		}
+	}
+
+	//コンテキストメニューのオブジェクト作成
+	void MenuItem_Click_CreateScript(Object ^sender, System::Windows::RoutedEventArgs ^e){
+
+		auto w = gcnew CreateScriptWindow(this);
+
+		e->Handled = true;
 	}
 
 	delegate void fsChange(Object^ source, System::IO::FileSystemEventArgs^ e);
@@ -1405,7 +1459,11 @@ private:
 	void CreateAssetTreeViewItem(TestContent::Person^ parent, String^ Path){
 		auto dirs = gcnew System::IO::DirectoryInfo(Path);
 
-		auto folders = dirs->EnumerateDirectories()->GetEnumerator();
+		if (!dirs->Exists)return;
+
+		auto direnum = dirs->EnumerateDirectories();
+		auto folders = direnum->GetEnumerator();
+
 		while (folders->MoveNext()){
 			auto item = gcnew TestContent::Person(folders->Current->Name, gcnew TestContent::MyList());
 			item->DataPtr = (IntPtr)NULL;
@@ -1420,7 +1478,9 @@ private:
 				parent->Add(nullitem);
 			}
 		}
-		auto files = dirs->EnumerateFiles()->GetEnumerator();
+
+		auto fileenum = dirs->EnumerateFiles();
+		auto files = fileenum->GetEnumerator();
 		while (files->MoveNext()){
 			auto item = gcnew TestContent::Person(files->Current->Name, gcnew TestContent::MyList());
 			item->DataPtr = (IntPtr)NULL;
@@ -1451,7 +1511,6 @@ private:
 		auto t = (TreeViewItem^)s;
 
 		auto name = GetFilePath((TestContent::Person^)t->DataContext);
-		pin_ptr<const wchar_t> wch = PtrToStringChars(name);
 		std::string* str = string_cast(name);
 		Data::MyPostMessage(MyWindowMessage::OpenAsset, (void*)str);
 

@@ -37,12 +37,6 @@ public:
 	virtual void Update(){
 
 	}
-
-	virtual void CopyData(Component* post, Component* base){
-		(void)post;
-		(void)base;
-	}
-
 	virtual void CreateInspector(){
 
 	}

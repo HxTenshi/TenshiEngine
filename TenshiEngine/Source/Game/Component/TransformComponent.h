@@ -43,6 +43,8 @@ public:
 	virtual void SetParent(Actor* parent) = 0;
 
 	virtual void SetUndo(const XMVECTOR& pos) = 0;
+
+	virtual void AllChildrenDestroy() = 0;
 protected:
 	ITransformComponent(){};
 private:
@@ -82,7 +84,6 @@ public:
 	void AddTorque(const XMVECTOR& force) override;
 
 	const XMMATRIX& GetMatrix() const override;
-	void CopyData(Component* post, Component* base) override;
 	void CreateInspector() override;
 
 	void IO_Data(I_ioHelper* io) override;
@@ -90,7 +91,7 @@ public:
 	void UpdatePhysX(PhysXChangeTransformFlag flag);
 
 	//このゲームオブジェクトより子のオブジェクトを全てデストロイする
-	void AllChildrenDestroy();
+	void AllChildrenDestroy() override;
 	void FlagSetChangeMatrix(PhysXChangeTransformFlag flag);
 	bool IsChangeMatrix(){
 		return !mFixMatrixFlag;

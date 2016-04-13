@@ -35,7 +35,7 @@ picojson::object I_InputHelper::get(const picojson::value& value){
 //テンプレートの特殊化
 #define _DOUBLE(x) \
 template<> \
-void I_OutputHelper::_func(const x& value, const char* name){ \
+void I_OutputHelper::_func_out(const x& value, const char* name){ \
 	o->insert(std::make_pair(name, picojson::value((double)value))); \
 }
 
@@ -47,14 +47,14 @@ _DOUBLE(double)
 #undef _DOUBLE
 
 template<>
-void I_OutputHelper::_func(const std::string& value, const char* name){
+void I_OutputHelper::_func_out(const std::string& value, const char* name){
 	o->insert(std::make_pair(name, picojson::value((std::string)value)));
 }
 template<>
-void I_OutputHelper::_func(const bool& value, const char* name){
+void I_OutputHelper::_func_out(const bool& value, const char* name){
 	o->insert(std::make_pair(name, picojson::value((bool)value)));
 }
 template<>
-void I_OutputHelper::_func(const picojson::object& value, const char* name){
+void I_OutputHelper::_func_out(const picojson::object& value, const char* name){
 	o->insert(std::make_pair(name, picojson::value((picojson::object)value)));
 }

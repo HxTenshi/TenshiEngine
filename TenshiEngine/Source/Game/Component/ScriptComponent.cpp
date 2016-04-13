@@ -25,7 +25,7 @@ void CreateScriptFileExtension(const std::string& classNmae, const std::string& 
 	file.open(srcname, std::ios::in | std::ios::ate);
 
 	std::fstream outFile;
-	auto outfilename = "EngineResource/ScriptTemplate/"+ classNmae + extension;
+	auto outfilename = "ScriptComponent/Scripts/"+ classNmae + extension;
 	outFile.open(outfilename, std::ios::out);
 
 	int length = file.tellg();
@@ -53,13 +53,7 @@ void CreateScriptFileExtension(const std::string& classNmae, const std::string& 
 	delete[] buf;
 }
 
-void CreateScriptFile(const std::string& classNmae){
 
-	CreateScriptFileExtension(classNmae, ".h");
-	CreateScriptFileExtension(classNmae, ".cpp");
-
-
-}
 
 std::string outConsole;
 bool create_cmd_process(HWND hWnd){
@@ -151,27 +145,6 @@ public:
 		mDelete = NULL;
 		mGetReflect = NULL;
 
-
-
-		//static STARTUPINFO si;
-		//si.cb = sizeof(si);
-		//
-		//PROCESS_INFORMATION pi;
-		//
-		//char cmdline[] = "notepad";
-		//BOOL result = CreateProcess(NULL, cmdline, NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
-		//if (result == 0) printf("failed");
-		//else printf("succeeded!");
-		//
-		//CloseHandle(pi.hThread);
-		//CloseHandle(pi.hProcess);
-
-
-
-
-		ReCompile();
-
-		//CreateScriptFile("testdes");
 	}
 	~UseScriptActors(){
 		UnLoad();
@@ -326,8 +299,14 @@ UseScriptActors actors;
 void ScriptManager::ReCompile(){
 	actors.ReCompile();
 }
+void ScriptManager::CreateScriptFile(const std::string& className){
+	CreateScriptFileExtension(className, ".h");
+	CreateScriptFileExtension(className, ".cpp");
+}
 
 ScriptComponent::ScriptComponent(){
+	mEndInitialize = false;
+	mEndStart = false;
 	pDllClass = NULL;
 }
 ScriptComponent::~ScriptComponent(){
@@ -335,6 +314,7 @@ ScriptComponent::~ScriptComponent(){
 void ScriptComponent::Initialize(){
 	Load();
 	actors.mList.push_back(this);
+	mEndInitialize = true;
 	if (pDllClass){
 		pDllClass->Initialize();
 	}
@@ -348,12 +328,17 @@ void ScriptComponent::Load(){
 	if (pDllClass){
 		pDllClass->game = &gSGame;
 		pDllClass->gameObject = gameObject;
+
+		if (mEndInitialize)pDllClass->Initialize();
+		if (mEndStart)pDllClass->Start();
 	}
 }
 void ScriptComponent::Unload(){
 
-	if (pDllClass)
+	if (pDllClass){
+		pDllClass->Finish();
 		actors.Deleter(pDllClass);
+	}
 
 	pDllClass = NULL;
 
@@ -364,6 +349,7 @@ void ScriptComponent::ReCompile(){
 
 }
 void ScriptComponent::Start(){
+	mEndStart = true;
 	if (pDllClass){
 		pDllClass->Start();
 	}
@@ -375,11 +361,11 @@ void ScriptComponent::Update(){
 	}
 }
 void ScriptComponent::Finish(){
-	if (pDllClass){
-		pDllClass->Finish();
-	}
+
 	Unload();
 	actors.mList.remove(this);
+	mEndInitialize = false;
+	mEndStart = false;
 }
 
 void ScriptComponent::OnCollide(Actor* target){
@@ -433,4 +419,11 @@ void ScriptComponent::CreateInspector(){
 	}
 
 	Window::ViewInspector("Script", this, data);
+}
+
+void ScriptComponent::IO_Data(I_ioHelper* io){
+#define _KEY(x) io->func( x , #x)
+	_KEY(mClassName);
+
+#undef _KEY
 }

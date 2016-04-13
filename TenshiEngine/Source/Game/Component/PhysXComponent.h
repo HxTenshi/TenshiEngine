@@ -26,7 +26,6 @@ public:
 
 	void Update() override;
 
-	void CopyData(Component* post, Component* base) override;
 	void CreateInspector() override;
 	void IO_Data(I_ioHelper* io) override;
 	void SetChengeTransform(PhysXChangeTransformFlag flag){

@@ -17,29 +17,14 @@ protected:
 public:
 	virtual ~I_ioHelper(){}
 
-	void pushObject(){
-		objects.push(picojson::object());
-		o = &objects.top();
-	}
-	void pushObject(picojson::object& object){
-		objects.push(object);
-		o = &objects.top();
-	}
-	picojson::object popObject(){
-		auto temp = objects.top();
-		objects.pop();
-		if (!objects.empty())
-			o = &objects.top();
-		else
-			o = NULL;
-		return temp;
-	}
+	virtual void pushObject(const std::string& key){ (void)key; }
+	virtual void popObject(){}
 
 	template<class T>
-	void func(T&& out, const char* name);
+	bool func(T&& out, const char* name, bool compel = false);
 
 protected:
-	std::stack<picojson::object> objects;
+	std::stack<std::pair<std::string,picojson::object>> objects;
 	picojson::object* o;
 	picojson::value json;
 public:
@@ -49,19 +34,38 @@ public:
 
 //ì«Ç›çûÇ›èàóù
 class I_InputHelper : public I_ioHelper{
+
+public:
+	virtual ~I_InputHelper(){
+	}
+
+	void pushObject(const std::string& key) override{
+		picojson::object temp;
+		func(temp, key.c_str());
+		objects.push(std::make_pair(key, temp));
+		o = &objects.top().second;
+
+	}
+	void popObject() override{
+		objects.pop();
+		if (!objects.empty())
+			o = &objects.top().second;
+		else
+			o = NULL;
+	}
+
 protected:
 	I_InputHelper() :I_ioHelper(this, NULL)
 	{
 	}
-	virtual ~I_InputHelper(){
-	}
 
 public:
 	template<class T>
-	void _func(T& out, const char* name){
+	bool _func(T& out, const char* name){
 		auto v = o->find(name);
-		if (v == o->end())return;
+		if (v == o->end())return false;
 		out = get<T>(v->second);
+		return true;
 	}
 private:
 	template<class T>
@@ -79,7 +83,9 @@ public:
 			return;
 		}
 		jsonfile >> json;
-		pushObject(json.get<picojson::object>());
+
+		objects.push(std::make_pair("", json.get<picojson::object>()));
+		o = &objects.top().second;
 	}
 	~FileInputHelper(){
 	}
@@ -91,7 +97,8 @@ class MemoryInputHelper : public I_InputHelper{
 public:
 	MemoryInputHelper(picojson::value& _json) :I_InputHelper()
 	{
-		pushObject(_json.get<picojson::object>());
+		objects.push(std::make_pair("", _json.get<picojson::object>()));
+		o = &objects.top().second;
 	}
 	~MemoryInputHelper(){
 	}
@@ -100,32 +107,69 @@ private:
 
 //èëÇ´çûÇ›èàóù
 class I_OutputHelper : public I_ioHelper{
-protected:
-	I_OutputHelper() :I_ioHelper(NULL, this)
-	{
-	}
+public:
 	virtual ~I_OutputHelper(){
+	}
+
+	void pushObject(const std::string& key) override{
+		objects.push(std::make_pair(key, picojson::object()));
+		o = &objects.top().second;
+
+		if (prefab){
+			prefab->pushObject(key);
+		}
+
+	}
+	void popObject() override{
+		auto temp = objects.top();
+		objects.pop();
+		if (!objects.empty())
+			o = &objects.top().second;
+		else
+			o = NULL;
+
+		func(temp.second, temp.first.c_str());
+
+		if (prefab){
+			prefab->popObject();
+		}
+	}
+protected:
+	I_OutputHelper(I_InputHelper* _prefab) :I_ioHelper(NULL, this), prefab(_prefab)
+	{
 	}
 public:
 	template<class T>
-	void _func(const T& out, const char* name);
+	void _func(const T& out, const char* name, bool compel){
+
+		T temp;
+		if (!compel && prefab && prefab->func(temp, name)){
+			if (temp == out)return;
+		}
+		_func_out(out,name);
+	}
+	template<class T>
+	void _func_out(const T& out, const char* name);
 private:
+
+	I_InputHelper* prefab;
 };
 
 //ÉtÉ@ÉCÉãèëÇ´çûÇ›èàóù
 class FileOutputHelper : public I_OutputHelper{
 public:
-	FileOutputHelper(const std::string& fileName) :I_OutputHelper(), jsonfile(fileName)
+	FileOutputHelper(const std::string& fileName, I_InputHelper* _prefab) :I_OutputHelper(_prefab), jsonfile(fileName)
 	{
 		if (jsonfile.fail()){
 			error = true;
 			return;
 		}
-		pushObject();
+		pushObject("");
+		if (_prefab)_prefab->popObject();
 	}
 	~FileOutputHelper(){
 
-		json = picojson::value(popObject());
+		json = picojson::value(objects.top().second);
 		jsonfile << json;
 	}
 private:
@@ -134,13 +178,14 @@ private:
 //ÉÅÉÇÉäèëÇ´çûÇ›èàóù
 class MemoryOutputHelper : public I_OutputHelper{
 public:
-	MemoryOutputHelper(picojson::value& _json) :I_OutputHelper(), mOut_json(_json)
+	MemoryOutputHelper(picojson::value& _json, I_InputHelper* _prefab) :I_OutputHelper(_prefab), mOut_json(_json)
 	{
-		pushObject();
+		pushObject("");
+		if (_prefab)_prefab->popObject();
 	}
 	~MemoryOutputHelper(){
 
-		mOut_json = picojson::value(popObject());
+		mOut_json = picojson::value(objects.top().second);
 	}
 private:
 	void operator =(const MemoryOutputHelper&);
@@ -150,11 +195,13 @@ private:
 
 
 template<class T>
-void I_ioHelper::func(T&& value, const char* name){
+bool I_ioHelper::func(T&& value, const char* name, bool compel){
 	if (Ic){
-		Ic->_func(value, name);
+		return Ic->_func(value, name);
 	}
 	if (Oc){
-		Oc->_func(value, name);
+		Oc->_func(value, name, compel);
+		return true;
 	}
+	return false;
 }

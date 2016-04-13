@@ -21,6 +21,16 @@ bool DLLInput::Up(KeyCoord key){
 	return InputManager::mKeyCoord[(int)key] == -1;
 }
 
+bool DLLInput::Trigger_Engine(KeyCoord key){
+	return InputManager::mKeyCoordEngine[(int)key] == 1;
+}
+int DLLInput::Down_Engine(KeyCoord key){
+	return InputManager::mKeyCoordEngine[(int)key] >= 0 ? InputManager::mKeyCoordEngine[(int)key] : 0;
+}
+bool DLLInput::Up_Engine(KeyCoord key){
+	return InputManager::mKeyCoordEngine[(int)key] == -1;
+}
+
 bool DLLInput::MTrigger(MouseCoord key){
 	return InputManager::mMouse[(int)key] == 1;
 }

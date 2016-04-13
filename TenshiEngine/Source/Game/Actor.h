@@ -82,13 +82,12 @@ public:
 		return mUniqueID;
 	}
 
-	void CopyData(Actor* post, Actor* base);
-
 	void ExportSceneDataStart(const std::string& pass, File& sceneFile);
 	void ExportSceneData(const std::string& pass, File& sceneFile);
 	void ExportData(const std::string& pass, const std::string& fileName);
 	void ExportData(const std::string& pass);
 	void ImportData(const std::string& fileName);
+	void ImportData(picojson::value& json);
 	bool ImportDataAndNewID(const std::string& fileName);
 
 	void ExportData(picojson::value& json);
@@ -109,8 +108,14 @@ protected:
 
 private:
 
+
+	void _ExportData(I_ioHelper* io);
+	void _ImportData(I_ioHelper* io);
+
 	std::queue<std::function<void()>> mUpdateStageCollQueue;
 	std::string mName;
+
+	std::string mPrefab;
 
 	UINT mUniqueID;
 };

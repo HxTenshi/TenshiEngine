@@ -57,7 +57,8 @@ public:
 	static PhysX3Main* GetPhysX();
 	static void RemovePhysXActor(PxActor* act);
 	static void RemovePhysXActorEngine(PxActor* act);
-
+	static void AllDestroyObject();
+	static void GetAllObject(const std::function<void(Actor*)>& collbak);
 	static Actor* FindActor(Actor* actor);
 	static Actor* FindNameActor(const char* name);
 	static Actor* FindUID(UINT uid);
@@ -94,12 +95,8 @@ private:
 	std::list<Actor*> mTreeViewItem_ErrerClearList;
 	//追加と削除
 	std::queue<std::pair<ActorMove, Actor*>> mActorMoveList;
-	//ゲームプレイ中のリスト
-	std::map<UINT, Actor*> mGamePlayList;
-	//ゲームプレイ前のリスト
+	//ゲームオブジェクトのリスト
 	std::map<UINT, Actor*> mList;
-	//パラメータ保存用
-	std::map<UINT, Actor*> mListBack;
 	std::map<DrawStage, std::list<std::function<void()>>> mDrawList;
 	static Actor* mRootObject;
 	static Actor* mEngineRootObject;

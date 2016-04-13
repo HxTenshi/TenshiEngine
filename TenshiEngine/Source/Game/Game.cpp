@@ -44,6 +44,8 @@ Game::Game(){
 
 	HRESULT hr = S_OK;
 
+	ScriptManager::ReCompile();
+
 	auto coms = ComponentFactory::GetComponents();
 	for (auto& com : coms){
 		auto name = com.first;
@@ -64,6 +66,34 @@ Game::Game(){
 	gCommandManager = &mCommandManager;
 	gMainCamera = &mMainCamera;
 	gIsPlay = mIsPlay;
+
+
+
+	DWORD start = GetTickCount();
+
+	for (int i = 0; i < 1000; i++){
+		volatile auto act = new Actor();
+		delete act;
+
+	}
+
+	DWORD end = GetTickCount();
+	Window::AddLog("new:" + std::to_string(end - start));
+
+	BYTE b[sizeof(Actor) * 1000];
+	start = GetTickCount();
+
+	for (int i = 0; i < 1000; i++){
+#pragma push_macro("new")
+#undef new
+		volatile auto act = new(&b[sizeof(Actor)*i]) Actor();
+		act->~Actor();
+
+#pragma pop_macro("new")
+	}
+
+	end = GetTickCount();
+	Window::AddLog("placement new:"+std::to_string(end - start));
 
 	mRootObject = new Actor();
 	mRootObject->mTransform = mRootObject->AddComponent<TransformComponent>();
@@ -182,7 +212,6 @@ Game::Game(){
 
 	Window::SetWPFCollBack(MyWindowMessage::CreatePrefabToActor, [&](void* p)
 	{
-		//ここらへんで？メモリーリークしてる
 		std::string *s = (std::string*)p;
 		auto a = new Actor();
 		if (!a->ImportDataAndNewID(*s)){
@@ -227,6 +256,15 @@ Game::Game(){
 		ScriptManager::ReCompile();
 		mSelectActor.ReCreateInspector();
 	});
+	Window::SetWPFCollBack(MyWindowMessage::CreateScriptFile, [&](void* p)
+	{
+		std::string *s = (std::string*)p;
+		if (*s != ""){
+			ScriptManager::CreateScriptFile(*s);
+		}
+
+		Window::Deleter(s);
+	});
 	Window::SetWPFCollBack(MyWindowMessage::SaveScene, [&](void* p)
 	{
 		(void)p;
@@ -255,12 +293,16 @@ Game::~Game(){
 	//for (auto& act : mList){
 	//	DestroyObject(act.second);
 	//}
+
+	ActorMoveStage();
 	TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
 	t->AllChildrenDestroy();
-	delete mRootObject;
 
 	TransformComponent* t2 = (TransformComponent*)mEngineRootObject->mTransform.Get();
 	t2->AllChildrenDestroy();
+
+	ActorMoveStage();
+	delete mRootObject;
 	delete mEngineRootObject;
 
 	mSelectActor.Finish();
@@ -284,17 +326,9 @@ void Game::AddObject(Actor* actor){
 
 	gpList->insert(std::pair<UINT, Actor*>(actor->GetUniqueID(), actor));
 	actor->Initialize();
-	actor->Start();
-	if (!gIsPlay)
-	{
-		Window::AddTreeViewItem(actor->Name(), actor);
-		if (!actor->mTransform->GetParent()){
-			actor->mTransform->SetParent(mRootObject);
-		}
-	}
-	else{
-		mGame->mActorMoveList.push(std::make_pair(ActorMove::Create, actor));
-	}
+
+	mGame->mActorMoveList.push(std::make_pair(ActorMove::Create, actor));
+	
 }
 
 //static
@@ -315,35 +349,7 @@ void Game::DestroyObject(Actor* actor){
 	if (!actor)return;
 	auto desnum = gpList->erase(actor->GetUniqueID());
 	if (!desnum)return;
-	if (!gIsPlay){
-		//ツリービューが作成されていれば
-		if (actor->mTreeViewPtr){
-			Window::ClearTreeViewItem(actor->mTreeViewPtr);
-		}
-		//ツリービューが作成される前なら
-		else{
-			//削除リストに追加
-			mGame->mTreeViewItem_ErrerClearList.push_back(actor);
-		}
-		TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
-		t->AllChildrenDestroy();
-		actor->Finish();
-
-		auto ptr = mGame->mSelectActor.GetSelectOne();
-		if (actor == ptr){
-			mGame->mSelectActor.SetSelect(NULL);
-		}
-
-		delete actor;
-	}
-	else{
-		mGame->mActorMoveList.push(std::make_pair(ActorMove::Delete, actor));
-		//Window::ClearTreeViewItem(actor->mTreeViewPtr);
-		//actor->mTreeViewPtr = NULL;
-		//TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
-		//t->AllChildrenDestroy();
-		//actor->Finish();
-	}
+	mGame->mActorMoveList.push(std::make_pair(ActorMove::Delete, actor));
 }
 
 //static
@@ -371,13 +377,13 @@ void Game::ActorMoveStage(){
 			t->AllChildrenDestroy();
 			actor->Finish();
 
-			//ゲームプレイ中に追加されたオブジェクトならデリート
-			if (mGame->mList.find(actor->GetUniqueID()) == mGame->mList.end()){
-				delete actor;
-			}
+			delete actor;
 		}
 		else{
 			Window::AddTreeViewItem(actor->Name(), actor);
+
+			actor->Start();
+
 			if (!actor->mTransform->GetParent()){
 				actor->mTransform->SetParent(mRootObject);
 			}
@@ -448,82 +454,31 @@ RenderTarget Game::GetMainViewRenderTarget(){
 bool Game::IsGamePlay(){
 	return gIsPlay;
 }
+
+
+
 void Game::ChangePlayGame(bool isPlay){
 	if (mIsPlay == isPlay)return;
 
 	mIsPlay = isPlay;
 	gIsPlay = mIsPlay;
 	if (isPlay){
-		for (auto& act : mList){
-			auto postactor = new Actor();
-			mListBack[act.first] = postactor;
 
-			postactor->CopyData(postactor, act.second);
-		}
-		mGamePlayList = mList;
-		gpList = &mGamePlayList;
-		for (auto& act : mGamePlayList){
-			act.second->Finish();
-		}
+		m_Scene.MemorySaveScene();
+
+		//for (auto& act : *gpList){
+		//	act.second->Start();
+		//}
 	}
 	else{
 
-		for (auto& act : *gpList){
-			act.second->Finish();
-		}
-		//戻すデータ一覧
-		for (auto& act : mListBack){
-			//戻す対象
-			auto postactor = mList[act.first];
+		mSelectActor.SetSelect(NULL);
 
-			postactor->CopyData(postactor, act.second);
-			//親子関係を解除しないとデストラクタで子が消される
-			//act.second->GetComponent<TransformComponent>()->mParent = NULL;
+		AllDestroyObject();
 
-			//親子関係が構築されていないので手動で構築
-			//if (!postactor->mTransform->GetParent()){
-			//	postactor->mTransform->SetParent(mRootObject);
-			//}
-			//else{
-			//postactor->GetComponent<TransformComponent>()->SetParent(postactor->GetComponent<TransformComponent>()->GetParent());
-			//}
-
-			//ゲームシーンで削除されていれば
-			if (mGamePlayList.find(act.first) == mGamePlayList.end()){
-				Window::AddTreeViewItem(postactor->Name(), postactor);	
-			}
-			//終わったアクターを削除
-			mGamePlayList.erase(act.first);
-
-			//ツリービュー再構築
-			if (auto par = postactor->GetComponent<TransformComponent>()->GetParent())
-				if (par->mTreeViewPtr&&postactor->mTreeViewPtr)
-					Window::SetParentTreeViewItem(par->mTreeViewPtr, postactor->mTreeViewPtr);
-		}
-
-		//残ったアクターは新しく追加されたアクター
-		while (!mGamePlayList.empty()){
-			auto ite = mGamePlayList.begin();
-			auto& addact = *ite;
-			DestroyObject(addact.second);
-		}
-
-		//親子を解除してから削除
-		for (auto& act : mListBack){
-			delete act.second;
-		}
-		mListBack.clear();
-
-		mGamePlayList.clear();
-		gpList = &mList;
+		m_Scene.MemoryLoadScene();
 	}
 
-	for (auto& act : *gpList){
-		act.second->Initialize();
-	}
-	for (auto& act : *gpList){
-		act.second->Start();
-	}
 }
 
 bool g_DebugRender = true;
@@ -618,10 +573,6 @@ void Game::Draw(){
 
 	SetMainCamera(NULL);
 
-	if (mIsPlay){
-		ActorMoveStage();
-	}
-
 }
 
 
@@ -651,6 +602,9 @@ float Game::GetDeltaTime(){
 }
 
 void Game::Update(){
+
+	ActorMoveStage();
+
 	if (mIsPlay){
 		GamePlay();
 	}
@@ -714,5 +668,18 @@ void Game::PlayDrawList(DrawStage Stage){
 	auto &list = mDrawList[Stage];
 	for (auto &p : list){
 		p();
+	}
+}
+
+void Game::AllDestroyObject(){
+	TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
+	t->AllChildrenDestroy();
+}
+
+
+void Game::GetAllObject(const std::function<void(Actor*)>& collbak){
+
+	for (auto& actpair : *gpList){
+		collbak(actpair.second);
 	}
 }

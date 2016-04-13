@@ -23,6 +23,11 @@ public:
 	CLASS_DECLSPEC static int Down(KeyCoord key);
 	CLASS_DECLSPEC static bool Up(KeyCoord key);
 
+
+	CLASS_DECLSPEC static bool Trigger_Engine(KeyCoord key);
+	CLASS_DECLSPEC static int Down_Engine(KeyCoord key);
+	CLASS_DECLSPEC static bool Up_Engine(KeyCoord key);
+
 	CLASS_DECLSPEC static bool MTrigger(MouseCoord key);
 	CLASS_DECLSPEC static int MDown(MouseCoord key);
 	CLASS_DECLSPEC static bool MUp(MouseCoord key);
@@ -55,6 +60,7 @@ public:
 
 private:
 	static int mKeyCoord[(int)KeyCoord::Count];
+	static int mKeyCoordEngine[(int)KeyCoord::Count];
 	static bool mMouseBool[(int)MouseCoord::Count];
 	static int mMouse[(int)MouseCoord::Count];
 	static int mMouseX, mMouseY;

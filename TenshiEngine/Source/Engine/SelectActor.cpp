@@ -455,7 +455,7 @@ void SelectActor::SetSelect(Actor* select){
 	if (!Game::FindActor(select)){
 		select = NULL;
 	}
-	if (Input::Down(KeyCoord::Key_LCONTROL)){
+	if (EngineInput::Down(KeyCoord::Key_LCONTROL)){
 		mSelects.TriggerSelect(select);
 	}
 	else{

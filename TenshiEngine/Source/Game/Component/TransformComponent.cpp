@@ -130,6 +130,7 @@ void TransformComponent::AllChildrenDestroy(){
 		//親と子が同時に死ぬとエラーが出る
 		child->mTransform->SetParent(NULL);
 		Game::DestroyObject(child);
+		child->mTransform->AllChildrenDestroy();
 	}
 }
 
@@ -160,17 +161,6 @@ void TransformComponent::SetUndo(const XMVECTOR& pos){
 	}
 }
 
-void TransformComponent::CopyData(Component* post, Component* base){
-	auto Post = (TransformComponent*)post;
-	auto Base = (TransformComponent*)base;
-
-	//Post->mChildren.clear();
-	Post->mPosition = Base->mPosition;
-	Post->mRotate = Base->mRotate;
-	Post->mScale = Base->mScale;
-	Post->mParent = Base->mParent;
-	Post->FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
-}
 
 void TransformComponent::CreateInspector(){
 

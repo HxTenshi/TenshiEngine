@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "MySTL/Utility.h"
 #include "MySTL/File.h"
+#include "Library/picojson.h"
 
 #include "Game.h"
 
@@ -9,7 +10,10 @@ Scene::Scene(){
 
 }
 Scene::~Scene(){
-
+	for (auto act : mMemorySave){
+		delete act;
+	}
+	mMemorySave.clear();
 }
 
 void Scene::LoadScene(const std::string& fileName){
@@ -38,4 +42,24 @@ void Scene::SaveScene(Actor* SceneRoot){
 	scenefile.Clear();
 
 	SceneRoot->ExportSceneDataStart("./Scenes/" + m_Name, scenefile);
+}
+
+void Scene::MemoryLoadScene(){
+	for (auto& act : mMemorySave){
+		auto postactor = new Actor();
+		postactor->ImportData(*act);
+		Game::AddObject(postactor);
+	}
+}
+
+void Scene::MemorySaveScene(){
+	for (auto act : mMemorySave){
+		delete act;
+	}
+	mMemorySave.clear();
+	Game::GetAllObject([&](Actor* act){
+		auto data = new picojson::value();
+		act->ExportData(*data);
+		mMemorySave.push_back(data);
+	});
 }

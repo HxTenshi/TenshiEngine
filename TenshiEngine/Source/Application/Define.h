@@ -12,6 +12,8 @@ enum class MyWindowMessage{
 
 	OpenAsset,
 
+	CreateScriptFile,
+
 	PlayGame,
 	StopGame,
 	CreatePMXtoTEStaticMesh,

@@ -6,6 +6,7 @@
 
 //static
 int InputManager::mKeyCoord[(int)KeyCoord::Count];
+int InputManager::mKeyCoordEngine[(int)KeyCoord::Count];
 bool InputManager::mMouseBool[(int)MouseCoord::Count];
 int InputManager::mMouse[(int)MouseCoord::Count];
 int InputManager::mMouseX;
@@ -32,6 +33,7 @@ void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
 	}
 	for (int i = 0; i < (int)KeyCoord::Count; i++){
 		mKeyCoord[i] = 0;
+		mKeyCoordEngine[i] = 0;
 	}
 
 	//LPDIRECTINPUTDEVICE8	pDIJoypad = NULL;			// ジョイパッドデバイス
@@ -102,13 +104,22 @@ void InputManager::Update(bool TargetFocus){
 
 		if (diKeyState[i] && TargetFocus){
 			mKeyCoord[i]++;
-			diKeyState[i] = 0;
 		}
 		else if (mKeyCoord[i]>0){
 			mKeyCoord[i] = -1;
 		}
 		else{
 			mKeyCoord[i] = 0;
+		}
+		if (diKeyState[i]){
+			mKeyCoordEngine[i]++;
+			diKeyState[i] = 0;
+		}
+		else if (mKeyCoordEngine[i]>0){
+			mKeyCoordEngine[i] = -1;
+		}
+		else{
+			mKeyCoordEngine[i] = 0;
 		}
 	}
 }

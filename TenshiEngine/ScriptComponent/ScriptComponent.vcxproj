@@ -83,11 +83,13 @@
     <ClCompile Include="Reflection\ReflectionSetter.cpp" />
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="Scripts\PlayerScript.cpp" />
+    <ClCompile Include="Scripts\tefcdsavrbgsdv.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Reflection\ReflectionSetter.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="Scripts\PlayerScript.h" />
+    <ClInclude Include="Scripts\tefcdsavrbgsdv.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dll.def" />

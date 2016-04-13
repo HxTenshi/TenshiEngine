@@ -20,18 +20,17 @@ public:
 
 	void CreateInspector() override;
 
-	void IO_Data(I_ioHelper* io) override{
-#define _KEY(x) io->func( x , #x)
-		_KEY(mClassName);
-
-#undef _KEY
-	}
+	void IO_Data(I_ioHelper* io) override;
 	IDllScriptComponent* pDllClass;
 	std::string mClassName;
+private:
+	bool mEndInitialize;
+	bool mEndStart;
 };
 
 
 class ScriptManager{
 public:
 	static void ReCompile();
+	static void CreateScriptFile(const std::string& className);
 };

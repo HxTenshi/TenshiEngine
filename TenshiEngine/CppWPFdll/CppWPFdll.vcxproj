@@ -118,6 +118,7 @@
   <ItemGroup>
     <Page Include="WindowXAML\CommandBar.xaml" />
     <Page Include="WindowXAML\Component.xaml" />
+    <Page Include="WindowXAML\CreateTextBox.xaml" />
     <Page Include="WindowXAML\InspectorCheckBox.xaml" />
     <Page Include="WindowXAML\InspectorColor.xaml" />
     <Page Include="WindowXAML\InspectorFloat.xaml" />
