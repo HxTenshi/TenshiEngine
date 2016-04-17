@@ -160,6 +160,7 @@ std::list<Actor*>& Selects::GetSelects(){
 
 SelectActor::SelectActor()
 {
+	mSelectAsset = false;
 	mDragBox = -1;
 
 	mVectorBox = NULL;
@@ -265,7 +266,7 @@ void SelectActor::Update(float deltaTime){
 	//	}
 	//}
 
-	if (!mSelects.SelectNum())return;
+	if (!mSelects.SelectNum() || mSelectAsset)return;
 
 	if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_C)){
 		mSelects.Copy();
@@ -328,6 +329,9 @@ void SelectActor::Update(float deltaTime){
 	SelectActorDraw();
 }
 void SelectActor::SelectActorDraw(){
+
+	if (mSelectAsset)return;
+
 	for (auto select : mSelects.GetSelects()){
 		Game::AddDrawList(DrawStage::Engine, std::function<void()>([&, select](){
 			if (!select)return;
@@ -451,6 +455,11 @@ void SelectActor::SelectActorDraw(){
 void SelectActor::SetSelect(Actor* select){
 	mDragBox = -1;
 
+	if (mSelectAsset){
+		mSelects.OneSelect(NULL);
+	}
+	mSelectAsset = false;
+
 	//‘¶Ý‚µ‚È‚¯‚ê‚ÎNULL
 	if (!Game::FindActor(select)){
 		select = NULL;
@@ -465,6 +474,26 @@ void SelectActor::SetSelect(Actor* select){
 	Window::ClearInspector();
 	if (mSelects.SelectNum() == 1)mSelects.GetSelectOne()->CreateInspector();
 }
+void SelectActor::SetSelectAsset(Actor* select,const char* filename){
+	mDragBox = -1;
+	if (!mSelectAsset){
+		mSelects.OneSelect(NULL);
+	}
+	mSelectAsset = true;
+	
+
+	if (EngineInput::Down(KeyCoord::Key_LCONTROL)){
+		mSelects.TriggerSelect(select);
+	}
+	else{
+		mSelects.OneSelect(select);
+	}
+
+	Window::ClearInspector();
+	if (mSelects.SelectNum() == 1){
+		AssetDataBase::CreateInspector(filename);
+	}
+}
 
 void SelectActor::ReCreateInspector(){
 	Window::ClearInspector();
@@ -474,7 +503,7 @@ void SelectActor::ReCreateInspector(){
 
 bool SelectActor::ChackHitRay(PhysX3Main* physx, EditorCamera* camera){
 
-	if (!mSelects.SelectNum())return false;
+	if (!mSelects.SelectNum() || mSelectAsset)return false;
 
 	int x, y;
 	Input::MousePosition(&x, &y);

@@ -407,6 +407,7 @@
     <ClCompile Include="Source\Engine\AssetFile\Bone\BoneFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshBufferData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshFileData.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\Prefab\PrefabFileData.cpp" />
     <ClCompile Include="Source\Engine\SelectActor.cpp" />
     <ClCompile Include="Source\Engine\WorldGrid.cpp" />
     <ClCompile Include="Source\Game\Actor.cpp" />
@@ -472,9 +473,11 @@
     <ClInclude Include="Source\Device\DirectX11Device.h" />
     <CLInclude Include="Resource\resource.h" />
     <ClInclude Include="Source\Engine\AssetDataBase.h" />
+    <ClInclude Include="Source\Engine\AssetFile\AssetFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Bone\BoneFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Mesh\MeshBufferData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Mesh\MeshFileData.h" />
+    <ClInclude Include="Source\Engine\AssetFile\Prefab\PrefabFileData.h" />
     <ClInclude Include="Source\Engine\AssetLoader.h" />
     <ClInclude Include="Source\Engine\ICommand.h" />
     <ClInclude Include="Source\Engine\SelectActor.h" />

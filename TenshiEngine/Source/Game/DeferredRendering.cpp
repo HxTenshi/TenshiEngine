@@ -4,7 +4,7 @@
 
 
 //static
-XMVECTOR CascadeShadow::mLightVect;
+XMVECTOR CascadeShadow::mLightVect = XMVectorSet(0,-1,0,1);
 
 CascadeShadow::CascadeShadow(){
 	auto w = WindowState::mWidth;

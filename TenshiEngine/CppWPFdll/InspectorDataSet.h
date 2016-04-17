@@ -16,6 +16,7 @@ enum class InspectorDataFormat{
 	Int,
 	SlideBar,
 	Color,
+	Button,
 	Count,
 };
 struct InspectorDataSet{
@@ -120,3 +121,10 @@ private:
 	InspectorColorDataSet& operator =(const InspectorColorDataSet&);
 };
 
+struct InspectorButtonDataSet{
+	InspectorButtonDataSet(std::string t, std::function<void()> collback) :Text(t), collBack(collback){}
+	const std::string Text;
+	std::function<void()> collBack;
+private:
+	InspectorButtonDataSet& operator =(const InspectorButtonDataSet&);
+};

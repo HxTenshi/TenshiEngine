@@ -55,6 +55,7 @@ void CameraScript::Start(){
 }
 void CameraScript::Update(){
 
+
 	if (Input::Down(KeyCoord::Key_Q)){
 		mRotateY -= 0.05f;
 	}

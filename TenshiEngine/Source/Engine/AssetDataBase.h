@@ -4,6 +4,7 @@
 
 enum class AssetFileType{
 	None,
+	Prefab,
 	Temesh,
 	Tebone,
 	Vmd,
@@ -18,8 +19,14 @@ public:
 		:m_AssetFileType(type){
 
 	}
+	virtual ~AssetData(){}
+	virtual void CreateInspector(){}
+	virtual void FileUpdate(const char* filename) = 0;
 
 	const AssetFileType m_AssetFileType;
+
+	static const AssetFileType _AssetFileType = AssetFileType::None;
+
 
 protected:
 	void* m_Data;
@@ -45,6 +52,7 @@ protected:
 	AssetFactory();
 };
 
+#include "Window/Window.h"
 class AssetDataBase{
 public:
 	
@@ -56,16 +64,43 @@ public:
 		if (file == m_AssetCache.end()){
 
 			data = AssetFactory::Create(filename);
-			m_AssetCache.insert(std::make_pair(filename, data));
+			if (data){
+				m_AssetCache.insert(std::make_pair(filename, data));
+			}
 		}
 		else{
 			data = file->second;
 		}
 		
-		if (data && T::_AssetFileType == data->m_AssetFileType){
+		if (data && 
+			(T::_AssetFileType == data->m_AssetFileType) ||
+			T::_AssetFileType == AssetFileType::None){
 			out = data;
 		}
 	}
+
+	static void FileUpdate(const char* filename){
+
+		auto file = m_AssetCache.find(filename);
+		if (file != m_AssetCache.end()){
+
+			file->second->FileUpdate(filename);
+		}
+		else{
+			shared_ptr<AssetData> temp;
+			Instance(filename,temp);
+		}
+	}
+
+	static void CreateInspector(const char* filename){
+
+		shared_ptr<AssetData> data;
+		Instance(filename, data);
+		if (data){
+			data->CreateInspector();
+		}
+	}
+
 
 private:
 
@@ -80,9 +115,10 @@ private:
 
 class MeshAssetData : public AssetData{
 public:
-	~MeshAssetData();
+	virtual ~MeshAssetData();
 
 	static AssetDataPtr MeshAssetData::Create(const char* filename);
+	void FileUpdate(const char* filename)override;
 
 	const MeshFileData& GetFileData() const;
 	const MeshBufferData& GetBufferData() const;
@@ -110,9 +146,10 @@ using MeshAssetDataPtr = shared_ptr < MeshAssetData >;
 
 class BoneAssetData : public AssetData{
 public:
-	~BoneAssetData();
+	virtual ~BoneAssetData();
 
 	static AssetDataPtr BoneAssetData::Create(const char* filename);
+	void FileUpdate(const char* filename)override;
 
 	const BoneFileData& GetFileData() const;
 
@@ -132,3 +169,35 @@ private:
 };
 
 using BoneAssetDataPtr = shared_ptr < BoneAssetData >;
+
+
+#include "AssetFile/Prefab/PrefabFileData.h"
+
+class PrefabAssetData : public AssetData{
+public:
+	virtual ~PrefabAssetData();
+
+	static AssetDataPtr PrefabAssetData::Create(const char* filename);
+
+	void FileUpdate(const char* filename)override;
+
+	const PrefabFileData& GetFileData() const;
+
+	void CreateInspector() override;
+
+	static const AssetFileType _AssetFileType = AssetFileType::Prefab;
+
+private:
+
+	PrefabAssetData();
+
+
+	//コピー禁止
+	PrefabAssetData(const PrefabAssetData&) = delete;
+	PrefabAssetData& operator=(const PrefabAssetData&) = delete;
+
+	PrefabFileData	m_PrefabFileData;		// ファイルを読み込んだデータ
+
+};
+
+using PrefabAssetDataPtr = shared_ptr < PrefabAssetData >;

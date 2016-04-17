@@ -318,3 +318,46 @@ public:
 //
 //	}
 //};
+
+
+class CallBackDataModel{
+public:
+	CallBackDataModel(std::function<void()> collback)
+		: m_collback(collback){
+	}
+	~CallBackDataModel(){
+	}
+
+	void Call(System::Object ^sender, System::Windows::RoutedEventArgs ^e) {
+		auto coll = new std::function<void()>();
+		*coll = [=](){ m_collback(); delete coll; };
+		Data::MyPostMessage(MyWindowMessage::ChangeParamComponent, coll);
+		e->Handled = true;
+	}
+
+private:
+	std::function<void()> m_collback;
+};
+ref class CallBackViewModel{
+public:
+
+	CallBackViewModel(std::function<void()> collback)
+		: _dataModel(new CallBackDataModel(collback))
+	{
+	}
+
+	virtual ~CallBackViewModel() {
+		this->!CallBackViewModel();
+	}
+
+	!CallBackViewModel() {
+		delete _dataModel;
+	}
+
+	void Call(System::Object ^sender, System::Windows::RoutedEventArgs ^e) {
+		_dataModel->Call(sender, e);
+	}
+
+protected:
+	CallBackDataModel *_dataModel;
+};

@@ -13,6 +13,7 @@ MeshBufferData::~MeshBufferData(){
 }
 
 void MeshBufferData::Create(const MeshFileData* meshfile){
+	m_Meshs.clear();
 	//共有初期データの準備
 	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));

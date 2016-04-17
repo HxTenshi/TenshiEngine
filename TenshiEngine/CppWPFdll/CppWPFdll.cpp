@@ -23,10 +23,13 @@
 
 
 #include "MainWindow.h"
+void OnSelected(System::Object ^sender, System::Windows::RoutedEventArgs ^e);
+void OnClick(System::Object ^sender, System::Windows::RoutedEventArgs ^e);
 static ref class ViewData{
 public:
 	static View^ window;
 };
+
 
 
 void CreateInspectorTextBlock(DockPanel^ dockPanel, String ^text){
@@ -106,6 +109,28 @@ void CreateInspectorColor(DockPanel^ dockPanel, String^ text, float* pr, FloatCo
 
 	BindingInspector<float>((System::Windows::Shapes::Rectangle^)com->FindName("Value"), pr, collbackR, pg, collbackG, pb, collbackB, pa, collbackA);
 }
+
+void CreateInspectorButton(DockPanel^ dockPanel, String^ text, std::function<void()> callBack){
+
+	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_BUTTON);
+	dockPanel->Children->Add(com);
+	DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
+	auto tb = (Button^)com->FindName("TargetButton");
+	if (tb){
+		tb->Content = text;
+
+		auto vm = gcnew CallBackViewModel(callBack);
+		tb->DataContext = vm;
+		tb->Click += gcnew System::Windows::RoutedEventHandler(vm, &CallBackViewModel::Call);
+	}
+
+}
+
+void OnClick(System::Object ^sender, System::Windows::RoutedEventArgs ^e)
+{
+	throw gcnew System::NotImplementedException();
+}
+
 
 ref class InspectorLabel : public InspectorData{
 public:
@@ -233,6 +258,22 @@ private:
 	InspectorColorDataSet *m_data;
 };
 
+ref class InspectorButton : public InspectorData{
+public:
+	InspectorButton(InspectorButtonDataSet* data)
+		: m_data(data){
+	}
+	~InspectorButton(){
+		this->!InspectorButton();
+	}
+	!InspectorButton(){
+		delete m_data;
+	}
+
+	void CreateInspector(DockPanel^ dockPanel) override;
+private:
+	InspectorButtonDataSet *m_data;
+};
 
 void InspectorLabel::CreateInspector(DockPanel^ dockPanel){
 	CreateInspectorTextBlock(dockPanel, Text);
@@ -251,7 +292,9 @@ void InspectorVector2::CreateInspector(DockPanel^ dockPanel) {
 void InspectorColor::CreateInspector(DockPanel^ dockPanel) {
 	CreateInspectorColor(dockPanel, gcnew String(m_data->Text.c_str()), m_data->datar, m_data->collbackR, m_data->datag, m_data->collbackG, m_data->datab, m_data->collbackB, m_data->dataa, m_data->collbackA);
 }
-
+void InspectorButton::CreateInspector(DockPanel^ dockPanel){
+	CreateInspectorButton(dockPanel, gcnew String(m_data->Text.c_str()), m_data->collBack);
+}
 
 HWND Data::mhWnd = NULL;
 void Data::MyPostMessage(MyWindowMessage wm, void* p){
@@ -357,6 +400,9 @@ namespace Test {
 				}
 				if (d.format == InspectorDataFormat::Color){
 					a[i] = gcnew InspectorColor((InspectorColorDataSet*)d.data);
+				}
+				if (d.format == InspectorDataFormat::Button){
+					a[i] = gcnew InspectorButton((InspectorButtonDataSet*)d.data);
 				}
 				i++;
 			}

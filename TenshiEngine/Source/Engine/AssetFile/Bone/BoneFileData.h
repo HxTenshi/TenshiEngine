@@ -5,8 +5,9 @@
 
 #include "Graphic/model/ModelStructs.h"
 #include "Engine/AssetLoader.h"
+#include "../AssetFileData.h"
 
-class BoneFileData{
+class BoneFileData : public AssetFileData{
 public:
 	BoneFileData();
 	~BoneFileData();

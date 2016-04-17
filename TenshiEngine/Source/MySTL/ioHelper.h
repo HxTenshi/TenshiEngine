@@ -45,6 +45,10 @@ public:
 		objects.push(std::make_pair(key, temp));
 		o = &objects.top().second;
 
+		if (prefab){
+			prefab->pushObject(key);
+		}
+
 	}
 	void popObject() override{
 		objects.pop();
@@ -52,10 +56,14 @@ public:
 			o = &objects.top().second;
 		else
 			o = NULL;
+
+		if (prefab){
+			prefab->popObject();
+		}
 	}
 
 protected:
-	I_InputHelper() :I_ioHelper(this, NULL)
+	I_InputHelper(I_InputHelper* _prefab) :I_ioHelper(this, NULL), prefab(_prefab)
 	{
 	}
 
@@ -64,6 +72,14 @@ public:
 	bool _func(T& out, const char* name){
 		auto v = o->find(name);
 		if (v == o->end())return false;
+
+		T temp;
+		if (prefab){
+			if (!prefab->func(temp, name)){
+				return false;
+			}
+		}
+
 		out = get<T>(v->second);
 		return true;
 	}
@@ -72,11 +88,13 @@ private:
 	T get(const picojson::value& value);
 
 private:
+
+	I_InputHelper* prefab;
 };
 //ファイル読み込み処理
 class FileInputHelper : public I_InputHelper{
 public:
-	FileInputHelper(const std::string& fileName) :I_InputHelper(), jsonfile(fileName)
+	FileInputHelper(const std::string& fileName, I_InputHelper* _prefab) :I_InputHelper(_prefab), jsonfile(fileName)
 	{
 		if (jsonfile.fail()){
 			error = true;
@@ -95,8 +113,9 @@ private:
 //メモリ読み込み処理
 class MemoryInputHelper : public I_InputHelper{
 public:
-	MemoryInputHelper(picojson::value& _json) :I_InputHelper()
+	MemoryInputHelper(picojson::value& _json, I_InputHelper* _prefab) :I_InputHelper(_prefab)
 	{
+		json = _json;
 		objects.push(std::make_pair("", _json.get<picojson::object>()));
 		o = &objects.top().second;
 	}
@@ -135,7 +154,7 @@ public:
 		}
 	}
 protected:
-	I_OutputHelper(I_InputHelper* _prefab) :I_ioHelper(NULL, this), prefab(_prefab)
+	I_OutputHelper(I_InputHelper* _prefab, bool OutputFilterRebirth = false) :I_ioHelper(NULL, this), prefab(_prefab), mOutputFilterRebirth(OutputFilterRebirth)
 	{
 	}
 public:
@@ -143,8 +162,16 @@ public:
 	void _func(const T& out, const char* name, bool compel){
 
 		T temp;
-		if (!compel && prefab && prefab->func(temp, name)){
-			if (temp == out)return;
+		if (mOutputFilterRebirth){
+			if (compel)return;
+			if (prefab && prefab->func(temp, name)){
+				if (temp != out)return;
+			}
+		}
+		else{
+			if (!compel && prefab && prefab->func(temp, name)){
+				if (temp == out)return;
+			}
 		}
 		_func_out(out,name);
 	}
@@ -153,6 +180,8 @@ public:
 private:
 
 	I_InputHelper* prefab;
+
+	bool mOutputFilterRebirth;
 };
 
 //ファイル書き込み処理
@@ -178,7 +207,7 @@ private:
 //メモリ書き込み処理
 class MemoryOutputHelper : public I_OutputHelper{
 public:
-	MemoryOutputHelper(picojson::value& _json, I_InputHelper* _prefab) :I_OutputHelper(_prefab), mOut_json(_json)
+	MemoryOutputHelper(picojson::value& _json, I_InputHelper* _prefab, bool OutputFilterRebirth = false) :I_OutputHelper(_prefab, OutputFilterRebirth), mOut_json(_json)
 	{
 		pushObject("");
 		if (_prefab)_prefab->popObject();

@@ -7,6 +7,7 @@
 #include "Game/Component/ComponentList.h"
 class ITransformComponent;
 class File;
+class PrefabAssetData;
 //PhysXテスト用
 namespace physx{
 	class PxTransform;
@@ -78,9 +79,14 @@ public:
 	std::string Name(){return mName;}
 	void Name(std::string name){mName = name;}
 
+
+	std::string Prefab(){ return mPrefab; }
+
 	UINT GetUniqueID(){
 		return mUniqueID;
 	}
+
+	void PastePrefabParam(picojson::value& json);
 
 	void ExportSceneDataStart(const std::string& pass, File& sceneFile);
 	void ExportSceneData(const std::string& pass, File& sceneFile);
@@ -116,6 +122,7 @@ private:
 	std::string mName;
 
 	std::string mPrefab;
+	shared_ptr<PrefabAssetData> mPrefabAsset;
 
 	UINT mUniqueID;
 };

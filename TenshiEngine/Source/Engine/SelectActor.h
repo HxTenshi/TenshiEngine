@@ -45,6 +45,7 @@ public:
 	void Initialize();
 
 	void SetSelect(Actor* select);
+	void SetSelectAsset(Actor* select, const char* filename);
 	Actor* GetSelectOne();
 
 	void UpdateInspector();
@@ -57,6 +58,7 @@ public:
 private:
 
 	Selects mSelects;
+	bool mSelectAsset;
 	Actor* mVectorBox;
 
 	int mDragBox;

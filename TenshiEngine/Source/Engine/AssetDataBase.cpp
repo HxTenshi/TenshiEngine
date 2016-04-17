@@ -15,7 +15,8 @@ static __AssetFactory factory;
 AssetFactory::AssetFactory(){
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataPtr(const char*)>>(std::string("tesmesh"), [](const char* filename){ return MeshAssetData::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataPtr(const char*)>>(std::string("tedmesh"), [](const char* filename){ return MeshAssetData::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string,std::function<AssetDataPtr(const char*)>>(std::string("tebone"), [](const char* filename){ return BoneAssetData::Create(filename); }));
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataPtr(const char*)>>(std::string("tebone"), [](const char* filename){ return BoneAssetData::Create(filename); }));
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataPtr(const char*)>>(std::string("json"), [](const char* filename){ return PrefabAssetData::Create(filename); }));
 }
 //static
 AssetDataPtr AssetFactory::Create(const char* filename){
@@ -85,6 +86,11 @@ AssetDataPtr MeshAssetData::Create(const char* filename)
 
 	return temp;
 }
+void MeshAssetData::FileUpdate(const char* filename)
+{
+	m_MeshFileData.Create(filename);
+	m_MeshBufferData.Create(&m_MeshFileData);
+}
 
 const MeshFileData& MeshAssetData::GetFileData() const{
 	return m_MeshFileData;
@@ -126,6 +132,69 @@ AssetDataPtr BoneAssetData::Create(const char* filename)
 	return temp;
 }
 
+void BoneAssetData::FileUpdate(const char* filename)
+{
+	m_BoneFileData.Create(filename);
+}
+
+
 const BoneFileData& BoneAssetData::GetFileData() const{
 	return m_BoneFileData;
 }
+
+
+
+PrefabAssetData::PrefabAssetData()
+	:AssetData(_AssetFileType)
+{
+}
+PrefabAssetData::~PrefabAssetData()
+{
+}
+
+
+//static
+AssetDataPtr PrefabAssetData::Create(const char* filename)
+{
+
+	struct PrivateFactory : public  PrefabAssetData{
+		PrivateFactory() : PrefabAssetData(){}
+	};
+	auto temp = make_shared<PrivateFactory>();
+
+	temp->m_PrefabFileData.Create(filename);
+
+	return temp;
+}
+void PrefabAssetData::FileUpdate(const char* filename)
+{
+	m_PrefabFileData.FileUpdate(filename);
+}
+
+const PrefabFileData& PrefabAssetData::GetFileData() const{
+	return m_PrefabFileData;
+}
+
+#include "Game/Game.h"
+#include "Game/Actor.h"
+void PrefabAssetData::CreateInspector(){
+	m_PrefabFileData.GetActor()->CreateInspector();
+
+	auto data = Window::CreateInspector();
+	std::function<void()> collback = [&](){
+		auto before = m_PrefabFileData.Apply();
+
+		Game::GetAllObject([&](Actor* tar){
+			auto str = tar->Prefab();
+			if (m_PrefabFileData.GetFileName() == str){
+
+				tar->PastePrefabParam(before);
+
+			}
+		});
+	};
+	Window::AddInspector(new InspectorButtonDataSet("Apply", collback), data);
+
+	Window::ViewInspector("Prefab", NULL, data);
+}
+

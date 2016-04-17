@@ -3,11 +3,12 @@
 #include <vector>
 
 #include "MySTL/Release_self.h"
+#include "../AssetFileData.h"
 
 class MeshFileData;
 
 
-class MeshBufferData{
+class MeshBufferData : public AssetFileData{
 
 public:
 	MeshBufferData();

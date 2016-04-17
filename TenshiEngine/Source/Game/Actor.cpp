@@ -110,6 +110,7 @@ void Actor::CreateInspector(){
 	};
 	std::function<void(std::string)> collbackpre = [&](std::string name){
 		mPrefab = name;
+		AssetDataBase::Instance(mPrefab.c_str(), mPrefabAsset);
 	};
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Name", &mName, collback), data);
@@ -135,20 +136,21 @@ void Actor::ExportSceneData(const std::string& pass, File& sceneFile){
 
 void Actor::ExportData(const std::string& path, const std::string& fileName){
 
-	I_InputHelper* prefab_io = NULL;
-	if (mPrefab != "" && path != "Assets"){
-		prefab_io = new FileInputHelper(mPrefab);
-		if (prefab_io->error){
-			delete prefab_io;
-		}
+	shared_ptr<I_InputHelper> prefab_io(NULL);
+	if (mPrefabAsset && path != "Assets"){
+		auto& d = mPrefabAsset->GetFileData();
+		prefab_io = d.GetData();
+		//prefab_io = new FileInputHelper(mPrefab);
+		//if (prefab_io->error){
+		//	delete prefab_io;
+		//}
 	}
 
-	I_ioHelper* io = new FileOutputHelper(path + "/" + fileName + ".json", prefab_io);
+	I_ioHelper* io = new FileOutputHelper(path + "/" + fileName + ".json", prefab_io.Get());
 
 	_ExportData(io);
 
 
-	if (prefab_io)delete prefab_io;
 	delete io;
 }
 void Actor::ExportData(const std::string& path){
@@ -161,21 +163,17 @@ void Actor::ExportData(const std::string& path){
 
 void Actor::ExportData(picojson::value& json){
 
-	I_InputHelper* prefab_io = NULL;
-	if (mPrefab != ""){
-		prefab_io = new FileInputHelper(mPrefab);
-		if (prefab_io->error){
-			delete prefab_io;
-		}
+	shared_ptr<I_InputHelper> prefab_io(NULL);
+	if (mPrefabAsset){
+		auto& d = mPrefabAsset->GetFileData();
+		prefab_io = d.GetData();
 	}
 
 
-
-	I_ioHelper* io = new MemoryOutputHelper(json, prefab_io);
+	I_ioHelper* io = new MemoryOutputHelper(json, prefab_io.Get());
 
 	_ExportData(io);
 
-	if (prefab_io)delete prefab_io;
 	delete io;
 }
 
@@ -210,6 +208,71 @@ void Actor::_ExportData(I_ioHelper* io){
 }
 
 
+void Actor::PastePrefabParam(picojson::value& json){
+
+	mComponents.RunFinish();
+
+	picojson::value param;
+	auto filter = new MemoryInputHelper(json,NULL);
+	auto io_out = new MemoryOutputHelper(param, filter, true);
+
+
+	_ExportData(io_out);
+
+	delete io_out;
+	delete filter;
+
+
+
+	MemoryInputHelper* io_in = NULL;
+	MemoryInputHelper* filter_in = NULL;
+	if (mPrefabAsset){
+		auto& d = mPrefabAsset->GetFileData();
+		auto val = *d.GetParam();
+
+		filter_in = new MemoryInputHelper(param, NULL);
+		io_in = new MemoryInputHelper(val, filter_in);
+	}
+
+
+	if (io_in){
+		picojson::object components;
+		io_in->func(components, "components");
+
+		io_in->pushObject("components");
+
+		for (auto com : components){
+			io_in->pushObject(com.first);
+
+			auto component = mComponents.GetComponent(com.first);
+			bool create = false;
+			if (!component){
+				component = ComponentFactory::Create(com.first);
+				create = true;
+			}
+
+			if (component){
+				component->IO_Data(io_in);
+				if (create){
+					mComponents.AddComponent_NotInitialize(component);
+
+				}
+			}
+
+			io_in->popObject();
+		}
+
+		//_ImportData(io_in);
+
+
+		delete filter_in;
+		delete io_in;
+	}
+	mComponents.RunInitialize();
+	mComponents.RunStart();
+}
+
+
 bool Actor::ImportDataAndNewID(const std::string& fileName){
 	ImportData(fileName);
 
@@ -229,10 +292,10 @@ void Actor::CreateNewID(){
 
 void Actor::ImportData(const std::string& fileName){
 
-	I_ioHelper* io = new FileInputHelper(fileName);
+	I_ioHelper* io = new FileInputHelper(fileName, NULL);
 	if (io->error){
 		delete io;
-		io = new FileInputHelper(fileName + ".json");
+		io = new FileInputHelper(fileName + ".json", NULL);
 		if (io->error){
 			delete io;
 			return;
@@ -247,7 +310,7 @@ void Actor::ImportData(const std::string& fileName){
 
 void Actor::ImportData(picojson::value& json){
 
-	I_ioHelper* io = new MemoryInputHelper(json);
+	I_ioHelper* io = new MemoryInputHelper(json, NULL);
 	if (io->error){
 		delete io;
 		return;
@@ -260,7 +323,7 @@ void Actor::ImportData(picojson::value& json){
 
 void Actor::ImportDataAndNewID(picojson::value& json){
 
-	I_ioHelper* io = new MemoryInputHelper(json);
+	I_ioHelper* io = new MemoryInputHelper(json, NULL);
 	if (io->error){
 		delete io;
 		return;
@@ -284,28 +347,29 @@ void Actor::_ImportData(I_ioHelper* io){
 	_KEY(mPrefab);
 
 	if (mPrefab!=""){
-		I_ioHelper* prefab_io = new FileInputHelper(mPrefab);
-		if (!prefab_io->error){
+		AssetDataBase::Instance(mPrefab.c_str(), mPrefabAsset);
+		if (mPrefabAsset){
+			auto prefab_io = mPrefabAsset->GetFileData().GetData();
+			if (!prefab_io->error){
 
-			picojson::object components;
-			prefab_io->func(components, "components");
+				picojson::object components;
+				prefab_io->func(components, "components");
 
-			prefab_io->pushObject("components");
+				prefab_io->pushObject("components");
 
-			for (auto com : components){
-				prefab_io->pushObject(com.first);
+				for (auto com : components){
+					prefab_io->pushObject(com.first);
 
-				if (auto component = ComponentFactory::Create(com.first)){
-					component->IO_Data(prefab_io);
-					mComponents.AddComponent_NotInitialize(component);
+					if (auto component = ComponentFactory::Create(com.first)){
+						component->IO_Data(prefab_io.Get());
+						mComponents.AddComponent_NotInitialize(component);
+					}
+
+					prefab_io->popObject();
 				}
 
-				prefab_io->popObject();
 			}
-
-
 		}
-		delete prefab_io;
 	}
 
 

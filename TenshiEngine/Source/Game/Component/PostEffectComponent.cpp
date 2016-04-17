@@ -23,7 +23,6 @@ void PostEffectComponent::Update(){
 
 void PostEffectComponent::PostDraw(){
 
-	return;
 	mModelTexture.Update();
 
 	Game::AddDrawList(DrawStage::PostEffect, [&](){

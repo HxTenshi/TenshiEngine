@@ -208,7 +208,7 @@ void TransformComponent::CreateInspector(){
 	Window::AddInspector(new InspectorVector3DataSet("Position", &mPosition.x, collbackpx, &mPosition.y, collbackpy, &mPosition.z, collbackpz), data);
 	Window::AddInspector(new InspectorVector3DataSet("Rotate", &mRotate.x, collbackrx, &mRotate.y, collbackry, &mRotate.z, collbackrz), data);
 	Window::AddInspector(new InspectorVector3DataSet("Scale", &mScale.x, collbacksx, &mScale.y, collbacksy, &mScale.z, collbacksz), data);
-	Window::ViewInspector("Transform", this, data);
+	Window::ViewInspector("Transform", NULL, data);
 
 	//Window::GetInspectorWindow()->AddLabel("Transform");
 	//Window::GetInspectorWindow()->AddParam(&mPosition.x, &mFixMatrixFlag);

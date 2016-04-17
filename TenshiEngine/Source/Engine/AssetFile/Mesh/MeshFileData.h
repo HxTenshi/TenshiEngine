@@ -1,8 +1,9 @@
 #pragma once
+#include "../AssetFileData.h"
 
 class IPolygonsData;
 
-class MeshFileData{
+class MeshFileData : public AssetFileData{
 public:
 	MeshFileData();
 	~MeshFileData();

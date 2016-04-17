@@ -233,6 +233,9 @@ Game::Game(){
 
 		std::string *s = (std::string*)p;
 		obj->ExportData("Assets", *s);
+
+		AssetDataBase::FileUpdate(("Assets/"+*s+".json").c_str());
+
 		Window::Deleter(s);
 	});
 
@@ -270,10 +273,23 @@ Game::Game(){
 		(void)p;
 		SaveScene();
 	});
+	Window::SetWPFCollBack(MyWindowMessage::SelectAsset, [&](void* p)
+	{
+		std::string *s = (std::string*)p;
+		mSelectActor.SetSelectAsset(NULL, "");
+
+		PrefabAssetDataPtr data;
+		AssetDataBase::Instance(s->c_str(), data);
+		if (data){
+			mSelectActor.SetSelectAsset(data->GetFileData().GetActor(), s->c_str());
+		}
+		Window::Deleter(s);
+	});
 
 	Window::SetWPFCollBack(MyWindowMessage::OpenAsset, [&](void* p)
 	{
 		std::string *s = (std::string*)p;
+
 		if ((*s).find(".scene\0") != (*s).npos){
 			ChangePlayGame(false);
 			TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
