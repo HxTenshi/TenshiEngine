@@ -14,6 +14,9 @@ typedef void(__cdecl *DeleteInstance_)(IDllScriptComponent*);
 
 typedef decltype(Reflection::map) (__cdecl *GetReflectionData_)();
 
+typedef void(__cdecl *IDllFunction0)(IDllScriptComponent*,IDllScriptComponent::Func0);
+typedef void(__cdecl *IDllFunction1)(IDllScriptComponent*,IDllScriptComponent::Func1, Actor*);
+
 #include "Game/Script/SGame.h"
 SGame gSGame;
 
@@ -28,7 +31,7 @@ void CreateScriptFileExtension(const std::string& classNmae, const std::string& 
 	auto outfilename = "ScriptComponent/Scripts/"+ classNmae + extension;
 	outFile.open(outfilename, std::ios::out);
 
-	int length = file.tellg();
+	int length = (int)file.tellg();
 	file.seekg(0, file.beg);//ファイルポインタを最初に戻す
 	char * buf = new char[length+1];
 
@@ -55,8 +58,12 @@ void CreateScriptFileExtension(const std::string& classNmae, const std::string& 
 
 
 
+#include <shlwapi.h>
+
+#pragma comment(lib, "shlwapi.lib")
+
 std::string outConsole;
-bool create_cmd_process(HWND hWnd){
+bool create_cmd_process(){
 	//	パイプの作成
 	HANDLE readPipe;
 	HANDLE writePipe;
@@ -65,9 +72,12 @@ bool create_cmd_process(HWND hWnd){
 	sa.bInheritHandle = TRUE;
 	sa.lpSecurityDescriptor = NULL;
 	if (CreatePipe(&readPipe, &writePipe, &sa, 0) == 0){
-		MessageBox(0, "パイプが作成できませんでした", "エラー", MB_OK);
+		Window::AddLog("パイプが作成できませんでした");
 		return false;
 	}
+
+	Window::AddLog("コンパイル開始...");
+
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&si, sizeof(si));
@@ -82,9 +92,15 @@ bool create_cmd_process(HWND hWnd){
 #else
 	char cmd[] = "cmd.exe /K \".\\ScriptComponent\\createdll_auto.bat\"";
 #endif
+
+	if (!PathFileExists("ScriptComponent\\createdll_auto.bat")){
+		Window::AddLog("コンパイル失敗");
+		return false;
+	}
+
 	//	プロセスの起動(cmd.exe)
 	if (CreateProcess(NULL, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi) == 0){
-		MessageBox(0, "プロセスの作成に失敗しました", "エラー", MB_OK);
+		Window::AddLog("プロセスの作成に失敗しました");
 		return false;
 	}
 	HANDLE childProcess = pi.hProcess;
@@ -100,8 +116,10 @@ bool create_cmd_process(HWND hWnd){
 		if (PeekNamedPipe(readPipe, NULL, 0, NULL, &totalLen, NULL) == 0)
 			break;
 		if (0 < totalLen){
-			if (ReadFile(readPipe, readBuf, sizeof(readBuf) - 1, &len, NULL) == 0)
+			if (ReadFile(readPipe, readBuf, sizeof(readBuf) - 1, &len, NULL) == 0){
+				Window::AddLog("エラー");
 				return false;
+			}
 			readBuf[len] = 0;
 
 			//if (sizeof(mem) - 1<memSz + len){	//メモリがあふれないようにクリアする
@@ -114,15 +132,23 @@ bool create_cmd_process(HWND hWnd){
 			//SendMessage(hWnd, WM_VSCROLL, SB_BOTTOM, 0);	//	スクロールバーを一番下へ移動させる
 			if (totalLen>len)	//	プロセスは終了しているがまだデータがーが残っているので終了を保留
 				end = false;
+
+			{
+				auto out = forward_than_find_first_of(outConsole, "\n");
+				if (out == "")continue;
+				outConsole = behind_than_find_first_of(outConsole, "\n");
+				out.pop_back();
+				Window::AddLog(out);
+			}
 		}
 	} while (end == false);
 
 	if (CloseHandle(writePipe) == 0){
-		MessageBox(0, "パイプを閉じることができませんでした。", "エラー", MB_OK);
+		Window::AddLog("パイプを閉じることができませんでした。");
 		return false;
 	}
 	if (CloseHandle(readPipe) == 0){
-		MessageBox(0, "パイプを閉じることができませんでした。", "エラー", MB_OK);
+		Window::AddLog("パイプを閉じることができませんでした。");
 		return false;
 	}
 	CloseHandle(pi.hProcess);
@@ -133,6 +159,7 @@ bool create_cmd_process(HWND hWnd){
 		out.pop_back();
 		Window::AddLog(out);
 	}
+	Window::AddLog("コンパイル終了");
 	return true;
 }
 
@@ -144,6 +171,8 @@ public:
 		mCreate = NULL;
 		mDelete = NULL;
 		mGetReflect = NULL;
+		mFunction0 = NULL;
+		mFunction1 = NULL;
 
 	}
 	~UseScriptActors(){
@@ -158,40 +187,44 @@ public:
 
 		CreateIncludeClassFile();
 
-		char cdir[255];
-		GetCurrentDirectory(255, cdir);
-		std::string  pass = cdir;
-#ifdef _DEBUG
-		pass += "/ScriptComponent/createdll_auto_d.bat";
-#else
-		pass += "/ScriptComponent/createdll_auto.bat";
-#endif
-
-		//SHELLEXECUTEINFO	sei = { 0 };
-		////構造体のサイズ
-		//sei.cbSize = sizeof(SHELLEXECUTEINFO);
-		////起動側のウインドウハンドル
-		//sei.hwnd = Window::GetMainHWND();
-		////起動後の表示状態
-		//sei.nShow = SW_SHOWNORMAL;
-		////このパラメータが重要で、セットしないとSHELLEXECUTEINFO構造体のhProcessメンバがセットされない。
-		//sei.fMask = SEE_MASK_NOCLOSEPROCESS;
-		////起動プログラム
-		//sei.lpFile = pass.c_str();
-		////プロセス起動
-		//if (!ShellExecuteEx(&sei) || (const int)sei.hInstApp <= 32){
-		//	MessageBox(Window::GetMainHWND(), "ファイルを開けませんでした", "失敗", MB_OK);
-		//	return;
-		//}
-		//
-		//
-		////終了を待つ
-		//WaitForSingleObject(sei.hProcess, INFINITE);
-		//
-		//CloseHandle(sei.hProcess);
 
 
-		create_cmd_process(Window::GetMainHWND());
+
+		if (!create_cmd_process()){
+			//MessageBox(Window::GetMainHWND(), "ビルドを手動で行って下さい。", "DLL読み込み", MB_OK);
+
+					char cdir[255];
+					GetCurrentDirectory(255, cdir);
+					std::string  pass = cdir;
+			#ifdef _DEBUG
+					pass += "/ScriptComponent/createdll_auto_d.bat";
+			#else
+					pass += "/ScriptComponent/createdll_auto_.bat";
+			#endif
+
+			SHELLEXECUTEINFO	sei = { 0 };
+			//構造体のサイズ
+			sei.cbSize = sizeof(SHELLEXECUTEINFO);
+			//起動側のウインドウハンドル
+			sei.hwnd = Window::GetMainHWND();
+			//起動後の表示状態
+			sei.nShow = SW_SHOWNORMAL;
+			//このパラメータが重要で、セットしないとSHELLEXECUTEINFO構造体のhProcessメンバがセットされない。
+			sei.fMask = SEE_MASK_NOCLOSEPROCESS;
+			//起動プログラム
+			sei.lpFile = pass.c_str();
+			//プロセス起動
+			if (!ShellExecuteEx(&sei) || (const int)sei.hInstApp <= 32){
+				MessageBox(Window::GetMainHWND(), "ファイルを開けませんでした", "失敗", MB_OK);
+				return;
+			}
+			
+			
+			//終了を待つ
+			WaitForSingleObject(sei.hProcess, INFINITE);
+			
+			CloseHandle(sei.hProcess);
+		}
 
 		DllLoad();
 
@@ -234,6 +267,8 @@ public:
 		mCreate = NULL;
 		mDelete = NULL;
 		mGetReflect = NULL;
+		mFunction0 = NULL;
+		mFunction1 = NULL;
 		Reflection::map = NULL;
 	}
 	void DllLoad(){
@@ -273,6 +308,18 @@ public:
 			return;
 		}
 
+		mFunction0 = (IDllFunction0)GetProcAddress(hModule, "Function0");
+		if (mFunction0 == NULL)
+		{
+			UnLoad();
+			return;
+		}
+		mFunction1 = (IDllFunction0)GetProcAddress(hModule, "Function1");
+		if (mFunction1 == NULL)
+		{
+			UnLoad();
+			return;
+		}
 		Reflection::map = ((GetReflectionData_)mGetReflect)();
 	}
 	IDllScriptComponent* Create(const std::string& ClassName){
@@ -284,10 +331,18 @@ public:
 	void Deleter(IDllScriptComponent* script){
 		((DeleteInstance_)mDelete)(script);
 	}
+	void Function(IDllScriptComponent* com,IDllScriptComponent::Func0 func){
+		((IDllFunction0)mFunction0)(com,func);
+	}
+	void Function(IDllScriptComponent* com,IDllScriptComponent::Func1 func, Actor* tar){
+		((IDllFunction1)mFunction1)(com,func, tar);
+	}
 	std::list<ScriptComponent*> mList;
 	void* mCreate;
 	void* mDelete;
 	void* mGetReflect;
+	void* mFunction0;
+	void* mFunction1;
 	HMODULE hModule;
 
 };
@@ -304,6 +359,18 @@ void ScriptManager::CreateScriptFile(const std::string& className){
 	CreateScriptFileExtension(className, ".cpp");
 }
 
+
+#define _Exception(x,y) \
+	try{ \
+		pDllClass->x(y); \
+	} \
+	catch (...){ \
+		Window::AddLog(mClassName + " "+#x+":"); \
+	} 
+
+
+//Window::AddLog(mClassName + " "+#x+":" + text);
+
 ScriptComponent::ScriptComponent(){
 	mEndInitialize = false;
 	mEndStart = false;
@@ -312,11 +379,13 @@ ScriptComponent::ScriptComponent(){
 ScriptComponent::~ScriptComponent(){
 }
 void ScriptComponent::Initialize(){
+	mCollideMap.clear();
 	Load();
 	actors.mList.push_back(this);
 	mEndInitialize = true;
 	if (pDllClass){
-		pDllClass->Initialize();
+		actors.Function(pDllClass,&IDllScriptComponent::Initialize);
+
 	}
 }
 void ScriptComponent::Load(){
@@ -329,14 +398,16 @@ void ScriptComponent::Load(){
 		pDllClass->game = &gSGame;
 		pDllClass->gameObject = gameObject;
 
-		if (mEndInitialize)pDllClass->Initialize();
-		if (mEndStart)pDllClass->Start();
+		if (mEndInitialize)
+			actors.Function(pDllClass, &IDllScriptComponent::Initialize);
+		if (mEndStart)
+			actors.Function(pDllClass, &IDllScriptComponent::Start);
 	}
 }
 void ScriptComponent::Unload(){
 
 	if (pDllClass){
-		pDllClass->Finish();
+		actors.Function(pDllClass, &IDllScriptComponent::Finish);
 		actors.Deleter(pDllClass);
 	}
 
@@ -351,14 +422,20 @@ void ScriptComponent::ReCompile(){
 void ScriptComponent::Start(){
 	mEndStart = true;
 	if (pDllClass){
-		pDllClass->Start();
+		actors.Function(pDllClass, &IDllScriptComponent::Start);
 	}
 }
 void ScriptComponent::Update(){
 
 	if (pDllClass){
-		pDllClass->Update();
+		actors.Function(pDllClass, &IDllScriptComponent::Update);
+
+		for (auto& tar : mCollideMap){
+
+			actors.Function(pDllClass, &IDllScriptComponent::OnCollideEnter, tar.second);
+		}
 	}
+
 }
 void ScriptComponent::Finish(){
 
@@ -369,8 +446,17 @@ void ScriptComponent::Finish(){
 }
 
 void ScriptComponent::OnCollide(Actor* target){
+	mCollideMap[(int)target] = target;
+
 	if (pDllClass){
-		pDllClass->OnCollide(target);
+		actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, target);
+	}
+}
+
+void ScriptComponent::LostCollide(Actor* target){
+	mCollideMap.erase((int)target);
+	if (pDllClass){
+		actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, target);
 	}
 }
 

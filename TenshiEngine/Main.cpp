@@ -66,9 +66,7 @@ private:
 };
 
 #include <memory>
-void a(){
-	std::make_shared<int>();
-}
+
 
 #pragma comment(lib,"lib/Debug/sqlite3.lib")
 #include "Library\sqlite3.h"
@@ -161,6 +159,7 @@ class db{
 };
 
 
+
 class Application{
 public:
 	Application()
@@ -191,7 +190,6 @@ public:
 
 	void Render()
 	{
-
 
 		mInputManagerRapper.Update();
 
@@ -280,6 +278,10 @@ T& operator & (T&& t, throwNull& n){
 //#undef while
 //#undef for
 
+
+#include "MySTL\Coroutine.h"
+
+
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
 
@@ -293,6 +295,10 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	UNREFERENCED_PARAMETER( hPrevInstance );
 	UNREFERENCED_PARAMETER( lpCmdLine );
+
+	//メモリーリークにブレークポイント
+	//_CrtSetBreakAlloc(8359);
+	
 
 	Window mWindow(hInstance, nCmdShow);
 	if (FAILED(mWindow.Init()))
@@ -308,6 +314,53 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			return 0;
 		}
 
+		CoroutineSystem cor;
+
+		cor.StartCoroutine([](){
+
+			Window::AddLog("cortest1");
+
+			YIELD_RETURN_NULL;
+
+			Window::AddLog("coltest2");
+
+			YIELD_RETURN_NULL;
+
+			Window::AddLog("coltest3");
+
+			YIELD_RETURN_NULL;
+
+
+			Window::AddLog("coltest4");
+
+			YIELD_BREAK;
+
+			Window::AddLog("coltest5");
+
+		});
+		cor.StartCoroutine([](){
+
+			Window::AddLog("cortest1-1");
+
+			YIELD_RETURN_NULL;
+
+			Window::AddLog("coltest2-1");
+
+			YIELD_RETURN_NULL;
+
+			Window::AddLog("coltest3-1");
+
+			YIELD_RETURN_NULL;
+
+
+			Window::AddLog("coltest4-1");
+
+			YIELD_BREAK;
+
+			Window::AddLog("coltest5-1");
+
+		});
+
 
 		while (WM_QUIT != msg.message)
 		//for (int i=0; WM_QUIT != msg.message;i++)
@@ -319,6 +372,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			}
 			else
 			{
+				cor.Tick();
 				App.Render();
 			}
 		}

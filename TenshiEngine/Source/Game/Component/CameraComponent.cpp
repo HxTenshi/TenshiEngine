@@ -81,6 +81,7 @@ void CameraComponent::Update(){
 	At = Eye + gameObject->mTransform->Forward();
 	UpdateView();
 
+
 	Game::SetMainCamera(this);
 }
 

@@ -175,8 +175,12 @@ public:
 		}
 
 		void set(String^ value) {
-			if (_dataModel->set(lexical_cast<T,String>(value)))
-				NotifyPropertyChanged("Value");
+			try{
+				if (_dataModel->set(lexical_cast<T, String>(value)))
+					NotifyPropertyChanged("Value");
+			} catch(...)
+			{
+			}
 		}
 
 	}
@@ -196,12 +200,17 @@ public:
 		}
 
 		void set(Color value) {
-			_dataModel1->set(lexical_cast<T, String>((value.R / 255.0f).ToString()));
-			_dataModel2->set(lexical_cast<T, String>((value.G / 255.0f).ToString()));
-			_dataModel3->set(lexical_cast<T, String>((value.B / 255.0f).ToString()));
-			_dataModel4->set(lexical_cast<T, String>((value.A / 255.0f).ToString()));
+			try{
+				_dataModel1->set(lexical_cast<T, String>((value.R / 255.0f).ToString()));
+				_dataModel2->set(lexical_cast<T, String>((value.G / 255.0f).ToString()));
+				_dataModel3->set(lexical_cast<T, String>((value.B / 255.0f).ToString()));
+				_dataModel4->set(lexical_cast<T, String>((value.A / 255.0f).ToString()));
 
-			NotifyPropertyChanged("Value");
+				NotifyPropertyChanged("Value");
+			}
+			catch (...)
+			{
+			}
 		}
 
 	}
@@ -220,11 +229,16 @@ public:
 		}
 
 		void set(Color value) {
-			_dataModel1->set(lexical_cast<T, String>((value.R / 255.0f).ToString()));
-			_dataModel2->set(lexical_cast<T, String>((value.G / 255.0f).ToString()));
-			_dataModel3->set(lexical_cast<T, String>((value.B / 255.0f).ToString()));
+			try{
+				_dataModel1->set(lexical_cast<T, String>((value.R / 255.0f).ToString()));
+				_dataModel2->set(lexical_cast<T, String>((value.G / 255.0f).ToString()));
+				_dataModel3->set(lexical_cast<T, String>((value.B / 255.0f).ToString()));
 
-			NotifyPropertyChanged("Value");
+				NotifyPropertyChanged("Value");
+			}
+			catch (...)
+			{
+			}
 		}
 
 	}

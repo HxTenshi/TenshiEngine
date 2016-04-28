@@ -2,6 +2,7 @@
 #include "SelectActor.h"
 
 #include <set>
+#include <map>
 
 #include "Device/DirectX11Device.h"
 
@@ -195,9 +196,9 @@ void SelectActor::Initialize(){
 
 		}
 
-		mVectorBox[0].mTransform->Rotate(XMVectorSet(0, 0, -XM_PI / 2, 1));
-		mVectorBox[1].mTransform->Rotate(XMVectorSet(0, 0, 0, 1));
-		mVectorBox[2].mTransform->Rotate(XMVectorSet(XM_PI / 2, 0, 0, 1));
+		mVectorBox[0].mTransform->DegreeRotate(XMVectorSet(0, 0, -90, 1));
+		mVectorBox[1].mTransform->DegreeRotate(XMVectorSet(0, 0, 0, 1));
+		mVectorBox[2].mTransform->DegreeRotate(XMVectorSet(90, 0, 0, 1));
 
 		auto mate = mVectorBox[0].GetComponent<MaterialComponent>();
 		if (mate){
@@ -242,7 +243,7 @@ Actor* SelectActor::GetSelectOne(){
 }
 
 void SelectActor::UpdateInspector(){
-	if (mSelects.SelectNum() != 1)return;
+	if (mSelects.SelectNum() != 1 && !mSelectAsset)return;
 
 	static unsigned long time_start = timeGetTime();
 	unsigned long current_time = timeGetTime();
@@ -490,7 +491,7 @@ void SelectActor::SetSelectAsset(Actor* select,const char* filename){
 	}
 
 	Window::ClearInspector();
-	if (mSelects.SelectNum() == 1){
+	if (mSelects.SelectNum() <= 1){
 		AssetDataBase::CreateInspector(filename);
 	}
 }

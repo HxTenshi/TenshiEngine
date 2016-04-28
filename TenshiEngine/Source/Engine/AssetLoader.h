@@ -87,26 +87,26 @@ public:
 
 class ModelData{
 public:
+	ModelData(){
+		m_Polygons = NULL;
+		m_pVertexBuffer = NULL;
+		m_pIndexBuffer = NULL;
+	}
+
+
 	~ModelData(){
 		if (m_Polygons)delete m_Polygons;
 	}
 
 	static
 	ModelDataPtr Create(IPolygonsData* m_Polygons){
-
-		ModelData *temp = new ModelData();
+		auto temp = make_shared<ModelData>();
 		temp->m_Polygons = m_Polygons;
 		temp->CreateBuffer();
-		return ModelDataPtr(temp);
+		return temp;
 	}
 
 private:
-
-	ModelData(){
-		m_Polygons = NULL;
-		m_pVertexBuffer = NULL;
-		m_pIndexBuffer = NULL;
-	}
 
 	void CreateBuffer(){
 		//共有初期データの準備

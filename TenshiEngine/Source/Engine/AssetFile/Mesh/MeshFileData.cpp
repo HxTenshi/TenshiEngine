@@ -89,8 +89,11 @@ void CalcTangentAndBinormal(
 }
 
 void MeshFileData::Create(const char* filename){
-
-	this->~MeshFileData();
+	if (m_Polygons){
+		delete m_Polygons;
+		m_Polygons = NULL;
+	}
+	m_FileName = filename;
 
 	FILE *hFP;
 	fopen_s(&hFP, filename, "rb");
@@ -161,8 +164,19 @@ void MeshFileData::Create(const char* filename){
 	m_Polygons = _data;
 
 	fclose(hFP);
+
+	m_MeshBufferData.Create(this);
+}
+
+void MeshFileData::FileUpdate(){
+	Create(m_FileName.c_str());
 }
 
 const IPolygonsData* MeshFileData::GetPolygonsData() const{
 	return m_Polygons;
+}
+
+
+const MeshBufferData& MeshFileData::GetBufferData() const{
+	return m_MeshBufferData;
 }

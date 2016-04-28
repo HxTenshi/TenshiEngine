@@ -11,6 +11,8 @@
 
 #include "BoneModel.h"
 
+#include "Engine/AssetFile/Mesh/MeshFileData.h"
+
 
 //強制的にこのマテリアルを使用
 //static
@@ -83,7 +85,7 @@ void Model::Update(){
 }
 void Model::IASet() const{
 
-	auto& buf = m_MeshAssetDataPtr->GetBufferData();
+	auto& buf = m_MeshAssetDataPtr->GetFileData()->GetBufferData();
 
 	auto v = buf.GetVertexBuffer();
 	auto i = buf.GetIndexBuffer();
@@ -99,16 +101,16 @@ void Model::Draw(const Material& material) const{
 	if (!m_MeshAssetDataPtr)return;
 
 	if (mForcedMaterial){
-		mForcedMaterial->SetShader((bool)mBoneModel != NULL);
+		mForcedMaterial->SetShader((bool)(mBoneModel != NULL));
 		mForcedMaterial->PSSetShaderResources();
 	}
 	else if (mForcedMaterialUseTexture){
-		mForcedMaterialUseTexture->SetShader((bool)mBoneModel != NULL);
+		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL));
 		material.VSSetShaderResources();
 		material.PSSetShaderResources();
 	}
 	else{
-		material.SetShader((bool)mBoneModel != NULL);
+		material.SetShader((bool)(mBoneModel != NULL));
 		material.VSSetShaderResources();
 		material.PSSetShaderResources();
 	}
@@ -119,9 +121,9 @@ void Model::Draw(const Material& material) const{
 		mBoneModel->SetConstantBuffer();
 	}
 
-	auto& buf = m_MeshAssetDataPtr->GetBufferData();
+	auto& buf = m_MeshAssetDataPtr->GetFileData()->GetBufferData();
 	auto& mesh = buf.GetMesh();
-	for (auto& m : mesh){
+	for (auto& m : mesh ){
 		Device::mpImmediateContext->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 	}
 }
@@ -133,26 +135,26 @@ void Model::Draw(const shared_ptr<MaterialComponent> material) const{
 	}
 
 	if (mForcedMaterial){
-		mForcedMaterial->SetShader((bool)mBoneModel != NULL);
+		mForcedMaterial->SetShader((bool)(mBoneModel != NULL));
 		mForcedMaterial->VSSetShaderResources();
 		mForcedMaterial->PSSetShaderResources();
 	}
 	else if (mForcedMaterialUseTexture){
-		mForcedMaterialUseTexture->SetShader((bool)mBoneModel != NULL);
+		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL));
 	}
 
 	IASet();
 	SetConstantBuffer();
-	auto& buf = m_MeshAssetDataPtr->GetBufferData();
+	auto& buf = m_MeshAssetDataPtr->GetFileData()->GetBufferData();
 	auto& mesh = buf.GetMesh();
 	UINT i = 0;
-	for (auto& m : mesh){
+	for (const auto& m : mesh ){
 		if (mForcedMaterialUseTexture){
 			material->GetMaterial(i).VSSetShaderResources();
 			material->GetMaterial(i).PSSetShaderResources();
 		}
 		else if (!mForcedMaterial){
-			material->GetMaterial(i).SetShader((bool)mBoneModel != NULL);
+			material->GetMaterial(i).SetShader((bool)(mBoneModel != NULL));
 			material->GetMaterial(i).VSSetShaderResources();
 			material->GetMaterial(i).PSSetShaderResources();
 		}

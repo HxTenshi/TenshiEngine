@@ -1,5 +1,7 @@
 #pragma once
 #include "../AssetFileData.h"
+#include"MeshBufferData.h"
+
 
 class IPolygonsData;
 
@@ -8,7 +10,10 @@ public:
 	MeshFileData();
 	~MeshFileData();
 
-	void Create(const char* filename);
+	void Create(const char* filename) override;
+	void FileUpdate() override;
+
+	const MeshBufferData& GetBufferData() const;
 
 	const IPolygonsData* GetPolygonsData() const;
 
@@ -18,4 +23,5 @@ private:
 	MeshFileData& operator=(const MeshFileData&) = delete;
 
 	IPolygonsData* m_Polygons;	// 頂点とインデックスデータ
+	MeshBufferData m_MeshBufferData;
 };

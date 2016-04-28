@@ -7,6 +7,8 @@
 
 #include <stack>
 
+#include "Engine/AssetFile/Prefab/PrefabFileData.h"
+
 static std::stack<int> gIntPtrStack;
 
 static std::map<UINT,Actor*>* gpList;
@@ -18,6 +20,7 @@ static CameraComponent** gMainCamera;
 Actor* Game::mRootObject;
 Actor* Game::mEngineRootObject;
 Game* mGame = NULL;
+Scene Game::m_Scene;
 
 static bool gIsPlay;
 
@@ -38,7 +41,6 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 #include "Engine/AssetLoader.h"
 
 Game::Game(){
-
 	mGame = this;
 	mIsPlay = false;
 
@@ -68,6 +70,9 @@ Game::Game(){
 	gIsPlay = mIsPlay;
 
 
+	Window::CreateContextMenu_CreateObject("Box", "EngineResource/box.prefab");
+	Window::CreateContextMenu_CreateObject("Texture", "EngineResource/new Texture");
+
 
 	DWORD start = GetTickCount();
 
@@ -76,24 +81,6 @@ Game::Game(){
 		delete act;
 
 	}
-
-	DWORD end = GetTickCount();
-	Window::AddLog("new:" + std::to_string(end - start));
-
-	BYTE b[sizeof(Actor) * 1000];
-	start = GetTickCount();
-
-	for (int i = 0; i < 1000; i++){
-#pragma push_macro("new")
-#undef new
-		volatile auto act = new(&b[sizeof(Actor)*i]) Actor();
-		act->~Actor();
-
-#pragma pop_macro("new")
-	}
-
-	end = GetTickCount();
-	Window::AddLog("placement new:"+std::to_string(end - start));
 
 	mRootObject = new Actor();
 	mRootObject->mTransform = mRootObject->AddComponent<TransformComponent>();
@@ -111,7 +98,7 @@ Game::Game(){
 
 	mSelectActor.Initialize();
 
-	m_Scene.LoadScene("./Assets/Scene_.scene");
+	LoadScene("./Assets/Scene_.scene");
 	
 	mSoundPlayer.Play();
 	
@@ -268,6 +255,22 @@ Game::Game(){
 
 		Window::Deleter(s);
 	});
+	Window::SetWPFCollBack(MyWindowMessage::CreateAssetFile, [&](void* p)
+	{
+		std::string *s = (std::string*)p;
+		if (*s != ""){
+			auto ex = behind_than_find_last_of(*s, ".");
+			if (ex == "pxmaterial"){
+				File f("Assets/"+*s);
+				f.FileCreate();
+				f.Out(0.0f);
+				f.Out(0.0f);
+				f.Out(0.0f);
+			}
+		}
+
+		Window::Deleter(s);
+	});
 	Window::SetWPFCollBack(MyWindowMessage::SaveScene, [&](void* p)
 	{
 		(void)p;
@@ -281,7 +284,10 @@ Game::Game(){
 		PrefabAssetDataPtr data;
 		AssetDataBase::Instance(s->c_str(), data);
 		if (data){
-			mSelectActor.SetSelectAsset(data->GetFileData().GetActor(), s->c_str());
+			mSelectActor.SetSelectAsset(data->GetFileData()->GetActor(), s->c_str());
+		}
+		else{
+			mSelectActor.SetSelectAsset(NULL, s->c_str());
 		}
 		Window::Deleter(s);
 	});
@@ -292,9 +298,8 @@ Game::Game(){
 
 		if ((*s).find(".scene\0") != (*s).npos){
 			ChangePlayGame(false);
-			TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
-			t->AllChildrenDestroy();
-			m_Scene.LoadScene(*s);
+			AllDestroyObject();
+			LoadScene(*s);
 		}
 		Window::Deleter(s);
 	});
@@ -417,6 +422,9 @@ PxRigidActor* Game::CreateRigitBodyEngine(){
 PhysX3Main* Game::GetPhysX(){
 	return gpPhysX3Main;
 }
+PhysXEngine* Game::GetPhysXEngine(){
+	return gpPhysX3Main;
+}
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
 }
@@ -469,6 +477,19 @@ RenderTarget Game::GetMainViewRenderTarget(){
 
 bool Game::IsGamePlay(){
 	return gIsPlay;
+}
+
+void Game::LoadScene(const std::string& FilePath){
+
+	TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
+	//t->AllChildrenDestroy();
+
+	auto children = t->Children();
+	for (auto child : children){
+		Game::DestroyObject(child);
+	}
+
+	m_Scene.LoadScene(FilePath);
 }
 
 
@@ -580,12 +601,26 @@ void Game::Draw(){
 	mPostEffectRendering.Rendering();
 
 	PlayDrawList(DrawStage::Engine);
-	PlayDrawList(DrawStage::UI);
-
-	ClearDrawList();
-
 	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
 	if (pDS)pDS->Release();
+
+	{
+		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
+		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
+		ID3D11DepthStencilState* pDS = NULL;
+		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
+		Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
+
+		PlayDrawList(DrawStage::UI);
+
+		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
+		if (pDS)pDS->Release();
+	}
+
+
+
+	ClearDrawList();
 
 	SetMainCamera(NULL);
 
@@ -655,7 +690,7 @@ void Game::GameStop(){
 			XMVECTOR vect = mCamera.PointRayVector(point);
 			XMVECTOR pos = mCamera.GetPosition();
 
-			auto act = mPhysX3Main->Raycast(pos, vect);
+			auto act = mPhysX3Main->Raycast(pos, vect,1000);
 			mSelectActor.SetSelect(act);
 		}
 	}

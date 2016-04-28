@@ -55,6 +55,7 @@ public:
 	static PxRigidActor* CreateRigitBody();
 	static PxRigidActor* CreateRigitBodyEngine();
 	static PhysX3Main* GetPhysX();
+	static PhysXEngine* GetPhysXEngine();
 	static void RemovePhysXActor(PxActor* act);
 	static void RemovePhysXActorEngine(PxActor* act);
 	static void AllDestroyObject();
@@ -68,6 +69,7 @@ public:
 	static CameraComponent* GetMainCamera();
 	static RenderTarget GetMainViewRenderTarget();
 	static bool IsGamePlay();
+	static void LoadScene(const std::string& FilePath);
 
 	void ChangePlayGame(bool isPlay);
 	void SaveScene();
@@ -117,7 +119,7 @@ private:
 	DeferredRendering m_DeferredRendering;
 	PostEffectRendering mPostEffectRendering;
 
-	Scene m_Scene;
+	static Scene m_Scene;
 
 	bool mIsPlay;
 

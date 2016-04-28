@@ -12,7 +12,8 @@ public:
 	BoneFileData();
 	~BoneFileData();
 
-	void Create(const char* filename);
+	void Create(const char* filename) override;
+	void FileUpdate() override;
 
 	const BoneData& GetBoneData() const;
 

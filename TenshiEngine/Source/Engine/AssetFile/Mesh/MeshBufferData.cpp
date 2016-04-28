@@ -50,12 +50,13 @@ void MeshBufferData::Create(const MeshFileData* meshfile){
 		m_Meshs.resize(poly->GetMeshNum());
 		int i = 0;
 		int total = 0;
-		for (auto& mesh : m_Meshs){
+		
+		for (auto& mesh : m_Meshs ){
 			auto count = poly->GetMesh(i);
-
+			
 			mesh.m_StartIndex = total;
 			mesh.m_IndexNum = count;
-
+			
 			total += count;
 			i++;
 		}

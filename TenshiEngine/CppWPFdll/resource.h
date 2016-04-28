@@ -4,6 +4,7 @@
 //
 #define IDR_VIEW                        101
 #define IDR_COMPONENT                   102
+#define IDR_INS_BUTTON                  103
 #define IDR_INS_VEC3                    104
 #define IDR_INS_FLOAT                   105
 #define IDR_TREEVIEW                    106
@@ -15,13 +16,12 @@
 #define IDR_INS_VEC2                    112
 #define IDR_LOG_LIST_BOX                113
 #define IDR_POPWND_CREATE               114
-#define IDR_INS_BUTTON                  115
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        116
+#define _APS_NEXT_RESOURCE_VALUE        115
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101

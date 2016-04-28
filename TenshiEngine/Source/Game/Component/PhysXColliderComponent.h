@@ -24,6 +24,7 @@ public:
 	void IO_Data(I_ioHelper* io) override;
 
 	void ChangeShape();
+	void ChangeMaterial();
 	void CreateMesh();
 	void SetIsTrigger(bool flag);
 
@@ -44,6 +45,7 @@ private:
 
 	bool mIsSphere;
 	std::string mMeshFile;
+	std::string mPhysicsMaterialFile;
 
 	//åªç›ÇÃÉXÉPÅ[Éã
 	XMVECTOR mScale;

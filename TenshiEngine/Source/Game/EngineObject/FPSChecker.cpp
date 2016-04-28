@@ -19,9 +19,9 @@ public:
 
 		mTransform = mComponents.AddComponent<TransformComponent>();
 		
-		mComponents.AddComponent<MaterialComponent>();
+		//mComponents.AddComponent<MaterialComponent>();
 
-		mComponents.AddComponent<TextureModelComponent>();
+		//mComponents.AddComponent<TextureModelComponent>();
 
 		mComponents.AddComponent<TextComponent>();
 
@@ -47,8 +47,10 @@ public:
 		//mDownRight.y = 1 - TopLeft.y / WindowState::mHeight;
 
 
-		mTransform->Position(XMVectorSet(-0.8f,0.5f, 0, 1));
-		mTransform->Scale(XMVectorSet(0.5f, 0.5f,1,1));
+		//mTransform->Position(XMVectorSet(-0.8f,0.5f, 0, 1));
+		//mTransform->Scale(XMVectorSet(0.5f, 0.5f,1,1));
+		mTransform->Position(XMVectorSet(200,200, 0, 1));
+		mTransform->Scale(XMVectorSet(400, 400,0,1));
 	}
 	~Text(){
 		Finish();

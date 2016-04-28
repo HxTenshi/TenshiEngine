@@ -89,6 +89,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DS4.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Input\InputCoord.h" />
     <ClInclude Include="stdafx.h" />

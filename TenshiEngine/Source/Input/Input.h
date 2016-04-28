@@ -66,8 +66,34 @@ public:
 	}
 	static void MouseLeftDragVector(int* x, int* y){
 		DLLInput::MouseLeftDragVector(x, y);
-
 	}
+
+	static bool Trigger(PAD_DS4_KeyCoord key){
+		return DLLInput::DS4Trigger(key);
+	}
+	static int Down(PAD_DS4_KeyCoord key){
+		return DLLInput::DS4Down(key);
+	}
+	static bool Up(PAD_DS4_KeyCoord key){
+		return DLLInput::DS4Up(key);
+	}
+
+	static XMVECTOR Analog(PAD_DS4_LevelCoord key){
+		float x;
+		DLLInput::DS4Analog1(key,&x);
+		return XMVectorSet(x, 0, 0, 1);
+	}
+	static XMVECTOR Analog(PAD_DS4_Velo2Coord key){
+		float x,y;
+		DLLInput::DS4Analog2(key, &x,&y);
+		return XMVectorSet(x, y, 0, 1);
+	}
+	static XMVECTOR Analog(PAD_DS4_Velo3Coord key){
+		float x,y,z;
+		DLLInput::DS4Analog3(key, &x,&y,&z);
+		return XMVectorSet(x, y, z, 1);
+	}
+
 
 private:
 

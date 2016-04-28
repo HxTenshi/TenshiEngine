@@ -78,9 +78,9 @@ void EditorCamera::Update(float deltaTime){
 		//Eye = XMVector3Rotate(-mRClickEyeVect, yrot) + At;
 
 		XMVECTOR rot = XMQuaternionMultiply(xrot, yrot);
-		XMVECTOR rotate = mCamera.mTransform->Rotate();
+		XMVECTOR rotate = mCamera.mTransform->Quaternion();
 		rot = XMQuaternionMultiply(rotate, rot);
-		mCamera.mTransform->Rotate(rot);
+		mCamera.mTransform->Quaternion(rot);
 		mRClickMousePos = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f);
 
 	}

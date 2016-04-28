@@ -16,7 +16,11 @@ BoneFileData::~BoneFileData(){
 
 void BoneFileData::Create(const char* filename){
 
-	this->~BoneFileData();
+	m_BoneData.mBoneBuffer.clear();
+	m_BoneData.mBoneName.clear();
+	m_BoneData.mIK_Links.clear();
+
+	m_FileName = filename;
 
 	FILE *hFP;
 	fopen_s(&hFP, filename, "rb");
@@ -43,6 +47,10 @@ void BoneFileData::Create(const char* filename){
 	}
 
 	fclose(hFP);
+}
+
+void BoneFileData::FileUpdate(){
+	Create(m_FileName.c_str());
 }
 
 const BoneData& BoneFileData::GetBoneData() const{

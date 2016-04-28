@@ -612,9 +612,9 @@ HRESULT Font::SetText(const std::string& text){
 		rendertarget->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
 
 		brush->SetColor(D2D1::ColorF(1.0f, 0.0f, 0.0f, 1.0f));
-
+		
 		rect = D2D1::RectF(0, 0, 1000, 201);
-
+		
 		//–ˆƒtƒŒ[ƒ€•`‰æ‚µ‚Ä‚é‚ÆãŽè‚­•`‰æ‚³‚ê‚È‚¢H
 		UINT s = wcslen(wtext.c_str());
 		rendertarget->DrawText(

@@ -5,6 +5,9 @@
 #include <functional>
 #include <queue>
 #include "Game/Component/ComponentList.h"
+
+#include "Engine/AssetDataBase.h"
+
 class ITransformComponent;
 class File;
 class PrefabAssetData;
@@ -103,10 +106,6 @@ public:
 
 	shared_ptr<ITransformComponent> mTransform;
 
-
-	//PhysXテスト用
-	void SetTransform(physx::PxTransform* t);
-
 	void* mTreeViewPtr;
 
 protected:
@@ -122,7 +121,7 @@ private:
 	std::string mName;
 
 	std::string mPrefab;
-	shared_ptr<PrefabAssetData> mPrefabAsset;
+	PrefabAssetDataPtr mPrefabAsset;
 
 	UINT mUniqueID;
 };

@@ -7,6 +7,7 @@
 #include "Input/Input.h"
 #include "MySTL/ptr.h"
 #include "Game/Script/IGame.h"
+#include "Engine\Debug.h"
 
 #include <functional>
 #include <map>
@@ -23,10 +24,6 @@ public:
 #define _ADD(x) mFactory[typeid(x).name()] = [](){ return new x(); }
 		
 		//ここに作成したクラスを追加します
-
-		_ADD(CameraScript);
-		_ADD(CoinScript);
-		_ADD(CoinManagerScript);
 
 #include "System\factory"
 
@@ -48,87 +45,64 @@ void ReleseInstance(IDllScriptComponent* p){
 	delete p;
 }
 
-void CameraScript::Start(){
-	mRotateY = 0.0f;
-	mLength = 5.0f;
-	mClear = false;
-}
-void CameraScript::Update(){
 
+#include <bitset>
+#include <sstream>
+DebugEngine* debug;
+int filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 
-	if (Input::Down(KeyCoord::Key_Q)){
-		mRotateY -= 0.05f;
+	
+	auto address = (unsigned long)ep->ExceptionRecord->ExceptionAddress;
+	auto ecode = ep->ExceptionRecord->ExceptionCode;
+
+	{
+		std::ostringstream os;
+		os << std::hex << address;
+		debug->Log(" Exceptエラー Address[" + os.str() + "]");
 	}
-	if (Input::Down(KeyCoord::Key_E)){
-		mRotateY += 0.05f;
+{
+		std::ostringstream os;
+		os << std::hex << code;
+		debug->Log(" +-- Code[" + os.str() + "]");
 	}
-
-	if (mClear){
-		mRotateY += 0.01f;
+	if (code == EXCEPTION_FLT_DIVIDE_BY_ZERO) {
+		debug->Log(" +-- : ゼロ除算");
 	}
-
-	auto rotate = XMQuaternionInverse(gameObject->mTransform->GetParent()->mTransform->Rotate());
-	auto rotatey = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 1), mRotateY);
-	gameObject->mTransform->Rotate(XMQuaternionMultiply(rotatey, rotate));
-	//rotatey;
-	auto back = XMVector3Normalize(gameObject->mTransform->Forward()) * -mLength;
-	auto pos = XMVector3Rotate(XMVectorSet(0, 1, 0, 1) + back, rotate);
-	gameObject->mTransform->Position(pos);
-}
-
-void CameraScript::GameClear(){
-	mClear = true;
-}
-
-
-
-void CoinScript::Start(){
-	mRotateY = 0.0f;
-}
-
-void CoinScript::Update(){
-	mRotateY += 0.01f;
-	gameObject->mTransform->Rotate(XMVectorSet(0, mRotateY, 0,1));
-}
-
-void CoinManagerScript::Start(){
-	mGetCoinCount = 0;
-	mMaxCoin = 0;
-	isClear = false;
-
-	auto obj = game->FindActor("GetCoinText");
-	if (!obj)return;
-	auto text = obj->GetComponent<TextComponent>();
-	if (!text)return;
-	text->ChangeText("GetCoin:0");
-}
-void CoinManagerScript::Update(){
-	mMaxCoin = gameObject->mTransform->Children().size();
-
-	if (mMaxCoin == 0 && !isClear){
-		auto a = game->CreateActor("Assets/gameclear.prefab");
-		if (a)game->AddObject(a);
-		isClear = true;
-
-		auto c = game->FindActor("MainCamera");
-		if (c){
-			auto s = c->GetScript<CameraScript>();
-			if (s)
-			{
-				s->GameClear();
-			}
-		}
+	else if (code == EXCEPTION_INT_DIVIDE_BY_ZERO) {
+		debug->Log(" +-- : ゼロ除算");
 	}
-
+	else if (code == EXCEPTION_ACCESS_VIOLATION) {
+		debug->Log(" +-- : アクセス違反");
+	}
+	return EXCEPTION_EXECUTE_HANDLER;
 }
 
+void Function0(IDllScriptComponent* com, IDllScriptComponent::Func0 func){
+	debug = com->game->Debug();
+	__try{
+		//try{
+			(com->*func)();
+		//}
+		//catch (char* text){
+		//	debug->Log(text);
+		//}
+	}
+	__except (filter(GetExceptionCode(), GetExceptionInformation())){
 
-void CoinManagerScript::GetCoin(){
-	mGetCoinCount++;
+	}
+}
+void Function1(IDllScriptComponent* com, IDllScriptComponent::Func1 func, Actor* tar){
+	debug = com->game->Debug();
+	__try{
+		//try{
+			(com->*func)(tar);
+		//}
+		//catch (char* text){
+		//	debug->Log(text);
+		//}
 
-	auto obj = game->FindActor("GetCoinText");
-	if (!obj)return;
-	auto text = obj->GetComponent<TextComponent>();
-	if (!text)return;
-	text->ChangeText("GetCoin:"+std::to_string(mGetCoinCount));
+	}
+	__except (filter(GetExceptionCode(), GetExceptionInformation())){
+
+	}
 }

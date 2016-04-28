@@ -4,7 +4,18 @@
 
 class Material;
 
-class MaterialComponent :public Component{
+class IMaterialComponent :public Component{
+public:
+
+	IMaterialComponent(){}
+	virtual ~IMaterialComponent(){}
+
+
+	virtual void SetAlbedoColor(const XMFLOAT4& col) = 0;
+	virtual void SetSpecularColor(const XMFLOAT4& col) = 0;
+};
+
+class MaterialComponent :public IMaterialComponent{
 public:
 
 	void LoadAssetResource(const std::string& path);
@@ -19,8 +30,8 @@ public:
 	void CreateInspector() override;
 	Material GetMaterial(UINT GetNo) const;
 
-	void SetAlbedoColor(const XMFLOAT4& col);
-	void SetSpecularColor(const XMFLOAT4& col);
+	void SetAlbedoColor(const XMFLOAT4& col) override;
+	void SetSpecularColor(const XMFLOAT4& col) override;
 
 	void IO_Data(I_ioHelper* io) override;
 

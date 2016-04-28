@@ -10,6 +10,8 @@
 #include "../Loader/Animation/VMD.h"
 #include "Engine/AssetDataBase.h"
 
+#include "Engine/AssetFile/Bone/BoneFileData.h"
+
 
 class BoneModel{
 public:

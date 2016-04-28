@@ -9,6 +9,8 @@
 
 #include "MySTL/ioHelper.h"
 
+#include "Engine/AssetFile/Prefab/PrefabFileData.h"
+
 class UniqueIDGenerator{
 public:
 	UniqueIDGenerator(const char* file)
@@ -138,8 +140,7 @@ void Actor::ExportData(const std::string& path, const std::string& fileName){
 
 	shared_ptr<I_InputHelper> prefab_io(NULL);
 	if (mPrefabAsset && path != "Assets"){
-		auto& d = mPrefabAsset->GetFileData();
-		prefab_io = d.GetData();
+		prefab_io = mPrefabAsset->GetFileData()->GetData();
 		//prefab_io = new FileInputHelper(mPrefab);
 		//if (prefab_io->error){
 		//	delete prefab_io;
@@ -165,8 +166,7 @@ void Actor::ExportData(picojson::value& json){
 
 	shared_ptr<I_InputHelper> prefab_io(NULL);
 	if (mPrefabAsset){
-		auto& d = mPrefabAsset->GetFileData();
-		prefab_io = d.GetData();
+		prefab_io = mPrefabAsset->GetFileData()->GetData();
 	}
 
 
@@ -227,8 +227,7 @@ void Actor::PastePrefabParam(picojson::value& json){
 	MemoryInputHelper* io_in = NULL;
 	MemoryInputHelper* filter_in = NULL;
 	if (mPrefabAsset){
-		auto& d = mPrefabAsset->GetFileData();
-		auto val = *d.GetParam();
+		auto val = *mPrefabAsset->GetFileData()->GetParam();
 
 		filter_in = new MemoryInputHelper(param, NULL);
 		io_in = new MemoryInputHelper(val, filter_in);
@@ -349,7 +348,7 @@ void Actor::_ImportData(I_ioHelper* io){
 	if (mPrefab!=""){
 		AssetDataBase::Instance(mPrefab.c_str(), mPrefabAsset);
 		if (mPrefabAsset){
-			auto prefab_io = mPrefabAsset->GetFileData().GetData();
+			auto prefab_io = mPrefabAsset->GetFileData()->GetData();
 			if (!prefab_io->error){
 
 				picojson::object components;
@@ -404,81 +403,6 @@ void Actor::_ImportData(I_ioHelper* io){
 
 #undef _KEY
 
-}
-
-
-//https://github.com/satoruhiga/ofxEulerAngles/blob/master/src/ofxEulerAngles.h
-XMVECTOR toEulerXYZ(const XMMATRIX &m)
-{
-	XMVECTOR v;
-	v.w = 1;
-
-	float &thetaX = v.x;
-	float &thetaY = v.y;
-	float &thetaZ = v.z;
-
-	const float &r00 = m._11;
-	const float &r01 = m._21;
-	const float &r02 = m._31;
-
-	const float &r10 = m._12;
-	const float &r11 = m._22;
-	const float &r12 = m._32;
-
-	//const float &r20 = m._13;
-	//const float &r21 = m._23;
-	const float &r22 = m._33;
-
-	if (r02 < +1)
-	{
-		if (r02 > -1)
-		{
-			thetaY = asinf(r02);
-			thetaX = atan2f(-r12, r22);
-			thetaZ = atan2f(-r01, r00);
-		}
-		else     // r02 = -1
-		{
-			// Not a unique solution: thetaZ - thetaX = atan2f(r10,r11)
-			thetaY = -XM_PI / 2;
-			thetaX = -atan2f(r10, r11);
-			thetaZ = 0;
-		}
-	}
-	else // r02 = +1
-	{
-		// Not a unique solution: thetaZ + thetaX = atan2f(r10,r11)
-		thetaY = +XM_PI / 2;
-		thetaX = atan2f(r10, r11);
-		thetaZ = 0;
-	}
-
-	//thetaX = ofRadToDeg(thetaX);
-	//thetaY = ofRadToDeg(thetaY);
-	//thetaZ = ofRadToDeg(thetaZ);
-
-	return v;
-}
-
-#include "../PhysX/PhysX3.h"
-//PhysXテスト用
-void Actor::SetTransform(physx::PxTransform* t){
-	physx::PxTransform& pT = *t;// PxShapeExt::getGlobalPose(*pShape, *actor);
-	//PxBoxGeometry bg;
-	//pShape->getBoxGeometry(bg);
-	XMVECTOR pos = XMVectorSet(pT.p.x, pT.p.y, pT.p.z,1);
-	mTransform->WorldPosition(pos);
-
-	auto q = XMVectorSet(pT.q.x, pT.q.y, pT.q.z, pT.q.w);
-	mTransform->Rotate(q);
-
-	return;
-
-	//auto rotate = toEulerXYZ(XMMatrixRotationQuaternion(q));
-	
-	//XMMatrixRotationRollPitchYawFromVector
-
-	//mTransform->Rotate(rotate);
 }
 
 void* Actor::_GetScript(const char* name){

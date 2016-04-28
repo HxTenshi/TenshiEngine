@@ -56,8 +56,9 @@
 using namespace physx;
 class Actor;
 class IPolygonsData;
+#include "IPhysXEngine.h"
 
-class PhysX3Main{
+class PhysX3Main : public PhysXEngine{
 public:
 
 	PhysX3Main();
@@ -70,11 +71,6 @@ public:
 	PxRigidActor* createBody();
 	PxRigidActor* createBodyEngine();
 
-	void DrawBox(PxShape* pShape, PxRigidActor* actor);
-	void DrawShape(PxShape* shape, PxRigidActor* actor);
-
-	void DrawActor(PxRigidActor* actor);
-
 	void EngineDisplay();
 	void Display();
 	void StepPhysX();
@@ -84,12 +80,15 @@ public:
 	void RemoveActor(PxActor* act);
 	void RemoveActorEngine(PxActor* act);
 
-	Actor* Raycast(const XMVECTOR& pos, const XMVECTOR& dir);
+	Actor* Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance) override;
 	Actor* EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir);
 
 	PxShape* CreateShape();
 	PxShape* CreateShapeSphere();
 	PxShape* CreateTriangleMesh(const IPolygonsData* poly);
+	PxPhysics* GetSDK(){
+		return gPhysicsSDK;
+	};
 
 private:
 	void getColumnMajor(PxMat33& m, PxVec3& t, float* mat);

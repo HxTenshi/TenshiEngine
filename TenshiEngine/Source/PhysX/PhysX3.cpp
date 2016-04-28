@@ -25,21 +25,8 @@ class TestOn : public physx::PxSimulationEventCallback{
 	{
 		for (PxU32 i = 0; i < nbPairs; i++)
 		{
-			const PxContactPair& cp = pairs[i];
-			if (cp.events & PxPairFlag::eTRIGGER_DEFAULT)
-			{
-				Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
-				Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
-				if (!(act0&&act1))continue;
-				auto script0 = act0->GetComponent<ScriptComponent>();
-				auto script1 = act1->GetComponent<ScriptComponent>();
-				if (script0)
-					script0->OnCollide(act1);
-				if (script1)
-					script1->OnCollide(act0);
 
-				break;
-			}
+			const PxContactPair& cp = pairs[i];
 			if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
 				Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
@@ -66,6 +53,20 @@ class TestOn : public physx::PxSimulationEventCallback{
 				//	break;
 				//}
 			}
+			if (cp.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
+			{
+				Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
+				Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
+				if (!(act0&&act1))continue;
+				auto script0 = act0->GetComponent<ScriptComponent>();
+				auto script1 = act1->GetComponent<ScriptComponent>();
+				if (script0)
+					script0->LostCollide(act1);
+				if (script1)
+					script1->LostCollide(act0);
+
+				break;
+			}
 		}
 	}
 	void onTrigger(PxTriggerPair *pairs, PxU32 count) override{
@@ -88,15 +89,15 @@ class TestOn : public physx::PxSimulationEventCallback{
 			}
 			if (cp.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				//Actor* act0 = (Actor*)cp.triggerActor->userData;
-				//Actor* act1 = (Actor*)cp.otherActor->userData;
-				//if (!(act0&&act1))continue;
-				//auto script0 = act0->GetComponent<ScriptComponent>();
-				//auto script1 = act1->GetComponent<ScriptComponent>();
-				//if (script0)
-				//	script0->OnCollide(act1);
-				//if (script1)
-				//	script1->OnCollide(act0);
+				Actor* act0 = (Actor*)cp.triggerActor->userData;
+				Actor* act1 = (Actor*)cp.otherActor->userData;
+				if (!(act0&&act1))continue;
+				auto script0 = act0->GetComponent<ScriptComponent>();
+				auto script1 = act1->GetComponent<ScriptComponent>();
+				if (script0)
+					script0->LostCollide(act1);
+				if (script1)
+					script1->LostCollide(act0);
 
 				break;
 
@@ -118,8 +119,9 @@ PxFilterFlags SampleSubmarineFilterShader(
 		pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
 	}
 	else{
-		pairFlags = PxPairFlag::eCONTACT_DEFAULT;
+		pairFlags = PxPairFlag::eCONTACT_DEFAULT | PxPairFlag::eTRIGGER_DEFAULT;
 	}
+
 	bool kinematic0 = PxFilterObjectIsKinematic(attributes0);
 	bool kinematic1 = PxFilterObjectIsKinematic(attributes1);
 
@@ -254,9 +256,9 @@ void PhysX3Main::createPlane(){
 	PxRigidStatic* plane = gPhysicsSDK->createRigidStatic(pose);
 	if (!plane)
 		std::cerr << "create plane failed!" << std::endl;
-	PxShape* shape = plane->createShape(PxPlaneGeometry(), *mMaterial);
-	if (!shape)
-		std::cerr << "create shape failed!" << std::endl;
+	//PxShape* shape = plane->createShape(PxPlaneGeometry(), *mMaterial);
+	//if (!shape)
+	//	std::cerr << "create shape failed!" << std::endl;
 	gScene->addActor(*plane);
 
 	p = plane;
@@ -392,18 +394,8 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 	return shape;
 }
 
-static int mCount=0;
-static int mNum = 0;
-static int mMax = 1;
-
 void PhysX3Main::StepPhysX()
 {
-	//mCount++;
-	//if (mCount % 6 == 0 && mNum != mMax){
-	//	mNum++;
-	//	createBox();
-	//}
-
 	//シミュレーションするものがないと出力がでる
 	gScene->simulate(myTimestep);
 
@@ -444,50 +436,6 @@ void PhysX3Main::getColumnMajor(PxMat33& m, PxVec3& t, float* mat) {
 	mat[15] = 1;
 }
 
-void PhysX3Main::DrawBox(PxShape* pShape, PxRigidActor* actor){
-	PxTransform pT = PxShapeExt::getGlobalPose(*pShape, *actor);
-
-	//PxBoxGeometry bg;
-	//pShape->getBoxGeometry(bg);
-
-	//PxMat33 m = PxMat33Legacy(pT.q);
-	//
-	//float matf[16];
-	//getColumnMajor(m, pT.p, matf);
-
-	//MATRIX mat = MGet(matf);
-	//VECTOR scale = VGet(bg.halfExtents.x * 2.0f, bg.halfExtents.y * 2.0f, bg.halfExtents.z * 2.0f);
-	//mat = MMult(MGetScale(scale), mat);
-	//MV1SetMatrix(mhbox, mat);
-	//MV1DrawModel(mhbox);
-
-}
-
-void PhysX3Main::DrawShape(PxShape* shape, PxRigidActor* actor)
-{
-	PxGeometryType::Enum type = shape->getGeometryType();
-	switch (type)
-	{
-	case PxGeometryType::eBOX:
-		DrawBox(shape, actor);
-		break;
-	}
-}
-
-void PhysX3Main::DrawActor(PxRigidActor* actor)
-{
-	static PxShape* shapes[256];
-	PxU32 nShapes = actor->getNbShapes();
-	//PxShape** shapes = new PxShape*[nShapes];
-
-	actor->getShapes(shapes, nShapes);
-	while (nShapes--)
-	{
-		DrawShape(shapes[nShapes], actor);
-	}
-	//delete[] shapes;
-}
-
 void PhysX3Main::EngineDisplay() {
 
 	if (mEngineScene){
@@ -497,6 +445,7 @@ void PhysX3Main::EngineDisplay() {
 		while (!mEngineScene->fetchResults())
 		{
 		}
+
 	}
 }
 
@@ -512,14 +461,6 @@ void PhysX3Main::Display() {
 
 void PhysX3Main::ShutdownPhysX() {
 
-	//static PxShape* shapes[256];
-	//PxU32 nShapes = 0;
-	//if (p)nShapes = p->getNbShapes();
-	//if(p)p->getShapes(shapes, nShapes);
-	//while (nShapes--)
-	//{
-	//	//shapes[nShapes]->release();
-	//}
 	{
 		physx::PxActorTypeSelectionFlags t;
 		t |= physx::PxActorTypeSelectionFlag::eRIGID_STATIC;
@@ -556,8 +497,8 @@ void PhysX3Main::ShutdownPhysX() {
 			buffer[i]->release();
 		}
 	}
+
 	if (mTestOn)delete mTestOn;
-	//if (p)p->release();
 	if (gScene)gScene->release();
 	if (mEngineScene)mEngineScene->release();
 	if (mMaterial)mMaterial->release();
@@ -578,10 +519,10 @@ void PhysX3Main::RemoveActorEngine(PxActor* act){
 	act->release();
 }
 
-Actor* PhysX3Main::Raycast(const XMVECTOR& pos,const XMVECTOR& dir){
+Actor* PhysX3Main::Raycast(const XMVECTOR& pos,const XMVECTOR& dir,float distance){
 	PxVec3 ori(pos.x, pos.y, pos.z);
 	PxVec3 _dir(dir.x, dir.y, dir.z);
-	PxReal dis = 100;
+	PxReal dis = distance;
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
 	PxRaycastHit hit;
 	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit)){

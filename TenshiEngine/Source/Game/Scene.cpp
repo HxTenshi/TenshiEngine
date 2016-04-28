@@ -45,6 +45,8 @@ void Scene::SaveScene(Actor* SceneRoot){
 }
 
 void Scene::MemoryLoadScene(){
+	m_FilePath = m_MemorySaveFilePath;
+	m_Name = m_MemorySaveName;
 	for (auto& act : mMemorySave){
 		auto postactor = new Actor();
 		postactor->ImportData(*act);
@@ -57,6 +59,9 @@ void Scene::MemorySaveScene(){
 		delete act;
 	}
 	mMemorySave.clear();
+
+	m_MemorySaveFilePath = m_FilePath;
+	m_MemorySaveName = m_Name;
 	Game::GetAllObject([&](Actor* act){
 		auto data = new picojson::value();
 		act->ExportData(*data);

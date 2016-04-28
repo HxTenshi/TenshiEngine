@@ -17,12 +17,15 @@ public:
 	void Finish() override;
 
 	void OnCollide(Actor* target);
+	void LostCollide(Actor* target);
 
 	void CreateInspector() override;
 
 	void IO_Data(I_ioHelper* io) override;
 	IDllScriptComponent* pDllClass;
 	std::string mClassName;
+
+	std::map<int, Actor*> mCollideMap;
 private:
 	bool mEndInitialize;
 	bool mEndStart;

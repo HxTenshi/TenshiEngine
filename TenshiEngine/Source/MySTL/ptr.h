@@ -83,7 +83,7 @@ public:
 		delete this;
 	}
 
-	bool enable_sp_count(){
+	bool enable_sp_count() const{
 		return sp_count>0;
 	}
 
@@ -119,6 +119,7 @@ private:
 };
 #pragma endregion
 
+#include <iostream>
 template<class T>
 class make_sp_counter_impl : public sp_counter_base
 {
@@ -206,7 +207,7 @@ public:
 			pimpl->weak_release();
 	}
 
-	bool expired(){
+	bool expired() const{
 		return pimpl == NULL || !pimpl->enable_sp_count();
 	}
 

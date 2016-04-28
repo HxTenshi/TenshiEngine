@@ -23,5 +23,7 @@ private:
 	std::string m_FilePath;
 	std::string m_Name;
 
+	std::string m_MemorySaveFilePath;
+	std::string m_MemorySaveName;
 	std::list<picojson::value*> mMemorySave;
 };

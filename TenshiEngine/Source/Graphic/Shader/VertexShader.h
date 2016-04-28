@@ -2,6 +2,7 @@
 
 #include "ShaderFile.h"
 #include "InputLayout.h"
+#include "Device/DirectX11Device.h"
 
 class VertexShader : public ShaderFile {
 public:

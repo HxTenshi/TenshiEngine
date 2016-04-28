@@ -146,7 +146,7 @@ HRESULT BoneModel::Create(const char* FileName){
 
 	createBone();
 
-	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
+	auto& bones = mBoneAssetDataPtr->GetFileData()->GetBoneData().mBoneBuffer;
 
 	if (bones.size()){
 		mCBBoneMatrix = ConstantBufferArray<cbBoneMatrix>::create(7, bones.size());
@@ -167,8 +167,8 @@ HRESULT BoneModel::Create(const char* FileName){
 
 void BoneModel::createBone(){
 
-	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
-	auto& boneName = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneName;
+	auto& bones = mBoneAssetDataPtr->GetFileData()->GetBoneData().mBoneBuffer;
+	auto& boneName = mBoneAssetDataPtr->GetFileData()->GetBoneData().mBoneName;
 
 	DWORD mBoneNum = bones.size();
 	mBone.clear();
@@ -225,8 +225,8 @@ void BoneModel::createBone(){
 void BoneModel::createIk(DWORD ikCount, UINT bidx){
 
 
-	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
-	auto& iks = mBoneAssetDataPtr->GetFileData().GetBoneData().mIK_Links;
+	auto& bones = mBoneAssetDataPtr->GetFileData()->GetBoneData().mBoneBuffer;
+	auto& iks = mBoneAssetDataPtr->GetFileData()->GetBoneData().mIK_Links;
 
 	auto& bone = bones[bidx];
 	auto& ik = iks[bidx];
@@ -249,7 +249,7 @@ void BoneModel::SetConstantBuffer() const{
 
 void BoneModel::CreateAnime(vmd& VMD){
 
-	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
+	auto& bones = mBoneAssetDataPtr->GetFileData()->GetBoneData().mBoneBuffer;
 	if (bones.size() == 0)return;
 	mIsCreateAnime = true;
 
@@ -346,7 +346,7 @@ void BoneModel::VMDAnimation(float key_time)
 	if (!mBoneAssetDataPtr)return;
 	if (mMotion.empty())return;
 
-	auto& bones = mBoneAssetDataPtr->GetFileData().GetBoneData().mBoneBuffer;
+	auto& bones = mBoneAssetDataPtr->GetFileData()->GetBoneData().mBoneBuffer;
 	if (bones.empty())return;
 
 	for (DWORD mid = 0; mid < bones.size(); mid++){

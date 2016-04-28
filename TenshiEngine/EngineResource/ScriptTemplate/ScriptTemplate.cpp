@@ -6,7 +6,7 @@ void $temp$::Initialize(){
 
 }
 
-//initializeとupdateの前に呼ばれます（エディター中は呼ばれません）
+//initializeとupdateの前に呼ばれます（エディター中も呼ばれます）
 void $temp$::Start(){
 
 }
@@ -16,12 +16,22 @@ void $temp$::Update(){
 
 }
 
-//開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）
+//開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）（エディター中も呼ばれます）
 void $temp$::Finish(){
 
 }
 
 //コライダーとのヒット時に呼ばれます
-void $temp$::OnCollide(Actor* target){
+void $temp$::OnCollideBegin(Actor* target){
+	(void)target;
+}
+
+//コライダーとのヒット中に呼ばれます
+void $temp$::OnCollideEnter(Actor* target){
+	(void)target;
+}
+
+//コライダーとのロスト時に呼ばれます
+void $temp$::OnCollideExit(Actor* target){
 	(void)target;
 }

@@ -74,38 +74,14 @@ void BindingInspector(System::Windows::Shapes::Rectangle^ rectangle, T* pf1, std
 	rectangle->AddHandler(System::Windows::Controls::Canvas::MouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(ViewData::window, &View::CreateColorPickerWindow), true);
 }
 
-//ここでエラー？
-//リソースからXAMLを作成する
-FrameworkElement ^LoadContentsFromResource(int resourceId) {
-	// モジュールハンドルの取得
-	HMODULE module = GetModuleHandle(L"CppWPFdll");
+ref class XAMLResource{
+public:
+	static System::Collections::Generic::Dictionary<int, String^> ^DataBase = gcnew System::Collections::Generic::Dictionary<int, String^>();
+};
 
-	if (module == NULL)return nullptr;
-	// リソースを見つける
-	HRSRC resource = FindResource(module, MAKEINTRESOURCE(resourceId), RT_HTML);
-	if (resource == NULL)return nullptr;
-	// リソースのデータサイズを取得する
-	DWORD dataSize = SizeofResource(module, resource);
-	// リソースデータのグローバルハンドルを取得する
-	HGLOBAL dataHandle = LoadResource(module, resource);
-	if (dataHandle == NULL)return nullptr;
-	// リソースのデータを取得する
-	const char *data = static_cast<const char *>(LockResource(dataHandle));
+FrameworkElement ^CreateFrom(String ^xaml) {
 
-	// リソースを最後がヌル文字の文字列にするためにバッファーにコピーする
-	std::vector<char> xaml(dataSize + 1);
-	std::copy(data, data + dataSize, xaml.begin());
-	xaml[dataSize] = '\0';
-
-
-	// リソースの解放
-	UnlockResource(dataHandle);
-	FreeResource(dataHandle);
-	//System::Xaml::XamlObjectWriterSettings a;
-	//System::Xaml::Permissions::XamlAccessLevel ac;
-
-	// XAMLからオブジェクト化
-	StringReader ^reader = gcnew StringReader(gcnew String(xaml.data()));
+	auto reader = gcnew StringReader(xaml);
 
 	XamlXmlReader ^xamlXmlReader = gcnew XamlXmlReader(reader);
 
@@ -113,8 +89,49 @@ FrameworkElement ^LoadContentsFromResource(int resourceId) {
 	while (xamlXmlReader->Read()) {
 		xamlObjectWriter->WriteNode(xamlXmlReader);
 	}
-	
+
 	return (FrameworkElement ^)xamlObjectWriter->Result;
+}
+//リソースからXAMLを作成する
+FrameworkElement ^LoadContentsFromResource(int resourceId) {
+	auto data = XAMLResource::DataBase[resourceId];
+	if (!data)return nullptr;
+	return CreateFrom(data);
+}
+
+void InitializeLoadContentsFromResource(int startID, int endID) {
+	// モジュールハンドルの取得
+	HMODULE module = GetModuleHandle(L"CppWPFdll");
+
+	if (module == NULL)return;
+
+	for (int i = startID; i <= endID; i++){
+
+		// リソースを見つける
+		HRSRC resource = FindResource(module, MAKEINTRESOURCE(i), RT_HTML);
+		if (resource == NULL)return;
+		// リソースのデータサイズを取得する
+		DWORD dataSize = SizeofResource(module, resource);
+		// リソースデータのグローバルハンドルを取得する
+		HGLOBAL dataHandle = LoadResource(module, resource);
+		if (dataHandle == NULL)return;
+		// リソースのデータを取得する
+		const char *data = static_cast<const char *>(LockResource(dataHandle));
+
+		// リソースを最後がヌル文字の文字列にするためにバッファーにコピーする
+		std::vector<char> xaml(dataSize + 1);
+		std::copy(data, data + dataSize, xaml.begin());
+		xaml[dataSize] = '\0';
+
+
+		// リソースの解放
+		UnlockResource(dataHandle);
+		FreeResource(dataHandle);
+
+		// XAMLからオブジェクト化
+		XAMLResource::DataBase->Add(i, gcnew String(xaml.data()));
+	}
+
 }
 
 //template <class T>

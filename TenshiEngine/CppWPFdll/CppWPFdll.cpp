@@ -364,6 +364,7 @@ namespace Test {
 	delegate void MyDelegateF(String^, IntPtr, array<InspectorData^>^);
 	delegate void MyDelegateITEM(String^, IntPtr);
 	delegate void MyDelegateCOM(String^);
+	delegate void MyDelegateOBJ(String^, String^);
 	delegate void MyDelegateI2(IntPtr, IntPtr);
 	delegate void MyDelegateI1(IntPtr);
 	void NativeFraction::CreateComponentWindow(const std::string& ComponentName, void* comptr, std::vector<InspectorDataSet>& data){
@@ -447,9 +448,17 @@ namespace Test {
 		}
 	}
 
+	void NativeFraction::CreateContextMenu_CreateObject(const std::string& ObjectName, const std::string& FilePath){
+		if (ViewData::window != nullptr){
+			auto del = gcnew MyDelegateOBJ(ViewData::window, &View::CreateContextMenu_CreateObject);
+			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ObjectName.c_str()), gcnew String(FilePath.c_str()));
+		}
+	}
+
 	void NativeFraction::AddTreeViewItem(const std::string& Name, void* ptr){
 		if (ViewData::window == nullptr)return;
 
+		
 		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddItem);
 		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
 	}
@@ -468,7 +477,7 @@ namespace Test {
 	void NativeFraction::AddLog(const std::string& log){
 		if (ViewData::window == nullptr)return;
 		auto del = gcnew MyDelegateCOM(ViewData::window, &View::AddLog);
-		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(log.c_str()));
+		ViewData::window->Dispatcher->BeginInvoke(System::Windows::Threading::DispatcherPriority::Render, del, gcnew String(log.c_str()));
 	}
 
 	void* NativeFraction::GetGameScreenHWND() const {

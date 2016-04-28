@@ -7,6 +7,8 @@
 #using <system.dll>
 
 
+
+
 std::string* string_cast(String^ str){
 	//String^ name = (String^)t->Header;
 	pin_ptr<const wchar_t> wch = PtrToStringChars(str);
@@ -603,7 +605,6 @@ private:
 	
 };
 
-
 ref class CreateScriptWindow : public Window {
 public:
 	static CreateScriptWindow ^mUnique = nullptr;
@@ -649,6 +650,51 @@ private:
 
 };
 
+ref class CreateAssetWindow : public Window {
+public:
+	static CreateAssetWindow ^mUnique = nullptr;
+
+	CreateAssetWindow(Window^ owner,String^ ex)
+	{
+		if (mUnique){
+			mUnique->Close();
+		}
+		mEx = ex;
+		mUnique = this;
+		Owner = owner;
+		Title = "CreateAsset";
+		Width = 400;
+		Height = 50 + 36;
+		Show();
+		Visibility = System::Windows::Visibility::Visible;
+
+
+
+
+		FrameworkElement ^colwnd = LoadContentsFromResource(IDR_POPWND_CREATE);
+		Content = colwnd;
+		auto createbutton = (Button^)colwnd->FindName("CreateButton");
+		createbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &CreateAssetWindow::CreateButton);
+		auto cancelbutton = (Button^)colwnd->FindName("CancelButton");
+		cancelbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &CreateAssetWindow::CancelButton);
+
+
+		mTextBox = (TextBox^)colwnd->FindName("CreateTextBox");
+
+	}
+private:
+
+	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+		Data::MyPostMessage(MyWindowMessage::CreateAssetFile, string_cast(mTextBox->Text + mEx));
+		Close();
+	}
+	void CancelButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+		Close();
+	}
+	TextBox ^mTextBox;
+	String ^mEx;
+
+};
 
 
 ref class SceneTreeView{
@@ -735,12 +781,12 @@ private:
 		//コンテキストメニュー作成
 		{
 			auto cm = gcnew System::Windows::Controls::ContextMenu();
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "CreateObject";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &SceneTreeView::MenuItem_Click_CreateObject);
-				cm->Items->Add(mitem);
-			}
+			//{//コンテキストメニューの要素作成
+			//	auto mitem = gcnew System::Windows::Controls::MenuItem();
+			//	mitem->Header = "CreateObject";
+			//	mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &SceneTreeView::MenuItem_Click_CreateObject);
+			//	cm->Items->Add(mitem);
+			//}
 			{//コンテキストメニューの要素作成
 				auto mitem = gcnew System::Windows::Controls::MenuItem();
 				mitem->Header = "Remove";
@@ -759,6 +805,9 @@ private:
 
 
 public:
+	System::Windows::Controls::ContextMenu^ GetContextMenu(){
+		return m_TreeView->ContextMenu;
+	}
 
 	//ツリービューにゲームオブジェクトを追加
 	void AddItem(String ^Name, IntPtr ptr){
@@ -828,10 +877,10 @@ private:
 	}
 
 	//コンテキストメニューのオブジェクト作成
-	void MenuItem_Click_CreateObject(Object ^sender, System::Windows::RoutedEventArgs ^e){
-		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, new std::string("EngineResource/box.prefab"));
-		e->Handled = true;
-	}
+	//void MenuItem_Click_CreateObject(Object ^sender, System::Windows::RoutedEventArgs ^e){
+	//	Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, new std::string("EngineResource/box.prefab"));
+	//	e->Handled = true;
+	//}
 
 	
 	//コンテキストメニューのゲームオブジェクトの削除処理
@@ -1040,6 +1089,15 @@ private:
 				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::MenuItem_Click_CreateScript);
 				cm->Items->Add(mitem);
 			}
+
+						{//コンテキストメニューの要素作成
+							auto mitem = gcnew System::Windows::Controls::MenuItem();
+							mitem->Header = "CreatePhysxMaterial";
+							mitem->DataContext = ".pxmaterial";
+							mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::MenuItem_Click_CreateAsset);
+							cm->Items->Add(mitem);
+						}
+
 			//ツリービューに反映
 			m_TreeView->ContextMenu = cm;
 		}
@@ -1051,6 +1109,15 @@ private:
 	void MenuItem_Click_CreateScript(Object ^sender, System::Windows::RoutedEventArgs ^e){
 
 		auto w = gcnew CreateScriptWindow(m_ParentWindow);
+
+		e->Handled = true;
+	}
+
+	//コンテキストメニューのオブジェクト作成
+	void MenuItem_Click_CreateAsset(Object ^sender, System::Windows::RoutedEventArgs ^e){
+
+		auto ex = (String^)((System::Windows::Controls::MenuItem^)sender)->DataContext;
+		auto w = gcnew CreateAssetWindow(m_ParentWindow,ex);
 
 		e->Handled = true;
 	}
@@ -1076,11 +1143,50 @@ private:
 	void OnChanged(Object^ source, System::IO::FileSystemEventArgs^ e)
 	{
 	}
+
+	TestContent::Person ^ DirSearch(String^ dir, TestContent::Person ^par){
+		if (!par)return nullptr;
+
+		auto count = par->Children->Count;
+		for (int i = 0; i < count;i++){
+			auto c = par->Children[i];
+			if (c->Name == dir){
+				return c;
+			}
+		}
+
+		return nullptr;
+
+	}
 	void OnCreated(Object^ source, System::IO::FileSystemEventArgs^ e)
 	{
+		array<String^> ^r = gcnew array<String^>(1);
+		r[0] = "/";
+
+		auto scr = (System::IO::FileSystemWatcher^)source;
+
+		auto sp = e->FullPath->Split(r,1,System::StringSplitOptions::None);
+
+		auto count = sp->Length-1;
+
+		auto par = DirSearch(scr->Path, m_TreeViewItemRoot);
+		int i = 0;
+		for (; i < count; i--){
+			auto dir = sp[i];
+			if (dir == scr->Path){
+				break;
+			}
+		}
+		for (; i < count; i--){
+			auto dir = sp[i];
+			par = DirSearch(dir, par);
+		}
+
 		auto item = gcnew TestContent::Person(e->Name, gcnew TestContent::MyList());
 		item->DataPtr = (IntPtr)NULL;
-		m_TreeViewItemRoot->Add(item);
+		if (par){
+			par->Add(item);
+		}
 	}
 	void OnDeleted(Object^ source, System::IO::FileSystemEventArgs^ e)
 	{
@@ -1348,6 +1454,9 @@ public:
 
 		this->WindowState = System::Windows::WindowState::Maximized;
 
+		InitializeLoadContentsFromResource(101,115);
+		
+
 		FrameworkElement ^contents = LoadContentsFromResource(IDR_VIEW);
 		if (contents){
 			Content = contents;
@@ -1362,6 +1471,7 @@ public:
 
 		auto TreeViewDec = (Border ^)contents->FindName("TreeView");
 		mSceneTreeView = gcnew SceneTreeView(TreeViewDec);
+		m_SceneContextMenu = mSceneTreeView->GetContextMenu();
 
 		auto AssetTreeViewDec = (Border ^)contents->FindName("AssetTreeView");
 		mAssetTreeView = gcnew AssetTreeView(this,AssetTreeViewDec);
@@ -1478,9 +1588,26 @@ public:
 
 	}
 
+	int count = 0;
 	void AddLog(String^ log){
-		m_LogBox->Items->Add(log);
+		count++;
+		if (m_LogBox->Items->Count>100){
+			m_LogBox->Items->RemoveAt(0);
+		}
+		m_LogBox->Items->Add(count.ToString() + ":" + log);
 		m_LogBox->ScrollIntoView(m_LogBox->Items[m_LogBox->Items->Count - 1]);
+
+		//System::Windows::Automation::Provider
+		//// ListBoxからAutomationPeerを取得
+		//auto peer = System::Windows::Automation::Peers::ItemsControlAutomationPeer::CreatePeerForElement(m_LogBox);
+		//// GetPatternでIScrollProviderを取得
+		//auto scrollProvider = (IScrollProvider)peer->GetPattern(System::Windows::Automation::Peers::PatternInterface::Scroll);
+		//// パーセントで位置を指定してスクロール
+		//scrollProvider.SetScrollPercent(
+		//	// 水平スクロールは今の位置
+		//	scrollProvider.HorizontalScrollPercent,
+		//	// 垂直方向はどまんなか！50%
+		//	50.0);
 	}
 
 
@@ -1512,6 +1639,7 @@ public:
 		if (m_ComponentPanel == nullptr)return;
 
 		FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
+
 		m_ComponentPanel->Children->Add(com);
 
 		auto header = (Expander^)com->FindName("ComponentHeaderName");
@@ -1618,7 +1746,10 @@ public:
 	void CreateContextMenu_AddComponent(String^ componentname){
 		CreateContextMenu_AddComponent(componentname, m_ComponentPanel->ContextMenu);
 	}
-
+	//コンテキストメニューの要素作成
+	void CreateContextMenu_CreateObject(String^ objectname, String^ path){
+		CreateContextMenu_CreateObject(objectname, path, m_SceneContextMenu);
+	}
 private:
 	//コンテキストメニューのコンポーネント追加の追加
 	void CreateContextMenu_AddComponent(String^ text, System::Windows::Controls::ContextMenu^ cm){
@@ -1638,6 +1769,27 @@ private:
 	//コンテキストメニューのコンポーネント追加のコールバックを送信
 	void PostMessageAddComponent(std::string* str){
 		Data::MyPostMessage(MyWindowMessage::AddComponent, (void*)str);
+	}
+
+	//コンテキストメニューのオブジェクト追加の追加
+	void CreateContextMenu_CreateObject(String^ text, String^ path, System::Windows::Controls::ContextMenu^ cm){
+		auto mitem = gcnew System::Windows::Controls::MenuItem();
+		mitem->Header = text;
+		mitem->DataContext = path;
+		mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_CreateObject);
+		cm->Items->Add(mitem);
+	}
+	//コンテキストメニューのオブジェクト追加処理
+	void MenuItem_Click_CreateObject(Object ^sender, System::Windows::RoutedEventArgs ^e){
+		auto m = (MenuItem^)sender;
+		auto s = (String^)m->DataContext;
+		auto str = string_cast(s);
+		PostMessageCreateObject(str);
+		e->Handled = true;
+	}
+	//コンテキストメニューのオブジェクト追加のコールバックを送信
+	void PostMessageCreateObject(std::string* str){
+		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, (void*)str);
 	}
 
 	//コンポーネントウィンドウ
@@ -1733,6 +1885,7 @@ private:
 	HWND mWindowHWND;
 
 	StackPanel ^m_ComponentPanel;
+	System::Windows::Controls::ContextMenu ^m_SceneContextMenu;
 
 	SceneTreeView ^mSceneTreeView;
 	AssetTreeView ^mAssetTreeView;

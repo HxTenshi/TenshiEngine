@@ -5,18 +5,34 @@
 #include <String>
 #include "MySTL/File.h"
 #include "IComponent.h"
+#include "Type/ForceMode.h"
 
 namespace physx{
 	class PxRigidActor;
 	class PxShape;
 }
 
+
 enum class PhysXChangeTransformFlag{
 	Position	=0x0001,
 	Rotate		=0x0002,
 };
 
-class PhysXComponent :public Component{
+class IPhysXComponent :public Component{
+public:
+	IPhysXComponent(){}
+	virtual ~IPhysXComponent(){}
+
+	virtual void SetKinematic(bool flag) = 0;
+	virtual XMVECTOR GetForceVelocity() = 0;
+	virtual void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) = 0;
+	virtual void AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) = 0;
+
+private:
+};
+
+
+class PhysXComponent :public IPhysXComponent{
 public:
 	PhysXComponent();
 	~PhysXComponent();
@@ -32,14 +48,15 @@ public:
 		mChengeTransformFlag |= (char)flag;
 	}
 
-	void SetTransform();
+	void SetTransform(bool RebirthSet);
 
 	void AddShape(physx::PxShape& shape);
 	void RemoveShape(physx::PxShape& shape);
-	void SetKinematic(bool flag);
 
-	void AddForce(const XMVECTOR& force);
-	void AddTorque(const XMVECTOR& force);
+	void SetKinematic(bool flag) override;
+	XMVECTOR GetForceVelocity() override;
+	void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;
+	void AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;
 
 	bool mIsEngineMode;
 private:

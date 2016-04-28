@@ -113,7 +113,6 @@
     <ResourceCompile Include="app.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Tutorial07\CppWPFdll\app.ico" />
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>

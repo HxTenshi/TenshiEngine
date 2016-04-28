@@ -35,6 +35,15 @@ public:
 	CLASS_DECLSPEC static void MousePosition(int* x, int* y);
 	CLASS_DECLSPEC static void MouseLeftDragVector(int* x, int* y);
 
+
+	CLASS_DECLSPEC static bool DS4Trigger(PAD_DS4_KeyCoord key);
+	CLASS_DECLSPEC static int DS4Down(PAD_DS4_KeyCoord key);
+	CLASS_DECLSPEC static bool DS4Up(PAD_DS4_KeyCoord key);
+
+	CLASS_DECLSPEC static void DS4Analog1(PAD_DS4_LevelCoord coord,float* x);
+	CLASS_DECLSPEC static void DS4Analog2(PAD_DS4_Velo2Coord coord,float* x, float* y);
+	CLASS_DECLSPEC static void DS4Analog3(PAD_DS4_Velo3Coord coord,float* x, float* y, float* z);
+
 private:
 
 };
@@ -44,7 +53,7 @@ private:
 //#define INITGUID
 #include <dinput.h>
 
-
+class DS4;
 class InputManager{
 public:
 
@@ -69,6 +78,9 @@ private:
 	static LPDIRECTINPUT8			pDInput;			// DirectInputオブジェクト
 	static LPDIRECTINPUTDEVICE8		pDIKeyboard;		// キーボードデバイス
 	static BYTE						diKeyState[256];		// キーボード情報
+
+	static DS4* ds4;
+	static int mDS4Input[(int)PAD_DS4_KeyCoord::Count];
 
 	static bool mDIKeyboardDeviceLost;
 

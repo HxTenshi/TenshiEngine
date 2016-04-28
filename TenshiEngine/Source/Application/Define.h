@@ -14,6 +14,7 @@ enum class MyWindowMessage{
 	OpenAsset,
 
 	CreateScriptFile,
+	CreateAssetFile,
 
 	PlayGame,
 	StopGame,

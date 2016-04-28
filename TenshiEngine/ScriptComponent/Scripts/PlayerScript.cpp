@@ -24,7 +24,7 @@ void PlayerScript::Update(){
 
 	if (!camera)return;
 	float speed = 50.0f;
-	if (Input::Down(KeyCoord::Key_LEFT)){
+	if (Input::Down(PAD_DS4_KeyCoord::Button_UP)){
 		gameObject->mTransform->AddTorque(camera->mTransform->Forward()*speed);
 	}
 	if (Input::Down(KeyCoord::Key_RIGHT)){
@@ -45,14 +45,6 @@ void PlayerScript::Update(){
 
 }
 
-void PlayerScript::OnCollide(Actor* target){
-	if (target->Name() == "coin"){
-		game->DestroyObject(target);
+void PlayerScript::OnCollideBegin(Actor* target){
 
-		auto cm = game->FindActor("CoinManager");
-		if (!cm)return;
-		auto cms = cm->GetScript<CoinManagerScript>();
-		if (!cms)return;
-		cms->GetCoin();
-	}
 }

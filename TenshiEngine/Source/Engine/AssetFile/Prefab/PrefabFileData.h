@@ -13,8 +13,8 @@ public:
 	PrefabFileData();
 	~PrefabFileData();
 
-	void Create(const char* filename);
-	void FileUpdate(const char* filename);
+	void Create(const char* filename) override;
+	void FileUpdate() override;
 	picojson::value Apply();
 
 	shared_ptr<I_InputHelper> GetData() const;
@@ -26,9 +26,6 @@ public:
 		return mBeforeParam;
 	}
 
-	std::string GetFileName()const{
-		return mFileName;
-	}
 
 private:
 	//ÉRÉsÅ[ã÷é~
@@ -36,6 +33,5 @@ private:
 	PrefabFileData& operator=(const PrefabFileData&) = delete;
 
 	Actor* m_PrefabActor;
-	std::string mFileName;
 	picojson::value* mBeforeParam;
 };

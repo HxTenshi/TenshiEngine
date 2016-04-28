@@ -16,10 +16,6 @@ ReflectionSetter::ReflectionSetter(){
 
 	//ここにコンポーネントで表示したい変数を追加します
 
-	REF(CameraScript, mRotateY);
-	REF(CameraScript, mLength);
-	REF(CameraScript, mClear);
-
 #undef REF
 }
 
@@ -27,4 +23,5 @@ ReflectionSetter::ReflectionSetter(){
 
 std::map<std::string, std::map<std::string, MemberInfo_Data>>* GetReflectionData(){
 	return reflection.GetReflectionDatas();
+	
 }

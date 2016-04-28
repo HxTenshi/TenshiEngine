@@ -33,7 +33,7 @@
     <ClCompile Include="Scripts\PlayerScript.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Scripts\tefcdsavrbgsdv.cpp">
+    <ClCompile Include="Scripts\testhit.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,7 +47,7 @@
     <ClInclude Include="Scripts\PlayerScript.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Scripts\tefcdsavrbgsdv.h">
+    <ClInclude Include="Scripts\testhit.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -55,5 +55,7 @@
     <None Include="dll.def">
       <Filter>ソース ファイル</Filter>
     </None>
+    <None Include="System\factory" />
+    <None Include="System\include" />
   </ItemGroup>
 </Project>

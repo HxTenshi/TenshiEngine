@@ -4,3 +4,5 @@ EXPORTS
   CreateInstance @1
   ReleseInstance @2
   GetReflectionData @3
+  Function0 @4
+  Function1 @5

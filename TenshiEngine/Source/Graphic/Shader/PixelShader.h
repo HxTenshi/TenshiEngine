@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShaderFile.h"
+#include "Device/DirectX11Device.h"
 
 class PixelShader : public ShaderFile{
 public:
