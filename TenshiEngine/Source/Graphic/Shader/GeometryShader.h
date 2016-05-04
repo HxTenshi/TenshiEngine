@@ -59,9 +59,9 @@ public:
 		return S_OK;
 	}
 
-	void SetShader() const{
+	void SetShader(ID3D11DeviceContext* context) const{
 		if (mpGeometryShader)
-			Device::mpImmediateContext->GSSetShader(mpGeometryShader, NULL, 0);
+			context->GSSetShader(mpGeometryShader, NULL, 0);
 	}
 
 	void Release(){

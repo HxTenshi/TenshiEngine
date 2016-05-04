@@ -20,7 +20,7 @@ public:
 	HRESULT Create(const char* FileName);
 	void CreateAnime(vmd& VMD);
 
-	void SetConstantBuffer() const;
+	void SetConstantBuffer(ID3D11DeviceContext* context) const;
 
 	void PlayVMD(float time);
 
@@ -48,6 +48,7 @@ private:
 	ConstantBufferArray<cbBoneMatrix> mCBBoneMatrix;
 
 	bool mIsCreateAnime;
+	mutable bool mIsChangeMatrix;
 
 	BoneAssetDataPtr mBoneAssetDataPtr;
 };

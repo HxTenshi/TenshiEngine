@@ -7,7 +7,7 @@ void Shader::Create(const char* fileName){
 	AssetDataBase::Instance(fileName, m_ShaderAssetData);
 }
 
-void Shader::SetShader(bool UseAnime) const{
+void Shader::SetShader(bool UseAnime, ID3D11DeviceContext* context) const{
 	if (!m_ShaderAssetData)return;
-	m_ShaderAssetData->GetFileData()->GetShader()->SetShader(UseAnime);
+	m_ShaderAssetData->GetFileData()->GetShader()->SetShader(UseAnime,context);
 }

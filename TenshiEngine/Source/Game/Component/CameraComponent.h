@@ -24,9 +24,9 @@ public:
 
 	void IO_Data(I_ioHelper* io) override;
 
-	void VSSetConstantBuffers() const;
-	void PSSetConstantBuffers() const;
-	void GSSetConstantBuffers() const;
+	void VSSetConstantBuffers(ID3D11DeviceContext* context) const;
+	void PSSetConstantBuffers(ID3D11DeviceContext* context) const;
+	void GSSetConstantBuffers(ID3D11DeviceContext* context) const;
 
 	const XMMATRIX& GetViewMatrix();
 

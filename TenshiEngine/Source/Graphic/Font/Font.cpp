@@ -580,8 +580,10 @@ void Font::Initialize(){
 	mInitializeComplete = true;
 
 }
+
+#include "Application/DrawThreadQueue.h"
+
 HRESULT Font::SetText(const std::string& text){
-	HRESULT hr;
 	std::wstring wtext;
 	widen(text, wtext);
 	if (!mInitializeComplete){
@@ -590,13 +592,29 @@ HRESULT Font::SetText(const std::string& text){
 	if (!mInitializeComplete){
 		return S_FALSE;
 	}
+
+	DrawThreadQueue::enqueue(
+		[wtext, this](){
+			this->DrawThreadUpdateText(wtext);
+		}
+	);
+}
+Texture Font::GetTexture(){
+	return mTexture;
+}
+
+
+void Font::DrawThreadUpdateText(const std::wstring& wtext){
+	HRESULT hr;
 	// D3D 11 側のテクスチャの使用を完了。
 	keyedmutex11->ReleaseSync(0);
 
 
+	auto timeout = INFINITE;
+
 	// D3D 10.1 (D2D) 側のテクスチャの使用を開始。
-	hr = keyedmutex10->AcquireSync(0, INFINITE);
-	if (FAILED(hr))return hr;
+	hr = keyedmutex10->AcquireSync(0, timeout);
+	if (FAILED(hr))return;
 
 
 	D2D1_SIZE_F		size;
@@ -612,9 +630,9 @@ HRESULT Font::SetText(const std::string& text){
 		rendertarget->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
 
 		brush->SetColor(D2D1::ColorF(1.0f, 0.0f, 0.0f, 1.0f));
-		
+
 		rect = D2D1::RectF(0, 0, 1000, 201);
-		
+
 		//毎フレーム描画してると上手く描画されない？
 		UINT s = wcslen(wtext.c_str());
 		rendertarget->DrawText(
@@ -624,22 +642,19 @@ HRESULT Font::SetText(const std::string& text){
 
 	// D3D 10.1 (D2D) 側のテクスチャの使用を完了。
 	hr = keyedmutex10->ReleaseSync(1);
-	if (FAILED(hr))return hr;
+	if (FAILED(hr))return;
 	//２回目を呼ぶと描画が反映される
 	{
 		// D3D 10.1 (D2D) 側のテクスチャの使用を開始。
-		hr = keyedmutex10->AcquireSync(1, INFINITE);
-		if (FAILED(hr))return hr;
+		hr = keyedmutex10->AcquireSync(1, timeout);
+		if (FAILED(hr))return;
 		// D3D 10.1 (D2D) 側のテクスチャの使用を完了。
 		hr = keyedmutex10->ReleaseSync(2);
 	}
-	if (FAILED(hr))return hr;
+	if (FAILED(hr))return;
 	// D3D 11 側のテクスチャの使用を開始。
-	hr = keyedmutex11->AcquireSync(2, INFINITE);
-	if (FAILED(hr))return hr;
+	hr = keyedmutex11->AcquireSync(2, timeout);
+	if (FAILED(hr))return;
 
-	return hr;
-}
-Texture Font::GetTexture(){
-	return mTexture;
+	return;
 }

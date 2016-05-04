@@ -183,6 +183,10 @@ void MaterialComponent::CreateInspector(){
 		mHeightPower.x = f;
 		mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
 	};
+	std::function<void(float)> collbackHDR = [&](float f){
+		mHeightPower.y = f;
+		mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
+	};
 
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Material", &mMaterialPath, collbackpath), data);
 	Window::AddInspector(new InspectorColorDataSet("Albedo", &mAlbedo.x, collbackx, &mAlbedo.y, collbacky, &mAlbedo.z, collbackz, &mAlbedo.w, collbacka), data);
@@ -196,6 +200,7 @@ void MaterialComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("HeightTextre", &mHeightTextureName, collbackhtex), data);
 	Window::AddInspector(new InspectorVector2DataSet("TextureScale", &mTexScale.x, collbacktexsx, &mTexScale.y, collbacktexsy), data);
 	Window::AddInspector(new InspectorSlideBarDataSet("HightPower", -10, 10, &mHeightPower.x, collbackH), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &mHeightPower.y, collbackHDR), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collbacksha), data);
 	Window::ViewInspector("Material", this, data);
 }

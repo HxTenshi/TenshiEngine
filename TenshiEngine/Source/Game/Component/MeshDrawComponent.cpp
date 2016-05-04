@@ -11,6 +11,8 @@
 
 #include "Game/Game.h"
 
+#include "Game/RenderingSystem.h"
+
 MeshDrawComponent::MeshDrawComponent(){
 }
 
@@ -38,7 +40,8 @@ void MeshDrawComponent::Update(){
 	Game::AddDrawList(DrawStage::Diffuse, std::function<void()>([&](){
 		Model& model = *mModel->mModel;
 
-		model.Draw(mMaterial);
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		model.Draw(render->m_Context, mMaterial);
 	}));
 
 }

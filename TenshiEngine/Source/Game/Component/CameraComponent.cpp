@@ -7,6 +7,8 @@
 
 #include "Game/Game.h"
 
+#include "Game/RenderingSystem.h"
+
 CameraComponent::CameraComponent()
 {
 	mScreenClearType = ScreenClearType::Color;
@@ -52,7 +54,10 @@ void CameraComponent::SetPerspective(){
 	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
 	XMVECTOR null;
 	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
-	mCBChangeOnResize.UpdateSubresource();
+
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	mCBChangeOnResize.UpdateSubresource(render->m_Context);
 }
 void CameraComponent::SetOrthographic(){
 	UINT width = WindowState::mWidth;
@@ -63,7 +68,10 @@ void CameraComponent::SetOrthographic(){
 	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
 	XMVECTOR null;
 	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
-	mCBChangeOnResize.UpdateSubresource();
+
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	mCBChangeOnResize.UpdateSubresource(render->m_Context);
 }
 
 void CameraComponent::Update(){
@@ -97,23 +105,23 @@ void CameraComponent::IO_Data(I_ioHelper* io){
 #undef _KEY
 }
 
-void CameraComponent::VSSetConstantBuffers() const
+void CameraComponent::VSSetConstantBuffers(ID3D11DeviceContext* context) const
 {
-	mCBNeverChanges.VSSetConstantBuffers();
-	mCBChangeOnResize.VSSetConstantBuffers();
-	mCBBillboard.VSSetConstantBuffers();
+	mCBNeverChanges.VSSetConstantBuffers(context);
+	mCBChangeOnResize.VSSetConstantBuffers(context);
+	mCBBillboard.VSSetConstantBuffers(context);
 }
-void CameraComponent::PSSetConstantBuffers() const
+void CameraComponent::PSSetConstantBuffers(ID3D11DeviceContext* context) const
 {
-	mCBNeverChanges.PSSetConstantBuffers();
-	mCBChangeOnResize.PSSetConstantBuffers();
-	mCBBillboard.PSSetConstantBuffers();
+	mCBNeverChanges.PSSetConstantBuffers(context);
+	mCBChangeOnResize.PSSetConstantBuffers(context);
+	mCBBillboard.PSSetConstantBuffers(context);
 }
-void CameraComponent::GSSetConstantBuffers() const
+void CameraComponent::GSSetConstantBuffers(ID3D11DeviceContext* context) const
 {
-	mCBNeverChanges.GSSetConstantBuffers();
-	mCBChangeOnResize.GSSetConstantBuffers();
-	mCBBillboard.GSSetConstantBuffers();
+	mCBNeverChanges.GSSetConstantBuffers(context);
+	mCBChangeOnResize.GSSetConstantBuffers(context);
+	mCBBillboard.GSSetConstantBuffers(context);
 }
 
 const XMMATRIX& CameraComponent::GetViewMatrix(){
@@ -122,18 +130,21 @@ const XMMATRIX& CameraComponent::GetViewMatrix(){
 
 
 void CameraComponent::UpdateView(){
-	mView = XMMatrixLookAtLH(Eye, At, Up);
 
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	
+	mView = XMMatrixLookAtLH(Eye, At, Up);
 
 	auto Billboard = XMMatrixLookAtLH(XMVectorZero(), Eye - At, Up);
 	XMVECTOR null;
 	Billboard = XMMatrixTranspose(XMMatrixInverse(&null, Billboard));
 	mCBBillboard.mParam.mBillboardMatrix = Billboard;
-	mCBBillboard.UpdateSubresource();
+	mCBBillboard.UpdateSubresource(render->m_Context);
 
 	mCBNeverChanges.mParam.mView = XMMatrixTranspose(mView);
 	mCBNeverChanges.mParam.mViewInv = XMMatrixTranspose(XMMatrixInverse(&null, mView));
-	mCBNeverChanges.UpdateSubresource();
+	mCBNeverChanges.UpdateSubresource(render->m_Context);
 
 	//gameObject->mTransform->Position(Eye);
 
@@ -158,12 +169,10 @@ void CameraComponent::UpdateView(){
 }
 
 void CameraComponent::ScreenClear(){
-	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
-	ID3D11DepthStencilState* pDS = NULL;
-	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+
 
 
 	XMVECTOR pos = gameObject->mTransform->WorldPosition();
@@ -181,9 +190,8 @@ void CameraComponent::ScreenClear(){
 	mSkyModel.mWorld = sm * pm;
 	mSkyModel.Update();
 
-	mSkyModel.Draw(mSkyMaterial);
+	mSkyModel.Draw(render->m_Context, mSkyMaterial);
 
 
-	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-	if (pDS)pDS->Release();
+	render->PopDS();
 }

@@ -8,7 +8,7 @@ public:
 
 	WorldGrid();
 	~WorldGrid();
-	void Draw()const;
+	void Draw();
 private:
 
 	void create();

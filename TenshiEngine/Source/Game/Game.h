@@ -34,6 +34,7 @@ enum class DrawStage{
 	Depth,
 	Normal,
 	Light,
+	Particle,
 	PostEffect,
 	Engine,
 	UI,

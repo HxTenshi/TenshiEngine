@@ -2,8 +2,10 @@
 
 #include "Game/Game.h"
 
+#include "Game/RenderingSystem.h"
+
 void PostEffectComponent::Initialize(){
-	mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
+	mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
 	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 
 	mMaterial.Create(mShaderName.c_str());
@@ -29,44 +31,21 @@ void PostEffectComponent::PostDraw(){
 		if (mShaderName == ""){
 			return;
 		}
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 
-		mRenderTarget.ClearView();
-		mRenderTarget.SetRendererTarget();
+		mRenderTarget.ClearView(render->m_Context);
+		mRenderTarget.SetRendererTarget(render->m_Context);
 
-		ID3D11DepthStencilState* pBackDS;
-		UINT ref;
-		Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
-
-		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
-		ID3D11DepthStencilState* pDS_tex = NULL;
-		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS_tex);
-		Device::mpImmediateContext->OMSetDepthStencilState(pDS_tex, 0);
+		render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+		render->PushSet(Rasterizer::Preset::RS_None_Solid);
 
 
-		D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-		//descRS.CullMode = D3D11_CULL_BACK;
-		descRS.CullMode = D3D11_CULL_NONE;
-		descRS.FillMode = D3D11_FILL_SOLID;
+		mModelTexture.Draw(render->m_Context, mMaterial);
 
-		ID3D11RasterizerState* pRS = NULL;
-		Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
+		render->m_Context->CopyResource(Game::GetMainViewRenderTarget().GetTexture2D(), mRenderTarget.GetTexture2D());
 
-		Device::mpImmediateContext->RSSetState(pRS);
-
-		mModelTexture.Draw(mMaterial);
-
-		Device::mpImmediateContext->CopyResource(Game::GetMainViewRenderTarget().GetTexture2D(), mRenderTarget.GetTexture2D());
-
-		Device::mpImmediateContext->RSSetState(NULL);
-		if (pRS)pRS->Release();
-
-		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-		pDS_tex->Release();
-
-		Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
-		if (pBackDS)pBackDS->Release();
+		render->PopRS();
+		render->PopDS();
 
 
 	});

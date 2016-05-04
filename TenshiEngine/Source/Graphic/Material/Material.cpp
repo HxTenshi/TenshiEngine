@@ -68,35 +68,51 @@ void Material::CreateShader(const char* shaderFileName){
 //	return S_OK;
 //}
 
-void Material::SetShader(bool UseAnime) const{
-	mShader.SetShader(UseAnime);
+void Material::SetShader(bool UseAnime, ID3D11DeviceContext* context) const{
+	mShader.SetShader(UseAnime,context);
 }
-void Material::VSSetShaderResources() const{
+void Material::VSSetShaderResources(ID3D11DeviceContext* context) const{
 	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
 		return;
 	}
 
-	mCBMaterial.UpdateSubresource();
-	mCBUseTexture.UpdateSubresource();
+	mCBMaterial.UpdateSubresource(context);
+	mCBUseTexture.UpdateSubresource(context);
 
-	mCBMaterial.VSSetConstantBuffers();
-	mCBUseTexture.VSSetConstantBuffers();
+	mCBMaterial.VSSetConstantBuffers(context);
+	mCBUseTexture.VSSetConstantBuffers(context);
 }
-void Material::PSSetShaderResources() const{
+void Material::PSSetShaderResources(ID3D11DeviceContext* context) const{
 	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
 		return;
 	}
 
 	for (UINT i = 0; i < 8; i++){
-		mTexture[i].PSSetShaderResources(i);
+		mTexture[i].PSSetShaderResources(context,i);
 	}
 
-	mCBMaterial.UpdateSubresource();
-	mCBUseTexture.UpdateSubresource();
+	mCBMaterial.UpdateSubresource(context);
+	mCBUseTexture.UpdateSubresource(context);
 
-	mCBMaterial.PSSetConstantBuffers();
-	mCBUseTexture.PSSetConstantBuffers();
+	mCBMaterial.PSSetConstantBuffers(context);
+	mCBUseTexture.PSSetConstantBuffers(context);
 }
+void Material::GSSetShaderResources(ID3D11DeviceContext* context) const{
+	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
+		return;
+	}
+
+	for (UINT i = 0; i < 8; i++){
+		mTexture[i].GSSetShaderResources(context, i);
+	}
+
+	mCBMaterial.UpdateSubresource(context);
+	mCBUseTexture.UpdateSubresource(context);
+
+	mCBMaterial.GSSetConstantBuffers(context);
+	mCBUseTexture.GSSetConstantBuffers(context);
+}
+
 
 void Material::SetTexture(const char* FileName, UINT Slot){
 	HRESULT hr = mTexture[Slot].Create(FileName);

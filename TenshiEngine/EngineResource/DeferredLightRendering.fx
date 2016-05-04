@@ -165,7 +165,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	float NLDot = dot(N, -L);
 
 
-	float offset = 0.0001 + (NLDot) * 0.0001;
+	float offset = 0.001 + (NLDot) * 0.001;
 	float shadow = 0.0;
 	float shadowCount = 1.0f;
 	// ライトデプスの準備

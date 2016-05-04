@@ -13,6 +13,8 @@ IDXGISwapChain*			Device::mpSwapChain = NULL;
 IDXGIAdapter1*			Device::mpAdapter = NULL;
 RenderTarget*			Device::mRenderTargetBack = NULL;
 
+#include "Game/RenderingSystem.h"
+
 //static
 HRESULT Device::Init(const Window& window)
 {
@@ -113,6 +115,17 @@ HRESULT Device::Init(const Window& window)
 	if (FAILED(hr))
 		return hr;
 
+
+	ID3D11DeviceContext *context;
+	hr = mpd3dDevice->CreateDeferredContext(NULL, &context);
+	if (FAILED(hr))
+		return hr;
+
+	auto render = RenderingSystem::Instance();
+
+	render->PushEngine(new RenderingEngine(context), ContextType::MainDeferrd);
+	//render->PushEngine(new RenderingEngine(context), ContextType::MainDeferrd);
+
 	//hr = mpSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE);
 	//DXGI_SWAP_CHAIN_FLAG;
 	//hr = mpSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
@@ -126,6 +139,25 @@ HRESULT Device::Init(const Window& window)
 	if (FAILED(hr))
 		return hr;
 
+	//レンダーターゲットと深度ステンシルの関連付け
+	mRenderTargetBack->SetRendererTarget(mpImmediateContext);
+
+	// Setup the viewport
+	D3D11_VIEWPORT vp;
+	vp.Width = (FLOAT)WindowState::mWidth;
+	vp.Height = (FLOAT)WindowState::mHeight;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	mpImmediateContext->RSSetViewports(1, &vp);
+	//context->RSSetViewports(1, &vp);
+	mRenderTargetBack->ClearView(mpImmediateContext);
+
+	// Set primitive topology
+	//インデックスの並び　Z字など
+	mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	return S_OK;
 }
 
@@ -133,6 +165,8 @@ HRESULT Device::Init(const Window& window)
 //static
 void Device::CleanupDevice()
 {
+	RenderingSystem::Instance()->Release();
+
 	if (mpImmediateContext) mpImmediateContext->ClearState();
 
 	if (mpSwapChain) mpSwapChain->Release();

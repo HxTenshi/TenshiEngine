@@ -17,7 +17,7 @@ public:
 
 	void Create(const char* fileName);
 
-	void SetShader(bool UseAnime) const;
+	void SetShader(bool UseAnime, ID3D11DeviceContext* context) const;
 
 private:
 	ShaderAssetDataPtr m_ShaderAssetData;

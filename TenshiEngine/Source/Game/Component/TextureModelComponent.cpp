@@ -61,7 +61,8 @@ void TextureModelComponent::Update(){
 	}));
 	Game::AddDrawList(DrawStage::UI, std::function<void()>([&](){
 		
-		mModel->Draw(*mMaterial);
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		mModel->Draw(render->m_Context, *mMaterial);
 	}));
 }
 void TextureModelComponent::Finish(){

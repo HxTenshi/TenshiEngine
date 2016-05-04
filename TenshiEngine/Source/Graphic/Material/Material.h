@@ -15,9 +15,10 @@ public:
 
 	HRESULT Create(const char* shaderFileName = "EngineResource/DeferredPrePass.fx");
 	//HRESULT Create(ConstantBuffer<cbChangesMaterial> const& cbMaterial, ConstantBuffer<cbChangesUseTexture> const& cbUseTexture);
-	void SetShader(bool UseAnime) const;
-	void VSSetShaderResources() const;
-	void PSSetShaderResources() const;
+	void SetShader(bool UseAnime, ID3D11DeviceContext* context) const;
+	void VSSetShaderResources(ID3D11DeviceContext* context) const;
+	void PSSetShaderResources(ID3D11DeviceContext* context) const;
+	void GSSetShaderResources(ID3D11DeviceContext* context) const;
 	void SetTexture(const char* FileName, UINT Slot = 0);
 	void SetTexture(const Texture& Tex, UINT Slot = 0);
 

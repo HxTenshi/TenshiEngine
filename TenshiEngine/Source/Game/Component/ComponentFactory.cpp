@@ -14,6 +14,7 @@
 #include "DirectionalLightComponent.h"
 #include "PointLightComponent.h"
 #include "PostEffectComponent.h"
+#include "ParticleComponent.h"
 #include "Component.h"
 
 

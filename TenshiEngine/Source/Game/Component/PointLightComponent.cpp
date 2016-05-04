@@ -11,6 +11,8 @@
 
 #include "CameraComponent.h"
 
+#include "Game/RenderingSystem.h"
+
 PointLightComponent::PointLightComponent()
 	: m_Radius(1)
 	, m_AttenuationStart(0)
@@ -47,33 +49,15 @@ void PointLightComponent::Update(){
 		//ポイントライトの中にカメラが有る
 		bool isEnter = (m_Radius*m_Radius) >= lenSq;
 
-		ID3D11DepthStencilState* pBackDS;
-		UINT ref;
-		Device::mpImmediateContext->OMGetDepthStencilState(&pBackDS, &ref);
 
-		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		descDS.DepthFunc = D3D11_COMPARISON_LESS;
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 		if (isEnter){
-			descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
+			render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+			render->PushSet(Rasterizer::Preset::RS_Front_Solid);
 		}
+		else{
+			render->PushSet(DepthStencil::Preset::DS_Zero_LessEqual);
 
-		ID3D11DepthStencilState* pDS = NULL;
-		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-
-		Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
-
-
-		ID3D11RasterizerState* pRS = NULL;
-		ID3D11RasterizerState* pRSBack = NULL;
-		if (isEnter){
-			Device::mpImmediateContext->RSGetState(&pRSBack);
-
-			D3D11_RASTERIZER_DESC descRS = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-			descRS.CullMode = D3D11_CULL_FRONT;
-			descRS.FillMode = D3D11_FILL_SOLID;
-			Device::mpd3dDevice->CreateRasterizerState(&descRS, &pRS);
-			Device::mpImmediateContext->RSSetState(pRS);
 		}
 
 
@@ -104,23 +88,19 @@ void PointLightComponent::Update(){
 		float B = _rmax / (_rmax - _rmin);
 
 		mPointLightBuffer.mParam.Param = XMFLOAT4(A, B, m_Radius, m_AttenuationParam);
-		mPointLightBuffer.UpdateSubresource();
-		mPointLightBuffer.PSSetConstantBuffers();
+		mPointLightBuffer.UpdateSubresource(render->m_Context);
+		mPointLightBuffer.PSSetConstantBuffers(render->m_Context);
 
 
-		mModel.Draw(mMaterial);
+		mModel.Draw(render->m_Context, mMaterial);
 
 
 		if (isEnter){
-			Device::mpImmediateContext->RSSetState(pRSBack);
-			if (pRS)pRS->Release();
-			if (pRSBack)pRSBack->Release();
+			render->PopRS();
 		}
 
-		pDS->Release();
+		render->PopDS();
 
-		Device::mpImmediateContext->OMSetDepthStencilState(pBackDS, ref);
-		if (pBackDS)pBackDS->Release();
 	});
 }
 void PointLightComponent::CreateInspector(){

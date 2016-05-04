@@ -159,11 +159,19 @@ class db{
 };
 
 
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
+#include "Application\DrawThreadQueue.h"
 
 class Application{
 public:
 	Application()
 		:mGame(NULL)
+		, mDestory(false)
+		, mCmdFlag(false)
+		, mCmdList(NULL)
 	{
 	}
 
@@ -177,13 +185,18 @@ public:
 
 		FontManager::Init();
 
-		// Set primitive topology
-		//インデックスの並び　Z字など
-		Device::mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 		mInputManagerRapper.Initialize(window.GetMainHWND(), window.mhInstance);
 
 		mGame = new Game();
+
+		mUpdateEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		mDrawEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		ResetEvent(mDrawEvent);
+		ResetEvent(mUpdateEvent);
+
+		mDrawThread = std::thread(std::bind(std::mem_fn(&Application::DrawThread), this));
+
+		//mDrawThreadHandle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)DrawThread, (LPVOID)this, 0, &mDrawThreadID);
 
 		return S_OK;
 	}
@@ -197,19 +210,32 @@ public:
 
 		mGame->Draw();
 
+		ID3D11CommandList* cmdList;
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		render->m_Context->FinishCommandList(false, &cmdList);
+		SetEvent(mUpdateEvent);
+		WaitForSingleObject(mDrawEvent, INFINITE);
+		ResetEvent(mDrawEvent);	
+		mCmdList = cmdList;
+		mCmdFlag = true;
 
-		ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
-		Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
-		ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
-		Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
-
-		Device::mpSwapChain->Present(1, 0);
 
 	}
 
 
 	void CleanupDevice()
 	{
+		mDestory = true;
+		SetEvent(mUpdateEvent);
+
+		//WaitForSingleObject(mDrawThreadHandle, INFINITE);
+		mDrawThread.join();
+
+		//スレッド終了
+		//CloseHandle(mDrawThreadHandle);
+		CloseHandle(mUpdateEvent);
+		CloseHandle(mDrawEvent);
+
 
 		if (mGame)delete mGame;
 
@@ -223,12 +249,55 @@ public:
 	}
 private:
 
+	void DrawThread(){
+		while (!mDestory)
+		{
+			WaitForSingleObject(mUpdateEvent, INFINITE);
+			ResetEvent(mUpdateEvent);
+			SetEvent(mDrawEvent);
+
+			while (1)
+			{
+				if (mCmdFlag)break;
+			}
+			auto cmdList = mCmdList;
+			mCmdFlag = false;
+
+			auto size = DrawThreadQueue::size();
+			for (int i = 0; i < size; i++){
+				auto func = DrawThreadQueue::dequeue();
+				func();
+			}
+
+			Device::mpImmediateContext->ExecuteCommandList(cmdList, false);
+			cmdList->Release();
+			Device::mpSwapChain->Present(1, 0);
+		}
+
+		SetEvent(mDrawEvent);
+	}
+
 	InputManagerRapper mInputManagerRapper;
 	Game* mGame;
+
+public:
+	bool mDestory;
+	volatile bool mCmdFlag;
+	ID3D11CommandList* mCmdList;
+	//HANDLE mDrawThreadHandle;
+	//DWORD mDrawThreadID;
+	HANDLE mUpdateEvent;
+	HANDLE mDrawEvent;
+	std::thread mDrawThread;
+
+
+	//std::mutex m;
+	//std::condition_variable c_draw;
+	//std::condition_variable c_update;
 };
 
 
-#include <thread>
+
 
 /* スレッドプロシージャ */
 void ThreadProc(int nThreadNo)
@@ -314,52 +383,48 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			return 0;
 		}
 
-		CoroutineSystem cor;
-
-		cor.StartCoroutine([](){
-
-			Window::AddLog("cortest1");
-
-			YIELD_RETURN_NULL;
-
-			Window::AddLog("coltest2");
-
-			YIELD_RETURN_NULL;
-
-			Window::AddLog("coltest3");
-
-			YIELD_RETURN_NULL;
-
-
-			Window::AddLog("coltest4");
-
-			YIELD_BREAK;
-
-			Window::AddLog("coltest5");
-
-		});
-		cor.StartCoroutine([](){
-
-			Window::AddLog("cortest1-1");
-
-			YIELD_RETURN_NULL;
-
-			Window::AddLog("coltest2-1");
-
-			YIELD_RETURN_NULL;
-
-			Window::AddLog("coltest3-1");
-
-			YIELD_RETURN_NULL;
-
-
-			Window::AddLog("coltest4-1");
-
-			YIELD_BREAK;
-
-			Window::AddLog("coltest5-1");
-
-		});
+		//CoroutineSystem cor;
+		//
+		//cor.StartCoroutine([](){
+		//
+		//	Window::AddLog("cortest1");
+		//
+		//	YIELD_RETURN_NULL;
+		//
+		//	Window::AddLog("coltest2");
+		//
+		//	YIELD_RETURN_NULL;
+		//
+		//	Window::AddLog("coltest3");
+		//
+		//	YIELD_RETURN_NULL;
+		//
+		//
+		//	Window::AddLog("coltest4");
+		//
+		//	YIELD_BREAK;
+		//
+		//});
+		//cor.StartCoroutine([](){
+		//
+		//	Window::AddLog("cortest1-1");
+		//
+		//	YIELD_RETURN_NULL;
+		//
+		//	Window::AddLog("coltest2-1");
+		//
+		//	YIELD_RETURN_NULL;
+		//
+		//	Window::AddLog("coltest3-1");
+		//
+		//	YIELD_RETURN_NULL;
+		//
+		//
+		//	Window::AddLog("coltest4-1");
+		//
+		//	YIELD_BREAK;
+		//
+		//});
 
 
 		while (WM_QUIT != msg.message)
@@ -372,7 +437,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			}
 			else
 			{
-				cor.Tick();
+				//cor.Tick();
 				App.Render();
 			}
 		}

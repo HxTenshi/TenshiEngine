@@ -69,10 +69,10 @@ public:
 		return S_OK;
 	}
 
-	void SetShader() const{
+	void SetShader(ID3D11DeviceContext* context) const{
 		if (!mpVertexShader)return;
-		Device::mpImmediateContext->VSSetShader(mpVertexShader, NULL, 0);
-		mInputLayout.SetInputLayout();
+		context->VSSetShader(mpVertexShader, NULL, 0);
+		mInputLayout.SetInputLayout(context);
 	}
 
 private:

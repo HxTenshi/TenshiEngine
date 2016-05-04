@@ -14,7 +14,9 @@ public:
 	~Texture();
 	HRESULT Create(ID3D11ShaderResourceView* pTexture);
 	HRESULT Create(const char* FileName);
-	void PSSetShaderResources(UINT Slot) const;
+	void PSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;
+	void GSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;
+	void CSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;
 
 	void ExportData(File& f);
 	std::string mFileName;

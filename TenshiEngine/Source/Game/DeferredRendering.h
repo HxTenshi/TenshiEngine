@@ -3,15 +3,79 @@
 #include "Graphic/Model/Model.h"
 #include "Graphic/RenderTarget/RenderTarget.h"
 
+#include "Graphic/Shader/ComputeShader.h"
+
+class IRenderingEngine;
+
+
+
+
+
+class DownSample{
+public:
+	DownSample();
+	~DownSample();
+	void Create(Texture& texture, UINT xy);
+	void Create(Texture& texture, UINT x, UINT y);
+
+	void Draw_DownSample(IRenderingEngine* render);
+
+	Texture& GetRTTexture();
+
+	void SetHDRFilter(bool flag){
+		mHDRFilter = flag;
+	}
+	bool GetHDRFilter(){
+		return mHDRFilter;
+	}
+
+private:
+	bool mHDRFilter;
+	Model mModelTexture;
+	RenderTarget m_DownSampleRT;
+	Material mMaterialDownSample;
+	UINT mWidth;
+	UINT mHeight;
+};
+
+
+class HDRGaussBulr_AND_DownSample{
+public:
+	HDRGaussBulr_AND_DownSample();
+	~HDRGaussBulr_AND_DownSample();
+	void Create(Texture& texture, UINT xy);
+	void Create(Texture& texture, UINT x, UINT y);
+
+	void Draw_DownSample(IRenderingEngine* render);
+
+	Texture& GetRTTexture();
+	Material& GetResultMaterial();
+
+	void SetHDRFilter(bool flag);
+
+private:
+	ComputeShader m_GaussBuraCS;
+	UAVRenderTarget m_GaussBuraUAV_P1;
+	UAVRenderTarget m_GaussBuraUAV_P2;
+	Material mResultMaterial;
+
+	ConstantBuffer<cbTextureSize> mCBTextureSize;
+	ConstantBuffer<cbHDRBloomParam> mCBBloomParam;
+
+	DownSample m_DownSample;
+};
+
+
+
 class CascadeShadow{
 public:
 	CascadeShadow();
 	~CascadeShadow();
-	void Update();
+	void Update(IRenderingEngine* render);
 
-	void ClearView(int no);
-	void SetupShadowCB(int no);
-	void SetRT(int no);
+	void ClearView(IRenderingEngine* render,int no);
+	void SetupShadowCB(IRenderingEngine* render,int no);
+	void SetRT(IRenderingEngine* render,int no);
 	Texture& GetRTTexture(int no);
 
 	static void SetLightVect(const XMVECTOR& vect);
@@ -42,16 +106,21 @@ class DeferredRendering{
 public:
 	~DeferredRendering();
 	void Initialize();
-	void Start_G_Buffer_Rendering();
-	void Start_ShadowDepth_Buffer_Rendering(int no);
-	void End_ShadowDepth_Buffer_Rendering();
-	void Start_Light_Rendering();
-	void End_Light_Rendering();
-	void Start_Deferred_Rendering(RenderTarget* rt);
+	void G_Buffer_Rendering(IRenderingEngine* render,const std::function<void(void)>& func);
+	void ShadowDepth_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func);
+	//void End_ShadowDepth_Buffer_Rendering();
+	void Light_Rendering(IRenderingEngine* render, const std::function<void(void)>& func);
+	//void End_Light_Rendering(IRenderingEngine* render);
+	void Deferred_Rendering(IRenderingEngine* render, RenderTarget* rt);
+
+	void Particle_Rendering(IRenderingEngine* render, RenderTarget* rt, const std::function<void(void)>& func);
 
 
-	void Debug_G_Buffer_Rendering();
-	void Debug_AlbedoOnly_Rendering(RenderTarget* rt);
+	void HDR_Rendering(IRenderingEngine* render);
+
+
+	void Debug_G_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func);
+	void Debug_AlbedoOnly_Rendering(IRenderingEngine* render,RenderTarget* rt);
 
 private:
 	RenderTarget m_AlbedoRT;
@@ -70,9 +139,26 @@ private:
 	Material mMaterialLight;
 	Material mMaterialDeferred;
 	Material mMaterialDepthShadow;
+	Material mMaterialParticle;
 	Material mMaterialPostEffect;
 
 	CascadeShadow mCascadeShadow;
 
 	ID3D11BlendState* pBlendState = NULL;
+
+	const UINT mHDLDownSampleNum = 4;
+	HDRGaussBulr_AND_DownSample mHDLDownSample[4];
+
+	//UAVRenderTarget m_GaussBuraUAV768_P1;
+	//UAVRenderTarget m_GaussBuraUAV768_P2;
+	//UAVRenderTarget m_GaussBuraUAV256_P1;
+	//UAVRenderTarget m_GaussBuraUAV256_P2;
+	//RenderTarget m_DownSample768;
+	//RenderTarget m_DownSample256;
+	//ComputeShader m_GaussBuraCS768;
+	//ComputeShader m_GaussBuraCS256;
+	//Material mMaterialDownSample768;
+	//Material mMaterialDownSample256;
+	//Material mMaterialHDR768;
+	//Material mMaterialHDR256;
 };

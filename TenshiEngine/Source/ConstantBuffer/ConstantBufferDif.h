@@ -63,3 +63,32 @@ struct cbChangesLightCamera
 	XMMATRIX mLViewProjection[4];
 	XMFLOAT4 mSplitPosition;
 };
+
+struct CBChangesPaticleParam
+{
+	//w=ランダムスピード
+	XMFLOAT4 Vector;
+	//w=[Sphere=0]~[Box=1]
+	XMFLOAT4 Point;
+	//w=空気抵抗
+	XMFLOAT4 Rot;
+	//x = min, y = max, z=反射力, w=摩擦減衰
+	XMFLOAT4 MinMaxScale;
+	//x = min, y = max, z=Z-Collision, w=VeloRot&Bura
+	XMFLOAT4 Time;
+	XMFLOAT4 G;
+	//x = num, y=impact, z=pointG-Rot
+	XMFLOAT4 Param;
+};
+
+//CS
+struct cbTextureSize//register(b0)
+{
+	XMUINT4 TextureSize;
+};
+
+struct cbHDRBloomParam// : register(b1)
+{
+	//x=光の伸び pow(p, X ), y=十字の伸び(重み) lerp(bulr+center * X ,bulr, p ), z=十字の伸び(比率) lerp(bulr+center * p ,bulr, X ), w=十字の発生位置 pow(center, X );
+	XMFLOAT4 BloomParam;
+};

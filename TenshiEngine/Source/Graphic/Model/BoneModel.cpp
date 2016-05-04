@@ -12,6 +12,8 @@
 
 
 
+#include "Game/RenderingSystem.h"
+
 
 
 
@@ -132,6 +134,7 @@ float Bezier(float x1, float x2, float y1, float y2, float x)
 
 BoneModel::BoneModel()
 	: mIsCreateAnime(false)
+	, mIsChangeMatrix(false)
 	, mLastKeyNo(0)
 {
 }
@@ -158,8 +161,9 @@ HRESULT BoneModel::Create(const char* FileName){
 			mCBBoneMatrix.mParam[mid].BoneMatrix[1] = XMFLOAT4(0,1,0,0);
 			mCBBoneMatrix.mParam[mid].BoneMatrix[2] = XMFLOAT4(0,0,1,0);
 		}
-		mCBBoneMatrix.UpdateSubresource();
-		SetConstantBuffer();
+
+		
+		mIsChangeMatrix = true;
 	}
 	return S_OK;
 }
@@ -243,8 +247,15 @@ void BoneModel::createIk(DWORD ikCount, UINT bidx){
 	}
 }
 
-void BoneModel::SetConstantBuffer() const{
-	if (mCBBoneMatrix.mBuffer)mCBBoneMatrix.VSSetConstantBuffers();
+void BoneModel::SetConstantBuffer(ID3D11DeviceContext* context) const{
+	if (mCBBoneMatrix.mBuffer){
+		if (mIsChangeMatrix){
+			auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+			mCBBoneMatrix.UpdateSubresource(render->m_Context);
+			mIsChangeMatrix = false;
+		}
+		mCBBoneMatrix.VSSetConstantBuffers(context);
+	}
 }
 
 void BoneModel::CreateAnime(vmd& VMD){
@@ -336,8 +347,7 @@ void BoneModel::PlayVMD(float time){
 		mCBBoneMatrix.mParam[ib].BoneMatrix[1] = XMFLOAT4(mtx.r[1].x, mtx.r[1].y, mtx.r[1].z, mtx.r[1].w);//mtx.r[1];
 		mCBBoneMatrix.mParam[ib].BoneMatrix[2] = XMFLOAT4(mtx.r[2].x, mtx.r[2].y, mtx.r[2].z, mtx.r[2].w);//mtx.r[2];
 	}
-
-	mCBBoneMatrix.UpdateSubresource();
+	mIsChangeMatrix = true;
 }
 
 // とりあえずアニメーション

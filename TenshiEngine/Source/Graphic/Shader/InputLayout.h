@@ -8,7 +8,7 @@ public:
 	~InputLayout();
 	HRESULT Init(ID3DBlob* pVSBlob);
 	HRESULT Init(ID3DBlob* pVSBlob, const D3D11_INPUT_ELEMENT_DESC* layout, UINT num);
-	void SetInputLayout()const;
+	void SetInputLayout(ID3D11DeviceContext* context)const;
 	void Rerease();
 
 private:

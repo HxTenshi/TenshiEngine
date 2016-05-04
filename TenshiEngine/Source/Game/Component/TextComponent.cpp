@@ -81,7 +81,9 @@ void TextComponent::DrawTextUI(){
 	Game::AddDrawList(DrawStage::UI, [&](){
 
 		Model& model = impl->mModel;
-		model.Draw(impl->mTexMaterial);
+
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		model.Draw(render->m_Context, impl->mTexMaterial);
 
 		//ID3D11DepthStencilState* pBackDS;
 		//UINT ref;

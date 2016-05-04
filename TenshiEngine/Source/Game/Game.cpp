@@ -9,6 +9,8 @@
 
 #include "Engine/AssetFile/Prefab/PrefabFileData.h"
 
+#include "Game/RenderingSystem.h"
+
 static std::stack<int> gIntPtrStack;
 
 static std::map<UINT,Actor*>* gpList;
@@ -55,7 +57,7 @@ Game::Game(){
 		Window::CreateContextMenu_AddComponent(str);
 	}
 
-	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight);
+	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
 	if (FAILED(hr)){
 		//MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
 	}
@@ -521,35 +523,34 @@ void Game::ChangePlayGame(bool isPlay){
 bool g_DebugRender = true;
 
 void Game::Draw(){
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 	if (!mMainCamera){
-		Device::mRenderTargetBack->ClearView();
-		mMainViewRenderTarget.ClearView();
+
+		Device::mRenderTargetBack->ClearView(render->m_Context);
+		mMainViewRenderTarget.ClearView(render->m_Context);
 		ClearDrawList();
 		return;
 	}
 	//ここでもアップデートしてる（仮処理）
 	mMainCamera->Update();
-	mMainCamera->VSSetConstantBuffers();
-	mMainCamera->PSSetConstantBuffers();
-	mMainCamera->GSSetConstantBuffers();
+	mMainCamera->VSSetConstantBuffers(render->m_Context);
+	mMainCamera->PSSetConstantBuffers(render->m_Context);
+	mMainCamera->GSSetConstantBuffers(render->m_Context);
 
-	//Device::mRenderTargetBack->ClearView();
-	Device::mRenderTargetBack->ClearDepth();
+	//Device::mRenderTargetBack->ClearView(Device::mpImmediateContext);
+	Device::mRenderTargetBack->ClearDepth(render->m_Context);
 	//mMainViewRenderTarget.ClearView();
 	
+
+	render->PushSet(DepthStencil::Preset::DS_All_LessEqual);
+	render->PushSet(Rasterizer::Preset::RS_Back_Solid);
+
 	const RenderTarget* r[1] = { &mMainViewRenderTarget };
-	RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
 
 	//mMainCamera->ScreenClear();
 
 
-
-	D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-	descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	descDS.DepthFunc = D3D11_COMPARISON_LESS;
-	ID3D11DepthStencilState* pDS = NULL;
-	Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-	Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
 
 
 	//const RenderTarget* r[1] = { &mMainViewRenderTarget };
@@ -560,9 +561,9 @@ void Game::Draw(){
 
 
 	ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
-	Device::mpImmediateContext->PSSetShaderResources(0, 4, pNULL);
+	render->m_Context->PSSetShaderResources(0, 4, pNULL);
 	ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
-	Device::mpImmediateContext->PSSetSamplers(0, 4, pSNULL);
+	render->m_Context->PSSetSamplers(0, 4, pSNULL);
 
 	if( Input::Trigger(KeyCoord::Key_F1)){
 		g_DebugRender = !g_DebugRender;
@@ -571,54 +572,62 @@ void Game::Draw(){
 
 	PlayDrawList(DrawStage::Init);
 	if (!g_DebugRender){
-		m_DeferredRendering.Start_G_Buffer_Rendering();
-		mMainCamera->ScreenClear();
-		PlayDrawList(DrawStage::Diffuse);
-
-		for (int i = 0; i < 4; i++){
-			m_DeferredRendering.Start_ShadowDepth_Buffer_Rendering(i);
+		m_DeferredRendering.G_Buffer_Rendering(render,
+		[&](){
+			mMainCamera->ScreenClear();
 			PlayDrawList(DrawStage::Diffuse);
-		}
-		m_DeferredRendering.End_ShadowDepth_Buffer_Rendering();
+		});
+
+		m_DeferredRendering.ShadowDepth_Buffer_Rendering(render, [&](){
+			PlayDrawList(DrawStage::Diffuse);
+		});
 		
-		m_DeferredRendering.Start_Light_Rendering();
-		PlayDrawList(DrawStage::Light);
-		m_DeferredRendering.End_Light_Rendering();
-		m_DeferredRendering.Start_Deferred_Rendering(&mMainViewRenderTarget);
+		m_DeferredRendering.Light_Rendering(render, [&](){
+			PlayDrawList(DrawStage::Light);
+		});
+
+		m_DeferredRendering.Deferred_Rendering(render, &mMainViewRenderTarget);
+
+		m_DeferredRendering.Particle_Rendering(render, &mMainViewRenderTarget, [&](){
+			PlayDrawList(DrawStage::Particle);
+		});
+
+		m_DeferredRendering.HDR_Rendering(render);
 
 	}
 	else{
 
-		m_DeferredRendering.Debug_G_Buffer_Rendering();
-		mMainCamera->ScreenClear();
-		PlayDrawList(DrawStage::Diffuse);
+		m_DeferredRendering.Debug_G_Buffer_Rendering(render,
+			[&](){
+			mMainCamera->ScreenClear();
+			PlayDrawList(DrawStage::Diffuse);
+		});
 
-		m_DeferredRendering.Debug_AlbedoOnly_Rendering(&mMainViewRenderTarget);
+		m_DeferredRendering.Debug_AlbedoOnly_Rendering(render,&mMainViewRenderTarget);
+
+		m_DeferredRendering.Particle_Rendering(render, &mMainViewRenderTarget, [&](){
+			PlayDrawList(DrawStage::Particle);
+		});
 	}
 
+
+
 	PlayDrawList(DrawStage::PostEffect);
-
 	mPostEffectRendering.Rendering();
-
 	PlayDrawList(DrawStage::Engine);
-	Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-	if (pDS)pDS->Release();
+
+
+	render->PopDS();
 
 	{
-		D3D11_DEPTH_STENCIL_DESC descDS = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-		descDS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		descDS.DepthFunc = D3D11_COMPARISON_ALWAYS;
-		ID3D11DepthStencilState* pDS = NULL;
-		Device::mpd3dDevice->CreateDepthStencilState(&descDS, &pDS);
-		Device::mpImmediateContext->OMSetDepthStencilState(pDS, 0);
+		render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
 
 		PlayDrawList(DrawStage::UI);
 
-		Device::mpImmediateContext->OMSetDepthStencilState(NULL, 0);
-		if (pDS)pDS->Release();
+		render->PopDS();
 	}
 
-
+	render->PopRS();
 
 	ClearDrawList();
 

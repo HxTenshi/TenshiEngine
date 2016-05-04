@@ -45,6 +45,7 @@ public:
 	~Font();
 	HRESULT SetText(const std::string& text);
 	Texture GetTexture();
+	void DrawThreadUpdateText(const std::wstring& wtext);
 private:
 	void Initialize();
 

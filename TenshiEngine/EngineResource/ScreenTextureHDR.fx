@@ -34,9 +34,8 @@ cbuffer cbChangesEveryFrame : register(b2)
 PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.Pos = mul(input.Pos, World);
-	output.Pos.z = 0;
-	output.Tex = input.Tex;
+	output.Pos = input.Pos;
+	output.Tex = input.Tex * World._11_12;
 	
 	return output;
 }
@@ -48,6 +47,6 @@ PS_INPUT VS( VS_INPUT input )
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float4 col = txDiffuse.Sample(samLinear, input.Tex);
-	if (col.a <= 0.01f)discard;
+	col.rgb -= 1;
 	return col;
 }

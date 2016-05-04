@@ -28,17 +28,17 @@ public:
 		mPixelShader->Create(fileName);
 	}
 
-	void SetShader(bool UseAnime) const{
+	void SetShader(bool UseAnime, ID3D11DeviceContext* context) const{
 		if (UseAnime){
 			if (mVertexShaderAnime)
-				mVertexShaderAnime->SetShader();
+				mVertexShaderAnime->SetShader(context);
 		}
 		else{
 			if (mVertexShader)
-				mVertexShader->SetShader();
+				mVertexShader->SetShader(context);
 		}
 		if (mPixelShader)
-			mPixelShader->SetShader();
+			mPixelShader->SetShader(context);
 	}
 
 	shared_ptr<PixelShader> mPixelShader;

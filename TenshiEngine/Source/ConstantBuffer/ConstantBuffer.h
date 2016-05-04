@@ -126,22 +126,26 @@ public:
 		return temp;
 	}
 
-	void UpdateSubresource() const{
+	void UpdateSubresource(ID3D11DeviceContext* context) const{
 
-		if (mBuffer->mpBuffer)Device::mpImmediateContext->UpdateSubresource(mBuffer->mpBuffer, 0, NULL, &mParam, 0, 0);
+		if (mBuffer->mpBuffer)context->UpdateSubresource(mBuffer->mpBuffer, 0, NULL, &mParam, 0, 0);
 	}
 
-	void VSSetConstantBuffers() const{
+	void VSSetConstantBuffers(ID3D11DeviceContext* context) const{
 
-		if (mBuffer->mpBuffer)Device::mpImmediateContext->VSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+		if (mBuffer->mpBuffer)context->VSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
-	void GSSetConstantBuffers() const{
+	void GSSetConstantBuffers(ID3D11DeviceContext* context) const{
 
-		if (mBuffer->mpBuffer)Device::mpImmediateContext->GSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+		if (mBuffer->mpBuffer)context->GSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
-	void PSSetConstantBuffers() const{
+	void CSSetConstantBuffers(ID3D11DeviceContext* context) const{
 
-		if (mBuffer->mpBuffer)Device::mpImmediateContext->PSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+		if (mBuffer->mpBuffer)context->CSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+	}
+	void PSSetConstantBuffers(ID3D11DeviceContext* context) const{
+
+		if (mBuffer->mpBuffer)context->PSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
 
 public:
@@ -200,16 +204,15 @@ public:
 	//	return temp;
 	//}
 
-	void UpdateSubresource() const{
-		Device::mpImmediateContext->UpdateSubresource(mBuffer->mpBuffer, 0, NULL, mParam, 0, 0);
+	void UpdateSubresource(ID3D11DeviceContext* context) const{
+		if (mBuffer->mpBuffer)context->UpdateSubresource(mBuffer->mpBuffer, 0, NULL, mParam, 0, 0);
 	}
 
-	void VSSetConstantBuffers() const{
-
-		Device::mpImmediateContext->VSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+	void VSSetConstantBuffers(ID3D11DeviceContext* context) const{
+		if (mBuffer->mpBuffer)context->VSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
-	void PSSetConstantBuffers() const{
-		Device::mpImmediateContext->PSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
+	void PSSetConstantBuffers(ID3D11DeviceContext* context) const{
+		if (mBuffer->mpBuffer)context->PSSetConstantBuffers(mSlot, 1, &mBuffer->mpBuffer);
 	}
 
 public:

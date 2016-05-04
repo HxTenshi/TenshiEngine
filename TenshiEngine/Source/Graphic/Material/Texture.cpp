@@ -57,24 +57,40 @@ HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 
 HRESULT Texture::Create(const char* FileName){
 	mFileName = FileName;
-	AssetDataBase::Instance(FileName, mTextureAssetData);
-	return S_OK;
+	TextureAssetDataPtr tex(NULL);
+	AssetDataBase::Instance(FileName, tex);
+	mTextureAssetData = tex;
+	return ((bool)mTextureAssetData)?S_OK:E_FAIL;
 }
 
-void Texture::PSSetShaderResources(UINT Slot) const{
+void Texture::PSSetShaderResources(ID3D11DeviceContext* context,UINT Slot) const{
 	if (!mTextureAssetData ||
 		!mTextureAssetData->GetFileData()->GetTexture()->mpTextureRV){
-		//mNullTexture.PSSetShaderResources(Slot);
-		//ID3D11ShaderResourceView* r = NULL;
-		//ID3D11SamplerState* s = NULL;
-		//Device::mpImmediateContext->PSSetShaderResources(Slot, 1, &r);
-		//Device::mpImmediateContext->PSSetSamplers(Slot, 1, &s);
 		return;
 	}
 	auto tex = mTextureAssetData->GetFileData()->GetTexture();
-	Device::mpImmediateContext->PSSetShaderResources(Slot, 1, &tex->mpTextureRV);
-	Device::mpImmediateContext->PSSetSamplers(Slot, 1, &tex->mpSamplerLinear);
+	context->PSSetShaderResources(Slot, 1, &tex->mpTextureRV);
+	context->PSSetSamplers(Slot, 1, &tex->mpSamplerLinear);
 }
+void Texture::GSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const{
+	if (!mTextureAssetData ||
+		!mTextureAssetData->GetFileData()->GetTexture()->mpTextureRV){
+		return;
+	}
+	auto tex = mTextureAssetData->GetFileData()->GetTexture();
+	context->GSSetShaderResources(Slot, 1, &tex->mpTextureRV);
+	context->GSSetSamplers(Slot, 1, &tex->mpSamplerLinear);
+}
+void Texture::CSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const{
+	if (!mTextureAssetData ||
+		!mTextureAssetData->GetFileData()->GetTexture()->mpTextureRV){
+		return;
+	}
+	auto tex = mTextureAssetData->GetFileData()->GetTexture();
+	context->CSSetShaderResources(Slot, 1, &tex->mpTextureRV);
+	context->CSSetSamplers(Slot, 1, &tex->mpSamplerLinear);
+}
+
 
 #include "MySTL/File.h"
 void Texture::ExportData(File& f){

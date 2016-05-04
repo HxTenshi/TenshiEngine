@@ -20,11 +20,11 @@ public:
 	HRESULT Create(const char* FileName);
 	HRESULT CreateBoneModel(const char* FileName);
 	void Release();
-	void SetConstantBuffer() const;
+	void SetConstantBuffer(ID3D11DeviceContext* context) const;
 	void Update();
-	void IASet() const;
-	void Draw(const Material& material) const;
-	void Draw(const shared_ptr<MaterialComponent> material) const;
+	void IASet(ID3D11DeviceContext* context) const;
+	void Draw(ID3D11DeviceContext* context, const Material& material) const;
+	void Draw(ID3D11DeviceContext* context, const shared_ptr<MaterialComponent> material) const;
 
 	//クリエイトされているか
 	bool IsCreate(){
@@ -47,6 +47,8 @@ protected:
 	ConstantBuffer<CBChangesEveryFrame> mCBuffer;
 
 	friend PointLightComponent;
+
+	mutable bool mIsChangeMatrix;
 };
 
 //class ModelTexture : public Model{

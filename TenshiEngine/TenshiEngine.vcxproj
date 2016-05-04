@@ -402,6 +402,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Application\DrawThreadQueue.cpp" />
     <ClCompile Include="Source\Device\DirectX11Device.cpp" />
     <ClCompile Include="Source\Engine\AssetDataBase.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Bone\BoneFileData.cpp" />
@@ -423,6 +424,7 @@
     <ClCompile Include="Source\Game\Component\MaterialComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MeshDrawComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ModelComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\ParticleComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PointLightComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PostEffectComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TextureModelComponent.cpp" />
@@ -475,6 +477,7 @@
     <ClInclude Include="lua\include\luaconf.h" />
     <ClInclude Include="lua\include\lualib.h" />
     <ClInclude Include="Source\Application\Define.h" />
+    <ClInclude Include="Source\Application\DrawThreadQueue.h" />
     <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h" />
     <ClInclude Include="Source\ConstantBuffer\ConstantBufferDif.h" />
     <ClInclude Include="Source\Device\DirectX11Device.h" />
@@ -506,6 +509,7 @@
     <ClInclude Include="Source\Game\Component\MaterialComponent.h" />
     <ClInclude Include="Source\Game\Component\MeshDrawComponent.h" />
     <ClInclude Include="Source\Game\Component\ModelComponent.h" />
+    <ClInclude Include="Source\Game\Component\ParticleComponent.h" />
     <ClInclude Include="Source\Game\Component\PointLightComponent.h" />
     <ClInclude Include="Source\Game\Component\PostEffectComponent.h" />
     <ClInclude Include="Source\Game\Component\TextureModelComponent.h" />
@@ -537,6 +541,7 @@
     <ClInclude Include="Source\Graphic\Model\Model.h" />
     <ClInclude Include="Source\Graphic\Model\ModelStructs.h" />
     <ClInclude Include="Source\Graphic\RenderTarget\RenderTarget.h" />
+    <ClInclude Include="Source\Graphic\Shader\ComputeShader.h" />
     <ClInclude Include="Source\Graphic\Shader\GeometryShader.h" />
     <ClInclude Include="Source\Graphic\Shader\InputLayout.h" />
     <ClInclude Include="Source\Graphic\Shader\PixelShader.h" />

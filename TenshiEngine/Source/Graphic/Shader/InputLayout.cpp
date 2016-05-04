@@ -58,10 +58,10 @@ HRESULT InputLayout::Init(ID3DBlob* pVSBlob, const D3D11_INPUT_ELEMENT_DESC* lay
 	return S_OK;
 }
 
-void InputLayout::SetInputLayout()const{
+void InputLayout::SetInputLayout(ID3D11DeviceContext* context)const{
 	// Set the input layout
 	if (mpVertexLayout)
-		Device::mpImmediateContext->IASetInputLayout(mpVertexLayout);
+		context->IASetInputLayout(mpVertexLayout);
 }
 
 void InputLayout::Rerease()

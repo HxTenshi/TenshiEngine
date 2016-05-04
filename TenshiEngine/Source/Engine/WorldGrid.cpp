@@ -5,6 +5,8 @@
 
 #include "Graphic/Material/Material.h"
 
+#include "Game/RenderingSystem.h"
+
 const int WorldGrid::mZlineNum = 100;
 const int WorldGrid::mXlineNum = 100;
 
@@ -27,9 +29,12 @@ WorldGrid::WorldGrid(){
 	mMaterialXYZ[xyz].mDiffuse = XMFLOAT4{ 0.0f, 0.4f, 0.0f, 1 };
 	mMaterialXYZ[xyz].Create();
 
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	
 	mLineCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
 	mLineCBuffer.mParam.mWorld = XMMatrixIdentity();
-	mLineCBuffer.UpdateSubresource();
+	mLineCBuffer.UpdateSubresource(render->m_Context);
 
 }
 WorldGrid::~WorldGrid(){
@@ -39,30 +44,34 @@ WorldGrid::~WorldGrid(){
 }
 
 
-void WorldGrid::Draw()const{
-	Device::mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	mShader.SetShader(false);
-	mMaterial.PSSetShaderResources();
+void WorldGrid::Draw(){
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+	render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+	mShader.SetShader(false, render->m_Context);
+	mMaterial.PSSetShaderResources(render->m_Context);
 	UINT mStride = sizeof(XMFLOAT4);
 	UINT offset = 0;
-	Device::mpImmediateContext->IASetVertexBuffers(0, 1, &mpVertexBuffer, &mStride, &offset);
-	Device::mpImmediateContext->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	render->m_Context->IASetVertexBuffers(0, 1, &mpVertexBuffer, &mStride, &offset);
+	render->m_Context->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 
-	mLineCBuffer.VSSetConstantBuffers();
-	mLineCBuffer.PSSetConstantBuffers();
-	Device::mpImmediateContext->DrawIndexed(mXlineNum, 0, 0);
+	mLineCBuffer.VSSetConstantBuffers(render->m_Context);
+	mLineCBuffer.PSSetConstantBuffers(render->m_Context);
+	render->m_Context->DrawIndexed(mXlineNum, 0, 0);
 
-	Device::mpImmediateContext->DrawIndexed(mZlineNum, mXlineNum, 0);
+	render->m_Context->DrawIndexed(mZlineNum, mXlineNum, 0);
 
-	mMaterialXYZ[0].PSSetShaderResources();
-	Device::mpImmediateContext->DrawIndexed(2, mXlineNum + mZlineNum, 0);
-	mMaterialXYZ[1].PSSetShaderResources();
-	Device::mpImmediateContext->DrawIndexed(2, mXlineNum + mZlineNum + 2, 0);
-	mMaterialXYZ[2].PSSetShaderResources();
-	Device::mpImmediateContext->DrawIndexed(2, mXlineNum + mZlineNum + 4, 0);
+	mMaterialXYZ[0].PSSetShaderResources(render->m_Context);
+	render->m_Context->DrawIndexed(2, mXlineNum + mZlineNum, 0);
+	mMaterialXYZ[1].PSSetShaderResources(render->m_Context);
+	render->m_Context->DrawIndexed(2, mXlineNum + mZlineNum + 2, 0);
+	mMaterialXYZ[2].PSSetShaderResources(render->m_Context);
+	render->m_Context->DrawIndexed(2, mXlineNum + mZlineNum + 4, 0);
 
-	Device::mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void WorldGrid::create(){

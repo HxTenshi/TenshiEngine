@@ -37,9 +37,9 @@ public:
 		return S_OK;
 	}
 
-	void SetShader() const{
+	void SetShader(ID3D11DeviceContext* context) const{
 		if (mpPixelShader)
-			Device::mpImmediateContext->PSSetShader(mpPixelShader, NULL, 0);
+			context->PSSetShader(mpPixelShader, NULL, 0);
 	}
 
 private:

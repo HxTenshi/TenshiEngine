@@ -36,7 +36,8 @@ PS_INPUT VS( VS_INPUT input )
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = mul(input.Pos, World);
 	output.Pos.z = 0;
-	output.Tex = input.Tex;
+	float y = 800.0 / 1200.0;
+	output.Tex = input.Tex * float2(1, y);
 	
 	return output;
 }
@@ -48,6 +49,5 @@ PS_INPUT VS( VS_INPUT input )
 float4 PS(PS_INPUT input) : SV_Target
 {
 	float4 col = txDiffuse.Sample(samLinear, input.Tex);
-	if (col.a <= 0.01f)discard;
 	return col;
 }
