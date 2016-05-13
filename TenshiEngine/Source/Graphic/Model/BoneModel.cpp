@@ -162,7 +162,6 @@ HRESULT BoneModel::Create(const char* FileName){
 			mCBBoneMatrix.mParam[mid].BoneMatrix[2] = XMFLOAT4(0,0,1,0);
 		}
 
-		
 		mIsChangeMatrix = true;
 	}
 	return S_OK;

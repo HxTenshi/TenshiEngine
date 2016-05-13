@@ -271,7 +271,7 @@ void GS1_Main(point GS_IN In[1],                       // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚
 	float g_Scale = In[0].v0.x;
 	float g_ScaleY = In[0].v0.z;
 
-	float bc = (g_Scale / (g_Scale + g_ScaleY*2));
+	float bc = (g_Scale / (g_Scale + g_ScaleY*1.5));
 	float fc = (bc + 1)/2.0;
 	float4 fcol = float4(fc, fc, fc, 1);
 	float4 bcol = float4(bc, bc, bc, 1);

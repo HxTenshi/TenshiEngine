@@ -286,7 +286,6 @@ public:
 		return ptr != NULL;
 	}
 
-
 	typedef typename shared_ptr_traits< T >::reference reference;
 	inline
 	reference operator* ()const{
@@ -385,7 +384,7 @@ public:
 		return (T*)ptr;
 	}
 
-	operator bool(){
+	operator bool() const{
 		return !count.expired();
 	}
 

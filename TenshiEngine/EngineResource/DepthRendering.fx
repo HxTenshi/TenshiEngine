@@ -130,7 +130,7 @@ PS_INPUT VSSkin(VS_INPUT input)
 //--------------------------------------------------------------------------------------
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float farClip = 100;
+	//float farClip = 100;
 	float D = input.Pos.z / input.Pos.w;
 	return float4(1 - D, 0, 0, 1);
 }

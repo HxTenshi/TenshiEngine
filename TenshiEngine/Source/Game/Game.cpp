@@ -610,10 +610,10 @@ void Game::Draw(){
 		});
 	}
 
+	mPostEffectRendering.Rendering(render, [&](){
+		PlayDrawList(DrawStage::PostEffect);
+	});
 
-
-	PlayDrawList(DrawStage::PostEffect);
-	mPostEffectRendering.Rendering();
 	PlayDrawList(DrawStage::Engine);
 
 

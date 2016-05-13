@@ -422,6 +422,7 @@
     <ClCompile Include="Source\Game\Component\ComponentFactory.cpp" />
     <ClCompile Include="Source\Game\Component\DirectionalLightComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MaterialComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\MeshComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MeshDrawComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ModelComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ParticleComponent.cpp" />
@@ -507,6 +508,7 @@
     <ClInclude Include="Source\Game\Component\DirectionalLightComponent.h" />
     <ClInclude Include="Source\Game\Component\IModelComponent.h" />
     <ClInclude Include="Source\Game\Component\MaterialComponent.h" />
+    <ClInclude Include="Source\Game\Component\MeshComponent.h" />
     <ClInclude Include="Source\Game\Component\MeshDrawComponent.h" />
     <ClInclude Include="Source\Game\Component\ModelComponent.h" />
     <ClInclude Include="Source\Game\Component\ParticleComponent.h" />

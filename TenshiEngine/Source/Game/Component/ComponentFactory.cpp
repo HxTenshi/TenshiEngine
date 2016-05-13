@@ -9,6 +9,7 @@
 #include "ModelComponent.h"
 #include "TextureModelComponent.h"
 #include "AnimationComponent.h"
+#include "MeshComponent.h"
 #include "MeshDrawComponent.h"
 #include "ScriptComponent.h"
 #include "DirectionalLightComponent.h"
@@ -31,6 +32,7 @@ ComponentFactory::ComponentFactory(){
 	_NewFunc<TextureModelComponent>();
 	_NewFunc<MaterialComponent>();
 	_NewFunc<AnimationComponent>();
+	_NewFunc<MeshComponent>();
 	_NewFunc<MeshDrawComponent>();
 	_NewFunc<ParticleComponent>();
 	_NewFunc<ScriptComponent>();

@@ -38,6 +38,8 @@ public:
 	std::string mAlbedoTextureName;
 	std::string mNormalTextureName;
 	std::string mHeightTextureName;
+	std::string mSpecularTextureName;
+	std::string mRoughnessTextureName;
 	std::vector<Material> mMaterials;
 	std::string mMaterialPath;
 	std::string mShaderName;
@@ -46,4 +48,6 @@ public:
 	XMFLOAT4 mSpecular;
 	XMFLOAT2 mTexScale;
 	XMFLOAT2 mHeightPower;
+
+	float mThickness;
 };

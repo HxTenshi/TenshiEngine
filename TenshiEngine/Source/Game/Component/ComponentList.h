@@ -16,6 +16,7 @@
 
 #include "MySTL/Ptr.h"
 class Actor;
+#include "TransformComponent.h"
 #include "IComponent.h"
 
 #include <memory>
@@ -28,21 +29,30 @@ public:
 		mStartEnd = false;
 	}
 	void RunInitialize(){
+		auto t = GetComponent<TransformComponent>();
+		t->Initialize();
 		for (auto& p : mComponent){
+			if (p.second.Get() == t.Get())continue;
 			p.second->Initialize();
 		}
 		mInitializeEnd = true;
 	}
 	void RunStart(){
+		auto t = GetComponent<TransformComponent>();
+		t->Start();
 		for (auto& p : mComponent){
+			if (p.second.Get() == t.Get())continue;
 			p.second->Start();
 		}
 		mStartEnd = true;
 	}
 	void RunFinish(){
+		auto t = GetComponent<TransformComponent>();
 		for (auto& p : mComponent){
+			if (p.second.Get() == t.Get())continue;
 			p.second->Finish();
 		}
+		t->Finish();
 		mInitializeEnd = false;
 		mStartEnd = false;
 	}

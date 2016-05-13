@@ -39,6 +39,7 @@ struct cbChangesMaterial
 struct cbChangesUseTexture
 {
 	XMFLOAT4 UseTexture;
+	XMFLOAT4 UseTexture2;
 };
 struct cbBoneMatrix
 {

@@ -17,10 +17,12 @@ void PostEffectRendering::Initialize(){
 	mMaterial.SetTexture(Game::GetMainViewRenderTarget().GetTexture(), 0);
 }
 
-void PostEffectRendering::Rendering(){
+void PostEffectRendering::Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 
+	//デファードで解除済み
+	//RenderTarget::NullSetRendererTarget(render->m_Context);
 
-	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	func();
 	
 
 	Device::mRenderTargetBack->SetRendererTarget(render->m_Context);

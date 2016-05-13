@@ -256,10 +256,11 @@ private:
 			ResetEvent(mUpdateEvent);
 			SetEvent(mDrawEvent);
 
-			while (1)
+			while (!mDestory)
 			{
-				if (mCmdFlag)break;
+				if (mCmdFlag||mDestory)break;
 			}
+			if (mDestory)break;
 			auto cmdList = mCmdList;
 			mCmdFlag = false;
 

@@ -53,7 +53,7 @@ HRESULT Model::CreateBoneModel(const char* FileName){
 		mBoneModel = NULL;
 	}
 	mBoneModel = new BoneModel();
-	if(FAILED(mBoneModel->Create(FileName))){
+	if (FAILED(mBoneModel->Create(FileName))){
 		if (mBoneModel){
 			delete mBoneModel;
 			mBoneModel = NULL;
@@ -62,6 +62,10 @@ HRESULT Model::CreateBoneModel(const char* FileName){
 	return hr;
 }
 
+int Model::GetMeshNum(){
+	auto& buf = m_MeshAssetDataPtr->GetFileData()->GetBufferData();
+	return (int)buf.GetMesh().size();
+}
 
 void Model::SetConstantBuffer(ID3D11DeviceContext* context) const
 {
@@ -98,7 +102,7 @@ void Model::IASet(ID3D11DeviceContext* context) const{
 	UINT offset = 0;
 
 	context->IASetVertexBuffers(0, 1, &v, &s, &offset);
-	
+
 	// Set index buffer
 	context->IASetIndexBuffer(i, DXGI_FORMAT_R16_UINT, 0);
 }
@@ -110,7 +114,7 @@ void Model::Draw(ID3D11DeviceContext* context, const Material& material) const{
 		mForcedMaterial->PSSetShaderResources(context);
 	}
 	else if (mForcedMaterialUseTexture){
-		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL),context);
+		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL), context);
 		material.VSSetShaderResources(context);
 		material.PSSetShaderResources(context);
 	}
@@ -132,24 +136,24 @@ void Model::Draw(ID3D11DeviceContext* context, const Material& material) const{
 	auto& buf = m_MeshAssetDataPtr->GetFileData()->GetBufferData();
 	auto& mesh = buf.GetMesh();
 
-	for (auto& m : mesh ){
+	for (auto& m : mesh){
 		context->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 	}
 }
 
-void Model::Draw(ID3D11DeviceContext* context,const shared_ptr<MaterialComponent> material) const{
+void Model::Draw(ID3D11DeviceContext* context, const shared_ptr<MaterialComponent> material) const{
 	if (!m_MeshAssetDataPtr)return;
 	if (mBoneModel){
 		mBoneModel->SetConstantBuffer(context);
 	}
 
 	if (mForcedMaterial){
-		mForcedMaterial->SetShader((bool)(mBoneModel != NULL),context);
+		mForcedMaterial->SetShader((bool)(mBoneModel != NULL), context);
 		mForcedMaterial->VSSetShaderResources(context);
 		mForcedMaterial->PSSetShaderResources(context);
 	}
 	else if (mForcedMaterialUseTexture){
-		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL),context);
+		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL), context);
 	}
 
 	if (mIsChangeMatrix){
@@ -163,19 +167,78 @@ void Model::Draw(ID3D11DeviceContext* context,const shared_ptr<MaterialComponent
 	auto& mesh = buf.GetMesh();
 	UINT i = 0;
 
-	for (const auto& m : mesh ){
+	for (const auto& m : mesh){
 		if (mForcedMaterialUseTexture){
 			material->GetMaterial(i).VSSetShaderResources(context);
 			material->GetMaterial(i).PSSetShaderResources(context);
 		}
 		else if (!mForcedMaterial){
-			material->GetMaterial(i).SetShader((bool)(mBoneModel != NULL),context);
+			material->GetMaterial(i).SetShader((bool)(mBoneModel != NULL), context);
 			material->GetMaterial(i).VSSetShaderResources(context);
 			material->GetMaterial(i).PSSetShaderResources(context);
 		}
 		context->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 		i++;
 	}
+}
+
+#include "Game/Component/MeshComponent.h"
+void Model::Draw(ID3D11DeviceContext* context, const std::vector<weak_ptr<MeshComponent>>& mesh) const{
+	if (!m_MeshAssetDataPtr)return;
+	if (mBoneModel){
+		mBoneModel->SetConstantBuffer(context);
+	}
+
+	if (mForcedMaterial){
+		mForcedMaterial->SetShader((bool)(mBoneModel != NULL), context);
+		mForcedMaterial->VSSetShaderResources(context);
+		mForcedMaterial->PSSetShaderResources(context);
+	}
+	else if (mForcedMaterialUseTexture){
+		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL), context);
+	}
+
+	if (mIsChangeMatrix){
+		mIsChangeMatrix = false;
+		mCBuffer.UpdateSubresource(context);
+	}
+
+	IASet(context);
+	SetConstantBuffer(context);
+
+	for (const auto& m : mesh){
+		if (!m)continue;
+		auto modelmesh = m->GetModelMesh();
+		modelmesh->Draw(context);
+	}
+}
+
+
+void ModelMesh::Create(const std::string& name, int id){
+	AssetDataBase::Instance(name.c_str(), m_MeshAssetDataPtr);
+	m_ID = id;
+}
+
+void ModelMesh::Draw(ID3D11DeviceContext* context) const{
+	if (!m_MeshAssetDataPtr)return;
+	if (!m_MaterialComponent)return;
+
+
+	auto& buf = m_MeshAssetDataPtr->GetFileData()->GetBufferData();
+	auto& mesh = buf.GetMesh();
+	auto& m = mesh.at(m_ID);
+
+
+	if (Model::mForcedMaterialUseTexture){
+		m_MaterialComponent->GetMaterial(0).VSSetShaderResources(context);
+		m_MaterialComponent->GetMaterial(0).PSSetShaderResources(context);
+	}
+	else if (!Model::mForcedMaterial){
+		m_MaterialComponent->GetMaterial(0).VSSetShaderResources(context);
+		m_MaterialComponent->GetMaterial(0).PSSetShaderResources(context);
+	}
+
+	context->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 }
 
 

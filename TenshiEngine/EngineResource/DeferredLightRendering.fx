@@ -1,25 +1,21 @@
 //--------------------------------------------------------------------------------------
-// File: Tutorial07.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
 Texture2D NormalTex : register( t0 );
 SamplerState NormalSamLinear : register(s0);
 Texture2D DepthTex : register(t1);
 SamplerState DepthSamLinear : register(s1);
+Texture2D SpecularTex : register(t2);
+SamplerState SpecularSamLinear : register(s2);
 
-Texture2D LightDepthTex1 : register(t2);
-SamplerState LightDepthSamLinear1 : register(s2);
-Texture2D LightDepthTex2 : register(t3);
-SamplerState LightDepthSamLinear2 : register(s3);
-Texture2D LightDepthTex3 : register(t4);
-SamplerState LightDepthSamLinear3 : register(s4);
-Texture2D LightDepthTex4 : register(t5);
-SamplerState LightDepthSamLinear4 : register(s5);
+Texture2D LightDepthTex1 : register(t3);
+SamplerState LightDepthSamLinear1 : register(s3);
+Texture2D LightDepthTex2 : register(t4);
+SamplerState LightDepthSamLinear2 : register(s4);
+Texture2D LightDepthTex3 : register(t5);
+SamplerState LightDepthSamLinear3 : register(s5);
+Texture2D LightDepthTex4 : register(t6);
+SamplerState LightDepthSamLinear4 : register(s6);
 
 cbuffer cbNeverChanges : register(b0)
 {
@@ -138,19 +134,18 @@ float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
 	return specular;
 }
 
-//--------------------------------------------------------------------------------------
-// Pixel Shader
-//--------------------------------------------------------------------------------------
-PS_OUTPUT_1 PS(PS_INPUT input)
-{
+
+
+PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	PS_OUTPUT_1 Out;
 	Out.Diffuse = float4(1, 1, 1, 1);
 	Out.Specular = float4(0, 0, 0, 1);
 
 	float4 norCol = NormalTex.Sample(NormalSamLinear, input.Tex);
-	// 法線の準備
-	float3 N = norCol.xyz;
-	N = N * 2 - 1;
+		// 法線の準備
+		float3 N = norCol.xyz;
+		N = N * 2 - 1;
+	N *= normalVec;
 
 	if (N.x == 0 && N.y == 0 && N.z == 0){
 		return Out;
@@ -165,24 +160,24 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	float NLDot = dot(N, -L);
 
 
-	float offset = 0.001 + (NLDot) * 0.001;
+	float offset = 0.001 + (NLDot)* 0.001;
 	float shadow = 0.0;
 	float shadowCount = 1.0f;
 	// ライトデプスの準備
 	float4 LVPos = DepthTex.Sample(DepthSamLinear, input.Tex).zwyx;
 
-	//float LD = LightDepthTex1.Sample(LightDepthSamLinear1, LVPos.xy).x;
-	//shadow += step(LVPos.z + offset, LD);
+		//float LD = LightDepthTex1.Sample(LightDepthSamLinear1, LVPos.xy).x;
+		//shadow += step(LVPos.z + offset, LD);
 
 
-	// 位置(view座標系)
-	float dep = LVPos.w;
+		// 位置(view座標系)
+		float dep = LVPos.w;
 	dep = ToPerspectiveDepth(dep);
 	float3 vpos = DepthToPosition2(input.Tex, dep);
 
 		//float4 debugColor = float4(0, 0, 0, 1);
 
-	float dist = vpos.z - 0.01f;
+		float dist = vpos.z - 0.01f;
 	//float dist = dep;
 	if (dist < SplitPosition.x)
 	{
@@ -217,12 +212,12 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	float DifGen = saturate(NLDot);
 	DifGen *= shadow;
 	DifGen = DifGen + 0.25;
-	DifGen = saturate(DifGen);
+	//DifGen = saturate(DifGen);
 
 	//debugColor *= float4(DifGen, DifGen, DifGen, 1);
 	//debugColor = float4(1, 1, 1, 2) - debugColor;
 
-	float roughness = norCol.a;
+	float roughness = norCol.a - 1;
 	float spec = LightingFuncGGX_REF(N, -normalize(vpos), -L, roughness, 0.1);
 
 
@@ -231,6 +226,32 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 	Out.Specular = LightColor * spec;
 	Out.Specular.a = LightColor.a;
+
+	return Out;
+
+}
+
+
+//--------------------------------------------------------------------------------------
+// Pixel Shader
+//--------------------------------------------------------------------------------------
+PS_OUTPUT_1 PS(PS_INPUT input)
+{
+	PS_OUTPUT_1 Out;
+	Out = main(input,1);
+
+	float rebirth = SpecularTex.Sample(SpecularSamLinear, input.Tex).a;
+
+	//[branch]
+	if (rebirth > 0.1){
+		PS_OUTPUT_1 reb;
+		reb = main(input,-1);
+		Out.Diffuse.rgb += reb.Diffuse.rgb * rebirth;
+		Out.Specular.rgb += reb.Specular.rgb * rebirth;
+	}
+	else{
+
+	}
 
 	return Out;
 }

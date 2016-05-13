@@ -40,8 +40,18 @@ void MeshDrawComponent::Update(){
 	Game::AddDrawList(DrawStage::Diffuse, std::function<void()>([&](){
 		Model& model = *mModel->mModel;
 
+		auto& meshvec = mModel->GetMeshComVector();
+
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-		model.Draw(render->m_Context, mMaterial);
+
+		if (meshvec.size() > 0){
+			model.Draw(render->m_Context, meshvec);
+		}
+		else{
+			model.Draw(render->m_Context, mMaterial);
+		}
+
+
 	}));
 
 }

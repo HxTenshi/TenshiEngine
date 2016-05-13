@@ -25,7 +25,6 @@ void RenderingStateSetting<DepthStencil>::Initialize(){
 template <>
 void RenderingStateSetting<Rasterizer>::Initialize(){
 
-
 	auto Desc = CDescType(CD3D11_DEFAULT());
 
 	Desc.CullMode = D3D11_CULL_NONE;

@@ -63,6 +63,7 @@ MaterialComponent::MaterialComponent(){
 	mSpecular = XMFLOAT4(0, 0, 0, 1);
 	mTexScale = XMFLOAT2(1, 1);
 	mHeightPower = XMFLOAT2(2.0f, 1);
+	mThickness = 0.0f;
 }
 MaterialComponent::~MaterialComponent(){
 }
@@ -88,10 +89,13 @@ void MaterialComponent::Initialize(){
 	SetSpecularColor(mSpecular);
 	mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
 	mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
+	mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
 
 	if (mAlbedoTextureName != "")mMaterials[0].SetTexture(mAlbedoTextureName.c_str(), 0);
 	if (mNormalTextureName != "")mMaterials[0].SetTexture(mNormalTextureName.c_str(), 1);
 	if (mHeightTextureName != "")mMaterials[0].SetTexture(mHeightTextureName.c_str(), 2);
+	if (mSpecularTextureName != "")mMaterials[0].SetTexture(mSpecularTextureName.c_str(), 3);
+	if (mRoughnessTextureName != "")mMaterials[0].SetTexture(mRoughnessTextureName.c_str(), 4);
 }
 
 void MaterialComponent::SetMaterial(UINT SetNo, Material& material){
@@ -160,6 +164,14 @@ void MaterialComponent::CreateInspector(){
 		mMaterials[0].SetTexture(name.c_str(), 2);
 		mHeightTextureName = name;
 	};
+	std::function<void(std::string)> collbackstex = [&](std::string name){
+		mMaterials[0].SetTexture(name.c_str(), 3);
+		mSpecularTextureName = name;
+	};
+	std::function<void(std::string)> collbackrtex = [&](std::string name){
+		mMaterials[0].SetTexture(name.c_str(), 4);
+		mRoughnessTextureName = name;
+	};
 	std::function<void(std::string)> collbackpath = [&](std::string name){
 		mMaterialPath = name;
 		LoadAssetResource(mMaterialPath);
@@ -187,6 +199,10 @@ void MaterialComponent::CreateInspector(){
 		mHeightPower.y = f;
 		mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
 	};
+	std::function<void(float)> collbackThick = [&](float f){
+		mThickness = f;
+		mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
+	};
 
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Material", &mMaterialPath, collbackpath), data);
 	Window::AddInspector(new InspectorColorDataSet("Albedo", &mAlbedo.x, collbackx, &mAlbedo.y, collbacky, &mAlbedo.z, collbackz, &mAlbedo.w, collbacka), data);
@@ -198,9 +214,12 @@ void MaterialComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("AlbedoTextre", &mAlbedoTextureName, collbacktex), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("NormalTextre", &mNormalTextureName, collbackntex), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("HeightTextre", &mHeightTextureName, collbackhtex), data);
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("SpecularTextre", &mSpecularTextureName, collbackstex), data);
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("RoughnessTextre", &mRoughnessTextureName, collbackrtex), data);
 	Window::AddInspector(new InspectorVector2DataSet("TextureScale", &mTexScale.x, collbacktexsx, &mTexScale.y, collbacktexsy), data);
 	Window::AddInspector(new InspectorSlideBarDataSet("HightPower", -10, 10, &mHeightPower.x, collbackH), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &mHeightPower.y, collbackHDR), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("Thickness", &mThickness, collbackThick), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collbacksha), data);
 	Window::ViewInspector("Material", this, data);
 }
@@ -228,9 +247,12 @@ void MaterialComponent::IO_Data(I_ioHelper* io){
 	_KEY(mAlbedoTextureName);
 	_KEY(mNormalTextureName);
 	_KEY(mHeightTextureName);
+	_KEY(mSpecularTextureName);
+	_KEY(mRoughnessTextureName);
 	_KEY(mTexScale.x);
 	_KEY(mTexScale.y);
 	_KEY(mHeightPower.x);
 	_KEY(mHeightPower.y);
+	_KEY(mThickness);
 #undef _KEY
 }

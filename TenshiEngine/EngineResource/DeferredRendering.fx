@@ -19,10 +19,10 @@ Texture2D LightTex : register(t4);
 SamplerState LightSamLinear : register(s4);
 Texture2D LightSpeTex : register(t5);
 SamplerState LightSpeSamLinear : register(s5);
-Texture2D EnvironmentTex : register(t6);
-SamplerState EnvironmentSamLinear : register(s6);
-Texture2D EnvironmentRTex : register(t7);
-SamplerState EnvironmentRSamLinear : register(s7);
+//Texture2D EnvironmentTex : register(t6);
+//SamplerState EnvironmentSamLinear : register(s6);
+//Texture2D EnvironmentRTex : register(t7);
+//SamplerState EnvironmentRSamLinear : register(s7);
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -66,31 +66,32 @@ float4 PS(PS_INPUT input) : SV_Target
 	float4 norcol = NormalTex.Sample(NormalSamLinear, input.Tex);
 	float3 nor = norcol.xyz * 2 - 1.0;
 	float4 spc = SpecularTex.Sample(SpecularSamLinear, input.Tex);
-	float spcPow = spc.a;
-	float3 ray = spc.xyz * 2 - 1.0;
-		//ray.z = ray.z;
-		float3 ref = reflect(nor, ray);       // 反射ベクトル
-		//ref.xy = ref.xy * ref.z;
-
-		//ref.xy *= abs(ref.z) + 1;
-		//ref = normalize(ref);
-		ref.xy = ref.xy*float2(0.5,-0.5) + 0.5;
-		//ref.xy *= 0.9;
-		//ref.xy = saturate(ref.xy);
-		//if (ref.y >= 1){
-		//	ref.y = ref.y * -1;
-		//}
-		//else if (ref.y <= 0){
-		//	ref.y = ref.y * -1;
-		//}
-		//ref = normalize(ref);
-
-
-
-	float roughness = norcol.a;
-	float3 env = EnvironmentTex.Sample(EnvironmentSamLinear, ref.xy).rgb;
-	float3 envR = EnvironmentRTex.Sample(EnvironmentRSamLinear, ref.xy).rgb;
-	env = lerp(env, envR, pow(roughness,0.5f));
+	//float spcPow = spc.a;
+	//float3 ray = spc.xyz * 2 - 1.0;
+	//	//ray.z = ray.z;
+	//	float3 ref = reflect(nor, ray);       // 反射ベクトル
+	//	//ref.xy = ref.xy * ref.z;
+	//
+	//	//ref.xy *= abs(ref.z) + 1;
+	//	//ref = normalize(ref);
+	//	ref.xy = ref.xy*float2(0.5,-0.5) + 0.5;
+	//	//ref.xy *= 0.9;
+	//	//ref.xy = saturate(ref.xy);
+	//	//if (ref.y >= 1){
+	//	//	ref.y = ref.y * -1;
+	//	//}
+	//	//else if (ref.y <= 0){
+	//	//	ref.y = ref.y * -1;
+	//	//}
+	//	//ref = normalize(ref);
+	//
+	//
+	//
+	//float roughness = norcol.a;
+	//float3 env = EnvironmentTex.Sample(EnvironmentSamLinear, ref.xy).rgb;
+	//float3 envR = EnvironmentRTex.Sample(EnvironmentRSamLinear, ref.xy).rgb;
+	//env = lerp(env, envR, pow(roughness,0.5f));
+	float3 env = spc.rgb;
 
 
 
@@ -136,7 +137,8 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	float4 col = albedo * dif;
 	//col.rgb += env * spcPow;
-	col.rgb = lerp(col.rgb , env, spcPow);
+	//col.rgb = lerp(col.rgb, env, spcPow);
+	col.rgb = col.rgb + env;
 	col.rgb += lSpe.rgb;
 
 	//float l = length( -ray - nor);

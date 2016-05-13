@@ -92,6 +92,8 @@ private:
 	XMMATRIX m_LightView;
 	XMMATRIX m_LightProj;
 
+	UINT mWidth;
+	UINT mHeight;
 
 	RenderTarget m_ShadowDepthRT[MAX_CASCADE];
 	RenderTarget m_ShadowDepthDS;
@@ -136,6 +138,7 @@ private:
 	Model mModelTexture;
 	Material mMaterialDebugDraw;
 	Material mMaterialDebugDrawPrePass;
+	Material mMaterialPrePassEnv;
 	Material mMaterialLight;
 	Material mMaterialDeferred;
 	Material mMaterialDepthShadow;

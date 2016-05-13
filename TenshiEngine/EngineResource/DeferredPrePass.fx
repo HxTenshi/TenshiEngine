@@ -13,6 +13,16 @@ Texture2D NormalTex : register(t1);
 SamplerState NormalSamLinear : register(s1);
 Texture2D HeightTex : register(t2);
 SamplerState HeightSamLinear : register(s2);
+Texture2D SpcTex : register(t3);
+SamplerState SpcSamLinear : register(s3);
+Texture2D RoughTex : register(t4);
+SamplerState RoughSamLinear : register(s4);
+
+
+Texture2D EnvironmentTex : register(t6);
+SamplerState EnvironmentSamLinear : register(s6);
+Texture2D EnvironmentRTex : register(t7);
+SamplerState EnvironmentRSamLinear : register(s7);
 
 cbuffer cbNeverChanges : register( b0 )
 {
@@ -54,6 +64,7 @@ cbuffer cbChangesLightMaterial : register( b5 )
 cbuffer cbChangesUseTexture : register( b6 )
 {
 	float4 UseTexture;
+	float4 UseTexture2;
 };
 cbuffer cbBoneMatrix : register(b7)
 {
@@ -128,15 +139,12 @@ PS_INPUT VS( VS_INPUT input )
 	//output.Tan = cross(input.Normal, output.Bin);
 
 	//output.Normal = mul(input.Normal, (float3x3)World);
-	//output.Normal = mul(output.Normal, (float3x3)View);
 	//output.Bin = mul(input.Bin, (float3x3)World);
-	//output.Bin = mul(output.Bin, (float3x3)View);
 	//output.Tan = mul(input.Tan, (float3x3)World);
+	//output.Normal = mul(output.Normal, (float3x3)View);
+	//output.Bin = mul(output.Bin, (float3x3)View);
 	//output.Tan = mul(output.Tan, (float3x3)View);
 
-
-	//output.Bin = -cross(output.Normal, output.Tan);
-	//output.Tan = cross(output.Normal, output.Bin);
 	output.Normal = input.Normal;
 	output.Bin = input.Bin;
 	output.Tan = input.Tan;
@@ -161,23 +169,30 @@ PS_INPUT VSSkin(VS_INPUT input)
 
 	float4 pos = input.Pos;
 	float3 nor = input.Normal;
+	float3 bin = input.Bin;
+	float3 tan = input.Tan;
+	PS_INPUT output = (PS_INPUT)0;
 
 
 	float3 bpos = float3(0, 0, 0);
 	float3 bnor = float3(0, 0, 0);
+	float3 bbin = float3(0, 0, 0);
+	float3 btan = float3(0, 0, 0);
 	[unroll]
 	for (uint i = 0; i < 4; i++){
 		float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
 		bpos += input.BoneWeight[i] * mul(pos, bm).xyz;
 		bnor += input.BoneWeight[i] * mul(nor, (float3x3)bm);
+		bbin += input.BoneWeight[i] * mul(bin, (float3x3)bm);
+		btan += input.BoneWeight[i] * mul(tan, (float3x3)bm);
 	}
 
+
 	pos.xyz = bpos / 100.0;
-	nor = bnor / 100.0;
+	output.Normal = bnor / 100.0;
+	output.Bin = bbin / 100.0;
+	output.Tan = btan / 100.0;
 
-
-
-	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = mul(pos, World);
 
 	//output.LVPos = mul(output.Pos, LView);
@@ -217,6 +232,7 @@ PS_INPUT VSSkin(VS_INPUT input)
 PS_OUTPUT_1 PS(PS_INPUT input)
 {
 	PS_OUTPUT_1 Out;
+
 
 	float2 texcood = input.Tex;
 
@@ -259,17 +275,17 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 		//視線ベクトルを頂点座標系に変換する
 		float3 n;
-		n.x = dot(bump, Tan);
-		n.y = dot(bump, Bin);
-		n.z = dot(bump, Nor);
+		n.x = dot(bump,Tan);
+		n.y = dot(bump,Bin);
+		n.z = dot(bump,Nor);
 		bump = n;
 
-		float3 x = normalize(float3(World._m11, World._m21, World._m31));
-		float3 y = normalize(float3(World._m12, World._m22, World._m32));
-		float3 z = normalize(float3(World._m13, World._m23, World._m33));
-		float3x3 NoScale = float3x3(x, y, z);
-
-		//bump = mul(bump, NoScale);
+		//float3 x = normalize(float3(World._m11, World._m21, World._m31));
+		//float3 y = normalize(float3(World._m12, World._m22, World._m32));
+		//float3 z = normalize(float3(World._m13, World._m23, World._m33));
+		//float3x3 NoScale = float3x3(x, y, z);
+		//
+		////bump = mul(bump, NoScale);
 		bump = mul(bump, (float3x3)World);
 		bump = mul(bump, (float3x3)View);
 		bump = normalize(bump);
@@ -320,19 +336,45 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 		velocity = velocity * 0.5 + 0.5;
 	}
 
-	// 出力カラー計算 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++( 開始 )
-
 	float4 DifColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture.x != 0.0)
 			DifColor = AlbedoTex.Sample(AlbedoSamLinear, texcood);
+	if (DifColor.a < 0.01)discard;
 
 
-	ray = ray*0.5 + 0.5;
+
+	float4 SpcColor = float4(1.0, 1.0, 1.0, 1.0);
+		if (UseTexture.w != 0.0)
+			SpcColor = SpcTex.Sample(SpcSamLinear, texcood);
+	SpcColor.rgb *= MSpecular.rgb;
+
+	float4 RghColor = float4(1.0, 1.0, 1.0, 1.0);
+		if (UseTexture2.x != 0.0)
+			RghColor = RoughTex.Sample(RoughSamLinear, texcood);
+	RghColor.r *= MSpecular.a;
+	RghColor.r = max(RghColor.r, 0.01);
+
+
+	float3 env;
+	{
+		float3 nor = N * 2 - 1.0;
+		float3 ref = reflect(nor, ray);       // 反射ベクトル
+		ref.xy = ref.xy*float2(0.5, -0.5) + 0.5;
+
+		float roughness = RghColor.r;
+		float3 env1 = EnvironmentTex.Sample(EnvironmentSamLinear, ref.xy).rgb;
+		float3 envR = EnvironmentRTex.Sample(EnvironmentRSamLinear, ref.xy).rgb;
+		env = lerp(env1, envR, pow(roughness, 0.5f));
+		//env *= SpcColor.rgb;
+		env *= SpcColor.r;
+	}
+	//ray = ray*0.5 + 0.5;
 
 	Out.ColorAlbedo = DifColor * MDiffuse;
-	Out.ColorSpecular = float4(ray.x, ray.y, ray.z, MSpecular.r);
-	Out.ColorNormal = float4(N, MSpecular.a);
+	//Out.ColorSpecular = float4(ray.x, ray.y, ray.z, SpcColor.r);
+	Out.ColorSpecular = float4(env.rgb, MAmbient.a);
+	Out.ColorNormal = float4(N, 1+RghColor.r);
 	Out.ColorDepth = float4(D, 1 - LD.z, LD.x, 1.0 - LD.y);
-	Out.ColorVelocity = float4(velocity.x, velocity.y, 0, 1);
+	Out.ColorVelocity = float4(0.5,0.5,0,1);//float4(velocity.x, velocity.y, 0, 1);
 	return Out;
 }

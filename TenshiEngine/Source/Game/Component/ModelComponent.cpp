@@ -20,23 +20,28 @@ ModelComponent::~ModelComponent(){
 		}
 	}
 void ModelComponent::Initialize(){
-		if (!mModel){
-			mModel = new Model();
-		}
-		if (!mModel->IsCreate()){
-			mModel->Create(mFileName.c_str());
-			if (!mModel->mBoneModel){
-				mModel->CreateBoneModel(mBoneFileName.c_str());
-			}
+	if (!mModel){
+		mModel = new Model();
+	}
+	if (!mModel->IsCreate()){
+		mModel->Create(mFileName.c_str());
+		if (!mModel->mBoneModel){
+			mModel->CreateBoneModel(mBoneFileName.c_str());
 		}
 	}
+}
+void ModelComponent::Start(){
+
+}
+void ModelComponent::Finish(){
+	m_MeshComVector.clear();
+}
 void ModelComponent::Update(){
 
 }
 
 void ModelComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
-	Window::AddInspector(new InspectorLabelDataSet("Model"), data);
 	std::function<void(std::string)> collbackpath = [&](std::string name){
 		mFileName = name;
 		if (mModel){
@@ -54,7 +59,12 @@ void ModelComponent::CreateInspector(){
 	};
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Model", &mFileName, collbackpath), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Bone", &mBoneFileName, collbackbonepath), data);
-	Window::ViewInspector("Model", this, data);
+
+	std::function<void(void)> collbackbutton = [&](){
+		ExpanderMesh();
+	};
+	Window::AddInspector(new InspectorButtonDataSet("ExpanderMesh", collbackbutton), data);
+	Window::ViewInspector("ModelComponent", this, data);
 }
 
 void ModelComponent::SetMatrix(){
@@ -68,4 +78,27 @@ void ModelComponent::IO_Data(I_ioHelper* io){
 		_KEY(mFileName);
 		_KEY(mBoneFileName);
 #undef _KEY
+}
+
+#include "Game/Game.h"
+#include "MeshComponent.h"
+#include "MaterialComponent.h"
+void ModelComponent::ExpanderMesh(){
+	int num = mModel->GetMeshNum();
+
+	for (int i = 0; i < num; i++){
+		auto obj = new Actor();
+		obj->mTransform = obj->AddComponent<TransformComponent>();
+		Game::AddObject(obj);
+		obj->mTransform->SetParent(gameObject);
+		obj->Name("Mesh:"+std::to_string(i));
+		obj->AddComponent<MaterialComponent>();
+		auto com = obj->AddComponent<MeshComponent>();
+		com->SetMesh(mFileName, i);
+	}
+}
+
+
+void ModelComponent::AddMeshComponent(weak_ptr<MeshComponent> meshCom){
+	m_MeshComVector.push_back(meshCom);
 }

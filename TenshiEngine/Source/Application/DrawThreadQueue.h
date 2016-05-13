@@ -10,9 +10,11 @@ struct LockedQueue {
 		std::unique_lock<std::mutex> lock(m);
 		// 外からnotify_all()またはnotify_one()によって起こされるまでブロックして待つ
 		// ただし、起こされた時にキューが満杯だった場合は、またブロックして待つ
-		c_enq.wait(lock, [this] { return true; });
+		c_enq.wait(lock, [this] { return mode==0; });
+		mode = 1;
 		data.push_back(x);
 		// dequeueの準備ができたことを通知
+		mode = 0;
 		c_deq.notify_one();
 	}
 
@@ -21,21 +23,24 @@ struct LockedQueue {
 		std::unique_lock<std::mutex> lock(m);
 		// 外からnotify_all()またはnotify_one()によって起こされるまでブロックして待つ
 		// ただし、起こされた時にキューが空である場合は、またブロックして待つ
-		c_deq.wait(lock, [this] { return !data.empty(); });
+		c_deq.wait(lock, [this] { return mode == 0; });
+		mode = 1;
 		T ret = data.front();
 		data.pop_front();
 		// enqueueの準備ができたことを通知
+		mode = 0;
 		c_enq.notify_one();
 		return ret;
 	}
 
 	int size(){
 		std::unique_lock<std::mutex> lock(m);
-		c_enq.wait(lock, [] { return true; });
-		c_deq.wait(lock, [] { return true; });
-
+		c_enq.wait(lock, [this] { return mode==0; });
+		c_deq.wait(lock, [this] { return mode==0; });
+		mode = 1;
 		auto s = data.size();
 
+		mode = 0;
 		c_deq.notify_one();
 		c_enq.notify_one();
 
@@ -47,6 +52,8 @@ private:
 	std::deque<T> data;
 	std::condition_variable c_enq;
 	std::condition_variable c_deq;
+
+	int mode = 0;
 };
 
 

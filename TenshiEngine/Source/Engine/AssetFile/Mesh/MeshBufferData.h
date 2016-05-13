@@ -16,6 +16,12 @@ public:
 
 	void Create(const MeshFileData* meshfile);
 
+	struct Mesh{
+		UINT m_IndexNum = 0;	// 頂点Indexのデータ数
+		UINT m_StartIndex = 0;	// 頂点Indexのデータ開始位置
+	};
+
+
 private:
 	//コピー禁止
 	MeshBufferData(const MeshBufferData&) = delete;
@@ -25,11 +31,6 @@ private:
 	//今後直す
 	Release_self<ID3D11Buffer> m_VertexBuffer;	// バッファー
 	Release_self<ID3D11Buffer> m_IndexBuffer;	// バッファー
-
-	struct Mesh{
-		UINT m_IndexNum = 0;	// 頂点Indexのデータ数
-		UINT m_StartIndex = 0;	// 頂点Indexのデータ開始位置
-	};
 
 	std::vector<Mesh> m_Meshs;	// メッシュ単位の頂点Indexデータ
 	UINT m_Stride;	// 頂点データのサイズ

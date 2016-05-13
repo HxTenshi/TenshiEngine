@@ -8,13 +8,15 @@
 XMVECTOR CascadeShadow::mLightVect = XMVectorSet(0,-1,0,1);
 
 CascadeShadow::CascadeShadow(){
-	auto w = WindowState::mWidth;
-	auto h = WindowState::mHeight;
+	mWidth = WindowState::mWidth;
+	mHeight = WindowState::mHeight;
+	//mWidth = 1024;
+	//mHeight = 1024;
 	for (int i = 0; i < MAX_CASCADE; i++){
-		m_ShadowDepthRT[i].Create(w, h, DXGI_FORMAT_R32_FLOAT);
+		m_ShadowDepthRT[i].Create(mWidth, mHeight, DXGI_FORMAT_R32_FLOAT);
 	}
 	
-	m_ShadowDepthDS.CreateDepth(w, h);
+	m_ShadowDepthDS.CreateDepth(mWidth, mHeight);
 
 
 	mCBChangesLightCamera = ConstantBuffer<cbChangesLightCamera>::create(10);
@@ -138,7 +140,7 @@ XMVECTOR* maxPos
 	XMVECTOR vY = XMVector3Normalize(XMVector3Cross(vZ, vX));
 
 
-	float aspect = float(WindowState::mWidth) / float(WindowState::mHeight);
+	float aspect = float(mWidth) / float(mHeight);
 	float fov = XM_PIDIV4;
 
 	float nearPlaneHalfHeight = tanf(fov * 0.5f) * nearClip;
@@ -250,7 +252,7 @@ void CascadeShadow::CascadeUpdate(){
 
 		forward += size;
 
-		float aspect = float(WindowState::mWidth) / float(WindowState::mHeight);
+		float aspect = float(mWidth) / float(mHeight);
 		float fov = XM_PIDIV4;
 		float farHeight = tanf(fov) * splitPositions[i + 1];
 		float farWidth = farHeight * aspect;
@@ -512,13 +514,19 @@ void DeferredRendering::Initialize(){
 	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 
 
+	mMaterialPrePassEnv.Create("");
+	mMaterialPrePassEnv.SetTexture(mEnvironmentMap, 6);
+	mMaterialPrePassEnv.SetTexture(mEnvironmentRMap, 7);
+
+
 	mMaterialLight.Create("EngineResource/DeferredLightRendering.fx");
 	mMaterialLight.SetTexture(m_NormalRT.GetTexture(), 0);
 	mMaterialLight.SetTexture(m_DepthRT.GetTexture(), 1);
-	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(0), 2);
-	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(1), 3);
-	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(2), 4);
-	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(3), 5);
+	mMaterialLight.SetTexture(m_SpecularRT.GetTexture(), 2);
+	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(0), 3);
+	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(1), 4);
+	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(2), 5);
+	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(3), 6);
 
 	mMaterialDeferred.Create("EngineResource/DeferredRendering.fx");
 	mMaterialDeferred.SetTexture(m_AlbedoRT.GetTexture(), 0);
@@ -527,8 +535,6 @@ void DeferredRendering::Initialize(){
 	mMaterialDeferred.SetTexture(m_VelocityRT.GetTexture(), 3);
 	mMaterialDeferred.SetTexture(m_LightRT.GetTexture(), 4);
 	mMaterialDeferred.SetTexture(m_LightSpecularRT.GetTexture(), 5);
-	mMaterialDeferred.SetTexture(mEnvironmentMap, 6);
-	mMaterialDeferred.SetTexture(mEnvironmentRMap, 7);
 
 	mMaterialDepthShadow.Create("EngineResource/DepthRendering.fx");
 
@@ -589,6 +595,8 @@ void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::
 
 	const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
 	RenderTarget::SetRendererTarget(render->m_Context ,(UINT)5, r[0], Device::mRenderTargetBack);
+
+	mMaterialPrePassEnv.PSSetShaderResources(render->m_Context);
 
 	func();
 
@@ -655,6 +663,7 @@ void DeferredRendering::Particle_Rendering(IRenderingEngine* render, RenderTarge
 	func();
 
 	RenderTarget::NullSetRendererTarget(render->m_Context);
+	//デバッグ用でここにひつよう？
 	mMaterialPostEffect.PSSetShaderResources(render->m_Context);
 }
 
@@ -714,6 +723,8 @@ void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 	render->PopDS();
 
 
+	RenderTarget::NullSetRendererTarget(render->m_Context);
+	mMaterialPostEffect.PSSetShaderResources(render->m_Context);
 
 	//Game::AddDrawList(DrawStage::UI, [&](){
 	//

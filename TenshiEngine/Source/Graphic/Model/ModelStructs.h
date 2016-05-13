@@ -27,6 +27,16 @@ struct SimpleBoneVertex
 	UINT BoneIndex[4];
 	UINT BoneWeight[4];
 };
+struct SimpleBoneVertexNormal
+{
+	XMFLOAT3 Pos;
+	XMFLOAT3 Normal;
+	XMFLOAT3 Binormal;
+	XMFLOAT3 Tangent;
+	XMFLOAT2 Tex;
+	UINT BoneIndex[4];
+	UINT BoneWeight[4];
+};
 
 
 struct IkLink

@@ -11,6 +11,8 @@ Texture2D NormalTex : register( t0 );
 SamplerState NormalSamLinear : register(s0);
 Texture2D DepthTex : register(t1);
 SamplerState DepthSamLinear : register(s1);
+Texture2D SpecularTex : register(t2);
+SamplerState SpecularSamLinear : register(s2);
 
 cbuffer cbNeverChanges : register(b0)
 {
@@ -163,22 +165,24 @@ float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
 	return specular;
 }
 
-PS_OUTPUT_1 PS(PS_INPUT input)
-{
+
+PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
+
 	PS_OUTPUT_1 Out;
 	Out.Diffuse = float4(0, 0, 0, 0);
 	Out.Specular = float4(0, 0, 0, 0);
 
 	//ジオメトリバッファのテクスチャ座標（法線、デプス値取得用）
-	float2 tex = input.Pos.xy/float2(1200,800);
+	float2 tex = input.Pos.xy / float2(1200, 800);
 
 
-	float4 norCol = NormalTex.Sample(NormalSamLinear, tex);
-	// 法線(view座標系) 0~1を-1～+1に変換
-	float3 nor = norCol.xyz * 2 - 1;
-	if (nor.x == 0 && nor.y == 0 && nor.z == 0){
+		float4 norCol = NormalTex.Sample(NormalSamLinear, tex);
+		// 法線(view座標系) 0~1を-1～+1に変換
+		float3 nor = norCol.xyz * 2 - 1;
+		nor *= normalVec;
+		if (nor.x == 0 && nor.y == 0 && nor.z == 0){
 		return Out;
-	}
+		}
 
 	// 位置(view座標系)
 	float dep = DepthTex.Sample(DepthSamLinear, tex).r;
@@ -186,12 +190,12 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	float3 vpos = DepthToPosition2(tex, dep);
 
 
-	//float3 lpos = mul(PtLVPos, View).xyz;
-	float3 lpos = PtLVPos.xyz;
+		//float3 lpos = mul(PtLVPos, View).xyz;
+		float3 lpos = PtLVPos.xyz;
 
-	//点光源までの距離
-	float3 dir = lpos - vpos;
-	float r = length(dir);
+		//点光源までの距離
+		float3 dir = lpos - vpos;
+		float r = length(dir);
 
 	// 光源の方向(view座標系)
 	dir = dir / r;
@@ -216,11 +220,36 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	//float3 h = normalize(dir - normalize(vpos));//ハーフベクトル
 	//float spec_pow = 255 * txSpecPow.Sample(samSpecPow, tex).x;
 	//float3 spec = pow(saturate(dot(nor, h)), spec_pow);
-	float roughness = norCol.a;
+	float roughness = norCol.a - 1;
 	float spec = LightingFuncGGX_REF(nor, -normalize(vpos), dir, roughness, 0.1);
 
 	Out.Diffuse = float4(atte*df*PtLCol.xyz, 1);
 	Out.Specular = float4(atte*spec*PtLCol.xyz, 1);
 	//Out.rgb += atte*spec*PtLCol.xyz;
+
+	return Out;
+
+}
+
+
+PS_OUTPUT_1 PS(PS_INPUT input)
+{
+	PS_OUTPUT_1 Out;
+	Out = main(input,1);
+
+	float2 tex = input.Pos.xy / float2(1200, 800);
+	float rebirth = SpecularTex.Sample(SpecularSamLinear, tex).a;
+
+	//[branch]
+	if (rebirth > 0.01){
+		PS_OUTPUT_1 reb;
+		reb = main(input,-1);
+		Out.Diffuse.rgb += reb.Diffuse.rgb * rebirth;
+		Out.Specular.rgb += reb.Specular.rgb * rebirth;
+	}
+	else{
+
+	}
+
 	return Out;
 }

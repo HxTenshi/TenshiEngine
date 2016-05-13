@@ -1,20 +1,20 @@
-# ƒVƒƒ[ƒv‚ÅŽn‚ß‚é‚ÆƒRƒƒ“ƒgs‚É‚È‚é
+# ï¿½Vï¿½ï¿½ï¿½[ï¿½vï¿½ÅŽnï¿½ß‚ï¿½ÆƒRï¿½ï¿½ï¿½ï¿½ï¿½gï¿½sï¿½É‚È‚ï¿½
  
-# tmp ƒtƒHƒ‹ƒ_‚Ü‚é‚²‚Æ–³Ž‹‚µ‚½‚¢
+# tmp ï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½Ü‚é‚²ï¿½Æ–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #tmp/
  
-# ‰ºŠK‘w‘S‚Ä‚ÌƒtƒHƒ‹ƒ_“à‚Å ".DS_Store" ƒtƒ@ƒCƒ‹‚ð–³Ž‹‚µ‚½‚¢
+# ï¿½ï¿½ï¿½Kï¿½wï¿½Sï¿½Ä‚Ìƒtï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ ".DS_Store" ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ð–³Žï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #*/.DS_Store
  
-# ‰ºŠK‘w‘S‚Ä‚ÌƒtƒHƒ‹ƒ_“à‚ÅŠg’£Žq‚ª .psd ‚Ìƒtƒ@ƒCƒ‹‚ð–³Ž‹‚µ‚½‚¢
+# ï¿½ï¿½ï¿½Kï¿½wï¿½Sï¿½Ä‚Ìƒtï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ÅŠgï¿½ï¿½ï¿½qï¿½ï¿½ .psd ï¿½Ìƒtï¿½@ï¿½Cï¿½ï¿½ï¿½ð–³Žï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #*/*.psd
  
-# ƒgƒbƒvŠK‘w‚Ì .exe ƒtƒ@ƒCƒ‹‚Ì‚Ý‚ð–³Ž‹‚µ‚½‚¢
-# ‚½‚¾‚µƒTƒuƒtƒHƒ‹ƒ_“à‚Ì .exe ƒtƒ@ƒCƒ‹‚Í–³Ž‹‚µ‚È‚¢
+# ï¿½gï¿½bï¿½vï¿½Kï¿½wï¿½ï¿½ .exe ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì‚Ý‚ð–³Žï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Tï¿½uï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ .exe ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Í–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
 #/*.exe
  
-# img ƒtƒHƒ‹ƒ_‚ð‚Ü‚é‚²‚Æ–³Ž‹‚µ‚½‚¢
-# ‚¾‚¯‚Ç .png ‚¾‚¯‚Í–³Ž‹‚µ‚½‚­‚È‚¢
+# img ï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½Ü‚é‚²ï¿½Æ–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ .png ï¿½ï¿½ï¿½ï¿½ï¿½Í–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
 #img/*.*
 #!.png
 
@@ -25,7 +25,7 @@ Release/
 ipch/
 *.vcxproj.user
 
-…“¹/
+ï¿½ï¿½ï¿½ï¿½/
 Assets/
 Scenes/
 DustBox/
@@ -53,3 +53,4 @@ Tutorial07/model/
 
 
 
+*.opensdf

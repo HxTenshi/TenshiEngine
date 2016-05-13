@@ -117,10 +117,6 @@ public:
 			memset(m_ReceiveBuffer, 0, sizeof(byte)*m_InputReportLength);
 			// HidD_GetPreparsedData() で取得したデータ領域を開放します。
 			HidD_FreePreparsedData(lpData);
-
-			//DWORD BytesRead = 0;
-			//ReadFile(m_HidHandle, m_ReceiveBuffer, m_InputReportLength, &BytesRead, &m_Overlapped);
-
 		}
 	}
 
@@ -130,33 +126,13 @@ public:
 		if (m_ReceiveBuffer)delete[] m_ReceiveBuffer;
 	}
 
+	//入力を更新します
 	void Read(){
 		if (!m_HidHandle)return;
 
 		DWORD BytesRead = 0;
 		ReadFile(m_HidHandle, m_ReceiveBuffer, m_InputReportLength, &BytesRead, NULL);
-		//Window::AddLog(buf);
-		//return;
-		//if (HasOverlappedIoCompleted(&m_Overlapped)){
-		//	ReadFile(m_HidHandle, m_ReceiveBuffer, m_InputReportLength, &BytesRead, &m_Overlapped);
-		//}
-		//
-		//
-		//if (GetOverlappedResult(m_HidHandle, &m_Overlapped, &BytesRead, FALSE))
-		//{
-		//	std::string buf;
-		//	for (int i = 0; i < m_InputReportLength; i++){
-		//		buf += m_ReceiveBuffer[i];
-		//	}
-		//
-		//	Window::AddLog(buf);
-		//}
-		//else
-		//{
-		//	if (GetLastError() != ERROR_IO_INCOMPLETE)
-		//	{
-		//	}
-		//}
+
 		_ReadInput(m_DS4State);
 		_ReadAnalog(m_DS4Analog);
 	}

@@ -25,6 +25,7 @@ public:
 
 	virtual void SetKinematic(bool flag) = 0;
 	virtual XMVECTOR GetForceVelocity() = 0;
+	virtual void SetForceVelocity(const XMVECTOR& v) = 0;
 	virtual void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) = 0;
 	virtual void AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) = 0;
 
@@ -55,6 +56,7 @@ public:
 
 	void SetKinematic(bool flag) override;
 	XMVECTOR GetForceVelocity() override;
+	void SetForceVelocity(const XMVECTOR& v) override;
 	void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;
 	void AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;
 
