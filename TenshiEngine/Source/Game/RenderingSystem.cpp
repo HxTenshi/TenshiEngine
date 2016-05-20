@@ -10,16 +10,16 @@ void RenderingStateSetting<DepthStencil>::Initialize(){
 	_Create(Desc, PresetType::DS_Zero_Alawys);
 
 	Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	Desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-	_Create(Desc, PresetType::DS_Zero_LessEqual);
+	Desc.DepthFunc = D3D11_COMPARISON_LESS;
+	_Create(Desc, PresetType::DS_Zero_Less);
 
 	Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	Desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
 	_Create(Desc, PresetType::DS_All_Alawys);
 
 	Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	Desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-	_Create(Desc, PresetType::DS_All_LessEqual);
+	Desc.DepthFunc = D3D11_COMPARISON_LESS;
+	_Create(Desc, PresetType::DS_All_Less);
 
 }
 template <>

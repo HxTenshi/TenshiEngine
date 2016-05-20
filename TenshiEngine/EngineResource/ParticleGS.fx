@@ -36,6 +36,7 @@ cbuffer cbChangesMaterial : register(b4)
 	float4 MAmbient;
 	float2 MTexScale;
 	float2 MHightPower;
+	float4 MNormaleScale;
 };
 
 

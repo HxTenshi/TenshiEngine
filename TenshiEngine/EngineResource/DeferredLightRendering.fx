@@ -56,7 +56,7 @@ struct PS_INPUT
 //--------------------------------------------------------------------------------------
 PS_INPUT VS( VS_INPUT input )
 {
-	PS_INPUT output = (PS_INPUT)0;
+	PS_INPUT output;
 	output.Pos = input.Pos;
 	output.Tex = input.Tex;
 	
@@ -70,7 +70,7 @@ struct PS_OUTPUT_1
 
 
 //projection depth 0~1
-float3 DepthToPosition2(float2 textureCoord, float depth)
+inline float3 DepthToPosition2(float2 textureCoord, float depth)
 {
 	float3 vpos;
 	// スクリーン座標　左上(-1,+1) 右下(+1,-1)
@@ -82,20 +82,22 @@ float3 DepthToPosition2(float2 textureCoord, float depth)
 }
 
 //view depth 0~1
-float ToPerspectiveDepth(float viewDepth)
+inline float ToPerspectiveDepth(float viewDepth)
 {
 	float4 projectedPosition = mul(float4(0, 0, viewDepth, 1.0), Projection);
 		return 1.0 - (projectedPosition.z / projectedPosition.w);
 }
 
 // V を計算するための便利関数
-float G1V(float dotNV, float k)
+inline float G1V(float dotNV, float k)
 {
 	return 1.0f / (dotNV * (1.0f - k) + k);
 }
 
+const static float PI = 3.141592653589793f;
+
 // GGX を使ったスペキュラシェーディングの値を返す関数
-float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
+inline float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
 	// ラフネス
 	float roughness,
 	// フレネル反射率 F(0°)
@@ -108,7 +110,7 @@ float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
 	float3 H = normalize(V + L);
 
 		// ベクトルの内積関連
-		float dotNL = saturate(dot(N, L));
+	float dotNL = saturate(dot(N, L));
 	float dotNV = saturate(dot(N, V));
 	float dotNH = saturate(dot(N, H));
 	float dotLH = saturate(dot(L, H));
@@ -117,9 +119,8 @@ float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
 
 	// D
 	float alphaSqr = alpha * alpha;
-	float pi = 3.14159f;
 	float denom = dotNH * dotNH * (alphaSqr - 1.0) + 1.0f;
-	D = alphaSqr / (pi * denom * denom);
+	D = alphaSqr / (PI * denom * denom);
 
 	// F
 	float dotLH5 = pow(1.0f - dotLH, 5);
@@ -136,7 +137,7 @@ float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
 
 
 
-PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
+inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	PS_OUTPUT_1 Out;
 	Out.Diffuse = float4(1, 1, 1, 1);
 	Out.Specular = float4(0, 0, 0, 1);
@@ -160,62 +161,44 @@ PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	float NLDot = dot(N, -L);
 
 
-	float offset = 0.001 + (NLDot)* 0.001;
-	float shadow = 0.0;
-	float shadowCount = 1.0f;
+	float offset = 0.0000001 + (NLDot)* 0.0000001;
 	// ライトデプスの準備
 	float4 LVPos = DepthTex.Sample(DepthSamLinear, input.Tex).zwyx;
 
-		//float LD = LightDepthTex1.Sample(LightDepthSamLinear1, LVPos.xy).x;
-		//shadow += step(LVPos.z + offset, LD);
-
-
-		// 位置(view座標系)
-		float dep = LVPos.w;
+	// 位置(view座標系)
+	float dep = LVPos.w;
 	dep = ToPerspectiveDepth(dep);
 	float3 vpos = DepthToPosition2(input.Tex, dep);
 
 		//float4 debugColor = float4(0, 0, 0, 1);
 
-		float dist = vpos.z - 0.01f;
-	//float dist = dep;
+	float dist = vpos.z;
+	float LD;
 	if (dist < SplitPosition.x)
 	{
-		//index = 0;
-		float LD = LightDepthTex1.Sample(LightDepthSamLinear1, LVPos.xy).x;
-		shadow += step(LVPos.z + offset, LD);
-		//debugColor.r = 1;
+		LD = LightDepthTex1.Sample(LightDepthSamLinear1, LVPos.xy).x;
 	}
 	else if (dist < SplitPosition.y)
 	{
-		float LD = LightDepthTex2.Sample(LightDepthSamLinear2, LVPos.xy).x;
-		shadow += step(LVPos.z + offset, LD);
-		//debugColor.g = 1;
+		LD = LightDepthTex2.Sample(LightDepthSamLinear2, LVPos.xy).x;
 	}
 	else if (dist < SplitPosition.z)
 	{
-		float LD = LightDepthTex3.Sample(LightDepthSamLinear3, LVPos.xy).x;
-		shadow += step(LVPos.z + offset, LD);
-		//debugColor.b = 1;
+		LD = LightDepthTex3.Sample(LightDepthSamLinear3, LVPos.xy).x;
 	}
 	else
 	{
-		float LD = LightDepthTex4.Sample(LightDepthSamLinear4, LVPos.xy).x;
-		shadow += step(LVPos.z + offset, LD);
-		//debugColor.rg = 1;
+		LD = LightDepthTex4.Sample(LightDepthSamLinear4, LVPos.xy).x;
 	}
 
-	shadow = 1 - (shadow);
-
+	float shadow = step(LD, LVPos.z + offset);
 
 	// ディフューズ角度減衰率計算
 	float DifGen = saturate(NLDot);
-	DifGen *= shadow;
+	DifGen *= shadow * 0.75;
 	DifGen = DifGen + 0.25;
-	//DifGen = saturate(DifGen);
 
-	//debugColor *= float4(DifGen, DifGen, DifGen, 1);
-	//debugColor = float4(1, 1, 1, 2) - debugColor;
+	//DifGen *= shadow;
 
 	float roughness = norCol.a - 1;
 	float spec = LightingFuncGGX_REF(N, -normalize(vpos), -L, roughness, 0.1);

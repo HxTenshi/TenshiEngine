@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IComponent.h"
+#include<unordered_map>
 
 class IDllScriptComponent;
 class ScriptComponent : public Component{
@@ -25,7 +26,7 @@ public:
 	IDllScriptComponent* pDllClass;
 	std::string mClassName;
 
-	std::map<int, Actor*> mCollideMap;
+	std::unordered_map<int, Actor*> mCollideMap;
 private:
 	bool mEndInitialize;
 	bool mEndStart;

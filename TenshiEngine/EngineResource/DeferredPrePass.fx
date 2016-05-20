@@ -1,8 +1,3 @@
-//--------------------------------------------------------------------------------------
-// File: Tutorial07.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
@@ -53,6 +48,9 @@ cbuffer cbChangesMaterial : register( b4 )
 	float4 MAmbient;
 	float2 MTexScale;
 	float2 MHightPower;
+	float4 MNormaleScale;
+	float2 MOffset;
+	float2 MNull;
 };
 cbuffer cbChangesLightMaterial : register( b5 )
 {
@@ -89,7 +87,7 @@ struct VS_INPUT
 	float3 Tan	: TANGENT;
 	float2 Tex		: TEXCOORD0;
 	uint4 BoneIdx		: BONEINDEX;
-	uint4 BoneWeight	: BONEWEIGHT;
+	float4 BoneWeight	: BONEWEIGHT;
 };
 
 struct PS_INPUT
@@ -113,6 +111,13 @@ struct PS_OUTPUT_1
 	float4 ColorDepth : SV_Target3;
 	float4 ColorVelocity : SV_Target4;
 };
+
+float4x3 getBoneMatrix(uint idx)
+{
+	return BoneMatrix[idx];
+}
+
+
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
@@ -121,8 +126,6 @@ PS_INPUT VS( VS_INPUT input )
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = mul(input.Pos, World);
 
-	//output.LVPos = mul(output.Pos, LView);
-	//output.LPos = mul(output.LVPos, LProjection);
 	output.LPos[0] = mul(output.Pos, LViewProjection[0]);
 	output.LPos[1] = mul(output.Pos, LViewProjection[1]);
 	output.LPos[2] = mul(output.Pos, LViewProjection[2]);
@@ -135,31 +138,15 @@ PS_INPUT VS( VS_INPUT input )
 	output.BefPos = mul(input.Pos, BeforeWorld);
 	output.BefPos = mul(output.BefPos, View);
 
-	//output.Bin = -cross(input.Normal, input.Tan);
-	//output.Tan = cross(input.Normal, output.Bin);
-
-	//output.Normal = mul(input.Normal, (float3x3)World);
-	//output.Bin = mul(input.Bin, (float3x3)World);
-	//output.Tan = mul(input.Tan, (float3x3)World);
-	//output.Normal = mul(output.Normal, (float3x3)View);
-	//output.Bin = mul(output.Bin, (float3x3)View);
-	//output.Tan = mul(output.Tan, (float3x3)View);
-
 	output.Normal = input.Normal;
 	output.Bin = input.Bin;
 	output.Tan = input.Tan;
 
-	output.Tex = input.Tex * MTexScale;
+	output.Tex = input.Tex * MTexScale + MOffset;
 	
 	return output;
 }
 
-
-
-float4x3 getBoneMatrix(int idx)
-{
-	return BoneMatrix[idx];
-}
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -178,25 +165,38 @@ PS_INPUT VSSkin(VS_INPUT input)
 	float3 bnor = float3(0, 0, 0);
 	float3 bbin = float3(0, 0, 0);
 	float3 btan = float3(0, 0, 0);
-	[unroll]
-	for (uint i = 0; i < 4; i++){
-		float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
-		bpos += input.BoneWeight[i] * mul(pos, bm).xyz;
-		bnor += input.BoneWeight[i] * mul(nor, (float3x3)bm);
-		bbin += input.BoneWeight[i] * mul(bin, (float3x3)bm);
-		btan += input.BoneWeight[i] * mul(tan, (float3x3)bm);
+	float total = input.BoneWeight[0] + input.BoneWeight[1] + input.BoneWeight[2] + input.BoneWeight[3];
+	if (total < 0.0001){
+		float4x3 bm = getBoneMatrix(input.BoneIdx[0]);
+		bpos = mul(pos, bm).xyz;
+		bnor = mul(nor, (float3x3)bm);
+		bbin = mul(bin, (float3x3)bm);
+		btan = mul(tan, (float3x3)bm);
+	}
+	else{
+		[unroll]
+		for (uint i = 0; i < 4; i++){
+			if (input.BoneWeight[i] < 0.0001)continue;
+			float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
+			bpos += input.BoneWeight[i] * mul(pos, bm).xyz;
+			bnor += input.BoneWeight[i] * mul(nor, (float3x3)bm);
+			bbin += input.BoneWeight[i] * mul(bin, (float3x3)bm);
+			btan += input.BoneWeight[i] * mul(tan, (float3x3)bm);
+		}
 	}
 
 
-	pos.xyz = bpos / 100.0;
-	output.Normal = bnor / 100.0;
-	output.Bin = bbin / 100.0;
-	output.Tan = btan / 100.0;
+	//pos.xyz = bpos / 100.0;
+	//output.Normal = bnor / 100.0;
+	//output.Bin = bbin / 100.0;
+	//output.Tan = btan / 100.0;
+	pos.xyz = bpos;
+	output.Normal = bnor;
+	output.Bin = bbin;
+	output.Tan = btan;
 
 	output.Pos = mul(pos, World);
 
-	//output.LVPos = mul(output.Pos, LView);
-	//output.LPos = mul(output.LVPos, LProjection);
 	output.LPos[0] = mul(output.Pos, LViewProjection[0]);
 	output.LPos[1] = mul(output.Pos, LViewProjection[1]);
 	output.LPos[2] = mul(output.Pos, LViewProjection[2]);
@@ -208,23 +208,13 @@ PS_INPUT VSSkin(VS_INPUT input)
 	output.BefPos = mul(pos, BeforeWorld);
 	output.BefPos = mul(output.BefPos, View);
 
-	//output.Normal = mul(nor, (float3x3)World);
-	//output.Normal = mul(output.Normal, (float3x3)View);
-
-	//ここなおせ
-	//output.Bin = mul(input.Bin/*ここ*/, (float3x3)World);
-	//output.Bin = mul(output.Bin, (float3x3)View);
-	//output.Tan = mul(input.Tan/*ここ*/, (float3x3)World);
-	//output.Tan = mul(output.Tan, (float3x3)View);
-
-	output.Normal = input.Normal;
-	output.Bin = input.Bin;
-	output.Tan = input.Tan;
-
-	output.Tex = input.Tex;
+	output.Tex = input.Tex * MTexScale + MOffset;
 
 	return output;
 }
+
+
+const static float3 LD_normal = float3(2.0, 2.0, 100.0);
 
 //--------------------------------------------------------------------------------------
 // Pixel Shader
@@ -241,100 +231,21 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	ray = normalize(ray);
 
 	if (UseTexture.z != 0.0){
-
+	
 		float3 x = normalize(float3(World._m11, World._m21, World._m31));
 		float3 y = normalize(float3(World._m12, World._m22, World._m32));
 		float3 z = normalize(float3(World._m13, World._m23, World._m33));
 		float3x3 NoScale = float3x3(x, y, z);
-
+	
 		float3 nor = mul(input.Normal, NoScale);
 		nor = mul(nor, (float3x3)View);
 		nor = normalize(nor);
-
+	
 		float pow = 1 -HeightTex.Sample(HeightSamLinear, input.Tex).r ;
 		float2 h = nor.xy * pow *  MHightPower.x / 100;
 		texcood += h *float2(1, -1);
 	}
 
-
-	// 法線の準備
-	float3 N;
-
-	if (UseTexture.y != 0.0){
-		float3 bump = NormalTex.Sample(NormalSamLinear, texcood).rgb * 2 - 1.0;
-			bump.g *= -1;
-
-		//bump = normalize(bump);
-
-		//bump = mul(bump, (float3x3)World);
-		//bump = mul(bump, (float3x3)View);
-		
-		float3 Nor = input.Normal;
-		float3 Bin = input.Bin;
-		float3 Tan = input.Tan;
-
-		//視線ベクトルを頂点座標系に変換する
-		float3 n;
-		n.x = dot(bump,Tan);
-		n.y = dot(bump,Bin);
-		n.z = dot(bump,Nor);
-		bump = n;
-
-		//float3 x = normalize(float3(World._m11, World._m21, World._m31));
-		//float3 y = normalize(float3(World._m12, World._m22, World._m32));
-		//float3 z = normalize(float3(World._m13, World._m23, World._m33));
-		//float3x3 NoScale = float3x3(x, y, z);
-		//
-		////bump = mul(bump, NoScale);
-		bump = mul(bump, (float3x3)World);
-		bump = mul(bump, (float3x3)View);
-		bump = normalize(bump);
-
-		N = bump * 0.5 + 0.5;
-	}else{
-		N = mul(input.Normal, (float3x3)World);
-		N = mul(N, (float3x3)View);
-		N = normalize(N);
-		N = N * 0.5 + 0.5;
-	}
-
-	float farClip = 100;
-	float D = input.VPos.z / farClip;
-	//float D2 = input.Pos.z / input.Pos.w;
-
-
-	float3 LD;
-
-	float dist = input.VPos.z;
-	if (dist < SplitPosition.x)
-	{
-		LD.xy = (input.LPos[0].xy + 1.0) / 2.0;
-		LD.z = input.LPos[0].z / input.LPos[0].w;
-	}
-	else if (dist < SplitPosition.y)
-	{
-		LD.xy = (input.LPos[1].xy + 1.0) / 2.0;
-		LD.z = input.LPos[1].z / input.LPos[1].w;
-	}
-	else if (dist < SplitPosition.z)
-	{
-		LD.xy = (input.LPos[2].xy + 1.0) / 2.0;
-		LD.z = input.LPos[2].z / input.LPos[2].w;
-	}
-	else
-	{
-		LD.xy = (input.LPos[3].xy + 1.0) / 2.0;
-		LD.z = input.LPos[3].z / input.LPos[3].w;
-	}
-	
-	float2 velocity;
-	{
-		float2 b = input.BefPos.xy / input.BefPos.z;
-		float2 p = input.VPos.xy / input.VPos.z;
-		velocity = p - b;
-		//velocity = normalize(velocity);
-		velocity = velocity * 0.5 + 0.5;
-	}
 
 	float4 DifColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture.x != 0.0)
@@ -342,11 +253,70 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	if (DifColor.a < 0.01)discard;
 
 
+	// 法線の準備
+	float3 N;
+
+	[branch]
+	if (UseTexture.y != 0.0){
+		float3 bump = NormalTex.Sample(NormalSamLinear, texcood).rgb * 2 - 1.0;
+		bump *= MNormaleScale.xyz;
+
+		//視線ベクトルを頂点座標系に変換する
+		float3 n;
+		n.x = dot(bump, input.Tan);
+		n.y = dot(bump, input.Bin);
+		n.z = dot(bump, input.Normal);
+		N = n;
+	}else{
+		N = input.Normal;
+	}
+
+	N = mul(N, (float3x3)World);
+	N = mul(N, (float3x3)View);
+	N = normalize(N);
+
+	float farClip = 100;
+	float D = input.VPos.z / farClip;
+
+	float3 LD;
+
+	float dist = input.VPos.z + input.VPos.z*0.0001 + 0.01;
+	[branch]
+	if (dist < SplitPosition.x)
+	{
+		input.LPos[0].xy += 1.0;
+		LD = input.LPos[0].xyz / LD_normal;
+	}
+	else if (dist < SplitPosition.y)
+	{
+		input.LPos[1].xy += 1.0;
+		LD = input.LPos[1].xyz / LD_normal;
+	}
+	else if (dist < SplitPosition.z)
+	{
+		input.LPos[2].xy += 1.0;
+		LD = input.LPos[2].xyz / LD_normal;
+	}
+	else
+	{
+		input.LPos[3].xy += 1.0;
+		LD = input.LPos[3].xyz / LD_normal;
+	}
+	
+
+	//float2 velocity;
+	//{
+	//	float2 b = input.BefPos.xy / input.BefPos.z;
+	//	float2 p = input.VPos.xy / input.VPos.z;
+	//	velocity = p - b;
+	//	//velocity = normalize(velocity);
+	//	velocity = velocity * 0.5 + 0.5;
+	//}
 
 	float4 SpcColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture.w != 0.0)
 			SpcColor = SpcTex.Sample(SpcSamLinear, texcood);
-	SpcColor.rgb *= MSpecular.rgb;
+	SpcColor.rgb = SpcColor.r * MSpecular.rgb;
 
 	float4 RghColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture2.x != 0.0)
@@ -357,21 +327,19 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 	float3 env;
 	{
-		float3 nor = N * 2 - 1.0;
-		float3 ref = reflect(nor, ray);       // 反射ベクトル
+		float3 ref = reflect(N, ray);       // 反射ベクトル
 		ref.xy = ref.xy*float2(0.5, -0.5) + 0.5;
 
 		float roughness = RghColor.r;
 		float3 env1 = EnvironmentTex.Sample(EnvironmentSamLinear, ref.xy).rgb;
 		float3 envR = EnvironmentRTex.Sample(EnvironmentRSamLinear, ref.xy).rgb;
 		env = lerp(env1, envR, pow(roughness, 0.5f));
-		//env *= SpcColor.rgb;
-		env *= SpcColor.r;
+		env *= SpcColor.rgb;
 	}
-	//ray = ray*0.5 + 0.5;
+	
+	N = N * 0.5 + 0.5;
 
 	Out.ColorAlbedo = DifColor * MDiffuse;
-	//Out.ColorSpecular = float4(ray.x, ray.y, ray.z, SpcColor.r);
 	Out.ColorSpecular = float4(env.rgb, MAmbient.a);
 	Out.ColorNormal = float4(N, 1+RghColor.r);
 	Out.ColorDepth = float4(D, 1 - LD.z, LD.x, 1.0 - LD.y);

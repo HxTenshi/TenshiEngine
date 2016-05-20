@@ -28,6 +28,8 @@ HRESULT ShaderFile::CompileShaderFromFile(const char* szFileName, LPCSTR szEntry
 	HRESULT hr = S_OK;
 
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+
+	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #if defined( DEBUG ) || defined( _DEBUG )
 	// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
 	// Setting this flag improves the shader debugging experience, but still allows 

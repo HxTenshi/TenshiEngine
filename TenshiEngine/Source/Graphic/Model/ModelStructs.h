@@ -35,7 +35,7 @@ struct SimpleBoneVertexNormal
 	XMFLOAT3 Tangent;
 	XMFLOAT2 Tex;
 	UINT BoneIndex[4];
-	UINT BoneWeight[4];
+	float BoneWeight[4];
 };
 
 
@@ -143,8 +143,8 @@ public:
 private:
 };
 
-class Motion{
-public:
-	std::vector<KeyFrame> mKeyFrame;
-private:
-};
+//class Motion{
+//public:
+//	std::vector<KeyFrame> mKeyFrame;
+//private:
+//};

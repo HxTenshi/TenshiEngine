@@ -12,7 +12,7 @@ class TextComponentMember{
 public:
 	Model mModel;
 
-	Font mFont;
+	FontFileData mFont;
 	std::string mText;
 
 	Material mTexMaterial;
@@ -23,7 +23,6 @@ TextComponent::TextComponent()
 	impl = new TextComponentMember();
 
 	impl->mTexMaterial.Create("EngineResource/texture.fx");
-	impl->mTexMaterial.SetTexture(impl->mFont.GetTexture());
 }
 TextComponent::~TextComponent()
 {
@@ -47,7 +46,6 @@ void TextComponent::Update(){
 }
 
 void TextComponent::DrawTextUI(){
-
 
 	Game::AddDrawList(DrawStage::Init, [&](){
 
@@ -83,6 +81,9 @@ void TextComponent::DrawTextUI(){
 		Model& model = impl->mModel;
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+		impl->mTexMaterial.SetTexture(impl->mFont.GetTexture());
+
 		model.Draw(render->m_Context, impl->mTexMaterial);
 
 		//ID3D11DepthStencilState* pBackDS;

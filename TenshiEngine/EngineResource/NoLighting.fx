@@ -63,7 +63,7 @@ struct VS_INPUT
 	float3 Normal	: NORMAL;
 	float2 Tex		: TEXCOORD0;
 	uint4 BoneIdx		: BONEINDEX;
-	uint4 BoneWeight	: BONEWEIGHT;
+	float4 BoneWeight	: BONEWEIGHT;
 };
 
 struct PS_INPUT
@@ -92,43 +92,6 @@ PS_INPUT VS( VS_INPUT input )
 
 	output.Tex = input.Tex;
 	
-	return output;
-}
-
-
-
-float4x3 getBoneMatrix(int idx)
-{
-	return BoneMatrix[idx];
-}
-
-//--------------------------------------------------------------------------------------
-// Vertex Shader
-//--------------------------------------------------------------------------------------
-PS_INPUT VSSkin(VS_INPUT input)
-{
-
-	float4 pos = input.Pos;
-
-
-	float3 bpos = float3(0, 0, 0);
-	[unroll]
-	for (uint i = 0; i < 4; i++){
-		float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
-		bpos += input.BoneWeight[i] * mul(pos, bm).xyz;
-	}
-
-	pos.xyz = bpos / 100.0;
-
-
-
-	PS_INPUT output = (PS_INPUT)0;
-	output.Pos = mul(pos, World);
-	output.Pos = mul(output.Pos, View);
-	output.Pos = mul(output.Pos, Projection);
-
-	output.Tex = input.Tex;
-
 	return output;
 }
 

@@ -1,14 +1,8 @@
 //--------------------------------------------------------------------------------------
-// File: Tutorial07.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
-Texture2D txDiffuse : register( t0 );
-SamplerState samLinear : register(s0);
+Texture2D AlbedoTex : register(t0);
+SamplerState AlbedoSamLinear : register(s0);
 
 cbuffer cbNeverChanges : register( b0 )
 {
@@ -25,28 +19,10 @@ cbuffer cbChangesEveryFrame : register( b2 )
 {
 	matrix World;
 };
-
-cbuffer cbChangesLight : register( b3 )
-{
-	float4 LightVect;
-	float4 LightColor;
-};
-cbuffer cbChangesMaterial : register( b4 )
-{
-	float4 MDiffuse;
-	float4 MSpecular;
-	float4 MAmbient;
-};
-cbuffer cbChangesLightMaterial : register( b5 )
-{
-	float4 LDiffuse;
-	float4 LSpecular;
-	float4 LAmbient;
-};
-
-cbuffer cbChangesUseTexture : register( b6 )
+cbuffer cbChangesUseTexture : register(b6)
 {
 	float4 UseTexture;
+	float4 UseTexture2;
 };
 cbuffer cbBoneMatrix : register(b7)
 {
@@ -62,6 +38,12 @@ cbuffer cbChangesLightCamera : register(b10)
 	float4 SplitPosition;
 };
 
+float4x3 getBoneMatrix(uint idx)
+{
+	return BoneMatrix[idx];
+}
+
+
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -69,33 +51,27 @@ struct VS_INPUT
 	float3 Normal	: NORMAL;
 	float2 Tex		: TEXCOORD0;
 	uint4 BoneIdx		: BONEINDEX;
-	uint4 BoneWeight	: BONEWEIGHT;
+	float4 BoneWeight	: BONEWEIGHT;
 };
 
 struct PS_INPUT
 {
 	float4 Pos		: SV_POSITION;
-	//float4 VPos		: TEXCOORD0;
+	float2 Tex		: TEXCOORD0;
 };
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
-PS_INPUT VS( VS_INPUT input )
+PS_INPUT VS(float4 pos : POSITION, float2 tex : TEXCOORD0)
 {
-	PS_INPUT output = (PS_INPUT)0;
-	output.Pos = mul( input.Pos, World );
-	//output.VPos = mul(output.Pos, LView);
-	//output.Pos = mul(output.VPos, LProjection);
-	output.Pos = mul(output.Pos, LViewProjection[0]);
-	
-	return output;
-}
 
+	PS_INPUT Out;
 
-float4x3 getBoneMatrix(int idx)
-{
-	return BoneMatrix[idx];
+	pos = mul( pos, World );
+	Out.Pos = mul(pos, LViewProjection[0]);
+	Out.Tex = tex;
+	return Out;
 }
 
 //--------------------------------------------------------------------------------------
@@ -103,34 +79,39 @@ float4x3 getBoneMatrix(int idx)
 //--------------------------------------------------------------------------------------
 PS_INPUT VSSkin(VS_INPUT input)
 {
+	PS_INPUT Out;
 
-	float4 pos = input.Pos;
-
-
-	float3 bpos = float3(0, 0, 0);
-	[unroll]
-	for (uint i = 0; i < 4; i++){
-		float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
-		bpos += input.BoneWeight[i] * mul(pos, bm).xyz;
+	float4 bpos = float4(0, 0, 0, 1);
+	float total = input.BoneWeight[0] + input.BoneWeight[1] + input.BoneWeight[2] + input.BoneWeight[3];
+	[branch]
+	if (total < 0.0001){
+		float4x3 bm = getBoneMatrix(input.BoneIdx[0]);
+			bpos.xyz = mul(input.Pos, bm).xyz;
+	} else{
+		[unroll]
+		for (uint i = 0; i < 4; i++){
+			[branch]
+			if (input.BoneWeight[i] < 0.0001)continue;
+			float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
+				bpos.xyz += input.BoneWeight[i] * mul(input.Pos, bm).xyz;
+		}
 	}
 
-	pos.xyz = bpos / 100.0;
+	bpos = mul(bpos, World);
+	Out.Pos = mul(bpos, LViewProjection[0]);
 
-	PS_INPUT output = (PS_INPUT)0;
-	output.Pos = mul(pos, World);
-	//output.VPos = mul(output.Pos, LView);
-	//output.Pos = mul(output.VPos, LProjection);
-	output.Pos = mul(output.Pos, LViewProjection[0]);
+	Out.Tex = input.Tex;
 
-	return output;
+	return Out;
 }
 
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
-float4 PS(PS_INPUT input) : SV_Target
+float PS(PS_INPUT input) : SV_Target
 {
-	//float farClip = 100;
-	float D = input.Pos.z / input.Pos.w;
-	return float4(1 - D, 0, 0, 1);
+	if (UseTexture.x != 0.0){
+		if (AlbedoTex.Sample(AlbedoSamLinear, input.Tex).a < 0.01)discard;
+	}
+	return 1 - input.Pos.z / 100.0;
 }

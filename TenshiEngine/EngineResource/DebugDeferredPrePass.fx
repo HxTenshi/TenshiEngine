@@ -1,10 +1,4 @@
 //--------------------------------------------------------------------------------------
-// File: Tutorial07.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
 Texture2D AlbedoTex : register( t0 );
@@ -43,6 +37,9 @@ cbuffer cbChangesMaterial : register( b4 )
 	float4 MAmbient;
 	float2 MTexScale;
 	float2 MHightPower;
+	float4 MNormaleScale;
+	float2 MOffset;
+	float2 MNull;
 };
 cbuffer cbChangesLightMaterial : register( b5 )
 {
@@ -54,6 +51,7 @@ cbuffer cbChangesLightMaterial : register( b5 )
 cbuffer cbChangesUseTexture : register( b6 )
 {
 	float4 UseTexture;
+	float4 UseTexture2;
 };
 cbuffer cbBoneMatrix : register(b7)
 {
@@ -78,7 +76,7 @@ struct VS_INPUT
 	float3 Tan	: TANGENT;
 	float2 Tex		: TEXCOORD0;
 	uint4 BoneIdx		: BONEINDEX;
-	uint4 BoneWeight	: BONEWEIGHT;
+	float4 BoneWeight	: BONEWEIGHT;
 };
 
 struct PS_INPUT
@@ -102,14 +100,14 @@ PS_INPUT VS( VS_INPUT input )
 	output.VPos = mul( output.Pos, View );
 	output.Pos = mul( output.VPos, Projection);
 
-	output.Tex = input.Tex * MTexScale;
+	output.Tex = input.Tex * MTexScale + MOffset;
 	
 	return output;
 }
 
 
 
-float4x3 getBoneMatrix(int idx)
+float4x3 getBoneMatrix(uint idx)
 {
 	return BoneMatrix[idx];
 }
@@ -122,15 +120,23 @@ PS_INPUT VSSkin(VS_INPUT input)
 
 	float4 pos = input.Pos;
 
-
 	float3 bpos = float3(0, 0, 0);
-	[unroll]
-	for (uint i = 0; i < 4; i++){
-		float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
-		bpos += input.BoneWeight[i] * mul(pos, bm).xyz;
+	float total = input.BoneWeight[0] + input.BoneWeight[1] + input.BoneWeight[2] + input.BoneWeight[3];
+	if (total < 0.0001){
+		float4x3 bm = getBoneMatrix(input.BoneIdx[0]);
+			bpos = mul(pos, bm).xyz;
+	}
+	else{
+		[unroll]
+		for (uint i = 0; i < 4; i++){
+			if (input.BoneWeight[i] < 0.0001)continue;
+			float4x3 bm = getBoneMatrix(input.BoneIdx[i]);
+				bpos += input.BoneWeight[i] * mul(pos, bm).xyz;
+		}
 	}
 
-	pos.xyz = bpos / 100.0;
+
+	pos.xyz = bpos;
 
 
 
@@ -141,7 +147,7 @@ PS_INPUT VSSkin(VS_INPUT input)
 	output.Pos = mul(output.VPos, Projection);
 
 
-	output.Tex = input.Tex;
+	output.Tex = input.Tex * MTexScale + MOffset;
 
 	return output;
 }

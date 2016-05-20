@@ -22,7 +22,5 @@ public:
 	static ID3D11DeviceContext*		mpImmediateContext;
 	static IDXGISwapChain*			mpSwapChain;
 
-	//フォント用
-	static IDXGIAdapter1* mpAdapter;
 	static RenderTarget* mRenderTargetBack;
 };

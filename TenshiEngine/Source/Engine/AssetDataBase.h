@@ -3,7 +3,7 @@
 
 #include "MySTL/ptr.h"
 #include <functional>
-#include <map>
+#include <unordered_map>
 #include <string>
 
 enum class AssetFileType{
@@ -38,7 +38,7 @@ class AssetFactory{
 public:
 	static AssetDataTemplatePtr Create(const char* filename);
 private:
-	static std::map<std::string, std::function<AssetDataTemplatePtr(const char*)>> m_Factory;
+	static std::unordered_map<std::string, std::function<AssetDataTemplatePtr(const char*)>> m_Factory;
 protected:
 	AssetFactory();
 };
@@ -96,7 +96,7 @@ public:
 
 
 private:
-	static std::map<std::string, AssetDataTemplatePtr> m_AssetCache;
+	static std::unordered_map<std::string, AssetDataTemplatePtr> m_AssetCache;
 };
 
 

@@ -162,7 +162,6 @@ XMVECTOR PhysXComponent::GetForceVelocity(){
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	auto v = a->getLinearVelocity();
 	return XMVectorSet(v.x, v.y, v.z, 1);
-a->setLinearVelocity(PxVec3(v.x,v.y,v.z));
 }
 
 void PhysXComponent::SetForceVelocity(const XMVECTOR& v){

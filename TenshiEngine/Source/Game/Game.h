@@ -23,6 +23,7 @@
 
 #include "Game/EngineObject/FPSChecker.h"
 #include "Game/EngineObject/EditorCamera.h"
+#include "Game/EngineObject/ProfileViewer.h"
 #include "Engine/WorldGrid.h"
 
 
@@ -85,6 +86,9 @@ public:
 	void ClearDrawList();
 	void PlayDrawList(DrawStage Stage);
 
+	typedef std::map<UINT, Actor*> ListMapType;
+	typedef std::map<DrawStage, std::vector<std::function<void()>>> DrawListMapType;
+
 private:
 	Game(const Game&);
 	Game operator = (Game&);
@@ -99,8 +103,8 @@ private:
 	//追加と削除
 	std::queue<std::pair<ActorMove, Actor*>> mActorMoveList;
 	//ゲームオブジェクトのリスト
-	std::map<UINT, Actor*> mList;
-	std::map<DrawStage, std::list<std::function<void()>>> mDrawList;
+	ListMapType mList;
+	DrawListMapType mDrawList;
 	static Actor* mRootObject;
 	static Actor* mEngineRootObject;
 
@@ -108,6 +112,7 @@ private:
 	EditorCamera mCamera;
 	WorldGrid mWorldGrid;
 	FPSChecker mFPS;
+	ProfileViewer mProfileViewer;
 
 	SoundPlayer mSoundPlayer;
 

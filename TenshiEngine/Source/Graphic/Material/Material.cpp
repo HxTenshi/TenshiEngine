@@ -8,6 +8,8 @@ Material::Material()
 	mAmbient = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	mTexScale = XMFLOAT2(1.0f, 1.0f);
 	mHeightPower = XMFLOAT2(2.0f, 1.0f);
+	mNormalScale = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	mOffset = XMFLOAT2(0.0f,0.0f);
 }
 Material::~Material()
 {
@@ -26,7 +28,9 @@ HRESULT Material::Create(const char* shaderFileName){
 	mCBMaterial.mParam.Ambient = mAmbient;
 	mCBMaterial.mParam.TexScale = mTexScale;
 	mCBMaterial.mParam.HeightPower = mHeightPower;
-
+	mCBMaterial.mParam.MNormaleScale = mNormalScale;
+	mCBMaterial.mParam.MOffset = mOffset;
+	mCBMaterial.mParam.MNULL = mOffset;
 
 	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
 	if (!mCBUseTexture.mBuffer)

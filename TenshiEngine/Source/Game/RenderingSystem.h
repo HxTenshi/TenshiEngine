@@ -15,16 +15,16 @@ public:
 		DS_Zero_Alawys,
 
 		//D3D11_DEPTH_WRITE_MASK_ZERO
-		//D3D11_COMPARISON_LESS_EQUAL
-		DS_Zero_LessEqual,
+		//D3D11_COMPARISON_LESS
+		DS_Zero_Less,
 
 		//D3D11_DEPTH_WRITE_MASK_ALL
 		//D3D11_COMPARISON_ALWAYS
 		DS_All_Alawys,
 
 		//D3D11_DEPTH_WRITE_MASK_ALL
-		//D3D11_COMPARISON_LESS_EQUAL
-		DS_All_LessEqual,
+		//D3D11_COMPARISON_LESS
+		DS_All_Less,
 		Count,
 	};
 
@@ -175,6 +175,7 @@ protected:
 };
 enum class ContextType{
 
+	Immediate,
 	MainDeferrd,
 	Count,
 

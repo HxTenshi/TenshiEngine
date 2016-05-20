@@ -8,7 +8,12 @@
 
 class File;
 
-class Texture{
+class ITexture{
+public:
+	virtual ~ITexture(){};
+};
+
+class Texture : public ITexture{
 public:
 	Texture();
 	~Texture();

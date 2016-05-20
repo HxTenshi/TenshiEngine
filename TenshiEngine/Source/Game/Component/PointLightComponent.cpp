@@ -56,7 +56,7 @@ void PointLightComponent::Update(){
 			render->PushSet(Rasterizer::Preset::RS_Front_Solid);
 		}
 		else{
-			render->PushSet(DepthStencil::Preset::DS_Zero_LessEqual);
+			render->PushSet(DepthStencil::Preset::DS_Zero_Less);
 
 		}
 

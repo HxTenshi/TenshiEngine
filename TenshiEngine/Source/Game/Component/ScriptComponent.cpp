@@ -234,11 +234,25 @@ public:
 	}
 
 	void CreateIncludeClassFile(){
+		//ファイルを更新してコンパイルさせる
+		{
+			std::ofstream h1("./ScriptComponent/Script.cpp", std::ios::app | std::ios::out);
+			h1 << "";
+			h1.close();
+		}
+		{
 
+			std::ofstream h1("./ScriptComponent/Reflection/ReflectionSetter.cpp", std::ios::app | std::ios::out);
+			h1 << "";
+			h1.close(); 
+		}
+		//インクルードの構築
 		File includesFile("./ScriptComponent/System/include");
 		includesFile.FileCreate();
 		File factorysFile("./ScriptComponent/System/factory");
 		factorysFile.FileCreate();
+		File reflectionsFile("./ScriptComponent/System/reflection");
+		reflectionsFile.FileCreate();
 
 		namespace sys = std::tr2::sys;
 		sys::path p("./ScriptComponent/Scripts/"); // 列挙の起点
@@ -253,12 +267,191 @@ public:
 
 					auto outf = "\n_ADD(" + p.stem() + ");";
 					factorysFile.Out(outf);
+
+					findSerialize(&reflectionsFile, p.stem());
 				}
 			}
 			else if (sys::is_directory(p)) { // ディレクトリなら...
 				//std::cout << "dir.: " << p.string() << std::endl;
 			}
 		});
+	}
+
+	void findSerialize(File* file, const std::string& classname){
+
+		auto filepath = "./ScriptComponent/Scripts/" +classname+".h";
+		std::ifstream classfile(filepath, std::ios::in);
+
+		if (classfile.fail())
+		{
+			return;
+		}
+		//全部読み込む
+		std::istreambuf_iterator<char> it(classfile);
+		std::istreambuf_iterator<char> last;
+		std::string str(it, last);
+
+		unsigned int findpoint = 0;
+		while (1){
+			//シリアライズ検索
+			auto serialize = str.find("SERIALIZE", findpoint);
+
+			if (std::string::npos == serialize){
+				break;
+			}
+
+			auto serializeend = str.find(";", serialize);
+			if (std::string::npos == serializeend){
+				break;
+
+			}
+			findpoint = serializeend;
+
+			//シリアライズ範囲を抜き出し
+			auto sub = serializeend - serialize;
+			auto serializestr = str.substr(serialize, sub);
+
+			findMember(std::move(serializestr), file, classname);
+		}
+	}
+
+	void findMember(std::string&& pickstr, File* file, const std::string& classname){
+
+		//検索に紛らわしい特殊な文字を削除
+		filter(pickstr);
+
+
+		//スペース区切りにする
+		std::vector<std::string> v;
+		split(v, pickstr, " ");
+		auto num = (int)v.size();
+
+		//文字列の後ろにMember変数がある
+		std::string member;
+		for (int i = num - 1; i >= 0; i--){
+			auto l = (int)v[i].size();
+			if (l == 0)continue;
+			member = v[i];
+			break;
+		}
+
+		if (member != ""){
+			reflect(member,file, classname);
+		}
+	}
+
+	void reflect(const std::string& member, File* file, const std::string& classname){
+		auto outf = "\n_REF(" + classname + "," + member + ");";
+		file->Out(outf);
+	}
+
+	void filter(std::string& str){
+		//while(1){
+		//	auto temp = str.find("\\\\");
+		//	if (temp == std::string::npos){
+		//		break;
+		//	}
+		//	str.replace(temp,2,"  ");
+		//}
+		//while (1){
+		//	auto temp = str.find("\\\"");
+		//	if (temp == std::string::npos){
+		//		break;
+		//	}
+		//	str.replace(temp, 2, "  ");
+		//}
+		//代入しているか
+
+		while (1){
+			auto start = str.find('\"');
+			if (start == std::string::npos){
+				break;
+			}
+			auto end = str.find('\"', start);
+			if (start == std::string::npos){
+				str.erase(start);
+			}
+			else{
+				str.erase(start, end);
+			}
+		}
+
+		
+		while (1){
+			auto start = str.find("/*");
+			if (start == std::string::npos){
+				break;
+			}
+			auto end = str.find("*/", start);
+			if (start == std::string::npos){
+				str.erase(start);
+			}
+			else{
+				str.erase(start, end);
+			}
+		}
+		while (1){
+			auto start = str.find("//");
+			if (start == std::string::npos){
+				break;
+			}
+			auto end = str.find('\n', start);
+			if (start == std::string::npos){
+				str.erase(start);
+			}
+			else{
+				str.erase(start, end);
+			}
+		}
+
+		while (1){
+			auto temp = str.find('\n');
+			if (temp == std::string::npos){
+				break;
+			}
+			str.replace(temp, 1, " ");
+		}
+		while (1){
+			auto temp = str.find('\t');
+			if (temp == std::string::npos){
+				break;
+			}
+			str.replace(temp, 1, " ");
+		}
+		while (1){
+			auto start = str.find('\'');
+			if (start == std::string::npos){
+				break;
+			}
+			auto end = str.find('\'', start);
+			if (start == std::string::npos){
+				str.erase(start);
+			}
+			else{
+				str.erase(start, end);
+			}
+		}
+
+
+		//代入しているか
+		auto equal = str.find('=');
+		if (std::string::npos != equal){
+			str.erase(equal);
+		}
+
+	}
+
+	void split(std::vector<std::string> &v, const std::string &input_string, const std::string &delimiter)
+	{
+		std::string::size_type index = input_string.find_first_of(delimiter);
+
+		if (index != std::string::npos) {
+			v.push_back(input_string.substr(0, index));
+			split(v, input_string.substr(index + 1), delimiter);
+		}
+		else {
+			v.push_back(input_string);
+		}
 	}
 
 	void UnLoad(){
@@ -384,6 +577,9 @@ void ScriptComponent::Initialize(){
 	actors.mList.push_back(this);
 	mEndInitialize = true;
 	if (pDllClass){
+		pDllClass->game = &gSGame;
+		pDllClass->gameObject = gameObject;
+
 		actors.Function(pDllClass,&IDllScriptComponent::Initialize);
 
 	}
@@ -461,6 +657,36 @@ void ScriptComponent::LostCollide(Actor* target){
 }
 
 
+template<class T, class U>
+bool reflect(MemberInfo& info,U& data){
+
+	if (info.GetTypeName() != typeid(T).name()){
+		return false;
+	}
+
+	T* paramdata = Reflection::Get<T>(info);
+
+	std::function<void(T)> collback = [=](T f){
+		*paramdata = f;
+	};
+	Window::AddInspector(new TemplateInspectorDataSet<T>(info.GetName(), paramdata, collback), data);
+
+	return true;
+}
+template<class T>
+bool reflect_io(MemberInfo& info,I_ioHelper* io){
+
+	if (info.GetTypeName() != typeid(T).name()){
+		return false;
+	}
+
+	T* paramdata = Reflection::Get<T>(info);
+
+	io->func(*paramdata, info.GetName().c_str());
+
+	return true;
+}
+
 void ScriptComponent::CreateInspector(){
 
 	auto data = Window::CreateInspector();
@@ -476,30 +702,12 @@ void ScriptComponent::CreateInspector(){
 		for (auto i : infos){
 			auto info = Reflection::GetMemberInfo(infos,i);
 
-			if (info.GetTypeName() == "float"){
-				float* paramdata = Reflection::Get<float>(info);
-
-				std::function<void(float)> collbackfloat = [=](float f){
-					*paramdata = f;
-				};
-				Window::AddInspector(new TemplateInspectorDataSet<float>(info.GetName(), paramdata, collbackfloat), data);
-			}
-			if (info.GetTypeName() == "bool"){
-				bool* paramdata = Reflection::Get<bool>(info);
-
-				std::function<void(bool)> collbackfloat = [=](bool f){
-					*paramdata = f;
-				};
-				Window::AddInspector(new TemplateInspectorDataSet<bool>(info.GetName(), paramdata, collbackfloat), data);
-			}
-			if (info.GetTypeName() == "int"){
-				int* paramdata = Reflection::Get<int>(info);
-
-				std::function<void(int)> collbackfloat = [=](int f){
-					*paramdata = f;
-				};
-				Window::AddInspector(new TemplateInspectorDataSet<int>(info.GetName(), paramdata, collbackfloat), data);
-			}
+			do{
+				if (reflect<float>(info, data))break;
+				if (reflect<int>(info, data))break;
+				if (reflect<bool>(info, data))break;
+				if (reflect<std::string>(info, data))break;
+			} while (0);
 		}
 
 	}
@@ -510,6 +718,25 @@ void ScriptComponent::CreateInspector(){
 void ScriptComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
 	_KEY(mClassName);
+	Load();
+
+	if (pDllClass){
+
+		if (Reflection::map){
+			auto infos = Reflection::GetMemberInfos(pDllClass, mClassName);
+
+			for (auto i : infos){
+				auto info = Reflection::GetMemberInfo(infos, i);
+
+				do{
+					if (reflect_io<float>(info, io))break;
+					if (reflect_io<int>(info, io))break;
+					if (reflect_io<bool>(info, io))break;
+					if (reflect_io<std::string>(info, io))break;
+				} while (0);
+			}
+		}
+	}
 
 #undef _KEY
 }

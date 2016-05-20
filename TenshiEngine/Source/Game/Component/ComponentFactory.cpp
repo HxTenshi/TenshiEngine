@@ -49,7 +49,7 @@ shared_ptr<Component> ComponentFactory::Create(const std::string& ClassName){
 
 }
 
-std::map<std::string, std::function<shared_ptr<Component>()>>& ComponentFactory::GetComponents(){
+std::unordered_map<std::string, std::function<shared_ptr<Component>()>>& ComponentFactory::GetComponents(){
 	return mFactoryComponents;
 }
 

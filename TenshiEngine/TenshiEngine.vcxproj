@@ -413,6 +413,7 @@
     <ClCompile Include="Source\Engine\AssetFile\Prefab\PrefabFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Shader\ShaderFileData.cpp" />
     <ClCompile Include="Source\Engine\Debug.cpp" />
+    <ClCompile Include="Source\Engine\Profiling.cpp" />
     <ClCompile Include="Source\Engine\SelectActor.cpp" />
     <ClCompile Include="Source\Engine\WorldGrid.cpp" />
     <ClCompile Include="Source\Game\Actor.cpp" />
@@ -432,6 +433,7 @@
     <ClCompile Include="Source\Game\DeferredRendering.cpp" />
     <ClCompile Include="Source\Game\EngineObject\EditorCamera.cpp" />
     <ClCompile Include="Source\Game\EngineObject\FPSChecker.cpp" />
+    <ClCompile Include="Source\Game\EngineObject\ProfileViewer.cpp" />
     <ClCompile Include="Source\Game\Game.cpp" />
     <ClCompile Include="Source\Game\Component\PhysXColliderComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PhysXComponent.cpp" />
@@ -449,6 +451,8 @@
     <ClCompile Include="Source\Graphic\Material\Texture.cpp" />
     <ClCompile Include="Source\Graphic\Model\BoneModel.cpp" />
     <ClCompile Include="Source\Graphic\Model\Model.cpp" />
+    <ClCompile Include="Source\Graphic\Shader\ComputeShader.cpp" />
+    <ClCompile Include="Source\Graphic\Shader\GeometryShader.cpp" />
     <ClCompile Include="Source\Graphic\Shader\InputLayout.cpp" />
     <ClCompile Include="Source\Graphic\Shader\Shader.cpp" />
     <ClCompile Include="Source\Graphic\Shader\ShaderFile.cpp" />
@@ -478,6 +482,7 @@
     <ClInclude Include="lua\include\luaconf.h" />
     <ClInclude Include="lua\include\lualib.h" />
     <ClInclude Include="Source\Application\Define.h" />
+    <ClInclude Include="Source\Application\DefineDrawMultiThread.h" />
     <ClInclude Include="Source\Application\DrawThreadQueue.h" />
     <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h" />
     <ClInclude Include="Source\ConstantBuffer\ConstantBufferDif.h" />
@@ -497,6 +502,8 @@
     <ClInclude Include="Source\Engine\DebugEngine.h" />
     <ClInclude Include="Source\Engine\details.h" />
     <ClInclude Include="Source\Engine\ICommand.h" />
+    <ClInclude Include="Source\Game\EngineObject\ProfileViewer.h" />
+    <ClInclude Include="Source\Engine\Profiling.h" />
     <ClInclude Include="Source\Engine\SelectActor.h" />
     <ClInclude Include="Source\Engine\WorldGrid.h" />
     <ClInclude Include="Source\Game\Actor.h" />
@@ -539,6 +546,8 @@
     <ClInclude Include="Source\Graphic\Loader\Model\PMX.h" />
     <ClInclude Include="Source\Graphic\Material\Material.h" />
     <ClInclude Include="Source\Graphic\Material\Texture.h" />
+    <ClInclude Include="Source\Graphic\Model\AnimationBind.h" />
+    <ClInclude Include="Source\Graphic\Model\AnimeData.h" />
     <ClInclude Include="Source\Graphic\Model\BoneModel.h" />
     <ClInclude Include="Source\Graphic\Model\Model.h" />
     <ClInclude Include="Source\Graphic\Model\ModelStructs.h" />

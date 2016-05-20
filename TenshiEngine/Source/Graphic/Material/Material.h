@@ -8,7 +8,12 @@
 #include "ConstantBuffer/ConstantBufferDif.h"
 #include "Graphic/Shader/Shader.h"
 
-class Material{
+class IMaterial{
+public:
+	virtual ~IMaterial(){};
+};
+
+class Material : public IMaterial{
 public:
 	Material();
 	~Material();
@@ -36,6 +41,8 @@ public:
 	XMFLOAT4 mAmbient;
 	XMFLOAT2 mTexScale;
 	XMFLOAT2 mHeightPower;
+	XMFLOAT4 mNormalScale;
+	XMFLOAT2 mOffset;
 	//unsigned char toon_index;
 	//unsigned char edge_flag;//	—ÖŠsƒtƒ‰ƒO
 

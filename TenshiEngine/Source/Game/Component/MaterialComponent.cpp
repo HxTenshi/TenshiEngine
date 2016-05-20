@@ -63,6 +63,8 @@ MaterialComponent::MaterialComponent(){
 	mSpecular = XMFLOAT4(0, 0, 0, 1);
 	mTexScale = XMFLOAT2(1, 1);
 	mHeightPower = XMFLOAT2(2.0f, 1);
+	mNormaleScale = XMFLOAT4(1, 1, 1, 1);
+	mOffset = XMFLOAT2(0,0);
 	mThickness = 0.0f;
 }
 MaterialComponent::~MaterialComponent(){
@@ -90,6 +92,8 @@ void MaterialComponent::Initialize(){
 	mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
 	mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
 	mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
+	mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
+	mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
 
 	if (mAlbedoTextureName != "")mMaterials[0].SetTexture(mAlbedoTextureName.c_str(), 0);
 	if (mNormalTextureName != "")mMaterials[0].SetTexture(mNormalTextureName.c_str(), 1);
@@ -102,6 +106,12 @@ void MaterialComponent::SetMaterial(UINT SetNo, Material& material){
 	if (mMaterials.size() <= SetNo)mMaterials.resize(SetNo + 1);
 	mMaterials[SetNo] = material;
 
+}
+Material* MaterialComponent::GetMaterialPtr(UINT GetNo) const{
+	if (mMaterials.size() <= GetNo){
+		return NULL;
+	}
+	return const_cast<Material*>(&mMaterials[GetNo]);
 }
 Material MaterialComponent::GetMaterial(UINT GetNo) const{
 	if (mMaterials.size() <= GetNo){
@@ -191,6 +201,15 @@ void MaterialComponent::CreateInspector(){
 		mTexScale.y = f;
 		mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
 	};
+	std::function<void(float)> collbackofx = [&](float f){
+		mOffset.x = f;
+		mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
+	};
+
+	std::function<void(float)> collbackofy = [&](float f){
+		mOffset.y = f;
+		mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
+	};
 	std::function<void(float)> collbackH = [&](float f){
 		mHeightPower.x = f;
 		mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
@@ -202,6 +221,19 @@ void MaterialComponent::CreateInspector(){
 	std::function<void(float)> collbackThick = [&](float f){
 		mThickness = f;
 		mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
+	};
+
+	std::function<void(float)> collbacknsx = [&](float f){
+		mNormaleScale.x = f;
+		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
+	};
+	std::function<void(float)> collbacknsy = [&](float f){
+		mNormaleScale.y = f;
+		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
+	};	
+	std::function<void(float)> collbacknsz = [&](float f){
+		mNormaleScale.z = f;
+		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
 	};
 
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Material", &mMaterialPath, collbackpath), data);
@@ -217,6 +249,8 @@ void MaterialComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("SpecularTextre", &mSpecularTextureName, collbackstex), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("RoughnessTextre", &mRoughnessTextureName, collbackrtex), data);
 	Window::AddInspector(new InspectorVector2DataSet("TextureScale", &mTexScale.x, collbacktexsx, &mTexScale.y, collbacktexsy), data);
+	Window::AddInspector(new InspectorVector3DataSet("NormaleScale", &mNormaleScale.x, collbacknsx, &mNormaleScale.y, collbacknsy, &mNormaleScale.z, collbacknsz), data);
+	Window::AddInspector(new InspectorVector2DataSet("Offset", &mOffset.x, collbackofx, &mOffset.y, collbackofy), data);
 	Window::AddInspector(new InspectorSlideBarDataSet("HightPower", -10, 10, &mHeightPower.x, collbackH), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &mHeightPower.y, collbackHDR), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("Thickness", &mThickness, collbackThick), data);
@@ -251,8 +285,14 @@ void MaterialComponent::IO_Data(I_ioHelper* io){
 	_KEY(mRoughnessTextureName);
 	_KEY(mTexScale.x);
 	_KEY(mTexScale.y);
+	_KEY(mOffset.x);
+	_KEY(mOffset.y);
 	_KEY(mHeightPower.x);
 	_KEY(mHeightPower.y);
+	_KEY(mNormaleScale.x);
+	_KEY(mNormaleScale.y);
+	_KEY(mNormaleScale.z);
+	_KEY(mNormaleScale.w);
 	_KEY(mThickness);
 #undef _KEY
 }

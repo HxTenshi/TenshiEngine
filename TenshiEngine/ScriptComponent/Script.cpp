@@ -15,7 +15,7 @@
 //#define INITGUID
 #include <dinput.h>
 
-#include "System\include"
+#include "System\include.h"
 
 
 class FuctorySetter{
@@ -25,7 +25,7 @@ public:
 		
 		//‚±‚±‚Éì¬‚µ‚½ƒNƒ‰ƒX‚ğ’Ç‰Á‚µ‚Ü‚·
 
-#include "System\factory"
+#include "System\factory.h"
 
 #undef _ADD
 	}

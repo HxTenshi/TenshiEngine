@@ -6,7 +6,12 @@
 
 #include "Engine/AssetDataBase.h"
 
-class Shader{
+class IShader{
+public:
+	virtual ~IShader(){};
+};
+
+class Shader :public IShader{
 public:
 	Shader(){
 

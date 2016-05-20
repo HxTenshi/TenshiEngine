@@ -25,8 +25,10 @@
 
 #include "Game/Game.h"
 
-#include "Graphic/Font/Font.h"
-//#include "Input\InputManager.h"
+#include "Application/DefineDrawMultiThread.h"
+
+
+#include "Engine/Profiling.h"
 
 class InputManagerRapper{
 public:
@@ -183,20 +185,19 @@ public:
 		if (FAILED(hr))
 			return hr;
 
-		FontManager::Init();
-
 		mInputManagerRapper.Initialize(window.GetMainHWND(), window.mhInstance);
 
 		mGame = new Game();
 
+#if _DRAW_MULTI_THREAD
 		mUpdateEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		mDrawEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		ResetEvent(mDrawEvent);
 		ResetEvent(mUpdateEvent);
 
 		mDrawThread = std::thread(std::bind(std::mem_fn(&Application::DrawThread), this));
-
-		//mDrawThreadHandle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)DrawThread, (LPVOID)this, 0, &mDrawThreadID);
+#else
+#endif
 
 		return S_OK;
 	}
@@ -204,42 +205,61 @@ public:
 	void Render()
 	{
 
-		mInputManagerRapper.Update();
+		{
+			auto tick = Profiling::Start("Main:Update");
+			mInputManagerRapper.Update();
+			mGame->Update();
+		}
+		{
+			auto tick = Profiling::Start("Main:Draw");
+			mGame->Draw();
+		}
 
-		mGame->Update();
 
-		mGame->Draw();
-
+#if _DRAW_MULTI_THREAD
 		ID3D11CommandList* cmdList;
-		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-		render->m_Context->FinishCommandList(false, &cmdList);
-		SetEvent(mUpdateEvent);
-		WaitForSingleObject(mDrawEvent, INFINITE);
-		ResetEvent(mDrawEvent);	
+		{
+			auto tick = Profiling::Start("Main:etc");
+			auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+			render->m_Context->FinishCommandList(false, &cmdList);
+			SetEvent(mUpdateEvent);
+		}
+
+		{
+			auto tick = Profiling::Start("Main:wait");
+			WaitForSingleObject(mDrawEvent, INFINITE);
+		}
+		ResetEvent(mDrawEvent);
 		mCmdList = cmdList;
 		mCmdFlag = true;
-
-
+#else
+		auto size = DrawThreadQueue::size();
+		for (int i = 0; i < size; i++){
+			auto func = DrawThreadQueue::dequeue();
+			func();
+		}
+		Device::mpSwapChain->Present(1, 0);
+#endif
 	}
 
 
 	void CleanupDevice()
 	{
+
+#if _DRAW_MULTI_THREAD
+
 		mDestory = true;
 		SetEvent(mUpdateEvent);
-
-		//WaitForSingleObject(mDrawThreadHandle, INFINITE);
 		mDrawThread.join();
 
 		//スレッド終了
-		//CloseHandle(mDrawThreadHandle);
 		CloseHandle(mUpdateEvent);
 		CloseHandle(mDrawEvent);
+#else
+#endif
 
 
 		if (mGame)delete mGame;
-
-		FontManager::Release();
 
 		mInputManagerRapper.Release();
 
@@ -252,27 +272,40 @@ private:
 	void DrawThread(){
 		while (!mDestory)
 		{
-			WaitForSingleObject(mUpdateEvent, INFINITE);
-			ResetEvent(mUpdateEvent);
-			SetEvent(mDrawEvent);
 
-			while (!mDestory)
 			{
-				if (mCmdFlag||mDestory)break;
+				auto tick = Profiling::Start("Draw:wait");
+				WaitForSingleObject(mUpdateEvent, INFINITE);
 			}
-			if (mDestory)break;
-			auto cmdList = mCmdList;
-			mCmdFlag = false;
+			ID3D11CommandList* cmdList;
+			{
+				auto tick = Profiling::Start("Draw:etc");
+				ResetEvent(mUpdateEvent);
+				SetEvent(mDrawEvent);
 
-			auto size = DrawThreadQueue::size();
-			for (int i = 0; i < size; i++){
-				auto func = DrawThreadQueue::dequeue();
-				func();
+				while (!mDestory)
+				{
+					if (mCmdFlag || mDestory)break;
+				}
+				if (mDestory)break;
+				cmdList = (ID3D11CommandList*)mCmdList;
+				mCmdFlag = false;
+
+				auto size = DrawThreadQueue::size();
+				for (int i = 0; i < size; i++){
+					auto func = DrawThreadQueue::dequeue();
+					func();
+				}
 			}
-
-			Device::mpImmediateContext->ExecuteCommandList(cmdList, false);
-			cmdList->Release();
-			Device::mpSwapChain->Present(1, 0);
+			{
+				auto tick = Profiling::Start("Draw:execute");
+				Device::mpImmediateContext->ExecuteCommandList(cmdList, false);
+				cmdList->Release();
+			}
+			{
+				auto tick = Profiling::Start("Draw:swap");
+				Device::mpSwapChain->Present(1, 0);
+			}
 		}
 
 		SetEvent(mDrawEvent);
@@ -282,41 +315,15 @@ private:
 	Game* mGame;
 
 public:
-	bool mDestory;
+	volatile bool mDestory;
 	volatile bool mCmdFlag;
-	ID3D11CommandList* mCmdList;
-	//HANDLE mDrawThreadHandle;
-	//DWORD mDrawThreadID;
+	volatile ID3D11CommandList* mCmdList;
 	HANDLE mUpdateEvent;
 	HANDLE mDrawEvent;
 	std::thread mDrawThread;
 
-
-	//std::mutex m;
-	//std::condition_variable c_draw;
-	//std::condition_variable c_update;
 };
 
-
-
-
-/* スレッドプロシージャ */
-void ThreadProc(int nThreadNo)
-{
-	(void)nThreadNo;
-	MessageBox(NULL, "thread", "error", MB_OK);
-	//Test::NativeFraction f();
-
-	//ポインタにしないとデストラクタが呼ばれない？
-	//Test::NativeFraction* f = new Test::NativeFraction(1.0f, 4.0f);
-	//printf("%.3f", f->GetRatio());
-	//delete f;
-	ExitThread(0);
-}
-//--------------------------------------------------------------------------------------
-// Entry point to the program. Initializes everything an4d goes into a message processing 
-// loop. Idle time is used to render the scene.
-//--------------------------------------------------------------------------------------
 
 inline
 bool WhileColl(){
@@ -355,12 +362,6 @@ T& operator & (T&& t, throwNull& n){
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
 
-	//HANDLE hThread;
-	//DWORD dwThreadID;
-	//hThread = CreateThread(NULL, 0,
-	//	(LPTHREAD_START_ROUTINE)ThreadProc,
-	//	(LPVOID)0, 0, &dwThreadID);
-
 	//メモリリーク検出
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	UNREFERENCED_PARAMETER( hPrevInstance );
@@ -384,50 +385,6 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			return 0;
 		}
 
-		//CoroutineSystem cor;
-		//
-		//cor.StartCoroutine([](){
-		//
-		//	Window::AddLog("cortest1");
-		//
-		//	YIELD_RETURN_NULL;
-		//
-		//	Window::AddLog("coltest2");
-		//
-		//	YIELD_RETURN_NULL;
-		//
-		//	Window::AddLog("coltest3");
-		//
-		//	YIELD_RETURN_NULL;
-		//
-		//
-		//	Window::AddLog("coltest4");
-		//
-		//	YIELD_BREAK;
-		//
-		//});
-		//cor.StartCoroutine([](){
-		//
-		//	Window::AddLog("cortest1-1");
-		//
-		//	YIELD_RETURN_NULL;
-		//
-		//	Window::AddLog("coltest2-1");
-		//
-		//	YIELD_RETURN_NULL;
-		//
-		//	Window::AddLog("coltest3-1");
-		//
-		//	YIELD_RETURN_NULL;
-		//
-		//
-		//	Window::AddLog("coltest4-1");
-		//
-		//	YIELD_BREAK;
-		//
-		//});
-
-
 		while (WM_QUIT != msg.message)
 		//for (int i=0; WM_QUIT != msg.message;i++)
 		{
@@ -438,16 +395,11 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			}
 			else
 			{
-				//cor.Tick();
 				App.Render();
 			}
 		}
 		App.CleanupDevice();
 	}
-
-
-
-	//CloseHandle(hThread);
 
 	return ( int )msg.wParam;
 }

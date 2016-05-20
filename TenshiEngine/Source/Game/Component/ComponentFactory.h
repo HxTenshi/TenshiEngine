@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <map>
+#include <unordered_map>
 #include <functional>
 #include "MySTL/ptr.h"
 
@@ -17,7 +17,7 @@ public:
 
 	//登録されているコンポーネント一覧を取得
 	static
-		std::map<std::string, std::function<shared_ptr<Component>()>>& GetComponents();
+		std::unordered_map<std::string, std::function<shared_ptr<Component>()>>& GetComponents();
 private:
 	template<class T>
 	static
@@ -36,7 +36,7 @@ private:
 
 	//登録コンポーネント一覧
 	static
-		std::map<std::string, std::function<shared_ptr<Component>()>> mFactoryComponents;
+		std::unordered_map<std::string, std::function<shared_ptr<Component>()>> mFactoryComponents;
 
 protected:
 	ComponentFactory();

@@ -93,11 +93,207 @@ void TransformComponent::DegreeRotate(const XMVECTOR& rotate){
 	mInspectorRotateDegree.w = 1;
 }
 
-inline XMMATRIX fromEulerXYZ(const XMVECTOR &v)
+
+
+//inline XMMATRIX fromEulerZXY(const XMVECTOR &v)
+//{
+//	XMMATRIX m;
+//
+//	XMVECTOR r = XMVectorSet(v.x, v.y, v.z, 1);
+//
+//	const float cx = cosf(r.x);
+//	const float cy = cosf(r.y);
+//	const float cz = cosf(r.z);
+//
+//	const float sx = sinf(r.x);
+//	const float sy = sinf(r.y);
+//	const float sz = sinf(r.z);
+//
+//	float &r00 = m._11;
+//	float &r01 = m._21;
+//	float &r02 = m._31;
+//
+//	float &r10 = m._12;
+//	float &r11 = m._22;
+//	float &r12 = m._32;
+//
+//	float &r20 = m._13;
+//	float &r21 = m._23;
+//	float &r22 = m._33;
+//
+//	r00 = cy * cz - sx * sy * sz;
+//	r01 = -cx * sz;
+//	r02 = cz * sy + cy * sx * sz;
+//
+//	r10 = cz * sx * sy + cy * sz;
+//	r11 = cx * cz;
+//	r12 = -cy * cz * sx + sy * sz;
+//
+//	r20 = -cx * sy;
+//	r21 = sx;
+//	r22 = cx * cy;
+//
+//	m._41 = 0;
+//	m._42 = 0;
+//	m._43 = 0;
+//	m._14 = 0;
+//	m._24 = 0;
+//	m._34 = 0;
+//	m._44 = 1;
+//
+//	return m;
+//}
+//inline XMVECTOR toEulerZXY(const XMMATRIX &m)
+//{
+//	XMVECTOR v;
+//	v.w = 1;
+//	float &thetaX = v.x;
+//	float &thetaY = v.y;
+//	float &thetaZ = v.z;
+//
+//	const float &r00 = m._11;
+//	const float &r01 = m._21;
+//	const float &r02 = m._31;
+//
+//	const float &r10 = m._12;
+//	const float &r11 = m._22;
+//	const float &r12 = m._32;
+//
+//	const float &r20 = m._13;
+//	const float &r21 = m._23;
+//	const float &r22 = m._33;
+//
+//	if (r21 < +1)
+//	{
+//		if (r21 > -1)
+//		{
+//			thetaX = asinf(r21);
+//			thetaZ = atan2f(-r01, r11);
+//			thetaY = atan2f(-r20, r22);
+//		}
+//		else // r21 = -1
+//		{
+//			// Not a unique solution: thetaY - thetaZ = atan2f(r02,r00)
+//			thetaX = -XM_PI / 2;
+//			thetaZ = -atan2f(r02, r00);
+//			thetaY = 0;
+//		}
+//	}
+//	else // r21 = +1
+//	{
+//		// Not a unique solution: thetaY + thetaZ = atan2f(r02,r00)
+//		thetaX = +XM_PI / 2;
+//		thetaZ = atan2f(r02, r00);
+//		thetaY = 0;
+//	}
+//
+//	return v;
+//}
+//
+//inline XMMATRIX fromEulerXYZ(const XMVECTOR &v)
+//{
+//	XMMATRIX m;
+//
+//	XMVECTOR r = XMVectorSet(v.x, v.y, v.z,1);
+//
+//	const float cx = cosf(r.x);
+//	const float cy = cosf(r.y);
+//	const float cz = cosf(r.z);
+//
+//	const float sx = sinf(r.x);
+//	const float sy = sinf(r.y);
+//	const float sz = sinf(r.z);
+//
+//	float &r00 = m._11;
+//	float &r01 = m._21;
+//	float &r02 = m._31;
+//
+//	float &r10 = m._12;
+//	float &r11 = m._22;
+//	float &r12 = m._32;
+//
+//	float &r20 = m._13;
+//	float &r21 = m._23;
+//	float &r22 = m._33;
+//
+//	r00 = cy * cz;
+//	r01 = -cy * sz;
+//	r02 = sy;
+//
+//	r10 = cz * sx * sy + cx * sz;
+//	r11 = cx * cz - sx * sy * sz;
+//	r12 = -cy * sx;
+//
+//	r20 = -cx * cz * sy + sx * sz;
+//	r21 = cz * sx + cx * sy * sz;
+//	r22 = cx * cy;
+//
+//	m._41 = 0;
+//	m._42 = 0;
+//	m._43 = 0;
+//	m._14 = 0;
+//	m._24 = 0;
+//	m._34 = 0;
+//	m._44 = 1;
+//	return m;
+//}
+//inline XMVECTOR toEulerXYZ(const XMMATRIX &m)
+//{
+//	XMVECTOR v;
+//	v.w = 1;
+//	float &thetaX = v.x;
+//	float &thetaY = v.y;
+//	float &thetaZ = v.z;
+//
+//	const float &r00 = m._11;
+//	const float &r01 = m._21;
+//	const float &r02 = m._31;
+//
+//	const float &r10 = m._12;
+//	const float &r11 = m._22;
+//	const float &r12 = m._32;
+//
+//	const float &r20 = m._13;
+//	const float &r21 = m._23;
+//	const float &r22 = m._33;
+//
+//	if (r02 < +1)
+//	{
+//		if (r02 > -1)
+//		{
+//			thetaY = asinf(r02);
+//			thetaX = atan2f(-r12, r22);
+//			thetaZ = atan2f(-r01, r00);
+//		}
+//		else     // r02 = -1
+//		{
+//			// Not a unique solution: thetaZ - thetaX = atan2f(r10,r11)
+//			thetaY = -XM_PI/2;
+//			thetaX = -atan2f(r10, r11);
+//			thetaZ = 0;
+//		}
+//	}
+//	else // r02 = +1
+//	{
+//		// Not a unique solution: thetaZ + thetaX = atan2f(r10,r11)
+//		thetaY = +XM_PI/2;
+//		thetaX = atan2f(r10, r11);
+//		thetaZ = 0;
+//	}
+//
+//	//thetaX = ofRadToDeg(thetaX);
+//	//thetaY = ofRadToDeg(thetaY);
+//	//thetaZ = ofRadToDeg(thetaZ);
+//
+//	return v;
+//}
+
+
+inline XMMATRIX fromEulerYXZ(const XMVECTOR &v)
 {
 	XMMATRIX m;
 
-	XMVECTOR r = XMVectorSet(v.x, v.y, v.z,1);
+	XMVECTOR r = XMVectorSet(v.x, v.y, v.z, 1);
 
 	const float cx = cosf(r.x);
 	const float cy = cosf(r.y);
@@ -119,18 +315,17 @@ inline XMMATRIX fromEulerXYZ(const XMVECTOR &v)
 	float &r21 = m._23;
 	float &r22 = m._33;
 
-	r00 = cy * cz;
-	r01 = -cy * sz;
-	r02 = sy;
+	r00 = cy * cz + sx * sy * sz;
+	r01 = cz * sx * sy - cy * sz;
+	r02 = cx * sy;
 
-	r10 = cz * sx * sy + cx * sz;
-	r11 = cx * cz - sx * sy * sz;
-	r12 = -cy * sx;
+	r10 = cx * sz;
+	r11 = cx * cz;
+	r12 = -sx;
 
-	r20 = -cx * cz * sy + sx * sz;
-	r21 = cz * sx + cx * sy * sz;
+	r20 = -cz * sy + cy * sx * sz;
+	r21 = cy * cz * sx + sy * sz;
 	r22 = cx * cy;
-
 	m._41 = 0;
 	m._42 = 0;
 	m._43 = 0;
@@ -140,7 +335,7 @@ inline XMMATRIX fromEulerXYZ(const XMVECTOR &v)
 	m._44 = 1;
 	return m;
 }
-inline XMVECTOR toEulerXYZ(const XMMATRIX &m)
+inline XMVECTOR toEulerYXZ(const XMMATRIX &m)
 {
 	XMVECTOR v;
 	v.w = 1;
@@ -160,38 +355,32 @@ inline XMVECTOR toEulerXYZ(const XMMATRIX &m)
 	const float &r21 = m._23;
 	const float &r22 = m._33;
 
-	if (r02 < +1)
+	if (r12 < +1)
 	{
-		if (r02 > -1)
+		if (r12 > -1)
 		{
-			thetaY = asinf(r02);
-			thetaX = atan2f(-r12, r22);
-			thetaZ = atan2f(-r01, r00);
+			thetaX = asinf(-r12);
+			thetaY = atan2f(r02, r22);
+			thetaZ = atan2f(r10, r11);
 		}
-		else     // r02 = -1
+		else // r12 = -1
 		{
-			// Not a unique solution: thetaZ - thetaX = atan2f(r10,r11)
-			thetaY = -XM_PI/2;
-			thetaX = -atan2f(r10, r11);
+			// Not a unique solution: thetaZ - thetaY = atan2f(-r01,r00)
+			thetaX = +XM_PI / 2;
+			thetaY = -atan2f(-r01, r00);
 			thetaZ = 0;
 		}
 	}
-	else // r02 = +1
+	else // r12 = +1
 	{
-		// Not a unique solution: thetaZ + thetaX = atan2f(r10,r11)
-		thetaY = +XM_PI/2;
-		thetaX = atan2f(r10, r11);
+		// Not a unique solution: thetaZ + thetaY = atan2f(-r01,r00)
+		thetaX = -XM_PI / 2;
+		thetaY = atan2f(-r01, r00);
 		thetaZ = 0;
 	}
 
-	//thetaX = ofRadToDeg(thetaX);
-	//thetaY = ofRadToDeg(thetaY);
-	//thetaZ = ofRadToDeg(thetaZ);
-
 	return v;
 }
-
-
 void TransformComponent::Quaternion(const XMVECTOR& Quaternion){
 
 	//auto gyro = Quaternion;
@@ -219,13 +408,13 @@ void TransformComponent::Quaternion(const XMVECTOR& Quaternion){
 
 	XMMATRIX mat = XMMatrixRotationQuaternion(Quaternion);
 
-	mRotate = toEulerXYZ(mat);
+	mRotate = toEulerYXZ(mat);
 
 	Rotate(mRotate);
 }
 
 const XMVECTOR TransformComponent::Quaternion() const{
-	return XMQuaternionRotationMatrix(fromEulerXYZ(mRotate));
+	return XMQuaternionRotationMatrix(fromEulerYXZ(mRotate));
 }
 
 const XMVECTOR TransformComponent::LossyScale() const{
@@ -277,7 +466,7 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 			mMatrix = XMMatrixMultiply(
 				XMMatrixMultiply(
 				XMMatrixScalingFromVector(mScale),
-				fromEulerXYZ(mRotate)),
+				fromEulerYXZ(mRotate)),
 				XMMatrixTranslationFromVector(mPosition));
 
 		//}

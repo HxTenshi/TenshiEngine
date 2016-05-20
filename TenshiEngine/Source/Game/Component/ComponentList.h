@@ -132,7 +132,8 @@ public:
 	std::list<item_type> mComponent;
 #endif
 #ifdef COMPONENTLIST_TYPE_UNORDERED_MAP
-	std::unordered_map<size_t, shared_ptr<Component>> mComponent;
+	using item_type = std::pair<size_t, shared_ptr<Component>>;
+	std::unordered_map<item_type> mComponent;
 #endif
 
 private:

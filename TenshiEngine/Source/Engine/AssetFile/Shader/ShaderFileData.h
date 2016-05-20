@@ -6,6 +6,7 @@
 #include "Graphic/Shader/PixelShader.h"
 #include "Graphic/Shader/VertexShader.h"
 #include "MySTL/Ptr.h"
+#include "Window/Window.h"
 
 class ShaderData{
 public:
@@ -22,10 +23,15 @@ public:
 		mPixelShader = make_shared<PixelShader>();
 
 		if (FAILED(mVertexShader->Create(fileName, "VS"))){
-			//MessageBox(NULL, "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file. VS", "Error", MB_OK);
+			Window::AddLog(std::string(fileName)+":VSçÏê¨é∏îs");
 		}
-		mVertexShaderAnime->Create(fileName, "VSSkin");
-		mPixelShader->Create(fileName);
+		if (FAILED(mVertexShaderAnime->Create(fileName, "VSSkin"))){
+			Window::AddLog(std::string(fileName) + ":VSSkinçÏê¨é∏îs");
+		}
+		if (FAILED(mPixelShader->Create(fileName))){
+			mPixelShader->Create("EngineResource/ErrorShader.fx");
+			Window::AddLog(std::string(fileName) + ":PSçÏê¨é∏îs");
+		};
 	}
 
 	void SetShader(bool UseAnime, ID3D11DeviceContext* context) const{

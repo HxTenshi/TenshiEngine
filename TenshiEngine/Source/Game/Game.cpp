@@ -13,8 +13,8 @@
 
 static std::stack<int> gIntPtrStack;
 
-static std::map<UINT,Actor*>* gpList;
-static std::map<DrawStage, std::list<std::function<void()>>> *gDrawList;
+static Game::ListMapType* gpList;
+static Game::DrawListMapType *gDrawList;
 static PhysX3Main* gpPhysX3Main;
 static CommandManager* gCommandManager;
 static CameraComponent** gMainCamera;
@@ -75,14 +75,6 @@ Game::Game(){
 	Window::CreateContextMenu_CreateObject("Box", "EngineResource/box.prefab");
 	Window::CreateContextMenu_CreateObject("Texture", "EngineResource/new Texture");
 
-
-	DWORD start = GetTickCount();
-
-	for (int i = 0; i < 1000; i++){
-		volatile auto act = new Actor();
-		delete act;
-
-	}
 
 	mRootObject = new Actor();
 	mRootObject->mTransform = mRootObject->AddComponent<TransformComponent>();
@@ -542,7 +534,7 @@ void Game::Draw(){
 	//mMainViewRenderTarget.ClearView();
 	
 
-	render->PushSet(DepthStencil::Preset::DS_All_LessEqual);
+	render->PushSet(DepthStencil::Preset::DS_All_Less);
 	render->PushSet(Rasterizer::Preset::RS_Back_Solid);
 
 	const RenderTarget* r[1] = { &mMainViewRenderTarget };
@@ -572,16 +564,17 @@ void Game::Draw(){
 
 	PlayDrawList(DrawStage::Init);
 	if (!g_DebugRender){
-		m_DeferredRendering.G_Buffer_Rendering(render,
-		[&](){
-			mMainCamera->ScreenClear();
-			PlayDrawList(DrawStage::Diffuse);
-		});
 
 		m_DeferredRendering.ShadowDepth_Buffer_Rendering(render, [&](){
 			PlayDrawList(DrawStage::Diffuse);
 		});
-		
+
+
+		m_DeferredRendering.G_Buffer_Rendering(render, [&](){
+			mMainCamera->ScreenClear();
+			PlayDrawList(DrawStage::Diffuse);
+		});
+
 		m_DeferredRendering.Light_Rendering(render, [&](){
 			PlayDrawList(DrawStage::Light);
 		});
@@ -665,6 +658,7 @@ void Game::Update(){
 
 	ActorMoveStage();
 
+	mProfileViewer.Update(1);
 	if (mIsPlay){
 		GamePlay();
 	}

@@ -209,7 +209,7 @@ void Model::Draw(ID3D11DeviceContext* context, const std::vector<weak_ptr<MeshCo
 	for (const auto& m : mesh){
 		if (!m)continue;
 		auto modelmesh = m->GetModelMesh();
-		modelmesh->Draw(context);
+		modelmesh->Draw(context, (bool)(mBoneModel != NULL));
 	}
 }
 
@@ -219,7 +219,7 @@ void ModelMesh::Create(const std::string& name, int id){
 	m_ID = id;
 }
 
-void ModelMesh::Draw(ID3D11DeviceContext* context) const{
+void ModelMesh::Draw(ID3D11DeviceContext* context,bool UseAnimetion) const{
 	if (!m_MeshAssetDataPtr)return;
 	if (!m_MaterialComponent)return;
 
@@ -234,6 +234,7 @@ void ModelMesh::Draw(ID3D11DeviceContext* context) const{
 		m_MaterialComponent->GetMaterial(0).PSSetShaderResources(context);
 	}
 	else if (!Model::mForcedMaterial){
+		m_MaterialComponent->GetMaterial(0).SetShader(UseAnimetion, context);
 		m_MaterialComponent->GetMaterial(0).VSSetShaderResources(context);
 		m_MaterialComponent->GetMaterial(0).PSSetShaderResources(context);
 	}

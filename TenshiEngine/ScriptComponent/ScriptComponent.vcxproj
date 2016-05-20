@@ -84,17 +84,29 @@
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="Scripts\PlayerScript.cpp" />
     <ClCompile Include="Scripts\testhit.cpp" />
+    <ClCompile Include="Scripts\TextureScroll.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Reflection\ReflectionSetter.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="Scripts\PlayerScript.h" />
     <ClInclude Include="Scripts\testhit.h" />
+    <ClInclude Include="Scripts\TextureScroll.h" />
+    <ClInclude Include="System\factory.h" />
+    <ClInclude Include="System\include.h" />
+    <ClInclude Include="System\reflection.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dll.def" />
-    <None Include="System\factory" />
-    <None Include="System\include" />
+    <ClInclude Include="System\factory">
+      <FileType>Document</FileType>
+    </ClInclude>
+    <ClInclude Include="System\include">
+      <FileType>Document</FileType>
+    </ClInclude>
+    <ClInclude Include="System\reflection">
+      <FileType>Document</FileType>
+    </ClInclude>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

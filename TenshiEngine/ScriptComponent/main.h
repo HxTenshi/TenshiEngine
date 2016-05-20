@@ -6,6 +6,8 @@
 #define NULL 0
 #endif
 
+#define SERIALIZE
+
 //#include "Game/Actor.h"
 //#include "Game/Component.h"
 #include <windows.h>

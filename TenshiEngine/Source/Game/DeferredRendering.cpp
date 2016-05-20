@@ -225,16 +225,20 @@ XMMATRIX CascadeShadow::CreateCropMatrix(const XMVECTOR& mini, const XMVECTOR& m
 }
 
 void CascadeShadow::CascadeUpdate(){
+
+	//メインシーンのクリップ
 	float nearClip = 0.01f;
 	float farClip = 100.0f;
+	//デプスシーンのクリップ
+	float DnearClip = 0.01f;
+	float DfarClip = 1000.0f;
+	float SlideBack = DfarClip/2;
 
-	float m_Lamda = 0.8f;
+	float m_Lamda = 0.5f;
 
 	// 平行分割処理.
 	float splitPositions[MAX_CASCADE + 1];
 	ComputeSplitPositions(MAX_CASCADE, m_Lamda, nearClip, farClip, splitPositions);
-
-	float SlideBack = 50.0f;
 
 	auto camera = Game::GetMainCamera();
 	auto campos = camera->gameObject->mTransform->WorldPosition();
@@ -258,7 +262,7 @@ void CascadeShadow::CascadeUpdate(){
 		float farWidth = farHeight * aspect;
 
 		size = farWidth * 1.41421356f * 1.41421356f;
-		m_LightProj = XMMatrixOrthographicLH(size, size, 0.01f, 100.0f);
+		m_LightProj = XMMatrixOrthographicLH(size, size, DnearClip, DfarClip);
 
 		// ライトのビュー射影行列.
 		m_ShadowMatrix[i] = m_LightView * m_LightProj;
@@ -500,7 +504,7 @@ void DeferredRendering::Initialize(){
 	auto w = WindowState::mWidth;
 	auto h = WindowState::mHeight;
 	m_AlbedoRT.Create(w, h, DXGI_FORMAT_R11G11B10_FLOAT);
-	m_SpecularRT.Create(w, h, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	m_SpecularRT.Create(w, h, DXGI_FORMAT_R16G16B16A16_FLOAT);//DXGI_FORMAT_R8G8B8A8_UINT
 	m_NormalRT.Create(w, h, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	m_DepthRT.Create(w, h, DXGI_FORMAT_R32G32B32A32_FLOAT);
 	m_VelocityRT.Create(w, h, DXGI_FORMAT_R16G16_FLOAT);
@@ -590,9 +594,6 @@ void DeferredRendering::Initialize(){
 }
 void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 
-	mCascadeShadow.Update(render);
-
-
 	const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
 	RenderTarget::SetRendererTarget(render->m_Context ,(UINT)5, r[0], Device::mRenderTargetBack);
 
@@ -603,7 +604,10 @@ void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::
 }
 void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 
-	Model::mForcedMaterial = &mMaterialDepthShadow;
+
+	mCascadeShadow.Update(render);
+
+	Model::mForcedMaterialUseTexture = &mMaterialDepthShadow;
 
 	for (int i = 0; i < 4; i++){
 		mCascadeShadow.ClearView(render, i);
@@ -612,7 +616,8 @@ void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, c
 
 		func();
 	}
-	Model::mForcedMaterial = NULL;
+	Model::mForcedMaterialUseTexture = NULL;
+	mCascadeShadow.SetupShadowCB(render, 0);
 }
 
 void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){

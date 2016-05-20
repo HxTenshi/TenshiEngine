@@ -36,6 +36,9 @@
     <ClCompile Include="Scripts\testhit.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Scripts\TextureScroll.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Script.h">
@@ -50,12 +53,25 @@
     <ClInclude Include="Scripts\testhit.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Scripts\TextureScroll.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="System\include.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="System\factory.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="System\reflection.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="System\factory" />
+    <ClInclude Include="System\include" />
+    <ClInclude Include="System\reflection" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dll.def">
       <Filter>ソース ファイル</Filter>
     </None>
-    <None Include="System\factory" />
-    <None Include="System\include" />
   </ItemGroup>
 </Project>

@@ -35,6 +35,9 @@ struct cbChangesMaterial
 	XMFLOAT4 Ambient;
 	XMFLOAT2 TexScale;
 	XMFLOAT2 HeightPower;
+	XMFLOAT4 MNormaleScale;
+	XMFLOAT2 MOffset;
+	XMFLOAT2 MNULL;
 };
 struct cbChangesUseTexture
 {

@@ -182,7 +182,7 @@ void ParticleComponent::Update(){
 	Game::AddDrawList(DrawStage::Particle, [&](){
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-		render->PushSet(DepthStencil::Preset::DS_Zero_LessEqual);
+		render->PushSet(DepthStencil::Preset::DS_Zero_Less);
 
 
 

@@ -69,7 +69,7 @@ public:
 
 	void Create(const std::string& name, int id);
 
-	void Draw(ID3D11DeviceContext* context) const;
+	void Draw(ID3D11DeviceContext* context, bool UseAnimetion) const;
 private:
 
 	weak_ptr<MaterialComponent> m_MaterialComponent;

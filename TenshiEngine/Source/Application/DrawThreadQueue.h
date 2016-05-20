@@ -52,7 +52,6 @@ private:
 	std::deque<T> data;
 	std::condition_variable c_enq;
 	std::condition_variable c_deq;
-
 	int mode = 0;
 };
 

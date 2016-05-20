@@ -80,7 +80,7 @@ public:
 	void CreateInspector();
 
 	std::string Name(){return mName;}
-	void Name(std::string name){mName = name;}
+	void Name(const std::string& name){mName = name;}
 
 
 	std::string Prefab(){ return mPrefab; }
@@ -111,7 +111,7 @@ public:
 protected:
 	ComponentList mComponents;
 
-private:
+protected:
 
 
 	void _ExportData(I_ioHelper* io);
