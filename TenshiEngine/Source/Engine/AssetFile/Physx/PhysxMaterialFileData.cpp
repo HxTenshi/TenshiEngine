@@ -59,6 +59,9 @@ void PhysxMaterialFileData::SaveFile(){
 	if (!f){
 		f.FileCreate();
 	}
+	if (!m_Material){
+		return;
+	}
 	float staticfric = 0, dinamicfric = 0, restiut = 0;
 	staticfric = m_Material->getStaticFriction();
 	dinamicfric = m_Material->getDynamicFriction();

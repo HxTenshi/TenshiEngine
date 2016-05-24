@@ -107,7 +107,6 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 	std::function<void()> collback = [&](){
 		m_FileData->FileUpdate();
 
-		
 		Game::GetAllObject([&](Actor* tar){
 			auto com = tar->GetComponent<PhysXColliderComponent>();
 			if (com){

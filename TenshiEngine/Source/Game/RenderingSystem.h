@@ -5,7 +5,32 @@
 #include <vector>
 #include <stack>
 
+class BlendState{
+public:
+	enum class Preset{
+		BS_Alpha,
+		BS_Alpha_RT1,
 
+		BS_Add,
+
+		Count,
+	};
+
+	using CDescType = CD3D11_BLEND_DESC;
+	using DescType = D3D11_BLEND_DESC;
+	using StateType = ID3D11BlendState*;
+	using PresetType = Preset;
+
+	static void CreateState(DescType& desc, StateType* state){
+		Device::mpd3dDevice->CreateBlendState(&desc, state);
+	}
+	static void Set(ID3D11DeviceContext* context, StateType state){
+		static const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		context->OMSetBlendState(state, blendFactor, 0xffffffff);
+	}
+	DescType Desc;
+	StateType State;
+};
 
 class DepthStencil{
 public:
@@ -156,7 +181,8 @@ private:
 class IRenderingEngine{
 public:
 	virtual ~IRenderingEngine(){}
-
+	virtual void PushSet(BlendState::Preset preset) = 0;
+	virtual void PopBS() = 0;
 	virtual void PushSet(DepthStencil::Preset preset) = 0;
 	virtual void PopDS() = 0;
 	virtual void PushSet(Rasterizer::Preset preset) = 0;
@@ -185,10 +211,11 @@ class RenderingEngine : public IRenderingEngine {
 public:
 	RenderingEngine(ID3D11DeviceContext *context)
 		:IRenderingEngine(context)
+		, mBSSetting(context)
 		, mDSSetting(context)
 		, mRSSetting(context)
 	{
-
+		mBSSetting.Initialize();
 		mDSSetting.Initialize();
 		mRSSetting.Initialize();
 	}
@@ -199,12 +226,19 @@ public:
 	static IRenderingEngine* GetEngine(ContextType type);
 
 	void Release(){
+		mBSSetting.Release();
 		mDSSetting.Release();
 		mRSSetting.Release();
 
 		IRenderingEngine::_Release();
 	}
 
+	void PushSet(BlendState::Preset preset) override{
+		mBSSetting.Push(preset);
+	}
+	void PopBS() override{
+		mBSSetting.Pop();
+	}
 	void PushSet(DepthStencil::Preset preset) override{
 		mDSSetting.Push(preset);
 	}
@@ -219,6 +253,7 @@ public:
 	}
 private:
 
+	RenderingStateSetting<BlendState> mBSSetting;
 	RenderingStateSetting<DepthStencil> mDSSetting;
 	RenderingStateSetting<Rasterizer> mRSSetting;
 };

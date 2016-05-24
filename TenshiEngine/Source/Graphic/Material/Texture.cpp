@@ -7,6 +7,7 @@
 #include <locale.h>
 
 #include "Engine/AssetFile/Material/TextureFileData.h"
+#include "Engine/SystemLog.h"
 
 //Texture Texture::mNullTexture;
 
@@ -42,8 +43,10 @@ HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 
 	ID3D11SamplerState* smpler;
 	hr = Device::mpd3dDevice->CreateSamplerState(&sampDesc, &smpler);
-	if (FAILED(hr))
+	if (FAILED(hr)){
+		_SYSTEM_LOG_ERROR("SamplerState�̍쐬");
 		return hr;
+	}
 
 
 

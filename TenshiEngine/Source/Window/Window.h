@@ -9,6 +9,9 @@
 
 #include <functional>
 #include "Application/Define.h"
+
+#include "Engine/SystemLog.h"
+
 class WindowState{
 public:
 	static UINT mWidth;
@@ -33,6 +36,7 @@ public:
 		, mnCmdShow(nCmdShow)
 	{
 
+		_SYSTEM_LOG_H("ウィンドウの作成");
 		mMainWindow_WPF.Initialize();
 
 		HWND hWnd = NULL;

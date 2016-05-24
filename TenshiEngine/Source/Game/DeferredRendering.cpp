@@ -497,10 +497,11 @@ DeferredRendering::~DeferredRendering(){
 	m_LightSpecularRT.Release();
 	mModelTexture.Release();
 
-	pBlendState->Release();
 
 }
 void DeferredRendering::Initialize(){
+
+	_SYSTEM_LOG_H("デファードレンダリングの初期化");
 	auto w = WindowState::mWidth;
 	auto h = WindowState::mHeight;
 	m_AlbedoRT.Create(w, h, DXGI_FORMAT_R11G11B10_FLOAT);
@@ -560,30 +561,6 @@ void DeferredRendering::Initialize(){
 	mMaterialDebugDraw.Create("EngineResource/Texture.fx");
 	mMaterialDebugDraw.SetTexture(m_AlbedoRT.GetTexture(), 0);
 
-	//ブレンドモード設定
-
-	D3D11_BLEND_DESC BlendDesc;
-	ZeroMemory(&BlendDesc, sizeof(BlendDesc));
-	BlendDesc.AlphaToCoverageEnable = FALSE;
-
-	// TRUEの場合、マルチレンダーターゲットで各レンダーターゲットのブレンドステートの設定を個別に設定できる
-	// FALSEの場合、0番目のみが使用される
-	BlendDesc.IndependentBlendEnable = FALSE;
-
-	//加算合成設定
-	D3D11_RENDER_TARGET_BLEND_DESC RenderTarget;
-	RenderTarget.BlendEnable = TRUE;
-	RenderTarget.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	RenderTarget.DestBlend = D3D11_BLEND_ONE;
-	RenderTarget.BlendOp = D3D11_BLEND_OP_ADD;
-	RenderTarget.SrcBlendAlpha = D3D11_BLEND_ONE;
-	RenderTarget.DestBlendAlpha = D3D11_BLEND_ZERO;
-	RenderTarget.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	RenderTarget.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	BlendDesc.RenderTarget[0] = RenderTarget;
-
-	Device::mpd3dDevice->CreateBlendState(&BlendDesc, &pBlendState);
 
 	mHDLDownSample[0].SetHDRFilter(true);
 	mHDLDownSample[0].Create(Game::GetMainViewRenderTarget().GetTexture(), 768);
@@ -597,9 +574,11 @@ void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::
 	const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
 	RenderTarget::SetRendererTarget(render->m_Context ,(UINT)5, r[0], Device::mRenderTargetBack);
 
+
 	mMaterialPrePassEnv.PSSetShaderResources(render->m_Context);
 
 	func();
+
 
 }
 void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
@@ -629,15 +608,15 @@ void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::fun
 	RenderTarget::SetRendererTarget(render->m_Context,(UINT)2, r[0], Device::mRenderTargetBack);
 
 
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	render->m_Context->OMSetBlendState(pBlendState, blendFactor, 0xffffffff);
+	render->PushSet(BlendState::Preset::BS_Add);
 
 	//テクスチャーのセット
 	mMaterialLight.PSSetShaderResources(render->m_Context);
 
 	func();
 
-	render->m_Context->OMSetBlendState(NULL, blendFactor, 0xffffffff);
+
+	render->PopBS();
 }
 
 #include "Input/Input.h"
@@ -664,12 +643,27 @@ void DeferredRendering::Particle_Rendering(IRenderingEngine* render, RenderTarge
 	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
 
 	mMaterialParticle.GSSetShaderResources(render->m_Context);
+	mMaterialParticle.PSSetShaderResources(render->m_Context);
 
 	func();
 
 	RenderTarget::NullSetRendererTarget(render->m_Context);
 	//デバッグ用でここにひつよう？
 	mMaterialPostEffect.PSSetShaderResources(render->m_Context);
+}
+
+void DeferredRendering::Forward_Rendering(IRenderingEngine* render, RenderTarget* rt, const std::function<void(void)>& func){
+
+	RenderTarget* r[1] = { rt };
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
+
+	render->PushSet(BlendState::Preset::BS_Alpha);
+	render->PushSet(DepthStencil::Preset::DS_Zero_Less);
+
+	func();
+
+	render->PopBS();
+	render->PopDS();
 }
 
 
@@ -711,19 +705,21 @@ void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 
 	render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
 	render->PushSet(Rasterizer::Preset::RS_None_Solid);
+	render->PushSet(BlendState::Preset::BS_Add);
 
 	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, &Game::GetMainViewRenderTarget(), NULL);
 	
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	render->m_Context->OMSetBlendState(pBlendState, blendFactor, 0xffffffff);
+	//float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	//render->m_Context->OMSetBlendState(pBlendState, blendFactor, 0xffffffff);
 	
 	
 	for (int i = 0; i < mHDLDownSampleNum; i++){
 		mModelTexture.Draw(render->m_Context, mHDLDownSample[i].GetResultMaterial());
 	}
 
-	render->m_Context->OMSetBlendState(NULL, blendFactor, 0xffffffff);
+	//render->m_Context->OMSetBlendState(NULL, blendFactor, 0xffffffff);
 
+	render->PopBS();
 	render->PopRS();
 	render->PopDS();
 

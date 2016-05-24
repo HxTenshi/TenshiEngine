@@ -37,7 +37,12 @@ void MeshDrawComponent::Update(){
 	Game::AddDrawList(DrawStage::Init, std::function<void()>([&](){
 		mModel->SetMatrix();
 	}));
-	Game::AddDrawList(DrawStage::Diffuse, std::function<void()>([&](){
+
+	bool alf = mMaterial->GetUseAlpha();
+
+	auto stage = alf ? DrawStage::Forward : DrawStage::Diffuse;
+
+	Game::AddDrawList(stage, std::function<void()>([&](){
 		Model& model = *mModel->mModel;
 
 		auto& meshvec = mModel->GetMeshComVector();
@@ -58,6 +63,7 @@ void MeshDrawComponent::Update(){
 
 void MeshDrawComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
+
 	Window::ViewInspector("MeshRender", this, data);
 }
 

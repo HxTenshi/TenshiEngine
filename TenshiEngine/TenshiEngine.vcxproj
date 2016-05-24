@@ -415,6 +415,7 @@
     <ClCompile Include="Source\Engine\Debug.cpp" />
     <ClCompile Include="Source\Engine\Profiling.cpp" />
     <ClCompile Include="Source\Engine\SelectActor.cpp" />
+    <ClCompile Include="Source\Engine\SystemLog.cpp" />
     <ClCompile Include="Source\Engine\WorldGrid.cpp" />
     <ClCompile Include="Source\Game\Actor.cpp" />
     <ClCompile Include="Source\Game\Component\AnimationComponent.cpp" />
@@ -502,6 +503,7 @@
     <ClInclude Include="Source\Engine\DebugEngine.h" />
     <ClInclude Include="Source\Engine\details.h" />
     <ClInclude Include="Source\Engine\ICommand.h" />
+    <ClInclude Include="Source\Engine\SystemLog.h" />
     <ClInclude Include="Source\Game\EngineObject\ProfileViewer.h" />
     <ClInclude Include="Source\Engine\Profiling.h" />
     <ClInclude Include="Source\Engine\SelectActor.h" />

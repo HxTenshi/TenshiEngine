@@ -11,6 +11,9 @@
 
 #include "Game/RenderingSystem.h"
 
+
+#include "Engine/SystemLog.h"
+
 static std::stack<int> gIntPtrStack;
 
 static Game::ListMapType* gpList;
@@ -43,6 +46,7 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 #include "Engine/AssetLoader.h"
 
 Game::Game(){
+	_SYSTEM_LOG_H("ゲームシーンの初期化");
 	mGame = this;
 	mIsPlay = false;
 
@@ -50,11 +54,17 @@ Game::Game(){
 
 	ScriptManager::ReCompile();
 
-	auto coms = ComponentFactory::GetComponents();
-	for (auto& com : coms){
-		auto name = com.first;
-		auto str = name.substr(6);
-		Window::CreateContextMenu_AddComponent(str);
+	{
+		_SYSTEM_LOG_H("コンテキストメニューの初期化");
+		auto coms = ComponentFactory::GetComponents();
+		for (auto& com : coms){
+			auto name = com.first;
+			auto str = name.substr(6);
+			Window::CreateContextMenu_AddComponent(str);
+		}
+
+		Window::CreateContextMenu_CreateObject("Box", "EngineResource/box.prefab");
+		Window::CreateContextMenu_CreateObject("Texture", "EngineResource/new Texture");
 	}
 
 	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
@@ -71,9 +81,6 @@ Game::Game(){
 	gMainCamera = &mMainCamera;
 	gIsPlay = mIsPlay;
 
-
-	Window::CreateContextMenu_CreateObject("Box", "EngineResource/box.prefab");
-	Window::CreateContextMenu_CreateObject("Texture", "EngineResource/new Texture");
 
 
 	mRootObject = new Actor();
@@ -95,6 +102,9 @@ Game::Game(){
 	LoadScene("./Assets/Scene_.scene");
 	
 	mSoundPlayer.Play();
+
+	mCBGameParameter = ConstantBuffer<cbGameParameter>::create(11);
+	mCBGameParameter.mParam.Time = XMFLOAT4(0, 0, 0, 0);
 	
 	Window::SetWPFCollBack(MyWindowMessage::StackIntPtr, [&](void* p)
 	{
@@ -542,7 +552,14 @@ void Game::Draw(){
 
 	//mMainCamera->ScreenClear();
 
-
+	mCBGameParameter.mParam.Time.x++;
+	mCBGameParameter.mParam.Time.y += 0.016f;
+	mCBGameParameter.mParam.Time.z = 0.016f;
+	mCBGameParameter.UpdateSubresource(render->m_Context);
+	mCBGameParameter.VSSetConstantBuffers(render->m_Context);
+	mCBGameParameter.PSSetConstantBuffers(render->m_Context);
+	mCBGameParameter.GSSetConstantBuffers(render->m_Context);
+	mCBGameParameter.CSSetConstantBuffers(render->m_Context);
 
 
 	//const RenderTarget* r[1] = { &mMainViewRenderTarget };
@@ -581,6 +598,10 @@ void Game::Draw(){
 
 		m_DeferredRendering.Deferred_Rendering(render, &mMainViewRenderTarget);
 
+		m_DeferredRendering.Forward_Rendering(render, &mMainViewRenderTarget, [&](){
+			PlayDrawList(DrawStage::Forward);
+		});
+
 		m_DeferredRendering.Particle_Rendering(render, &mMainViewRenderTarget, [&](){
 			PlayDrawList(DrawStage::Particle);
 		});
@@ -597,6 +618,11 @@ void Game::Draw(){
 		});
 
 		m_DeferredRendering.Debug_AlbedoOnly_Rendering(render,&mMainViewRenderTarget);
+
+
+		m_DeferredRendering.Forward_Rendering(render, &mMainViewRenderTarget, [&](){
+			PlayDrawList(DrawStage::Forward);
+		});
 
 		m_DeferredRendering.Particle_Rendering(render, &mMainViewRenderTarget, [&](){
 			PlayDrawList(DrawStage::Particle);

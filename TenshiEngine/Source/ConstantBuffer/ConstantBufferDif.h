@@ -83,7 +83,15 @@ struct CBChangesPaticleParam
 	XMFLOAT4 G;
 	//x = num, y=impact, z=pointG-Rot
 	XMFLOAT4 Param;
+	XMFLOAT4 Wind;
 };
+
+struct cbGameParameter//register(b11)
+{
+	//x=AllCount,y=DeltaTimeCount,z=DeltaTime
+	XMFLOAT4 Time;
+};
+
 
 //CS
 struct cbTextureSize//register(b0)

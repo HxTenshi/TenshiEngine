@@ -24,13 +24,16 @@ public:
 
 		if (FAILED(mVertexShader->Create(fileName, "VS"))){
 			Window::AddLog(std::string(fileName)+":VS作成失敗");
+			_SYSTEM_LOG_ERROR("シェーダー[" + fileName + ":VS]の作成");
 		}
 		if (FAILED(mVertexShaderAnime->Create(fileName, "VSSkin"))){
 			Window::AddLog(std::string(fileName) + ":VSSkin作成失敗");
+			_SYSTEM_LOG_ERROR("シェーダー[" + fileName + ":VSSkin]の作成");
 		}
 		if (FAILED(mPixelShader->Create(fileName))){
 			mPixelShader->Create("EngineResource/ErrorShader.fx");
 			Window::AddLog(std::string(fileName) + ":PS作成失敗");
+			_SYSTEM_LOG_ERROR("シェーダー[" + fileName + ":PS]の作成");
 		};
 	}
 

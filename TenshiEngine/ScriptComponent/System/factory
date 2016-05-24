@@ -2,3 +2,4 @@
 _ADD(PlayerScript); 
 _ADD(testhit); 
 _ADD(TextureScroll); 
+_ADD(ThunderLight); 

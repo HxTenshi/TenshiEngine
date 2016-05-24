@@ -58,5 +58,6 @@ shared_ptr<Component> ComponentFactory::_Create(std::string ClassName){
 	if (p != mFactoryComponents.end()){
 		return p->second();
 	}
+	_SYSTEM_LOG_ERROR("コンポーネント[" + ClassName+"]の作成");
 	return NULL;
 }

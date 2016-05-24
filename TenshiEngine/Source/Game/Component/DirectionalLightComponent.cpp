@@ -125,7 +125,7 @@ void DirectionalLightComponent::CreateInspector(){
 
 	Window::AddInspector(new InspectorColorDataSet("Color", &m_Color.x, collbackx, &m_Color.y, collbacky, &m_Color.z, collbackz, NULL, [](float){}), data);
 
-	Window::ViewInspector("DirecionalLight", this, data);
+	Window::ViewInspector("DirectionalLight", this, data);
 }
 
 void DirectionalLightComponent::IO_Data(I_ioHelper* io){

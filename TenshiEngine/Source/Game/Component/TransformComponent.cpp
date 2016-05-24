@@ -502,7 +502,6 @@ void TransformComponent::AllChildrenDestroy(){
 
 void TransformComponent::FlagSetChangeMatrix(PhysXChangeTransformFlag flag){
 	mFixMatrixFlag = false;
-
 	UpdatePhysX(flag);
 	for (auto& child : mChildren){
 		child->mTransform->FlagSetChangeMatrix(flag);

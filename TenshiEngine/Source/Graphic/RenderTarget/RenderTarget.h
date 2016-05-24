@@ -44,26 +44,33 @@ public:
 		//tex_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 		//他のメンバは省略
 		hr = Device::mpd3dDevice->CreateTexture2D(&tex_desc, nullptr, &mpTexture2D);
-		if (FAILED(hr))
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("Texture2Dの作成");
 			return hr;
+		}
 
 		//Width、Heightは全レンダーターゲットとデプスバッファすべて同じにする
 
 		// RenderTargetView作成　MRTに必要な個数
 		hr = Device::mpd3dDevice->CreateRenderTargetView(mpTexture2D, nullptr, &mpRenderTargetView);
-		if (FAILED(hr))
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("RenderTargetViewの作成");
 			return hr;
+		}
 		// デプスバッファ
 		//Device::mpd3dDevice->CreateDepthStencilView(texture, nullptr, &dsview);
 
 		ID3D11ShaderResourceView* pShaderResourceView;
 		hr = Device::mpd3dDevice->CreateShaderResourceView(mpTexture2D, nullptr, &pShaderResourceView);
-		if (FAILED(hr))
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("ShaderResourceViewの作成");
 			return hr;
+		}
 
 		hr = mTexture.Create(pShaderResourceView);
-		if (FAILED(hr))
+		if (FAILED(hr)){
 			return hr;
+		}
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 		ClearView(render->m_Context);
@@ -106,8 +113,10 @@ public:
 
 		//他のメンバは省略
 		hr = Device::mpd3dDevice->CreateTexture2D(&tex_desc, nullptr, &mpTexture2D);
-		if (FAILED(hr))
+		if (FAILED(hr)){
+			_SYSTEM_LOG("レンダーターゲット...Texture2Dの作成失敗[" + std::to_string(Width) + "," + std::to_string(Height) + "]");
 			return hr;
+		}
 
 
 		//Width、Heightは全レンダーターゲットとデプスバッファすべて同じにする
@@ -120,8 +129,10 @@ public:
 
 		// デプスバッファ
 		hr = Device::mpd3dDevice->CreateDepthStencilView(mpTexture2D, &descDSV, &mpDepthStencilView);
-		if (FAILED(hr))
+		if (FAILED(hr)){
+			_SYSTEM_LOG("レンダーターゲット...DepthStencilViewの作成失敗[" + std::to_string(Width) + "," + std::to_string(Height) + "]");
 			return hr;
+		}
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 		ClearView(render->m_Context);

@@ -37,6 +37,10 @@ public:
 
 	void IO_Data(I_ioHelper* io) override;
 
+	bool GetUseAlpha() const{
+		return mForwardRendering;
+	};
+
 	std::string mAlbedoTextureName;
 	std::string mNormalTextureName;
 	std::string mHeightTextureName;
@@ -52,6 +56,6 @@ public:
 	XMFLOAT2 mHeightPower;
 	XMFLOAT4 mNormaleScale;
 	XMFLOAT2 mOffset;
-
+	bool mForwardRendering;
 	float mThickness;
 };

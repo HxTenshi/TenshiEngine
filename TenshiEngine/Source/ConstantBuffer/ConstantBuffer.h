@@ -112,8 +112,10 @@ public:
 
 		create_type temp(Slot, ConstantBufferPtr::create(sizeof(T)));
 
-		if (!temp.mBuffer)
+		if (!temp.mBuffer){
+			_SYSTEM_LOG_ERROR("コンスタントバッファー["+typeid(T).name()+"]の作成");
 			return create_type();
+		}
 
 		return temp;
 	}
@@ -190,8 +192,10 @@ public:
 	{
 		create_type temp(Slot, ArrayNum);
 
-		if (!temp.mBuffer)
+		if (!temp.mBuffer){
+			_SYSTEM_LOG_ERROR("コンスタントバッファー配列["+typeid(T).name()+"]の作成");
 			return create_type();
+		}
 
 		return temp;
 	}

@@ -56,6 +56,7 @@ cbuffer CBChangesPaticleParam : register(b10)
 	float4 G;
 	//x = num, y=impact, z=pointG-Rot, w=time
 	float4 Param;
+	float4 Wind;
 };
 
 // ƒWƒIƒƒgƒŠƒVƒF[ƒ_[‚Ì“ü—Íƒpƒ‰ƒ[ƒ^
@@ -190,12 +191,13 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 		//ƒ|ƒCƒ“ƒgƒOƒ‰ƒrƒeƒB
 		float3 tar = In[0].pos - World._41_42_43;
 			if (length(tar) != 0){
+				float3 nortar = normalize(tar);
 				//Point
-				float3 posG = normalize(tar) * G.w;
+				float3 posG = nortar * G.w;
 				Out.v += posG;
 
 				//Rotate
-				float3 nor = normalize(tar) * -1;
+				float3 nor = nortar * -1;
 					float3 bv = Out.v*-1;
 					float vl = length(Out.v);
 				if (vl != 0){
@@ -204,6 +206,15 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 				bv = nor - dot(nor, bv) * 2 * bv;
 				bv *= vl;
 				Out.v = lerp(Out.v, bv, Param.z);
+
+
+				//ƒEƒBƒ“ƒh
+				float3 left = cross(nortar,float3(0, 1, 0));
+				float3 up = cross(left, nortar);
+				float3x3 mat= float3x3(left, up, nortar);
+				float3 windVec = mul(Wind.xyz, mat);
+				Out.v += windVec;
+
 			}
 
 
@@ -256,6 +267,7 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 struct GS1_OUT
 {
 	float4 pos    : SV_POSITION;  // ƒp[ƒeƒBƒNƒ‹‚ÌˆÊ’u
+	float4 vpos    : TEXCOORD1;  // ƒp[ƒeƒBƒNƒ‹‚ÌˆÊ’u
 	float4 color  : COLOR;        // ƒp[ƒeƒBƒNƒ‹‚ÌF
 	float2 texel  : TEXCOORD0;    // ƒeƒNƒZƒ‹
 };
@@ -274,8 +286,8 @@ void GS1_Main(point GS_IN In[1],                       // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚
 
 	float bc = (g_Scale / (g_Scale + g_ScaleY*1.5));
 	float fc = (bc + 1)/2.0;
-	float4 fcol = float4(fc, fc, fc, 1);
-	float4 bcol = float4(bc, bc, bc, 1);
+	float4 fcol = float4(1,1,1, fc);
+	float4 bcol = float4(1,1,1, bc);
 
 	float rot = In[0].v0.y;
 	float4x4 ZRot = 
@@ -290,27 +302,32 @@ void GS1_Main(point GS_IN In[1],                       // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚
 	matrix W = mul(ZRot, mBillboardMatrix);
 	W._41_42_43 = float3(In[0].pos.x, In[0].pos.y, In[0].pos.z);
 
-	matrix WVP = mul(mul(W, View), Projection);
+	matrix WV = mul(W, View);
+	matrix WVP = mul(WV, Projection);
 
 	//float4 scale = mul(float4(g_Scale, g_Scale, 0, 0), matWVP);
 
 	//float4(In[0].pos.x + g_Scale, In[0].pos.y + g_Scale, In[0].pos.z, 1.0f)
 	Out.pos = mul(float4(g_Scale, g_Scale, 0, 1), WVP);
+	Out.vpos = mul(float4(g_Scale, g_Scale, 0, 1), WV);
 	Out.color = fcol;
 	Out.texel = float2(1, 0);
 	TriStream.Append(Out);
 
 	Out.pos = mul(float4(-g_Scale, g_Scale, 0, 1), WVP);
+	Out.vpos = mul(float4(-g_Scale, g_Scale, 0, 1), WV);
 	Out.color = fcol;
 	Out.texel = float2(0, 0);
 	TriStream.Append(Out);
 
 	Out.pos = mul(float4(g_Scale, -g_Scale - g_ScaleY, 0, 1), WVP);
+	Out.vpos = mul(float4(g_Scale, -g_Scale - g_ScaleY, 0, 1), WV);
 	Out.color = bcol;
 	Out.texel = float2(1, 1);
 	TriStream.Append(Out);
 
 	Out.pos = mul(float4(-g_Scale, -g_Scale - g_ScaleY, 0, 1), WVP);
+	Out.vpos = mul(float4(-g_Scale, -g_Scale - g_ScaleY, 0, 1), WV);
 	Out.color = bcol;
 	Out.texel = float2(0, 1);
 	TriStream.Append(Out);
@@ -323,7 +340,18 @@ typedef GS1_OUT PS_IN;
 // ƒsƒNƒZƒ‹ƒVƒF[ƒ_
 float4 PS1_Main(PS_IN In) : SV_TARGET
 {
-	return txDiffuse.Sample(samLinear, In.texel) * MDiffuse * MHightPower.y * In.color;
+	float2 tex = In.pos.xy / float2(1200, 800);
+	float Depth = In.vpos.z / 100.0f;
+	float texd = DepthMap.Sample(DepthSamLinear, tex).r;
+	Depth = (Depth - texd);
+	Depth = abs(Depth);
+	Depth = (Depth > 0.05) ? 1 : (Depth / 0.05f);
+	Depth = min(max(Depth, 0), 1);
+	//Depth = 1;
+	
+	float4 col = txDiffuse.Sample(samLinear, In.texel) * MDiffuse * MHightPower.y * In.color;
+		col.a *= Depth;
+	return col;
 	//return DepthMap.Sample(DepthSamLinear, In.texel) * In.color;
 	//float2 xy = In.texel;
 	//xy.x *= 1200;

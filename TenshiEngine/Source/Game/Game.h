@@ -37,6 +37,7 @@ enum class DrawStage{
 	Light,
 	Particle,
 	PostEffect,
+	Forward,
 	Engine,
 	UI,
 	Count
@@ -128,5 +129,8 @@ private:
 	static Scene m_Scene;
 
 	bool mIsPlay;
+
+	ConstantBuffer<cbGameParameter> mCBGameParameter;
+
 
 };

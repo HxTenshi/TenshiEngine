@@ -23,6 +23,7 @@ public:
 	IPhysXComponent(){}
 	virtual ~IPhysXComponent(){}
 
+	virtual bool GetKinematic() = 0;
 	virtual void SetKinematic(bool flag) = 0;
 	virtual XMVECTOR GetForceVelocity() = 0;
 	virtual void SetForceVelocity(const XMVECTOR& v) = 0;
@@ -54,6 +55,7 @@ public:
 	void AddShape(physx::PxShape& shape);
 	void RemoveShape(physx::PxShape& shape);
 
+	bool GetKinematic() override{ return mIsKinematic; };
 	void SetKinematic(bool flag) override;
 	XMVECTOR GetForceVelocity() override;
 	void SetForceVelocity(const XMVECTOR& v) override;

@@ -6,7 +6,13 @@
 #include "ConstantBuffer/ConstantBuffer.h"
 #include "ConstantBuffer/ConstantBufferDif.h"
 
-class DirectionalLightComponent :public Component{
+class IDirectionalLightComponent{
+public:
+	virtual ~IDirectionalLightComponent(){}
+	virtual void SetColor(XMFLOAT3 color) = 0;
+};
+
+class DirectionalLightComponent :public IDirectionalLightComponent,public Component{
 public:
 
 	DirectionalLightComponent();
@@ -19,7 +25,8 @@ public:
 	void CreateInspector() override;
 	void IO_Data(I_ioHelper* io) override;
 
-	void SetColor(XMFLOAT3 color);
+	XMFLOAT3 GetColor(){ return m_Color; }
+	void SetColor(XMFLOAT3 color) override;
 
 private:
 	//ÉJÉâÅ[

@@ -117,6 +117,8 @@ public:
 
 	void Particle_Rendering(IRenderingEngine* render, RenderTarget* rt, const std::function<void(void)>& func);
 
+	void Forward_Rendering(IRenderingEngine* render, RenderTarget* rt, const std::function<void(void)>& func);
+
 
 	void HDR_Rendering(IRenderingEngine* render);
 
@@ -147,21 +149,8 @@ private:
 
 	CascadeShadow mCascadeShadow;
 
-	ID3D11BlendState* pBlendState = NULL;
-
 	const UINT mHDLDownSampleNum = 4;
 	HDRGaussBulr_AND_DownSample mHDLDownSample[4];
 
-	//UAVRenderTarget m_GaussBuraUAV768_P1;
-	//UAVRenderTarget m_GaussBuraUAV768_P2;
-	//UAVRenderTarget m_GaussBuraUAV256_P1;
-	//UAVRenderTarget m_GaussBuraUAV256_P2;
-	//RenderTarget m_DownSample768;
-	//RenderTarget m_DownSample256;
-	//ComputeShader m_GaussBuraCS768;
-	//ComputeShader m_GaussBuraCS256;
-	//Material mMaterialDownSample768;
-	//Material mMaterialDownSample256;
-	//Material mMaterialHDR768;
-	//Material mMaterialHDR256;
+
 };

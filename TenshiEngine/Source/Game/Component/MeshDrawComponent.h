@@ -22,5 +22,4 @@ private:
 
 	weak_ptr<IModelComponent> mModel;
 	weak_ptr<MaterialComponent> mMaterial;
-
 };

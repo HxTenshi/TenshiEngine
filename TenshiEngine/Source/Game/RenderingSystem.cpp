@@ -1,6 +1,33 @@
 #include "RenderingSystem.h"
 
 template <>
+void RenderingStateSetting<BlendState>::Initialize(){
+
+	auto Desc = CDescType(CD3D11_DEFAULT());
+
+	Desc.AlphaToCoverageEnable = FALSE;
+	// TRUEの場合、マルチレンダーターゲットで各レンダーターゲットのブレンドステートの設定を個別に設定できる
+	// FALSEの場合、0番目のみが使用される
+	Desc.IndependentBlendEnable = FALSE;
+	Desc.RenderTarget[0].BlendEnable = TRUE;
+
+	Desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	Desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+
+	_Create(Desc, PresetType::BS_Alpha);
+
+	Desc.IndependentBlendEnable = TRUE;
+	_Create(Desc, PresetType::BS_Alpha_RT1);
+
+	Desc.IndependentBlendEnable = FALSE;
+	Desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	Desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	_Create(Desc, PresetType::BS_Add);
+
+
+}
+
+template <>
 void RenderingStateSetting<DepthStencil>::Initialize(){
 
 	auto Desc = CDescType(CD3D11_DEFAULT());

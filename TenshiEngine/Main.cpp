@@ -179,6 +179,8 @@ public:
 
 	HRESULT InitDevice(const Window& window)
 	{
+
+		_SYSTEM_LOG_H("アプリケーションの初期化");
 		HRESULT hr = S_OK;
 
 		hr = Device::Init(window);
@@ -369,8 +371,11 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 
 	//メモリーリークにブレークポイント
 	//_CrtSetBreakAlloc(8359);
-	
 
+	SystemLog::Create();
+
+	_SYSTEM_LOG_H("メイン");
+	
 	Window mWindow(hInstance, nCmdShow);
 	if (FAILED(mWindow.Init()))
 		return 0;

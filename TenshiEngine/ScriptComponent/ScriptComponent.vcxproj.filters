@@ -39,6 +39,9 @@
     <ClCompile Include="Scripts\TextureScroll.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Scripts\ThunderLight.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Script.h">
@@ -68,6 +71,9 @@
     <ClInclude Include="System\factory" />
     <ClInclude Include="System\include" />
     <ClInclude Include="System\reflection" />
+    <ClInclude Include="Scripts\ThunderLight.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dll.def">

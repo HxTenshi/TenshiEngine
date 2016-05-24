@@ -50,6 +50,4 @@ public:
 	bool mBlendAdd;
 	bool mFirstDraw;
 
-	ID3D11BlendState* pBlendState;
-
 };

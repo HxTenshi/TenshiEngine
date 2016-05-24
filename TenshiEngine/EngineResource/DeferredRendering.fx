@@ -97,37 +97,39 @@ float4 PS(PS_INPUT input) : SV_Target
 
 	//float s = LightingFuncGGX_REF(nor, -ray, -LightVect.xyz, roughness, 1);
 
-	float x = 3.0/1200.0;
-	float4 c;
-	float count = 1;
-	for (int i = 0; i < 30; i++){
-		{
-			float x_ = x * i;
+	//モーションブラー
+	//float x = 3.0/1200.0;
+	//float4 c;
+	//float count = 1;
+	//for (int i = 0; i < 30; i++){
+	//	{
+	//		float x_ = x * i;
+	//
+	//		float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
+	//			vel = vel * 2 - 1.0;
+	//		if (vel.x > x_){
+	//			float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
+	//				albedo += albedo2;
+	//			count++;
+	//		}
+	//	}
+	//	{
+	//		float x_ = -x * i;
+	//
+	//		float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
+	//			vel = vel * 2 - 1.0;
+	//		if (vel.x < x_){
+	//			float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
+	//				albedo += albedo2;
+	//			count++;
+	//		}
+	//	}
+	//	
+	//}
+	//albedo /= count;
+	//albedo.a = 1;
 
-			float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
-				vel = vel * 2 - 1.0;
-			if (vel.x > x_){
-				float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
-					albedo += albedo2;
-				count++;
-			}
-		}
-		{
-			float x_ = -x * i;
 
-			float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
-				vel = vel * 2 - 1.0;
-			if (vel.x < x_){
-				float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
-					albedo += albedo2;
-				count++;
-			}
-		}
-		
-	}
-
-	albedo /= count;
-	albedo.a = 1;
 
 	//float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex);
 	//vel = vel * 2 - 1.0;

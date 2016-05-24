@@ -43,7 +43,7 @@ void PhysXColliderComponent::Initialize(){
 void PhysXColliderComponent::Start(){
 	SearchAttachPhysXComponent();
 
-	if (mMeshFile != "" && mMeshFile != "null"){
+	if (mMeshFile != ""){
 		CreateMesh();
 	}
 	else{
@@ -104,7 +104,7 @@ bool PhysXColliderComponent::SearchAttachPhysXComponent(){
 	while (par){
 		mAttachPhysXComponent = par->GetComponent<PhysXComponent>();
 		if (mAttachPhysXComponent){
-			mIsParentPhysX = par != gameObject;
+			mIsParentPhysX = (par != gameObject)?true:false;
 			return true;
 		}
 		par = par->mTransform->GetParent();
@@ -145,6 +145,65 @@ void PhysXColliderComponent::ShapeAttach(PxShape* shape){
 void PhysXColliderComponent::UpdatePose(){
 
 
+	//bool isKinem = false;
+	//Actor* par = gameObject;
+	//while (par){
+	//	auto com = par->GetComponent<PhysXComponent>();
+	//	if (com){
+	//		isKinem = com->GetKinematic();
+	//		break;
+	//	}
+	//	par = par->mTransform->GetParent();
+	//}
+	//
+	//
+	//if (!par){
+	//	return;
+	//}
+	//
+	////if (!isKinem)return;
+	//XMVECTOR v;
+	//auto physxW2L = XMMatrixInverse(&v,par->mTransform->GetMatrix());
+	//
+	//auto mat = gameObject->mTransform->GetMatrix();
+	//auto localmat = XMMatrixMultiply(physxW2L, mat);
+	//
+	//auto x = XMVector3Length(localmat.r[0]);
+	//auto y = XMVector3Length(localmat.r[1]);
+	//auto z = XMVector3Length(localmat.r[2]);
+	//auto scale = XMVectorSet(x.x, y.x, z.x, 1);
+	//auto pos = localmat.r[3];
+	//
+	//
+	//auto transform = mShape->getLocalPose();
+	//
+	//transform.p = PxVec3(pos.x,pos.y, pos.z);
+	//
+	//mShape->setLocalPose(transform);
+	//
+	//
+	//
+	//if (mScale.x == scale.x&&mScale.y == scale.y&&mScale.z == scale.z)return;
+	//mScale = scale;
+	////PxBoxGeometry box(PxVec3(1.0f*scale.x, 1.0f*scale.y, 1.0f*scale.z));
+	//auto g = mShape->getGeometry();
+	//if (g.getType() == PxGeometryType::eBOX){
+	//	g.box().halfExtents = PxVec3(PxVec3(abs(0.5f*scale.x), abs(0.5f*scale.y), abs(0.5f*scale.z)));
+	//	mShape->setGeometry(g.box());
+	//}
+	//else if (g.getType() == PxGeometryType::eSPHERE){
+	//	g.sphere().radius = (abs(0.5f*scale.x) + abs(0.5f*scale.y) + abs(0.5f*scale.z)) / 3.0f;
+	//	mShape->setGeometry(g.sphere());
+	//}
+	//else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
+	//
+	//	auto rotate = gameObject->mTransform->Quaternion();
+	//	auto q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
+	//
+	//	g.triangleMesh().scale = PxMeshScale(PxVec3(scale.x, scale.y, scale.z), q);
+	//	mShape->setGeometry(g.triangleMesh());
+	//}
+
 	//auto scale = gameObject->mTransform->Scale();
 	//auto mat = gameObject->mTransform->GetMatrix();
 	//Actor* act = gameObject;
@@ -159,18 +218,22 @@ void PhysXColliderComponent::UpdatePose(){
 	//
 	//XMVECTOR scale = XMVector3Transform(gameObject->mTransform->Scale(), mat);
 	//XMVECTOR scale = XMVectorSet(mat._11, mat._22, mat._33, 1);
+
+
+
+
 	XMVECTOR scale = XMVectorSet(1,1,1,1);
-	if (mIsParentPhysX){
+	if(mIsParentPhysX){
 		//scale = XMVectorMultiply(scale, gameObject->mTransform->GetParent()->mTransform->Scale());
 		auto mat = gameObject->mTransform->GetParent()->mTransform->GetMatrix();
 		auto x = XMVector3Length(mat.r[0]);
 		auto y = XMVector3Length(mat.r[1]);
 		auto z = XMVector3Length(mat.r[2]);
 		scale = XMVectorSet(x.x, y.x, z.x, 1);
-
-
 	}
-
+	
+	
+	
 	auto pos = gameObject->mTransform->Position();
 	auto transform = mShape->getLocalPose();
 	if (!mIsParentPhysX){
@@ -180,9 +243,9 @@ void PhysXColliderComponent::UpdatePose(){
 		transform.p = PxVec3(pos.x*scale.x, pos.y*scale.y, pos.z*scale.z);
 	}
 	mShape->setLocalPose(transform);
-
+	
 	scale = XMVectorMultiply(scale, gameObject->mTransform->Scale());
-
+	
 	if (mScale.x == scale.x&&mScale.y == scale.y&&mScale.z == scale.z)return;
 	mScale = scale;
 	//PxBoxGeometry box(PxVec3(1.0f*scale.x, 1.0f*scale.y, 1.0f*scale.z));
@@ -192,7 +255,7 @@ void PhysXColliderComponent::UpdatePose(){
 		mShape->setGeometry(g.box());
 	}
 	else if (g.getType() == PxGeometryType::eSPHERE){
-		g.sphere().radius = (abs(0.5f*scale.x) + abs(0.5f*scale.y) + abs(0.5f*scale.z))/3.0f;
+		g.sphere().radius = (abs(0.5f*scale.x) + abs(0.5f*scale.y) + abs(0.5f*scale.z)) / 3.0f;
 		mShape->setGeometry(g.sphere());
 	}
 	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
@@ -200,7 +263,7 @@ void PhysXColliderComponent::UpdatePose(){
 		auto rotate = gameObject->mTransform->Quaternion();
 		auto q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
 
-		g.triangleMesh().scale = PxMeshScale(PxVec3( scale.x, scale.y, scale.z),q);
+		g.triangleMesh().scale = PxMeshScale(PxVec3(scale.x, scale.y, scale.z), q);
 		mShape->setGeometry(g.triangleMesh());
 	}
 
@@ -220,9 +283,12 @@ void PhysXColliderComponent::ChangeShape(){
 }
 void PhysXColliderComponent::ChangeMaterial(){
 	
+	if (mPhysicsMaterialFile == "")return;
 	PhysxMaterialAssetDataPtr mate;
 	AssetDataBase::Instance(mPhysicsMaterialFile.c_str(), mate);
+	if (!mate->GetFileData())return;
 	auto pxmate = mate->GetFileData()->GetMaterial();
+	if (!pxmate)return;
 	mShape->setMaterials(&pxmate, 1);
 }
 

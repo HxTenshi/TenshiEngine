@@ -20,6 +20,7 @@ RenderTarget*			Device::mRenderTargetBack = NULL;
 HRESULT Device::Init(const Window& window)
 {
 
+	_SYSTEM_LOG_H("デバイスの初期化");
 	HRESULT hr = S_OK;
 
 	//RECT rc;
@@ -79,6 +80,8 @@ HRESULT Device::Init(const Window& window)
 	}
 	if (FAILED(hr)){
 		Window::AddLog("D3Dドライバー作成失敗");
+		_SYSTEM_LOG_ERROR("D3Dドライバーの作成");
+		_SYSTEM_LOG_H_ERROR();
 		return hr;
 	}
 
@@ -88,6 +91,8 @@ HRESULT Device::Init(const Window& window)
 	hr = mpd3dDevice->CreateDeferredContext(NULL, &context);
 	if (FAILED(hr)){
 		Window::AddLog("デファードコンテキスト作成失敗");
+		_SYSTEM_LOG_ERROR("デファードコンテキストの作成");
+		_SYSTEM_LOG_H_ERROR();
 		return hr;
 	}
 
@@ -107,6 +112,8 @@ HRESULT Device::Init(const Window& window)
 	hr = mRenderTargetBack->CreateBackBuffer(WindowState::mWidth, WindowState::mHeight);
 	if (FAILED(hr)){
 		Window::AddLog("バックバッファー作成失敗");
+		_SYSTEM_LOG_ERROR("バックバッファーの作成");
+		_SYSTEM_LOG_H_ERROR();
 		return hr;
 	}
 

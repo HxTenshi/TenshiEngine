@@ -66,6 +66,7 @@ MaterialComponent::MaterialComponent(){
 	mNormaleScale = XMFLOAT4(1, 1, 1, 1);
 	mOffset = XMFLOAT2(0,0);
 	mThickness = 0.0f;
+	mForwardRendering = false;
 }
 MaterialComponent::~MaterialComponent(){
 }
@@ -85,6 +86,17 @@ void MaterialComponent::Initialize(){
 			auto& m = mMaterials[0];
 			m.Create();
 		}
+	}
+
+	if (mForwardRendering){
+		mMaterials[0].CreateShader("EngineResource/ForwardRendering.fx");
+	}
+	//else{
+	//	mMaterials[0].CreateShader("EngineResource/DeferredPrePass.fx");
+	//}
+
+	if (mShaderName != ""){
+		mMaterials[0].CreateShader(mShaderName.c_str());
 	}
 
 	SetAlbedoColor(mAlbedo);
@@ -237,6 +249,17 @@ void MaterialComponent::CreateInspector(){
 	};
 
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Material", &mMaterialPath, collbackpath), data);
+	Window::AddInspector(new TemplateInspectorDataSet<bool>("UseAlpha", &mForwardRendering, [&](bool f)
+	{
+		mForwardRendering = f; 
+		if (f){
+			mMaterials[0].CreateShader("EngineResource/ForwardRendering.fx");
+		}
+		else{
+			mMaterials[0].CreateShader("EngineResource/DeferredPrePass.fx");
+		}
+
+	}), data);
 	Window::AddInspector(new InspectorColorDataSet("Albedo", &mAlbedo.x, collbackx, &mAlbedo.y, collbacky, &mAlbedo.z, collbackz, &mAlbedo.w, collbacka), data);
 	Window::AddInspector(new InspectorColorDataSet("Specular", &mSpecular.x, collbackxs, &mSpecular.y, collbackys, &mSpecular.z, collbackzs, NULL, [](float){}), data);
 	Window::AddInspector(new InspectorSlideBarDataSet("Roughness",0,1,&mSpecular.w, collbackas), data);
@@ -256,6 +279,9 @@ void MaterialComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<float>("Thickness", &mThickness, collbackThick), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collbacksha), data);
 	Window::ViewInspector("Material", this, data);
+
+	
+	
 }
 
 void MaterialComponent::SetAlbedoColor(const XMFLOAT4& col){
@@ -270,6 +296,8 @@ void MaterialComponent::SetSpecularColor(const XMFLOAT4& col){
 void MaterialComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
 	_KEY(mMaterialPath);
+	_KEY(mShaderName);
+	_KEY(mForwardRendering);
 	_KEY(mAlbedo.x);
 	_KEY(mAlbedo.y);
 	_KEY(mAlbedo.z);

@@ -97,39 +97,13 @@ ParticleComponent::ParticleComponent()
 	mParticleParam.G = XMFLOAT4(0, -0.0098f, 0, 0);
 	mParticleParam.Time = XMFLOAT4(1, 3, 0.01f, 1);
 	mParticleParam.Param = XMFLOAT4(mParticleCapacity, 0, 0, 0);
+	mParticleParam.Wind = XMFLOAT4(0, 0, 0, 0);
 
 	mParticleParam.Param.w = rand();
 
 	ParticleCapacityChange((UINT)mParticleCapacity);
 
 	mBlendAdd = true;
-
-	{
-
-		pBlendState = NULL;
-		D3D11_BLEND_DESC BlendDesc;
-		ZeroMemory(&BlendDesc, sizeof(BlendDesc));
-		BlendDesc.AlphaToCoverageEnable = FALSE;
-
-		// TRUEの場合、マルチレンダーターゲットで各レンダーターゲットのブレンドステートの設定を個別に設定できる
-		// FALSEの場合、0番目のみが使用される
-		BlendDesc.IndependentBlendEnable = FALSE;
-
-		//加算合成設定
-		D3D11_RENDER_TARGET_BLEND_DESC RenderTarget;
-		RenderTarget.BlendEnable = TRUE;
-		RenderTarget.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-		RenderTarget.DestBlend = D3D11_BLEND_ONE;
-		RenderTarget.BlendOp = D3D11_BLEND_OP_ADD;
-		RenderTarget.SrcBlendAlpha = D3D11_BLEND_ONE;
-		RenderTarget.DestBlendAlpha = D3D11_BLEND_ZERO;
-		RenderTarget.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		RenderTarget.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-		BlendDesc.RenderTarget[0] = RenderTarget;
-
-		Device::mpd3dDevice->CreateBlendState(&BlendDesc, &pBlendState);
-	}
 
 
 	mInitialize = true;
@@ -139,9 +113,6 @@ ParticleComponent::~ParticleComponent(){
 	mGeometryShader1.Release();
 	if (mpSOBuffer[0])mpSOBuffer[0]->Release();
 	if (mpSOBuffer[1])mpSOBuffer[1]->Release();
-
-
-	if (pBlendState)pBlendState->Release();
 }
 
 void ParticleComponent::ParticleCapacityChange(UINT num){
@@ -187,8 +158,10 @@ void ParticleComponent::Update(){
 
 
 		if (mBlendAdd){
-			float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-			render->m_Context->OMSetBlendState(pBlendState, blendFactor, 0xffffffff);
+			render->PushSet(BlendState::Preset::BS_Add);
+		}
+		else{
+			render->PushSet(BlendState::Preset::BS_Alpha);
 		}
 
 
@@ -283,11 +256,7 @@ void ParticleComponent::Update(){
 		render->m_Context->GSSetShader(NULL, NULL, 0);
 
 		render->PopDS();
-
-		if (mBlendAdd){
-			float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-			render->m_Context->OMSetBlendState(NULL, blendFactor, 0xffffffff);
-		}
+		render->PopBS();
 	});
 }
 void ParticleComponent::CreateInspector(){
@@ -408,6 +377,13 @@ void ParticleComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<float>("PointGravity", &mParticleParam.G.w, collbackPosG), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("PointGravityRot", &mParticleParam.Param.z, collbackGR), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("V-Rot&Bura", &mParticleParam.Time.w, collbackVB), data);
+	Window::AddInspector(new InspectorVector3DataSet("Wind",
+		&mParticleParam.Wind.x, [&](float x){
+			mParticleParam.Wind.x = x; },
+		&mParticleParam.Wind.y, [&](float x){
+			mParticleParam.Wind.y = x; },
+		&mParticleParam.Wind.z, [&](float x){
+			mParticleParam.Wind.z = x; }), data);
 	Window::AddInspector(new TemplateInspectorDataSet<bool>("BlendModeAdd", &mBlendAdd, collbackAdd), data);
 
 
@@ -446,6 +422,10 @@ void ParticleComponent::IO_Data(I_ioHelper* io){
 	_KEY(mParticleParam.Param.x);
 	_KEY(mParticleParam.Param.y);
 	_KEY(mParticleParam.Param.z);
+	_KEY(mParticleParam.Wind.x);
+	_KEY(mParticleParam.Wind.y);
+	_KEY(mParticleParam.Wind.z);
+	_KEY(mParticleParam.Wind.w);
 	_KEY(mBlendAdd);
 
 	ParticleCapacityChange((UINT)mParticleCapacity);

@@ -174,17 +174,22 @@ PxDefaultCpuDispatcher* mCpuDispatcher = NULL;
 PxVec3 gravity(0, -9.81f, 0);
 void PhysX3Main::InitializePhysX() {
 
+	_SYSTEM_LOG_H("PhysXÇÃèâä˙âª");
+
 	//mhbox = MV1LoadModel("res/PhysX/box.mqo");
 	mFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback,
 		gDefaultErrorCallback);
 	if (!mFoundation){
 		std::cerr << "PxCreateFoundation failed!" << std::endl;
+
+		_SYSTEM_LOG_ERROR("FoundationÇÃçÏê¨");
 		exit(1);
 	}
 
 	mProfileZoneManager = &PxProfileZoneManager::createProfileZoneManager(mFoundation);
 	if (!mProfileZoneManager){
 		std::cerr << "PxProfileZoneManager::createProfileZoneManager failed!" << std::endl;
+		_SYSTEM_LOG_ERROR("ProfileZoneManagerÇÃçÏê¨");
 		exit(1);
 	}
 
@@ -200,10 +205,14 @@ void PhysX3Main::InitializePhysX() {
 	if (gPhysicsSDK == NULL) {
 		std::cerr << "Error creating PhysX device." << std::endl;
 		std::cerr << "Exiting..." << std::endl;
+		_SYSTEM_LOG_ERROR("PhysiXDeviceÇÃçÏê¨");
 		exit(1);
 	}
-	if (!PxInitExtensions(*gPhysicsSDK))
+	if (!PxInitExtensions(*gPhysicsSDK)){
 		std::cerr << "PxInitExtensions failed!" << std::endl;
+		_SYSTEM_LOG_H_ERROR();
+		_SYSTEM_LOG_ERROR("PhysiXDeviceÇÃInitialize");
+	}
 
 	PxCookingParams cookingParam(scale);
 	mCooking = PxCreateCooking(PX_PHYSICS_VERSION, *mFoundation, cookingParam);
@@ -214,12 +223,23 @@ void PhysX3Main::InitializePhysX() {
 	sceneDesc.gravity = gravity;
 	if (!sceneDesc.cpuDispatcher) {
 		mCpuDispatcher = PxDefaultCpuDispatcherCreate(1);
-		if (!mCpuDispatcher)
+		if (!mCpuDispatcher){
 			std::cerr << "PxDefaultCpuDispatcherCreate failed!" << std::endl;
+
+			_SYSTEM_LOG_H_ERROR();
+			_SYSTEM_LOG_ERROR("CpuDispatcherÇÃçÏê¨");
+		}
 		sceneDesc.cpuDispatcher = mCpuDispatcher;
 	}
-	if (!sceneDesc.filterShader)
+	else{
+		_SYSTEM_LOG_H_ERROR();
+	}
+	if (!sceneDesc.filterShader){
 		sceneDesc.filterShader = gDefaultFilterShader;
+	}
+	else{
+		_SYSTEM_LOG_H_ERROR();
+	}
 
 	// | PxSceneFlag::eDISABLE_CONTACT_CACHE | PxSceneFlag::eDISABLE_CONTACT_REPORT_BUFFER_RESIZE
 	sceneDesc.flags |= PxSceneFlag::eENABLE_KINEMATIC_PAIRS | PxSceneFlag::eENABLE_KINEMATIC_STATIC_PAIRS | PxSceneFlag::eENABLE_ACTIVETRANSFORMS;
@@ -227,14 +247,20 @@ void PhysX3Main::InitializePhysX() {
 	sceneDesc.simulationEventCallback = mTestOn;
 
 	gScene = gPhysicsSDK->createScene(sceneDesc);
-	if (!gScene)
+	if (!gScene){
 		std::cerr << "createScene failed!" << std::endl;
+		_SYSTEM_LOG_H_ERROR();
+		_SYSTEM_LOG_ERROR("SceneÇÃçÏê¨");
+	}
 	gScene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0);
 	gScene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
 
 	mEngineScene = gPhysicsSDK->createScene(sceneDesc);
-	if (!mEngineScene)
+	if (!mEngineScene){
 		std::cerr << "createScene failed!" << std::endl;
+		_SYSTEM_LOG_H_ERROR();
+		_SYSTEM_LOG_ERROR("SceneÇÃçÏê¨");
+	}
 	mEngineScene->setVisualizationParameter(PxVisualizationParameter::eSCALE, 1.0);
 	mEngineScene->setVisualizationParameter(PxVisualizationParameter::eCOLLISION_SHAPES, 1.0f);
 
@@ -254,8 +280,11 @@ void PhysX3Main::createPlane(){
 	//1) Create ground plane
 	PxTransform pose = PxTransform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
 	PxRigidStatic* plane = gPhysicsSDK->createRigidStatic(pose);
-	if (!plane)
+	if (!plane){
 		std::cerr << "create plane failed!" << std::endl;
+
+		_SYSTEM_LOG_ERROR("PhysX Shape PlaneÇÃçÏê¨");
+	}
 	//PxShape* shape = plane->createShape(PxPlaneGeometry(), *mMaterial);
 	//if (!shape)
 	//	std::cerr << "create shape failed!" << std::endl;
@@ -275,8 +304,11 @@ PxRigidActor* PhysX3Main::createBody(){
 	PxRigidDynamic *actor = gPhysicsSDK->createRigidDynamic(transform);
 	actor->setAngularDamping(0.75);
 	actor->setLinearVelocity(PxVec3(0, 0, 0));
-	if (!actor)
+	if (!actor){
+
+		_SYSTEM_LOG_ERROR("PhysX ActorÇÃçÏê¨");
 		std::cerr << "create actor failed!" << std::endl;
+	}
 	gScene->addActor(*actor);
 
 	PxRigidActor* act = actor;
@@ -291,8 +323,11 @@ PxRigidActor* PhysX3Main::createBodyEngine(){
 	PxRigidDynamic *actor = gPhysicsSDK->createRigidDynamic(transform);
 	actor->setAngularDamping(0.75);
 	actor->setLinearVelocity(PxVec3(0, 0, 0));
-	if (!actor)
+	if (!actor){
+
+		_SYSTEM_LOG_ERROR("PhysX Shape PlaneÇÃçÏê¨");
 		std::cerr << "create actor failed!" << std::endl;
+	}
 	mEngineScene->addActor(*actor);
 
 	PxRigidActor* act = actor;
@@ -376,6 +411,8 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 	PxDefaultMemoryOutputStream writeBuffer;
 	bool status = mCooking->cookTriangleMesh(triangleDesc, writeBuffer);
 	if (!status){
+
+		_SYSTEM_LOG_ERROR("PhysX Shape TriangleMeshÇÃçÏê¨");
 		return NULL;
 	}
 
