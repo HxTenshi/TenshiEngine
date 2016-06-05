@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <filesystem> // std::tr2::sys::path etc.
 
+#include "Application/BuildVersion.h"
+
 #include "ScriptComponent.h"
 #include "MySTL/Reflection/Reflection.h"
 #include "Window/window.h"
@@ -19,6 +21,8 @@ typedef void(__cdecl *IDllFunction1)(IDllScriptComponent*,IDllScriptComponent::F
 
 #include "Game/Script/SGame.h"
 SGame gSGame;
+
+#ifdef _ENGINE_MODE
 
 void CreateScriptFileExtension(const std::string& classNmae, const std::string& extension){
 
@@ -57,7 +61,47 @@ void CreateScriptFileExtension(const std::string& classNmae, const std::string& 
 }
 
 
+bool removeDirectory(std::string fileName)
+{
+	bool retVal = true;
+	std::string nextFileName;
 
+	WIN32_FIND_DATA foundFile;
+
+	HANDLE hFile = FindFirstFile((fileName + "\\*.*").c_str(), &foundFile);
+
+	if (hFile != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			//If a found file is . or .. then skip
+			if (strcmp(foundFile.cFileName, ".") != 0 && strcmp(foundFile.cFileName, "..") != 0)
+			{
+				//The path should be absolute path
+				nextFileName = fileName + "\\" + foundFile.cFileName;
+
+				//If the file is a directory
+				if ((foundFile.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+				{
+					removeDirectory(nextFileName.c_str());
+					RemoveDirectory(nextFileName.c_str());
+				}
+				//If the file is a file
+				else
+				{
+					DeleteFile(nextFileName.c_str());
+				}
+			}
+		} while (FindNextFile(hFile, &foundFile) != 0);
+	}
+
+	FindClose(hFile);
+
+	//Delete starting point itseft
+	if (RemoveDirectory(fileName.c_str()) == 0)retVal = false;
+
+	return retVal;
+}
 #include <shlwapi.h>
 
 #pragma comment(lib, "shlwapi.lib")
@@ -163,6 +207,8 @@ bool create_cmd_process(){
 	return true;
 }
 
+#endif
+
 //同じDLLを持ってるコンポーネントを管理
 class UseScriptActors{
 public:
@@ -174,12 +220,21 @@ public:
 		mFunction0 = NULL;
 		mFunction1 = NULL;
 
+
+#ifdef _ENGINE_MODE
+#else
+		DllLoad();
+#endif
+
 	}
 	~UseScriptActors(){
 		UnLoad();
 	}
+
+#ifdef _ENGINE_MODE
 	void ReCompile(){
 		for (auto& p : mList){
+			p->SaveParam();
 			p->Unload();
 		}
 
@@ -187,8 +242,22 @@ public:
 
 		CreateIncludeClassFile();
 
-
-
+		
+		//最後のコンパイルバージョン確認
+		const std::string LogFilePath = "Temp/buildver.txt";
+		int ver = _BUILD_VERSION;
+		int buildver = 0;
+		{
+			std::ifstream in(LogFilePath, std::ios::in);
+			in >> buildver;
+		}
+		//バージョンが違う
+		if (ver != buildver){
+			std::ofstream out(LogFilePath, std::ios::out);
+			out << ver;
+			//リリースフォルダ削除
+			removeDirectory(".\\ScriptComponent\\Release");
+		}
 
 		if (!create_cmd_process()){
 			//MessageBox(Window::GetMainHWND(), "ビルドを手動で行って下さい。", "DLL読み込み", MB_OK);
@@ -230,6 +299,7 @@ public:
 
 		for (auto& p : mList){
 			p->Load();
+			p->LoadParam();
 		}
 	}
 
@@ -453,6 +523,7 @@ public:
 			v.push_back(input_string);
 		}
 	}
+#endif
 
 	void UnLoad(){
 		FreeLibrary(hModule);
@@ -466,6 +537,7 @@ public:
 	}
 	void DllLoad(){
 
+#ifdef _ENGINE_MODE
 		// DLLのロード
 #ifdef _DEBUG
 		hModule = LoadLibrary("../ScriptComponent/Debug/ScriptComponent.dll");
@@ -480,8 +552,14 @@ public:
 			hModule = LoadLibrary("ScriptComponent/Release/ScriptComponent.dll");
 #endif
 		}
+
+
+#else
+		hModule = LoadLibrary("ScriptComponent/ExeCompile/ScriptComponent.dll");
+#endif
 		if (!hModule){
 			_SYSTEM_LOG_ERROR("スクリプトDLLの読み込み");
+			return;
 		}
 
 
@@ -549,6 +627,7 @@ public:
 UseScriptActors actors;
 
 
+#ifdef _ENGINE_MODE
 //static
 void ScriptManager::ReCompile(){
 	actors.ReCompile();
@@ -557,6 +636,7 @@ void ScriptManager::CreateScriptFile(const std::string& className){
 	CreateScriptFileExtension(className, ".h");
 	CreateScriptFileExtension(className, ".cpp");
 }
+#endif
 
 
 
@@ -564,21 +644,26 @@ ScriptComponent::ScriptComponent(){
 	mEndInitialize = false;
 	mEndStart = false;
 	pDllClass = NULL;
+	mSaveParam = NULL;
 }
 ScriptComponent::~ScriptComponent(){
+	if (mSaveParam){
+		delete mSaveParam;
+		mSaveParam = NULL;
+	}
 }
 void ScriptComponent::Initialize(){
 	mCollideMap.clear();
 	Load();
 	actors.mList.push_back(this);
-	mEndInitialize = true;
+
 	if (pDllClass){
 		pDllClass->game = &gSGame;
 		pDllClass->gameObject = gameObject;
-
-		actors.Function(pDllClass,&IDllScriptComponent::Initialize);
-
 	}
+}
+
+void ScriptComponent::Start(){
 }
 void ScriptComponent::Load(){
 	if (pDllClass)return;
@@ -589,37 +674,65 @@ void ScriptComponent::Load(){
 	if (pDllClass){
 		pDllClass->game = &gSGame;
 		pDllClass->gameObject = gameObject;
-
-		if (mEndInitialize)
-			actors.Function(pDllClass, &IDllScriptComponent::Initialize);
-		if (mEndStart)
-			actors.Function(pDllClass, &IDllScriptComponent::Start);
 	}
 }
 void ScriptComponent::Unload(){
 
 	if (pDllClass){
-		actors.Function(pDllClass, &IDllScriptComponent::Finish);
+		if (mEndInitialize)
+			actors.Function(pDllClass, &IDllScriptComponent::Finish);
 		actors.Deleter(pDllClass);
 	}
 
 	pDllClass = NULL;
 
-}
-void ScriptComponent::ReCompile(){
-	Unload();
-	Load();
+
+	mEndInitialize = false;
+	mEndStart = false;
 
 }
-void ScriptComponent::Start(){
-	mEndStart = true;
-	if (pDllClass){
-		actors.Function(pDllClass, &IDllScriptComponent::Start);
+void ScriptComponent::ReCompile(){
+
+	Unload();
+	Load();
+}
+
+void ScriptComponent::SaveParam(){
+
+	if (mSaveParam){
+		delete mSaveParam;
+		mSaveParam = NULL;
+	}
+	mSaveParam = new picojson::value();
+	shared_ptr<I_InputHelper> prefab_io(NULL);
+	I_ioHelper* io = new MemoryOutputHelper(*mSaveParam, prefab_io.Get());
+	IO_Data(io);
+	delete io;
+
+}
+void ScriptComponent::LoadParam(){
+	if (mSaveParam){
+		shared_ptr<I_InputHelper> prefab_io(NULL);
+		I_ioHelper* io = new MemoryInputHelper(*mSaveParam, prefab_io.Get());
+		IO_Data(io);
+		delete io;
+		delete mSaveParam;
+		mSaveParam = NULL;
 	}
 }
 void ScriptComponent::Update(){
 
 	if (pDllClass){
+
+		if (!mEndInitialize){
+			mEndInitialize = true;
+			actors.Function(pDllClass, &IDllScriptComponent::Initialize);
+		}
+		if (!mEndStart){
+			mEndStart = true;
+			actors.Function(pDllClass, &IDllScriptComponent::Start);
+		}
+
 		actors.Function(pDllClass, &IDllScriptComponent::Update);
 
 		for (auto& tar : mCollideMap){
@@ -633,8 +746,6 @@ void ScriptComponent::Finish(){
 
 	Unload();
 	actors.mList.remove(this);
-	mEndInitialize = false;
-	mEndStart = false;
 }
 
 void ScriptComponent::OnCollide(Actor* target){
@@ -660,15 +771,30 @@ bool reflect(MemberInfo& info,U& data){
 		return false;
 	}
 
-	T* paramdata = Reflection::Get<T>(info);
+	volatile T* paramdata = Reflection::Get<T>(info);
 
-	std::function<void(T)> collback = [=](T f){
-		*paramdata = f;
+	std::function<void(T)> collback = [paramdata](T f){
+		*(T*)paramdata = f;
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<T>(info.GetName(), paramdata, collback), data);
+	Window::AddInspector(new TemplateInspectorDataSet<T>(info.GetName(), (T*)paramdata, collback), data);
 
 	return true;
 }
+
+void initparam(int* p){
+	*p = 0;
+}
+void initparam(float* p){
+	*p = 0.0f;
+}
+void initparam(bool* p){
+	*p = false;
+}
+void initparam(std::string* p){
+	*p = "";
+}
+
+
 template<class T>
 bool reflect_io(MemberInfo& info,I_ioHelper* io){
 
@@ -678,11 +804,16 @@ bool reflect_io(MemberInfo& info,I_ioHelper* io){
 
 	T* paramdata = Reflection::Get<T>(info);
 
+	if (io->isInput()){
+		initparam(paramdata);
+	}
+
 	io->func(*paramdata, info.GetName().c_str());
 
 	return true;
 }
 
+#ifdef _ENGINE_MODE
 void ScriptComponent::CreateInspector(){
 
 	auto data = Window::CreateInspector();
@@ -710,6 +841,7 @@ void ScriptComponent::CreateInspector(){
 
 	Window::ViewInspector("Script", this, data);
 }
+#endif
 
 void ScriptComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
@@ -717,7 +849,6 @@ void ScriptComponent::IO_Data(I_ioHelper* io){
 	Load();
 
 	if (pDllClass){
-
 		if (Reflection::map){
 			auto infos = Reflection::GetMemberInfos(pDllClass, mClassName);
 

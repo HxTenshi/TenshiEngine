@@ -1,10 +1,3 @@
-//--------------------------------------------------------------------------------------
-// File: Tutorial07.cpp
-//
-// This application demonstrates texturing
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
 
 
 //#define _XM_NO_INTRINSICS_
@@ -34,7 +27,6 @@ class InputManagerRapper{
 public:
 
 	void Initialize(HWND hWnd, HINSTANCE hInstance){
-		mScreenFocus = false;
 		mr = false;
 		ml = false;
 		mx = 0;
@@ -43,16 +35,26 @@ public:
 		wy = 1;
 
 		InputManager::InitDirectInput(hWnd, hInstance);
+#ifdef _ENGINE_MODE
+		mScreenFocus = false;
 		Window::SetMouseEvents(&mScreenFocus,&ml, &mr, &mx, &my, &wx, &wy);
+#else
+		mScreenFocus = true;
+#endif
 	}
 
 	void Update(){
+
+#ifdef _ENGINE_MODE
 
 		InputManager::SetMouseL(ml);
 		InputManager::SetMouseR(mr);
 		int x = (int)((float)mx / wx * WindowState::mWidth);
 		int y = (int)((float)my / wy * WindowState::mHeight);
 		InputManager::SetMouseXY(x, y);
+#else
+#endif
+
 		InputManager::Update(mScreenFocus);
 	}
 

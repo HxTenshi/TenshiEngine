@@ -13,6 +13,8 @@
 #include "AssetFile\Shader\ShaderFileData.h"
 #include "AssetFile\Material\TextureFileData.h"
 #include "AssetFile\Physx\PhysxMaterialFileData.h"
+#include "AssetFile\Sound\SoundFileData.h"
+
 
 decltype(AssetFactory::m_Factory) AssetFactory::m_Factory;
 class __AssetFactory :public AssetFactory{
@@ -28,7 +30,7 @@ AssetFactory::AssetFactory(){
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tedmesh"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tedmesh2"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));
 
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tebone"), [](const char* filename){ return AssetDataTemplate<BoneFileData>::Create(filename); }));
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tebone2"), [](const char* filename){ return AssetDataTemplate<BoneFileData>::Create(filename); }));
 
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("json"), [](const char* filename){ return AssetDataTemplate<PrefabFileData>::Create(filename); }));
 
@@ -42,6 +44,9 @@ AssetFactory::AssetFactory(){
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tga"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
 
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("pxmaterial"), [](const char* filename){ return AssetDataTemplate<PhysxMaterialFileData>::Create(filename); }));
+
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wav"), [](const char* filename){ return AssetDataTemplate<SoundFileData>::Create(filename); }));
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wave"), [](const char* filename){ return AssetDataTemplate<SoundFileData>::Create(filename); }));
 
 }
 AssetDataTemplatePtr AssetFactory::Create(const char* filename){
@@ -57,6 +62,8 @@ AssetDataTemplatePtr AssetFactory::Create(const char* filename){
 	return make->second(filename);
 
 }
+
+#ifdef _ENGINE_MODE
 
 void AssetDataTemplate<MeshFileData>::CreateInspector(){
 
@@ -110,7 +117,7 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 		Game::GetAllObject([&](Actor* tar){
 			auto com = tar->GetComponent<PhysXColliderComponent>();
 			if (com){
-				com->ChangeMaterial();
+				com->ChangeMaterial(com->GetMaterial());
 			}
 		});
 	};
@@ -154,3 +161,5 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 
 	Window::ViewInspector("PhysxMaterial", NULL, data);
 }
+
+#endif

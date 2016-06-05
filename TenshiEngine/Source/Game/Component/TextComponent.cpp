@@ -120,6 +120,7 @@ void TextComponent::DrawTextUI(){
 	});
 }
 
+#ifdef _ENGINE_MODE
 void TextComponent::CreateInspector(){
 
 	std::function<void(std::string)> collback = [&](std::string name){
@@ -129,6 +130,7 @@ void TextComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Text", &impl->mText, collback), data);
 	Window::ViewInspector("Text", this, data);
 }
+#endif
 
 void TextComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)

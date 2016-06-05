@@ -15,7 +15,8 @@
 #include "Game/RenderingSystem.h"
 
 DirectionalLightComponent::DirectionalLightComponent()
-	: m_Color(XMFLOAT3(1, 1, 1)){
+	: m_Color(XMFLOAT3(1, 1, 1))
+	, m_HDR(1.0f){
 
 	mCBChangeLgiht = ConstantBuffer<cbChangesLight>::create(3);
 
@@ -104,6 +105,7 @@ void DirectionalLightComponent::Update(){
 		render->PopDS();
 	});
 }
+#ifdef _ENGINE_MODE
 void DirectionalLightComponent::CreateInspector(){
 
 
@@ -124,15 +126,18 @@ void DirectionalLightComponent::CreateInspector(){
 	};
 
 	Window::AddInspector(new InspectorColorDataSet("Color", &m_Color.x, collbackx, &m_Color.y, collbacky, &m_Color.z, collbackz, NULL, [](float){}), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &m_HDR, [&](float f){m_HDR = f; }), data);
 
 	Window::ViewInspector("DirectionalLight", this, data);
 }
+#endif
 
 void DirectionalLightComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
 	_KEY(m_Color.x);
 	_KEY(m_Color.y);
 	_KEY(m_Color.z);
+	_KEY(m_HDR);
 
 #undef _KEY
 }
@@ -140,9 +145,9 @@ void DirectionalLightComponent::IO_Data(I_ioHelper* io){
 void DirectionalLightComponent::SetColor(XMFLOAT3 color){
 	m_Color = color;
 
-	mCBChangeLgiht.mParam.LightColor.x = m_Color.x;
-	mCBChangeLgiht.mParam.LightColor.y = m_Color.y;
-	mCBChangeLgiht.mParam.LightColor.z = m_Color.z;
+	mCBChangeLgiht.mParam.LightColor.x = m_Color.x*m_HDR;
+	mCBChangeLgiht.mParam.LightColor.y = m_Color.y*m_HDR;
+	mCBChangeLgiht.mParam.LightColor.z = m_Color.z*m_HDR;
 	mCBChangeLgiht.mParam.LightColor.w = 1;
 }
 

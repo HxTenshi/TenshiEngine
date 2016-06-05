@@ -11,6 +11,7 @@
 
 #define _MAX_CAPACITY_PARTICLE 5000
 
+
 class ParticleInitializeHelper{
 public:
 	ParticleInitializeHelper(){
@@ -20,7 +21,7 @@ public:
 			mInitParticle[i].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			mInitParticle[i].v0 = XMFLOAT3(0, rand() * 0.001f, 0);
 			mInitParticle[i].v = XMFLOAT3(0, 0, 0);
-			mInitParticle[i].time = -10000.0f;
+			mInitParticle[i].time = XMFLOAT3(-10000.0f,0,0);
 		};
 
 		// ターゲット入出力バッファーを作成
@@ -33,6 +34,31 @@ public:
 		mAppedResource.pSysMem = mInitParticle;  // バッファ・データの初期値
 		mAppedResource.SysMemPitch = 0;
 		mAppedResource.SysMemSlicePitch = 0;
+
+
+		UINT stride[] = { sizeof(ParticleComponent::ParticleVertex) };
+
+		D3D11_INPUT_ELEMENT_DESC layout[] = {
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },  // 位置座標
+				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },  // 初速度
+				{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },  // 初速度
+				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }   // 時間
+		};
+
+		D3D11_SO_DECLARATION_ENTRY decl[] = {
+				{ 0, "POSITION", 0, 0, 3, 0 },
+				{ 0, "NORMAL", 0, 0, 3, 0 },
+				{ 0, "BINORMAL", 0, 0, 3, 0 },
+				{ 0, "TEXCOORD", 0, 0, 3, 0 },
+		};
+		mGeometryShader0.Create("EngineResource/ParticleGS.fx", "GS0_Main", decl, _countof(decl), stride, _countof(stride));
+		mGeometryShader1.Create("EngineResource/ParticleGS.fx", "GS1_Main");
+		mVertexShader.Create("EngineResource/ParticleGS.fx", "VS0_Main", layout, 4);
+		mPixelShader.Create("EngineResource/ParticleGS.fx", "PS1_Main");
+	}
+	~ParticleInitializeHelper(){
+		mGeometryShader0.Release();
+		mGeometryShader1.Release();
 	}
 
 	static ParticleInitializeHelper* Instance(){
@@ -46,6 +72,10 @@ public:
 		Device::mpd3dDevice->CreateBuffer(&mBufferDesc, &mAppedResource, buf);
 	}
 
+	GeometryStreamOutputShader mGeometryShader0;
+	GeometryStreamOutputShader mGeometryShader1;
+	VertexShader	mVertexShader;
+	PixelShader		mPixelShader;
 private:
 	ParticleComponent::ParticleVertex mInitParticle[_MAX_CAPACITY_PARTICLE];
 	D3D11_BUFFER_DESC mBufferDesc;
@@ -57,27 +87,6 @@ ParticleComponent::ParticleComponent()
 	mpSOBuffer[0] = NULL;
 	mpSOBuffer[1] = NULL;
 	mInitialize = false;
-	UINT stride[] = { sizeof(ParticleVertex) };
-
-	D3D11_INPUT_ELEMENT_DESC layout[] = {
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },  // 位置座標
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },  // 初速度
-			{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },  // 初速度
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }   // 時間
-	};
-
-	D3D11_SO_DECLARATION_ENTRY decl[] = {
-			{ 0, "POSITION", 0, 0, 3, 0 },
-			{ 0, "NORMAL", 0, 0, 3, 0 },
-			{ 0, "BINORMAL", 0, 0, 3, 0 },
-			{ 0, "TEXCOORD", 0, 0, 1, 0 },
-	};
-	mGeometryShader0.Create("EngineResource/ParticleGS.fx", "GS0_Main", decl, _countof(decl), stride, _countof(stride));
-	mGeometryShader1.Create("EngineResource/ParticleGS.fx", "GS1_Main");
-	mVertexShader.Create("EngineResource/ParticleGS.fx", "VS0_Main", layout, 4);
-	mPixelShader.Create("EngineResource/ParticleGS.fx", "PS1_Main");
-
-
 
 
 	mCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
@@ -95,22 +104,24 @@ ParticleComponent::ParticleComponent()
 	mParticleParam.Rot = XMFLOAT4(90, 360, 0, 0.99f);
 	mParticleParam.MinMaxScale = XMFLOAT4(0.05f, 0.05f, 0.5f, 1.0f);
 	mParticleParam.G = XMFLOAT4(0, -0.0098f, 0, 0);
-	mParticleParam.Time = XMFLOAT4(1, 3, 0.01f, 1);
+	mParticleParam.Time = XMFLOAT4(1, 3, 1.0f, 1);
 	mParticleParam.Param = XMFLOAT4(mParticleCapacity, 0, 0, 0);
 	mParticleParam.Wind = XMFLOAT4(0, 0, 0, 0);
+	mParticleParam.SmoothAlpha = XMFLOAT4(0.2f, 0.5f, 0, 0);
 
 	mParticleParam.Param.w = rand();
 
-	ParticleCapacityChange((UINT)mParticleCapacity);
+	//ParticleCapacityChange((UINT)mParticleCapacity);
 
 	mBlendAdd = true;
-
+	mTimer = 0.0f;
+	mAutoDestroy = false;
+	mEngineUpdate = false;
 
 	mInitialize = true;
 }
 ParticleComponent::~ParticleComponent(){
-	mGeometryShader0.Release();
-	mGeometryShader1.Release();
+
 	if (mpSOBuffer[0])mpSOBuffer[0]->Release();
 	if (mpSOBuffer[1])mpSOBuffer[1]->Release();
 }
@@ -130,8 +141,18 @@ void ParticleComponent::ParticleCapacityChange(UINT num){
 	}
 	mFirstDraw = true;
 }
+
+
+void ParticleComponent::Initialize(){
+	mTimer = 0.0f;
+	ParticleCapacityChange((UINT)mParticleCapacity);
+}
+
 void ParticleComponent::EngineUpdate(){
+	mTimer = -1.0f;
+	mEngineUpdate = true;
 	Update();
+	mEngineUpdate = false;
 }
 void ParticleComponent::Update(){
 	if (!mInitialize)return;
@@ -139,6 +160,22 @@ void ParticleComponent::Update(){
 		mMaterial = gameObject->GetComponent<MaterialComponent>();
 		if (!mMaterial)return;
 	}
+
+	if (!mEngineUpdate){
+		//エンジンからスタートした
+		if (mTimer == -1.0f){
+			Initialize();
+		}
+		mTimer += 0.016f;
+		if (mAutoDestroy){
+			//maxtime * impact + maxtime * loop = 最大時間
+			float maxtime = mParticleParam.Time.y * (1 - mParticleParam.Param.y) + mParticleParam.Time.y * max(mParticleParam.Param.z, 1);
+			if (maxtime <= mTimer){
+				Game::DestroyObject(gameObject);
+			}
+		}
+	}
+
 	mParticleParam.Param.w++;
 	// ターゲット出力バッファーを入れ替える
 	std::swap(mpSOBuffer[0], mpSOBuffer[1]);
@@ -210,9 +247,9 @@ void ParticleComponent::Update(){
 
 
 
-		mVertexShader.SetShader(render->m_Context);
+		ParticleInitializeHelper::Instance()->mVertexShader.SetShader(render->m_Context);
 
-		mGeometryShader0.SetShader(render->m_Context);
+		ParticleInitializeHelper::Instance()->mGeometryShader0.SetShader(render->m_Context);
 
 		// ピクセルシェーダーをデバイスに無効にする。
 		render->m_Context->PSSetShader(NULL, NULL, 0);
@@ -246,8 +283,8 @@ void ParticleComponent::Update(){
 		render->m_Context->SOSetTargets(1, pNullBuffer, NULL);
 
 
-		mGeometryShader1.SetShader(render->m_Context);
-		mPixelShader.SetShader(render->m_Context);
+		ParticleInitializeHelper::Instance()->mGeometryShader1.SetShader(render->m_Context);
+		ParticleInitializeHelper::Instance()->mPixelShader.SetShader(render->m_Context);
 
 		render->m_Context->DrawAuto();
 
@@ -259,6 +296,7 @@ void ParticleComponent::Update(){
 		render->PopBS();
 	});
 }
+#ifdef _ENGINE_MODE
 void ParticleComponent::CreateInspector(){
 
 	auto data = Window::CreateInspector();
@@ -342,14 +380,14 @@ void ParticleComponent::CreateInspector(){
 	std::function<void(float)> collbackPosG = [&](float f){
 		mParticleParam.G.w = f;
 	};
-	std::function<void(float)> collbackGR = [&](float f){
-		mParticleParam.Param.z = f;
-	};
 	std::function<void(float)> collbackNum = [&](float f){
 		mParticleParam.Param.x = max(min((int)f,mParticleCapacity),0);
 	};
 	std::function<void(int)> collbackCap = [&](int f){
 		ParticleCapacityChange((UINT)f);
+	};
+	std::function<void(float)> collbackLoop = [&](float f){
+		mParticleParam.Param.z = f;
 	};
 	std::function<void(bool)> collbackAdd = [&](bool f){
 		mBlendAdd = f;
@@ -375,8 +413,10 @@ void ParticleComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<float>("Friction", &mParticleParam.MinMaxScale.w, collbackFri), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("AirFriction", &mParticleParam.Rot.w, collbackAirFri), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("PointGravity", &mParticleParam.G.w, collbackPosG), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("PointGravityRot", &mParticleParam.Param.z, collbackGR), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("V-Rot&Bura", &mParticleParam.Time.w, collbackVB), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("Loop", &mParticleParam.Param.z, collbackLoop), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("PopAlpha", &mParticleParam.SmoothAlpha.x, [&](float f){mParticleParam.SmoothAlpha.x = f; }), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("DeathAlpha", &mParticleParam.SmoothAlpha.y, [&](float f){mParticleParam.SmoothAlpha.y = f; }), data);
 	Window::AddInspector(new InspectorVector3DataSet("Wind",
 		&mParticleParam.Wind.x, [&](float x){
 			mParticleParam.Wind.x = x; },
@@ -385,10 +425,12 @@ void ParticleComponent::CreateInspector(){
 		&mParticleParam.Wind.z, [&](float x){
 			mParticleParam.Wind.z = x; }), data);
 	Window::AddInspector(new TemplateInspectorDataSet<bool>("BlendModeAdd", &mBlendAdd, collbackAdd), data);
+	Window::AddInspector(new TemplateInspectorDataSet<bool>("AutoDestroy", &mAutoDestroy, [&](bool f){mAutoDestroy = f; }), data);
 
 
 	Window::ViewInspector("Particle", this, data);
 }
+#endif
 
 void ParticleComponent::IO_Data(I_ioHelper* io){
 	(void)io;
@@ -426,9 +468,12 @@ void ParticleComponent::IO_Data(I_ioHelper* io){
 	_KEY(mParticleParam.Wind.y);
 	_KEY(mParticleParam.Wind.z);
 	_KEY(mParticleParam.Wind.w);
+	_KEY(mParticleParam.SmoothAlpha.x);
+	_KEY(mParticleParam.SmoothAlpha.y);
+	_KEY(mParticleParam.SmoothAlpha.z);
+	_KEY(mParticleParam.SmoothAlpha.w);
 	_KEY(mBlendAdd);
-
-	ParticleCapacityChange((UINT)mParticleCapacity);
+	_KEY(mAutoDestroy);
 
 #undef _KEY
 }

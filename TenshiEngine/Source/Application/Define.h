@@ -17,7 +17,7 @@ enum class MyWindowMessage{
 
 	PlayGame,
 	StopGame,
-	CreatePMXtoTEStaticMesh,
+	CreateModelConvert,
 	CreatePrefabToActor,
 	CreateActorToPrefab,
 

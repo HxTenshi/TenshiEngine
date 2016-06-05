@@ -26,8 +26,8 @@ public:
 	}
 	~DataModel(){
 	}
-	T& get() {
-		return *m_x;
+	T* get() {
+		return m_x;
 	}
 
 	bool set(T value) {
@@ -155,8 +155,13 @@ protected:
 //	return gcnew String(p);
 //}
 
+#include <bitset>
+#include <sstream>
+
+
+
 template <class T>
-String^ lexical_cast_(T& p);
+String^ lexical_cast_(T* p);
 
 template <class R, class T>
 R lexical_cast(T^ p);
@@ -171,7 +176,17 @@ public:
 	property String^ Value {
 
 		String^ get() {
-			return lexical_cast_(_dataModel->get());
+			//try{
+				__try{
+					return lexical_cast_(_dataModel->get());
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER){
+					return gcnew String("");
+				}
+			//}
+			//catch (...)
+			//{
+			//}
 		}
 
 		void set(String^ value) {
@@ -196,7 +211,12 @@ public:
 	property Color Value {
 
 		Color get() {
-			return Color::FromArgb(_dataModel4->get() * 255, _dataModel1->get() * 255, _dataModel2->get() * 255, _dataModel3->get() * 255);
+			__try{
+				return Color::FromArgb(*_dataModel4->get() * 255, *_dataModel1->get() * 255, *_dataModel2->get() * 255, *_dataModel3->get() * 255);
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER){
+				return Color::FromArgb(255,255,255,255);
+			}
 		}
 
 		void set(Color value) {
@@ -225,7 +245,12 @@ public:
 	property Color Value {
 
 		Color get() {
-			return Color::FromRgb(_dataModel1->get() * 255, _dataModel2->get() * 255, _dataModel3->get() * 255);
+			__try{
+				return Color::FromRgb(*_dataModel1->get() * 255, *_dataModel2->get() * 255, *_dataModel3->get() * 255);
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER){
+				return Color::FromArgb(255, 255, 255, 255);
+			}
 		}
 
 		void set(Color value) {

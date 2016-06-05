@@ -5,12 +5,28 @@
 #include "PhysX/PhysX3.h"
 #include "Engine/Debug.h"
 #include "Engine/DebugEngine.h"
+#include "Engine/AssetFile/Prefab/PrefabFileData.h"
 
 //ゲームのスタティック関数の肩代わり
 class SGame : public IGame{
 public:
 	Actor* CreateActor(const char* prefab)override{
+
+
 		auto a = new Actor();
+
+		PrefabAssetDataPtr mPrefabAsset;
+		AssetDataBase::Instance(prefab, mPrefabAsset);
+		if (mPrefabAsset){
+			if (mPrefabAsset->GetFileData()){
+				auto val = mPrefabAsset->GetFileData()->GetParam();
+				a->ImportDataAndNewID(*val);
+				return a;
+			}
+
+		}
+
+
 		if (!a->ImportDataAndNewID(prefab)){
 			delete a;
 			return NULL;

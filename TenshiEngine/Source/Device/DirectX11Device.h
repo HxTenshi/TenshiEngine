@@ -23,4 +23,5 @@ public:
 	static IDXGISwapChain*			mpSwapChain;
 
 	static RenderTarget* mRenderTargetBack;
+
 };

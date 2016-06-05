@@ -20,7 +20,9 @@ public:
 
 	void Update() override;
 
+#ifdef _ENGINE_MODE
 	void CreateInspector() override;
+#endif
 
 	void IO_Data(I_ioHelper* io) override;
 
@@ -58,9 +60,6 @@ private:
 	//MaterialComponent mSkyMaterial;
 	Material mSkyMaterial;
 	Model mSkyModel;
-
-
-
 
 	friend EditorCamera;
 };

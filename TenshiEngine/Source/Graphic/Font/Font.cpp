@@ -250,8 +250,8 @@ void FontFileData::Create(const char* fileName){
 	//desc.Height = TM.tmHeight;
 
 
-	desc.Width = 400;
-	desc.Height = 400;
+	desc.Width = 512;
+	desc.Height = 512;
 
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
@@ -304,8 +304,8 @@ void FontFileData::SetText(const std::string& text){
 	BYTE* pBits = (BYTE*)hMappedResource.pData;
 
 	TextureBitmapState state;
-	state.w = 400;
-	state.h = 400;
+	state.w = 512;
+	state.h = 512;
 
 	//テクスチャーをクリア
 	int size = state.w*state.h * 4;

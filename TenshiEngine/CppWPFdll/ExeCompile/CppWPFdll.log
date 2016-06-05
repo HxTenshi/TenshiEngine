@@ -1,0 +1,70 @@
+﻿2016/06/05 16:27:22 にビルドを開始しました。
+     1>ノード 2 上のプロジェクト "C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\CppWPFdll\CppWPFdll.vcxproj" (Build ターゲット)。
+     1>InitializeBuildStatus:
+         "AlwaysCreate" が指定されたため "ExeCompile\CppWPFdll.tlog\unsuccessfulbuild" を作成しています。
+       GenerateTargetFrameworkMonikerAttribute:
+       すべての出力ファイルが入力ファイルに対して最新なので、ターゲット "GenerateTargetFrameworkMonikerAttribute" を省略します。
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\\" /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\\" /Zi /clr /nologo /W3 /WX- /O2 /Oy- /D WIN32 /D NDEBUG /D _WINDLL /D _UNICODE /D UNICODE /EHa /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"ExeCompile\CppWPFdll.pch" /Fo"ExeCompile\\" /Fd"ExeCompile\vc120.pdb" /TP /FUC:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\ExeCompile\CustomControls.dll /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\PresentationCore.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\PresentationFramework.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Drawing.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Windows.Forms.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xaml.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\WindowsBase.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\WindowsFormsIntegration.dll" /analyze- /errorReport:prompt /clr:nostdlib Stdafx.cpp
+         Stdafx.cpp
+     1>c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\stdafx.h(22): warning C4091: 'static ' : 変数が何も宣言されていないときは、'Data' の左辺を無視します。
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\\" /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\\" /Zi /clr /nologo /W3 /WX- /O2 /Oy- /D WIN32 /D NDEBUG /D _WINDLL /D _UNICODE /D UNICODE /EHa /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"ExeCompile\CppWPFdll.pch" /Fo"ExeCompile\\" /Fd"ExeCompile\vc120.pdb" /TP /FUC:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\ExeCompile\CustomControls.dll /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\PresentationCore.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\PresentationFramework.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Drawing.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Windows.Forms.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xaml.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\WindowsBase.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\WindowsFormsIntegration.dll" /analyze- /errorReport:prompt /clr:nostdlib AssemblyInfo.cpp CppWPFdll.cpp ViewModel.cpp
+         AssemblyInfo.cpp
+         CppWPFdll.cpp
+     1>c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\InspectorData.h(5): warning C4570: 'InspectorData' : 明示的に抽象として宣言されていませんが、抽象関数を含んでいます
+                 'void InspectorData::CreateInspector(System::Windows::Controls::DockPanel ^)' : は抽象型です
+                 c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\InspectorData.h(9) : 'InspectorData::CreateInspector' の宣言を確認してください。
+     1>c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\MainWindow.h(518): warning C4244: '引数' : 'float' から 'unsigned char' への変換です。データが失われる可能性があります。
+     1>c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\MainWindow.h(519): warning C4244: '引数' : 'float' から 'unsigned char' への変換です。データが失われる可能性があります。
+     1>c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\MainWindow.h(520): warning C4244: '引数' : 'float' から 'unsigned char' への変換です。データが失われる可能性があります。
+     1>CppWPFdll.cpp(31): warning C4091: 'static ' : 変数が何も宣言されていないときは、'ViewData' の左辺を無視します。
+     1>c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\ViewModel.h(249): warning C4244: '引数' : 'float' から 'unsigned char' への変換です。データが失われる可能性があります。
+                 c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\ViewModel.h(247): クラス テンプレート のメンバー関数 'System::Windows::Media::Color Color3ViewModel<T>::Value::get(void)' のコンパイル中
+                 with
+                 [
+                     T=float
+                 ]
+                 c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\TemplateFunction.h(62) : コンパイルされたクラスの テンプレート のインスタンス化 'Color3ViewModel<T>' の参照を確認してください
+                 with
+                 [
+                     T=float
+                 ]
+                 CppWPFdll.cpp(110) : コンパイルされたクラスの テンプレート のインスタンス化 'void BindingInspector<float>(System::Windows::Shapes::Rectangle ^,T *,std::function<void (float)>,T *,std::function<void (float)>,T *,std::function<void (float)>,T *,std::function<void (float)>)' の参照を確認してください
+                 with
+                 [
+                     T=float
+                 ]
+     1>c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\ViewModel.h(215): warning C4244: '引数' : 'float' から 'unsigned char' への変換です。データが失われる可能性があります。
+                 c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\ViewModel.h(213): クラス テンプレート のメンバー関数 'System::Windows::Media::Color ColorViewModel<T>::Value::get(void)' のコンパイル中
+                 with
+                 [
+                     T=float
+                 ]
+                 c:\users\tenshi\desktop\programming\now\directxlib\tenshiengine\tenshiengine\cppwpfdll\TemplateFunction.h(66) : コンパイルされたクラスの テンプレート のインスタンス化 'ColorViewModel<T>' の参照を確認してください
+                 with
+                 [
+                     T=float
+                 ]
+         ViewModel.cpp
+         コードを生成中...
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /clr /nologo /W3 /WX- /O2 /Oy- /D WIN32 /D NDEBUG /D _WINDLL /D _UNICODE /D UNICODE /EHa /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"ExeCompile\\" /Fd"ExeCompile\vc120.pdb" /TP /analyze- /errorReport:prompt "C:\Users\tenshi\AppData\Local\Temp\.NETFramework,Version=v4.5.AssemblyAttributes.cpp"
+         .NETFramework,Version=v4.5.AssemblyAttributes.cpp
+       ResourceCompile:
+         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\rc.exe /D _UNICODE /D UNICODE /l"0x0409" /nologo /fo"ExeCompile\app.res" app.rc 
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\ExeCompile\CppWPFdll.dll" /INCREMENTAL:NO /NOLOGO /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\ExeCompile\CppWPFdll.pdb" /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 /SAFESEH /DLL ExeCompile\app.res
+         ExeCompile\AssemblyInfo.obj
+         ExeCompile\CppWPFdll.obj
+         ExeCompile\Stdafx.obj
+         ExeCompile\ViewModel.obj
+         "ExeCompile\.NETFramework,Version=v4.5.AssemblyAttributes.obj"
+            ライブラリ C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\ExeCompile\CppWPFdll.lib とオブジェクト C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\ExeCompile\CppWPFdll.exp を作成中
+         CppWPFdll.vcxproj -> C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\ExeCompile\CppWPFdll.dll
+       FinalizeBuildStatus:
+         ファイル "ExeCompile\CppWPFdll.tlog\unsuccessfulbuild" を削除しています。
+         "ExeCompile\CppWPFdll.tlog\CppWPFdll.lastbuildstate" のタッチ タスクを実行しています。
+     1>プロジェクト "C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\CppWPFdll\CppWPFdll.vcxproj" (Build ターゲット) のビルドが完了しました。
+
+ビルドに成功しました。
+
+経過時間 00:00:03.94

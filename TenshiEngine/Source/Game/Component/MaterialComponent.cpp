@@ -131,6 +131,7 @@ Material MaterialComponent::GetMaterial(UINT GetNo) const{
 	}
 	return mMaterials[GetNo];
 }
+#ifdef _ENGINE_MODE
 void MaterialComponent::CreateInspector(){
 
 	auto data = Window::CreateInspector();
@@ -280,9 +281,8 @@ void MaterialComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collbacksha), data);
 	Window::ViewInspector("Material", this, data);
 
-	
-	
 }
+#endif
 
 void MaterialComponent::SetAlbedoColor(const XMFLOAT4& col){
 	mAlbedo = col;

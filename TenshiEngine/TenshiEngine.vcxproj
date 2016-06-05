@@ -9,6 +9,14 @@
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="ExeCompile|Win32">
+      <Configuration>ExeCompile</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ExeCompile|x64">
+      <Configuration>ExeCompile</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Profile|Win32">
       <Configuration>Profile</Configuration>
       <Platform>Win32</Platform>
@@ -52,7 +60,20 @@
     <PlatformToolset>v120</PlatformToolset>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|X64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
@@ -79,6 +100,9 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -86,6 +110,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
@@ -113,7 +140,21 @@
     <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\dll;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>true</GenerateManifest>
+    <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x64;$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(DXSDK_DIR)Lib\x64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|X64'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(DXSDK_DIR)Utilities\bin\x64;$(DXSDK_DIR)Utilities\bin\x86;$(ExecutablePath)</ExecutablePath>
@@ -238,6 +279,53 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
       <AdditionalIncludeDirectories>.\..\DXUT11\Core;.\..\DXUT11\Optional;.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/D "_XM_NO_INTRINSICS_" /D "_ENGINE_MODE"</AdditionalOptions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx\stdafx.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>stdafx\stdafx.h</ForcedIncludeFiles>
+      <ShowIncludes>false</ShowIncludes>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LargeAddressAware>true</LargeAddressAware>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+    </Link>
+    <Manifest>
+      <EnableDPIAwareness>true</EnableDPIAwareness>
+    </Manifest>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <OpenMPSupport>false</OpenMPSupport>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <AdditionalIncludeDirectories>.\..\DXUT11\Core;.\..\DXUT11\Optional;.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_"</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -274,6 +362,46 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <OpenMPSupport>false</OpenMPSupport>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <AdditionalIncludeDirectories>..\..\..\DXUT11\Core;..\..\..\DXUT11\Optional;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;d3dx11.lib;d3dx9.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LargeAddressAware>true</LargeAddressAware>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <TargetMachine>MachineX64</TargetMachine>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+    </Link>
+    <Manifest>
+      <EnableDPIAwareness>true</EnableDPIAwareness>
+    </Manifest>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|X64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
@@ -412,7 +540,9 @@
     <ClCompile Include="Source\Engine\AssetFile\Physx\PhysxMaterialFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Prefab\PrefabFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Shader\ShaderFileData.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\Sound\SoundFileData.cpp" />
     <ClCompile Include="Source\Engine\Debug.cpp" />
+    <ClCompile Include="Source\Engine\ModelConverter.cpp" />
     <ClCompile Include="Source\Engine\Profiling.cpp" />
     <ClCompile Include="Source\Engine\SelectActor.cpp" />
     <ClCompile Include="Source\Engine\SystemLog.cpp" />
@@ -430,6 +560,7 @@
     <ClCompile Include="Source\Game\Component\ParticleComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PointLightComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PostEffectComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\SoundComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TextureModelComponent.cpp" />
     <ClCompile Include="Source\Game\DeferredRendering.cpp" />
     <ClCompile Include="Source\Game\EngineObject\EditorCamera.cpp" />
@@ -464,9 +595,11 @@
     <ClCompile Include="Source\MySTL\Reflection\Reflection.cpp" />
     <ClCompile Include="Source\MySTL\Utility.cpp" />
     <ClCompile Include="Source\PhysX\PhysX3.cpp" />
+    <ClCompile Include="Source\Sound\Sound.cpp" />
     <ClCompile Include="Source\stdafx\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Source\Window\Window.cpp" />
@@ -482,6 +615,7 @@
     <ClInclude Include="lua\include\lua.hpp" />
     <ClInclude Include="lua\include\luaconf.h" />
     <ClInclude Include="lua\include\lualib.h" />
+    <ClInclude Include="Source\Application\BuildVersion.h" />
     <ClInclude Include="Source\Application\Define.h" />
     <ClInclude Include="Source\Application\DefineDrawMultiThread.h" />
     <ClInclude Include="Source\Application\DrawThreadQueue.h" />
@@ -498,12 +632,15 @@
     <ClInclude Include="Source\Engine\AssetFile\Physx\PhysxMaterialFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Prefab\PrefabFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Shader\ShaderFileData.h" />
+    <ClInclude Include="Source\Engine\AssetFile\Sound\SoundFileData.h" />
     <ClInclude Include="Source\Engine\AssetLoader.h" />
     <ClInclude Include="Source\Engine\Debug.h" />
     <ClInclude Include="Source\Engine\DebugEngine.h" />
     <ClInclude Include="Source\Engine\details.h" />
     <ClInclude Include="Source\Engine\ICommand.h" />
+    <ClInclude Include="Source\Engine\ModelConverter.h" />
     <ClInclude Include="Source\Engine\SystemLog.h" />
+    <ClInclude Include="Source\Game\Component\SoundComponent.h" />
     <ClInclude Include="Source\Game\EngineObject\ProfileViewer.h" />
     <ClInclude Include="Source\Engine\Profiling.h" />
     <ClInclude Include="Source\Engine\SelectActor.h" />

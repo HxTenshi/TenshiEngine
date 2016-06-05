@@ -20,8 +20,8 @@ public:
 		mTransform = mComponents.AddComponent<TransformComponent>();
 		mComponents.AddComponent<TextComponent>();
 
-		mTransform->Position(XMVectorSet(200,250, 0, 1));
-		mTransform->Scale(XMVectorSet(400, 400,0,1));
+		mTransform->Position(XMVectorSet(256,256+50, 0, 1));
+		mTransform->Scale(XMVectorSet(512, 512,0,1));
 	}
 	~Text(){
 		Finish();

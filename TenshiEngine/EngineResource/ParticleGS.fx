@@ -54,9 +54,10 @@ cbuffer CBChangesPaticleParam : register(b10)
 	float4 Time;
 	//w=pointG-Pow
 	float4 G;
-	//x = num, y=impact, z=pointG-Rot, w=time
+	//x = num, y=impact, z=‘h¶‰ñ”, w=time
 	float4 Param;
 	float4 Wind;
+	float4 SmoothAlpha;
 };
 
 // ƒWƒIƒƒgƒŠƒVƒF[ƒ_[‚Ì“ü—Íƒpƒ‰ƒ[ƒ^
@@ -65,7 +66,7 @@ struct VS_IN
 	float3 pos : POSITION;  // À•W
 	float3 v0  : NORMAL;    // ‰‘¬“x
 	float3 v  : BINORMAL;    // ‘¬“x
-	float time : TEXCOORD;  // ŠÔ
+	float3 time : TEXCOORD;  // ŠÔ
 };
 
 typedef VS_IN VS_OUT;
@@ -94,33 +95,35 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 	GS0_OUT Out;
 	Out.time = In[0].time;
 
-	if (((int)Param.x) <= ID){
-		Out.time = -10000.0f;
+	if (((uint)Param.x) <= ID){
+		Out.time.x = -10000.0f;
 		Out.v0.xz = 0;
 	}
-	if (Out.time <= -0.017f){
+	if (Out.time.x <= -0.017f){
 		Out.pos = In[0].pos;
 		Out.v0 = In[0].v0;
 		Out.v = In[0].v;
 
-		if (In[0].time <= -9999.0f){
+		if (In[0].time.x <= -9999.0f){
 			Out.pos = In[0].pos;
 			Out.v0 = In[0].v0;
 			Out.v = In[0].v;
 
 			float rand = GetRandomNumber(float2(Param.w / 12345.0f, Param.w / 543.0f), 354 + ID + Param.w / 28.0f);
 			float time = GetRandomNumber(float2(rand, rand), 361 + ID);
-			Out.time = -(Time.y)*time * (1-Param.y);
+			Out.time.x = -(Time.y)*time * (1 - Param.y);
 
 		}
 		else{
-			Out.time = In[0].time + 0.016f;
+			Out.time.x = In[0].time.x + 0.016f;
 		}
 
-	}else
+	}
+	else
 	// ƒp[ƒeƒBƒNƒ‹‚ÌŠÔ‚ª g_LimitTime ‚ğ’´‚¦‚½‚Ì‚Å‰Šú‰»‚·‚é
-	if (Out.time <= 0.0f)
+	if (Out.time.x <= 0.0f && (Param.z == 0 || Out.time.y < Param.z))
 	{
+		Out.time.y++;
 		float rand = GetRandomNumber(float2(Param.w / 12345.0f, Param.w / 543.0f), 354 + ID + Param.w/28.0f);
 		float2 rand2 = float2(rand, 1-rand);
 
@@ -177,8 +180,8 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 		Out.v = mul(Out.v, (float3x3)World);
 
 		float time = GetRandomNumber(rand2, 360 + ID);
-		Out.time = (Time.y - Time.x)*time + Time.x;
-
+		Out.time.x = (Time.y - Time.x)*time + Time.x;
+		Out.time.z = Out.time.x;
 	}
 	else
 	{
@@ -195,18 +198,6 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 				//Point
 				float3 posG = nortar * G.w;
 				Out.v += posG;
-
-				//Rotate
-				float3 nor = nortar * -1;
-					float3 bv = Out.v*-1;
-					float vl = length(Out.v);
-				if (vl != 0){
-					bv = normalize(bv);
-				}
-				bv = nor - dot(nor, bv) * 2 * bv;
-				bv *= vl;
-				Out.v = lerp(Out.v, bv, Param.z);
-
 
 				//ƒEƒBƒ“ƒh
 				float3 left = cross(nortar,float3(0, 1, 0));
@@ -231,7 +222,7 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 		Out.v *= RotVec.w;
 
 		// ŠÔ‚ği‚ß‚é
-		Out.time = In[0].time - 0.016f;
+		Out.time.x = In[0].time.x - 0.016f;
 
 
 		float4 screenpos = mul(float4(Out.pos, 1), matWVP);
@@ -279,15 +270,21 @@ void GS1_Main(point GS_IN In[1],                       // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚
 	)
 {
 	GS1_OUT Out;
+	float alpha = 1;
+	if (SmoothAlpha.x != 0){
+		alpha *= min(max((In[0].time.z - In[0].time.x) / SmoothAlpha.x, 0), 1);
+	}
+	if (SmoothAlpha.y != 0){
+		alpha *= min(max(In[0].time.x / SmoothAlpha.y, 0), 1);
+	}
 
-	float g_LimitTime = 10.0f;
 	float g_Scale = In[0].v0.x;
 	float g_ScaleY = In[0].v0.z;
 
 	float bc = (g_Scale / (g_Scale + g_ScaleY*1.5));
 	float fc = (bc + 1)/2.0;
-	float4 fcol = float4(1,1,1, fc);
-	float4 bcol = float4(1,1,1, bc);
+	float4 fcol = float4(1,1,1, fc*alpha);
+	float4 bcol = float4(1,1,1, bc*alpha);
 
 	float rot = In[0].v0.y;
 	float4x4 ZRot = 

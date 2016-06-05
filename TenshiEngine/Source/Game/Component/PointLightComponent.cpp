@@ -17,7 +17,8 @@ PointLightComponent::PointLightComponent()
 	: m_Radius(1)
 	, m_AttenuationStart(0)
 	, m_AttenuationParam(1)
-	, m_Color(XMFLOAT3(1, 1, 1)){
+	, m_Color(XMFLOAT3(1, 1, 1))
+	, m_HDR(1.0f){
 
 	mPointLightBuffer = ConstantBuffer<cbChangesPointLight>::create(8);
 	mModel.Create("EngineResource/ball.tesmesh");
@@ -77,7 +78,7 @@ void PointLightComponent::Update(){
 
 
 		mPointLightBuffer.mParam.ViewPosition = XMFLOAT4(view.x, view.y, view.z, 1);
-		mPointLightBuffer.mParam.Color = XMFLOAT4(m_Color.x, m_Color.y, m_Color.z, 1);
+		mPointLightBuffer.mParam.Color = XMFLOAT4(m_Color.x*m_HDR, m_Color.y*m_HDR, m_Color.z*m_HDR, 1);
 
 		float n = m_AttenuationParam;//任意の値(≠0)　減衰曲線を制御
 		float rmin = m_AttenuationStart;// 減衰開始距離　減衰率 = 1
@@ -103,6 +104,8 @@ void PointLightComponent::Update(){
 
 	});
 }
+
+#ifdef _ENGINE_MODE
 void PointLightComponent::CreateInspector(){
 
 
@@ -133,12 +136,14 @@ void PointLightComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<float>("AttenuationStart", &m_AttenuationStart, collbackas), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("AttenuationParam", &m_AttenuationParam, collbackap), data);
 	Window::AddInspector(new InspectorColorDataSet("Color", &m_Color.x, collbackx, &m_Color.y, collbacky, &m_Color.z, collbackz, NULL, [](float){}), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &m_HDR, [&](float f){m_HDR = f; }), data);
 
 	//Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &m_Color.x, collbackx), data);
 	//Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &m_Color.y, collbacky), data);
 	//Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &m_Color.z, collbackz), data);
 	Window::ViewInspector("PointLight", this, data);
 }
+#endif
 
 void PointLightComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
@@ -148,6 +153,7 @@ void PointLightComponent::IO_Data(I_ioHelper* io){
 	_KEY(m_Color.x);
 	_KEY(m_Color.y);
 	_KEY(m_Color.z);
+	_KEY(m_HDR);
 
 #undef _KEY
 }

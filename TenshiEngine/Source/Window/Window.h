@@ -29,7 +29,10 @@ class Component;
 
 class Window{
 public:
+
+#ifdef _ENGINE_MODE
 	static Test::NativeFraction mMainWindow_WPF;
+#endif
 	static HWND mGameScreenHWND;
 	Window(HINSTANCE hInstance, int nCmdShow)
 		: mhInstance(hInstance)
@@ -37,6 +40,7 @@ public:
 	{
 
 		_SYSTEM_LOG_H("ウィンドウの作成");
+#ifdef _ENGINE_MODE
 		mMainWindow_WPF.Initialize();
 
 		HWND hWnd = NULL;
@@ -44,19 +48,18 @@ public:
 			hWnd = (HWND)mMainWindow_WPF.GetGameScreenHWND();
 		}
 		mhWnd = (HWND)mMainWindow_WPF.GetEditorHWND();
-		//RECT rc;
-		//GetClientRect(hWnd, &rc);
-		//WindowState::mWidth = rc.right - rc.left;
-		//WindowState::mHeight = rc.bottom - rc.top;
-
 		mGameScreenHWND = hWnd;
+#endif
+
 	}
 	int Init();
 
 	static void Release(){
-		if (mhModuleWnd)
-			FreeLibrary(mhModuleWnd);
+		//if (mhModuleWnd)
+		//	FreeLibrary(mhModuleWnd);
+#ifdef _ENGINE_MODE
 		mMainWindow_WPF.Release();
+#endif
 	}
 
 	static HWND GetMainHWND(){
@@ -71,7 +74,15 @@ public:
 	static void SetWindowTitle(const std::string& title){
 		SetWindowText(mhWnd, title.c_str());
 	}
+	static void AddLog(const std::string& log){
+#ifdef _ENGINE_MODE
+		mMainWindow_WPF.AddLog(log);
+#else
+		(void)log;
+#endif
+	}
 
+#ifdef _ENGINE_MODE
 	template<class T>
 	static void Deleter(T* ptr){
 		mMainWindow_WPF.Deleter<T>(ptr);
@@ -88,9 +99,6 @@ public:
 	}
 	static void ClearTreeViewItem(void* ptr){
 		if (ptr)mMainWindow_WPF.ClearTreeViewItem(ptr);
-	}
-	static void AddLog(const std::string& log){
-		mMainWindow_WPF.AddLog(log);
 	}
 
 	static void ClearInspector(){
@@ -130,6 +138,7 @@ public:
 	static void AddInspector(InspectorButtonDataSet* dataset, std::vector<InspectorDataSet>& data){
 		data.push_back(InspectorDataSet(InspectorDataFormat::Button, dataset));
 	}
+
 	static void ViewInspector(const std::string& ComponentName,Component* comptr, std::vector<InspectorDataSet>& data){
 		mMainWindow_WPF.CreateComponentWindow(ComponentName, (void*)comptr, data);
 	}
@@ -152,15 +161,19 @@ public:
 		mWPFCollBacks[(int)massage] = collback;
 	}
 
+#endif
 	
 
 public:
-	static HMODULE mhModuleWnd;
+	//static HMODULE mhModuleWnd;
 	static HWND mhWnd;
-	HWND mDummyhWnd;
 	HINSTANCE mhInstance;
 	int mnCmdShow;
 
+
+#ifdef _ENGINE_MODE
+	HWND mDummyhWnd;
 	static std::vector<const std::function<void(void*)>> mWPFCollBacks;
+#endif
 };
 

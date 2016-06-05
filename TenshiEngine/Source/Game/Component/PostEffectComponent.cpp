@@ -51,6 +51,7 @@ void PostEffectComponent::PostDraw(){
 	});
 }
 
+#ifdef _ENGINE_MODE
 void PostEffectComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
 
@@ -64,6 +65,7 @@ void PostEffectComponent::CreateInspector(){
 
 	Window::ViewInspector("PostEffect", this, data);
 }
+#endif
 
 
 void PostEffectComponent::IO_Data(I_ioHelper* io){

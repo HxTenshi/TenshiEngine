@@ -12,6 +12,8 @@ public:
 	void Load();
 	void Unload();
 	void ReCompile();
+	void SaveParam();
+	void LoadParam();
 	void Initialize() override;
 	void Start() override;
 	void Update() override;
@@ -20,7 +22,11 @@ public:
 	void OnCollide(Actor* target);
 	void LostCollide(Actor* target);
 
+
+
+#ifdef _ENGINE_MODE
 	void CreateInspector() override;
+#endif
 
 	void IO_Data(I_ioHelper* io) override;
 	IDllScriptComponent* pDllClass;
@@ -30,11 +36,16 @@ public:
 private:
 	bool mEndInitialize;
 	bool mEndStart;
+
+	picojson::value* mSaveParam;
 };
 
 
 class ScriptManager{
 public:
+
+#ifdef _ENGINE_MODE
 	static void ReCompile();
 	static void CreateScriptFile(const std::string& className);
+#endif
 };

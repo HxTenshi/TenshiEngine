@@ -5,7 +5,14 @@
 class Model;
 class Material;
 
-class TextureModelComponent : public IModelComponent{
+class ITextureModel{
+public:
+	virtual ~ITextureModel(){}
+
+	virtual void SetTexture(const std::string& filename) = 0;
+};
+
+class TextureModelComponent :public ITextureModel, public IModelComponent{
 public:
 	TextureModelComponent();
 	~TextureModelComponent();
@@ -18,9 +25,13 @@ public:
 
 	void SetMatrix() override;
 
+#ifdef _ENGINE_MODE
 	void CreateInspector() override;
+#endif
 
 	void IO_Data(I_ioHelper* io) override;
+
+	void SetTexture(const std::string& filename) override;
 private:
 	Material* mMaterial;
 	std::string mTextureName;

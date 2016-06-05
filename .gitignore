@@ -20,6 +20,7 @@
 
 Debug/
 Release/
+ExeCompile/
 *.sdf
 *.suo
 ipch/

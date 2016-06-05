@@ -23,6 +23,8 @@ public:
 	template<class T>
 	bool func(T&& out, const char* name, bool compel = false);
 
+	bool isInput(){ return Ic != NULL; }
+
 protected:
 	std::stack<std::pair<std::string,picojson::object>> objects;
 	picojson::object* o;

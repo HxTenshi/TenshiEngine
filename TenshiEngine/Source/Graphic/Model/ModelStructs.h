@@ -49,6 +49,10 @@ struct IkLink
 struct OutputSimpleBone{
 	float bone_head_pos[3]; // x, y, z // ボーンのヘッドの位置
 	int parent_bidx;	//ボーンIndexサイズ 親ボーン番号(ない場合は0xFFFF)
+};
+struct OutputIKBone{
+	float bone_head_pos[3]; // x, y, z // ボーンのヘッドの位置
+	int parent_bidx;	//ボーンIndexサイズ 親ボーン番号(ない場合は0xFFFF)
 	int Hierarchy;//変形階層
 	unsigned short bone_flag;		// ボーンの種類
 
@@ -114,8 +118,8 @@ public:
 	XMFLOAT4 mRot;		// 回転（クォータニオン）
 	XMFLOAT3 mPos;		// 位置
 	XMMATRIX mMtxPose;	//
-	XMMATRIX mMtxPoseInit;	//
-	WORD mIkBoneIdx;
+	XMMATRIX mMtxPoseInv;	//
+	//WORD mIkBoneIdx;
 	Hierarchy mHierarchy;
 private:
 };

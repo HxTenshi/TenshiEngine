@@ -6,6 +6,8 @@
 
 #include "Application/DefineDrawMultiThread.h"
 
+#include "Sound/Sound.h"
+
 //static
 D3D_DRIVER_TYPE			Device::mDriverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL		Device::mFeatureLevel = D3D_FEATURE_LEVEL_11_1;
@@ -135,6 +137,8 @@ HRESULT Device::Init(const Window& window)
 	//インデックスの並び　Z字など
 	mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	SoundDevice::Initialize();
+
 	return S_OK;
 }
 
@@ -154,4 +158,6 @@ void Device::CleanupDevice()
 		mRenderTargetBack->Release();
 		delete mRenderTargetBack;
 	}
+
+	SoundDevice::Release();
 }

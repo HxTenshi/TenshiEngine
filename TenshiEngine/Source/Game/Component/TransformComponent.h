@@ -18,6 +18,7 @@ public:
 	virtual ~ITransformComponent(){
 
 	}
+	virtual const XMVECTOR WorldScale() const = 0;
 	virtual const XMVECTOR LossyScale() const = 0;
 	//virtual const XMVECTOR& WorldRotate() const = 0;
 	virtual const XMVECTOR& WorldPosition() const = 0;
@@ -46,6 +47,7 @@ public:
 
 	virtual std::list<Actor*>& Children() = 0;
 	virtual Actor* GetParent() = 0;
+	virtual void SetParentUniqueID(int id) = 0;
 	virtual void SetParent(Actor* parent) = 0;
 
 	virtual void SetUndo(const XMVECTOR& pos) = 0;
@@ -64,6 +66,7 @@ public:
 	TransformComponent();
 	~TransformComponent();
 
+	const XMVECTOR WorldScale() const override;
 	const XMVECTOR LossyScale() const override;
 	//const XMVECTOR& WorldRotate() const override;
 	const XMVECTOR& WorldPosition() const override;
@@ -94,7 +97,9 @@ public:
 	void AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;
 
 	const XMMATRIX& GetMatrix() const override;
+#ifdef _ENGINE_MODE
 	void CreateInspector() override;
+#endif
 
 	void IO_Data(I_ioHelper* io) override;
 
@@ -113,6 +118,7 @@ public:
 
 	std::list<Actor*>& Children() override;
 	Actor* GetParent() override;
+	void SetParentUniqueID(int id) override;
 	void SetParent(Actor* parent) override;
 
 private:

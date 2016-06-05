@@ -5,10 +5,14 @@
 
 #include "../resource/resource.h"
 
+#ifdef _ENGINE_MODE
+
 #ifdef _DEBUG
 #pragma comment(lib, "Debug/CppWPFdll.lib")
 #else
 #pragma comment(lib, "Release/CppWPFdll.lib")
+#endif
+
 #endif
 
 
@@ -16,19 +20,20 @@ UINT WindowState::mWidth = 1200;
 UINT WindowState::mHeight = 800;
 
 
-HMODULE Window::mhModuleWnd = NULL;
+//HMODULE Window::mhModuleWnd = NULL;
 HWND Window::mhWnd = NULL;
-
-Test::NativeFraction Window::mMainWindow_WPF;
-HWND Window::mGameScreenHWND = NULL;
-
+#ifdef _ENGINE_MODE
 std::vector<const std::function<void(void*)>> Window::mWPFCollBacks;
+Test::NativeFraction Window::mMainWindow_WPF;
+#endif
+
+HWND Window::mGameScreenHWND = NULL;
 
 
 int Window::Init(){
 
+#ifdef _ENGINE_MODE
 	mWPFCollBacks.resize((int)MyWindowMessage::Count);
-
 	// Register class
 	WNDCLASSEX wcex;
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -54,6 +59,32 @@ int Window::Init(){
 		NULL);
 	if (!mDummyhWnd)
 		return E_FAIL;
+#else
+	WNDCLASSEX wcex;
+	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.style = NULL;
+	wcex.lpfnWndProc = WndProc;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+	wcex.hInstance = mhInstance;
+	wcex.hIcon = LoadIcon(mhInstance, (LPCTSTR)IDI_TUTORIAL1);
+	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.lpszMenuName = NULL;
+	wcex.lpszClassName = "GameWindowClass";
+	wcex.hIconSm = LoadIcon(wcex.hInstance, (LPCTSTR)IDI_TUTORIAL1);
+	if (!RegisterClassEx(&wcex))
+		return E_FAIL;
+
+	// Create window
+	RECT rc = { 0, 0, WindowState::mWidth, WindowState::mHeight };
+	AdjustWindowRect(&rc, NULL, FALSE);
+	mhWnd = CreateWindow("GameWindowClass", "GameWindow", WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, mhInstance,
+		NULL);
+	mGameScreenHWND = mhWnd;
+	ShowWindow(mhWnd, mnCmdShow);
+#endif
 
 	//CreateProcess(NULL, lpszPathName, NULL, NULL, TRUE,
 	//	DEBUG_PROCESS | CREATE_NEW_CONSOLE | NORMAL_PRIORITY_CLASS,
@@ -160,12 +191,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		break;
 
+#ifdef _ENGINE_MODE
 	case WM_MYWMCOLLBACK:{
 		const auto& func = Window::mWPFCollBacks[(int)wParam];
 		if (func)func((void*)lParam);
 		break;
 	}
-
+#endif
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

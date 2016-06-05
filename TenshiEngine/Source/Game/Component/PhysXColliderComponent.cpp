@@ -19,6 +19,9 @@ PhysXColliderComponent::PhysXColliderComponent(){
 	mShape = NULL;
 	mIsShapeAttach = false;
 	mIsTrigger = false;
+	mPosition = XMVectorSet(0, 0, 0, 1);
+	mScale = XMVectorSet(1, 1, 1, 1);
+	mPhysicsMaterial = NULL;
 }
 
 PhysXColliderComponent::~PhysXColliderComponent(){
@@ -28,28 +31,20 @@ void PhysXColliderComponent::Initialize(){
 	mIsParentPhysX = false;
 
 	if (!mShape){
-		if (mMeshFile != ""){
-			CreateMesh();
-		}
+		CreateMesh(mMeshFile);
+		
 		if (!mShape){
-			ChangeShape();
+			ChangeShape(mIsSphere);
 		}
 	}
-	if (mPhysicsMaterialFile != ""){
-		ChangeMaterial();
-	}
+	ChangeMaterial(mPhysicsMaterialFile);
+
+	SetTransform(mPosition);
+	SetScale(mScale);
 }
 
 void PhysXColliderComponent::Start(){
 	SearchAttachPhysXComponent();
-
-	if (mMeshFile != ""){
-		CreateMesh();
-	}
-	else{
-		ChangeShape();
-	}
-	mScale = XMVectorZero();
 	SetIsTrigger(mIsTrigger);
 }
 
@@ -222,56 +217,14 @@ void PhysXColliderComponent::UpdatePose(){
 
 
 
-	XMVECTOR scale = XMVectorSet(1,1,1,1);
-	if(mIsParentPhysX){
-		//scale = XMVectorMultiply(scale, gameObject->mTransform->GetParent()->mTransform->Scale());
-		auto mat = gameObject->mTransform->GetParent()->mTransform->GetMatrix();
-		auto x = XMVector3Length(mat.r[0]);
-		auto y = XMVector3Length(mat.r[1]);
-		auto z = XMVector3Length(mat.r[2]);
-		scale = XMVectorSet(x.x, y.x, z.x, 1);
-	}
-	
-	
-	
-	auto pos = gameObject->mTransform->Position();
-	auto transform = mShape->getLocalPose();
-	if (!mIsParentPhysX){
-		transform.p = PxVec3(0, 0, 0);
-	}
-	else{
-		transform.p = PxVec3(pos.x*scale.x, pos.y*scale.y, pos.z*scale.z);
-	}
-	mShape->setLocalPose(transform);
-	
-	scale = XMVectorMultiply(scale, gameObject->mTransform->Scale());
-	
-	if (mScale.x == scale.x&&mScale.y == scale.y&&mScale.z == scale.z)return;
-	mScale = scale;
-	//PxBoxGeometry box(PxVec3(1.0f*scale.x, 1.0f*scale.y, 1.0f*scale.z));
-	auto g = mShape->getGeometry();
-	if (g.getType() == PxGeometryType::eBOX){
-		g.box().halfExtents = PxVec3(PxVec3(abs(0.5f*scale.x), abs(0.5f*scale.y), abs(0.5f*scale.z)));
-		mShape->setGeometry(g.box());
-	}
-	else if (g.getType() == PxGeometryType::eSPHERE){
-		g.sphere().radius = (abs(0.5f*scale.x) + abs(0.5f*scale.y) + abs(0.5f*scale.z)) / 3.0f;
-		mShape->setGeometry(g.sphere());
-	}
-	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
-
-		auto rotate = gameObject->mTransform->Quaternion();
-		auto q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
-
-		g.triangleMesh().scale = PxMeshScale(PxVec3(scale.x, scale.y, scale.z), q);
-		mShape->setGeometry(g.triangleMesh());
-	}
+	SetTransform(mPosition);
 
 }
 
 
-void PhysXColliderComponent::ChangeShape(){
+void PhysXColliderComponent::ChangeShape(bool flag){
 	PxShape* shape = NULL;
+	mIsSphere = flag;
 	if (mIsSphere){
 		shape = Game::GetPhysX()->CreateShapeSphere();
 	}
@@ -281,21 +234,46 @@ void PhysXColliderComponent::ChangeShape(){
 
 	ShapeAttach(shape);
 }
-void PhysXColliderComponent::ChangeMaterial(){
-	
+
+void PhysXColliderComponent::ChangeMaterial(const PhysxMaterialAssetDataPtr& material){
+	mPhysicsMaterialFile = "";
+	mPhysicsMaterial = material;
 	if (mPhysicsMaterialFile == "")return;
-	PhysxMaterialAssetDataPtr mate;
-	AssetDataBase::Instance(mPhysicsMaterialFile.c_str(), mate);
-	if (!mate->GetFileData())return;
-	auto pxmate = mate->GetFileData()->GetMaterial();
+	AssetDataBase::Instance(mPhysicsMaterialFile.c_str(), mPhysicsMaterial);
+	if (!mPhysicsMaterial)return;
+	if (!mPhysicsMaterial->GetFileData())return;
+	auto pxmate = mPhysicsMaterial->GetFileData()->GetMaterial();
 	if (!pxmate)return;
 	mShape->setMaterials(&pxmate, 1);
 }
+void PhysXColliderComponent::ChangeMaterial(const std::string& file){
+	mPhysicsMaterialFile = file;
+	mPhysicsMaterial = NULL;
+	if (mPhysicsMaterialFile == "")return;
+	AssetDataBase::Instance(mPhysicsMaterialFile.c_str(), mPhysicsMaterial);
+	if (!mPhysicsMaterial)return;
+	if (!mPhysicsMaterial->GetFileData())return;
+	auto pxmate = mPhysicsMaterial->GetFileData()->GetMaterial();
+	if (!pxmate)return;
+	mShape->setMaterials(&pxmate, 1);
+}
+PhysxMaterialAssetDataPtr PhysXColliderComponent::GetMaterial(){
+	return mPhysicsMaterial;
+}
 
-void PhysXColliderComponent::CreateMesh(){
+void PhysXColliderComponent::CreateMesh(const MeshAssetDataPtr& mesh){
 
+	if (!mesh)return;
+	auto shape = Game::GetPhysX()->CreateTriangleMesh(mesh->GetFileData()->GetPolygonsData());
+
+	ShapeAttach(shape);
+}
+void PhysXColliderComponent::CreateMesh(const std::string& file){
+
+	mMeshFile = file;
+	if (file == "")return;
 	MeshAssetDataPtr data;
-	AssetDataBase::Instance(mMeshFile.c_str(),data);
+	AssetDataBase::Instance(mMeshFile.c_str(), data);
 	if (!data)return;
 	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->GetFileData()->GetPolygonsData());
 
@@ -322,43 +300,144 @@ void PhysXColliderComponent::SetIsTrigger(bool flag){
 	mShape->setFlags(flags);
 }
 
+bool PhysXColliderComponent::GetIsTrigger(){
+	return mIsTrigger;
+}
+
 
 physx::PxShape* PhysXColliderComponent::GetShape(){
 	return mShape;
 }
-
+#ifdef _ENGINE_MODE
 void PhysXColliderComponent::CreateInspector() {
 	auto data = Window::CreateInspector();
 	BoolCollback collback = [&](bool value){
-		mIsSphere = value;
-		ChangeShape();
+		ChangeShape(value);
 	};
 	std::function<void(std::string)> collbackpath = [&](std::string name){
-		mMeshFile = name;
-		CreateMesh();
+		CreateMesh(name);
 	};
 	BoolCollback collbacktri = [&](bool value){
-		//mIsTrigger = value;
 		SetIsTrigger(value);
 	};
 	std::function<void(std::string)> collbackmatepath = [&](std::string name){
-		mPhysicsMaterialFile = name;
-		ChangeMaterial();
+		ChangeMaterial(name);
 	};
 
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Mesh", &mMeshFile, collbackpath), data);
 	Window::AddInspector(new TemplateInspectorDataSet<bool>("IsSphere", &mIsSphere, collback), data);
 	Window::AddInspector(new TemplateInspectorDataSet<bool>("IsTrigger", &mIsTrigger, collbacktri), data);
+	Window::AddInspector(new InspectorVector3DataSet("Position", &mPosition.x, [&](float f){SetTransform(XMVectorSet(f, mPosition.y, mPosition.z, 1)); }, &mPosition.y, [&](float f){SetTransform(XMVectorSet(mPosition.x, f, mPosition.z, 1)); }, &mPosition.z, [&](float f){SetTransform(XMVectorSet(mPosition.x, mPosition.y, f, 1)); }), data);
+	Window::AddInspector(new InspectorVector3DataSet("Scale", &mScale.x, [&](float f){SetScale(XMVectorSet(f, mScale.y, mScale.z, 1)); }, &mScale.y, [&](float f){SetScale(XMVectorSet(mScale.x, f, mScale.z, 1)); }, &mScale.z, [&](float f){SetScale(XMVectorSet(mScale.x, mScale.y, f, 1)); }), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("PhysxMaterial", &mPhysicsMaterialFile, collbackmatepath), data);
 	Window::ViewInspector("Collider", this, data);
 }
+#endif
 
 void PhysXColliderComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
 	_KEY(mMeshFile);
 	_KEY(mIsSphere);
 	_KEY(mIsTrigger);
+	_KEY(mPosition.x);
+	_KEY(mPosition.y);
+	_KEY(mPosition.z);
+	_KEY(mPosition.w);
+	_KEY(mScale.x);
+	_KEY(mScale.y);
+	_KEY(mScale.z);
+	_KEY(mScale.w);
 	_KEY(mPhysicsMaterialFile);
 
 #undef _KEY
+}
+
+void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Material& material){
+	auto g = mShape->getGeometry();
+	if (g.getType() == PxGeometryType::eBOX){
+		if (mDebugStr != "box"){
+			mDebugStr = "box";
+			mDebugDraw.Create("EngineResource/box.tesmesh");
+		}
+	}
+	else if (g.getType() == PxGeometryType::eSPHERE){
+		if (mDebugStr != "sphere"){
+			mDebugStr = "sphere";
+			mDebugDraw.Create("EngineResource/ball.tesmesh");
+		}
+	}
+	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
+
+		if (mDebugStr != mMeshFile){
+			mDebugStr = mMeshFile;
+			mDebugDraw.Create(mMeshFile.c_str());
+		}
+	}
+	if (!mDebugDraw.IsCreate()){
+		return;
+	}
+
+	auto transform = mShape->getLocalPose();
+	
+	auto Matrix = XMMatrixMultiply(
+		XMMatrixMultiply(
+		XMMatrixScalingFromVector(mScale),
+		XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w))),
+		XMMatrixTranslationFromVector(XMVectorSet(transform.p.x, transform.p.y, transform.p.z, 1)));
+
+	//auto p = gameObject->mTransform->GetMatrix().r[3];
+	mDebugDraw.mWorld = XMMatrixMultiply(Matrix, XMMatrixMultiply(XMMatrixScalingFromVector(gameObject->mTransform->LossyScale()), gameObject->mTransform->GetMatrix()));
+	mDebugDraw.Update();
+	mDebugDraw.Draw(context, material);
+}
+
+void PhysXColliderComponent::SetTransform(const XMVECTOR& pos){
+	mPosition = pos;
+
+
+	XMVECTOR scale = XMVectorSet(1, 1, 1, 1);
+	if (mIsParentPhysX){
+		scale = gameObject->mTransform->GetParent()->mTransform->WorldScale();
+	}
+
+	auto pos_ = gameObject->mTransform->Position();
+	auto transform = mShape->getLocalPose();
+	if (!mIsParentPhysX){
+		transform.p = PxVec3(mPosition.x, mPosition.y, mPosition.z);
+	}
+	else{
+		transform.p = PxVec3(pos_.x*scale.x, pos_.y*scale.y, pos_.z*scale.z) + PxVec3(mPosition.x, mPosition.y, mPosition.z);
+	}
+	mShape->setLocalPose(transform);
+
+}
+const XMVECTOR& PhysXColliderComponent::GetTransform() const{
+	return mPosition;
+}
+
+void PhysXColliderComponent::SetScale(const XMVECTOR& scale){
+	mScale = scale;
+
+	//PxBoxGeometry box(PxVec3(1.0f*scale.x, 1.0f*scale.y, 1.0f*scale.z));
+	auto g = mShape->getGeometry();
+	if (g.getType() == PxGeometryType::eBOX){
+		g.box().halfExtents = PxVec3(PxVec3(abs(0.5f*scale.x), abs(0.5f*scale.y), abs(0.5f*scale.z)));
+		mShape->setGeometry(g.box());
+	}
+	else if (g.getType() == PxGeometryType::eSPHERE){
+		g.sphere().radius = abs(0.5f*scale.x);
+		mShape->setGeometry(g.sphere());
+	}
+	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
+
+		auto rotate = gameObject->mTransform->Quaternion();
+		auto q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
+
+		g.triangleMesh().scale = PxMeshScale(PxVec3(scale.x, scale.y, scale.z), q);
+		mShape->setGeometry(g.triangleMesh());
+	}
+
+}
+const XMVECTOR& PhysXColliderComponent::GetScale() const{
+	return mScale;
 }

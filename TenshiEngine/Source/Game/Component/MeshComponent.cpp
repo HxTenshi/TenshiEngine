@@ -47,6 +47,7 @@ void MeshComponent::Update(){
 	m_ModelMesh->SetMaterialComponent(mate);
 }
 
+#ifdef _ENGINE_MODE
 void MeshComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
 	std::function<void(std::string)> collbackpath = [&](std::string name){
@@ -62,6 +63,7 @@ void MeshComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<int>("ID", &m_ID, collbackid), data);
 	Window::ViewInspector("MeshComponent", this, data);
 }
+#endif
 
 void MeshComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)

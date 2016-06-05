@@ -7,8 +7,6 @@
 #using <system.dll>
 
 
-
-
 std::string* string_cast(String^ str){
 	//String^ name = (String^)t->Header;
 	pin_ptr<const wchar_t> wch = PtrToStringChars(str);
@@ -104,45 +102,17 @@ public:
 		auto panel = gcnew GameScreenPanel();
 		m_wfh->Child = panel;
 		auto par = panel->Parent;
-		//auto par2 = par->Parent;
-		//par->Visible = false;
-		//par->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::mu);
-		//panel->BackColor = System::Drawing::Color::Transparent;
-		//panel->Image = nullptr;
-		//panel->UpdateStyle();
 
-		//panel->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::mu);
-		//auto par3 = par2->Parent;
-		//par->BackColor = System::Drawing::Color::AliceBlue;
-		//par->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::mu);
-		//panel->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &GameScreen::md);
-		//panel->UpdateStyle();
-		//panel->BackColor = System::Drawing::Color::Transparent;
-
-		//wfh->AllowDrop = true;
-		//wfh->DragEnter += gcnew DragEventHandler(this, &GameScreen::OnDragOver2);
-		//wfh->DragOver += gcnew DragEventHandler(this, &GameScreen::OnDragOver2);
-		//wfh->MouseDown += gcnew MouseButtonEventHandler(this, &GameScreen::md2);
-		m_wfh->Child->AllowDrop = true;
-		m_wfh->Child->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDrop);
-		m_wfh->Child->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
-		m_wfh->Child->DragOver += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
+		//m_wfh->Child->AllowDrop = true;
+		//m_wfh->Child->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDrop);
+		//m_wfh->Child->DragEnter += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
+		//m_wfh->Child->DragOver += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDragOver);
 
 		//十字キーやTABでフォーカスをロックする
 		m_wfh->PreviewKeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &GameScreen::keyLock);
 
 		m_wfh->IsKeyboardFocusedChanged += gcnew System::Windows::DependencyPropertyChangedEventHandler(this, &GameScreen::focusChanged);
 		
-		//if (!m_wfh->IsFocused)return;
-
-
-		//wfh->InputBindings->Add(new InputBinding(gcSpreadGrid1.NavigationCommands.MoveNextThenControl, new KeyGesture(Key.Tab)));
-		//wfh->FlowDirection = System::Windows::FlowDirection::LeftToRight;
-
-		//auto image = gcnew System::Windows::Controls::Image();
-		//mD3DImageEx = gcnew System::Windows::Interop::D3DImageEx();
-		//image->Source = mD3DImageEx;
-		//Gamepanel->Children->Add(image);
 	}
 
 	//void ml(Object^ sender, MouseButtonEventArgs ^e){
@@ -231,22 +201,22 @@ private:
 
 	void OnDrop(Object ^s, System::Windows::Forms::DragEventArgs ^e)
 	{
-		TreeViewItem ^t = HandleDragEnter<TreeViewItem>(e);
-
-		auto name = GetFilePath((TestContent::Person^)t->DataContext);
-		std::string* str = string_cast(name);
-		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, (void*)str);
+		//TreeViewItem ^t = HandleDragEnter<TreeViewItem>(e);
+		//
+		//auto name = GetFilePath((TestContent::Person^)t->DataContext);
+		//std::string* str = string_cast(name);
+		//Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, (void*)str);
 
 	}
 
 	void OnDragOver(Object ^sender, System::Windows::Forms::DragEventArgs ^e)
 	{
-		TreeViewItem ^t = HandleDragEnter<TreeViewItem>(e);
-		if (((String^)t->Header)->Contains(".prefab")){
-			e->Effect = System::Windows::Forms::DragDropEffects::Copy;
-			return;
-		}
-		e->Effect = System::Windows::Forms::DragDropEffects::None;
+		//TreeViewItem ^t = HandleDragEnter<TreeViewItem>(e);
+		//if (((String^)t->Header)->Contains(".prefab")){
+		//	e->Effect = System::Windows::Forms::DragDropEffects::Copy;
+		//	return;
+		//}
+		//e->Effect = System::Windows::Forms::DragDropEffects::None;
 	}
 
 	WindowsFormsHost ^m_wfh;
@@ -262,6 +232,12 @@ private:
 ref class ColorPickerWindow : public Window {
 public:
 	static ColorPickerWindow ^mUnique = nullptr;
+	static void WindowClose(){
+		if (mUnique){
+			mUnique->Close();
+			mUnique = nullptr;
+		}
+	}
 
 	ColorPickerWindow(Window^ owner, SolidColorBrush^ brush)
 	{
@@ -620,11 +596,6 @@ public:
 		Title = "CreateScritp";
 		Width = 400;
 		Height = 50 + 36;
-		Show();
-		Visibility = System::Windows::Visibility::Visible;
-
-
-
 
 		FrameworkElement ^colwnd = LoadContentsFromResource(IDR_POPWND_CREATE);
 		Content = colwnd;
@@ -636,7 +607,18 @@ public:
 
 		mTextBox = (TextBox^)colwnd->FindName("CreateTextBox");
 
+		this->ShowActivated = true;
+		Show();
+		Visibility = System::Windows::Visibility::Visible;
+		this->Activate();
 	}
+
+protected:
+	void OnActivated(System::EventArgs^ e) override{
+		Window::OnActivated(e);
+		mTextBox->Focus();
+	}
+
 private:
 
 	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e){
@@ -665,10 +647,6 @@ public:
 		Title = "CreateAsset";
 		Width = 400;
 		Height = 50 + 36;
-		Show();
-		Visibility = System::Windows::Visibility::Visible;
-
-
 
 
 		FrameworkElement ^colwnd = LoadContentsFromResource(IDR_POPWND_CREATE);
@@ -681,7 +659,18 @@ public:
 
 		mTextBox = (TextBox^)colwnd->FindName("CreateTextBox");
 
+		this->ShowActivated = true;
+		Show();
+		Visibility = System::Windows::Visibility::Visible;
+		this->Activate();
 	}
+
+protected:
+	void OnActivated(System::EventArgs^ e) override{
+		Window::OnActivated(e);
+		mTextBox->Focus();
+	}
+
 private:
 
 	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e){
@@ -696,6 +685,58 @@ private:
 
 };
 
+ref class NewFolderWindow : public Window {
+public:
+	static NewFolderWindow ^mUnique = nullptr;
+
+	NewFolderWindow(Window^ owner)
+	{
+		if (mUnique){
+			mUnique->Close();
+		}
+		mUnique = this;
+		Owner = owner;
+		Title = "New Folder";
+		Width = 400;
+		Height = 50 + 36;
+
+
+		FrameworkElement ^colwnd = LoadContentsFromResource(IDR_POPWND_CREATE);
+		Content = colwnd;
+		auto createbutton = (Button^)colwnd->FindName("CreateButton");
+		createbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &NewFolderWindow::CreateButton);
+		auto cancelbutton = (Button^)colwnd->FindName("CancelButton");
+		cancelbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &NewFolderWindow::CancelButton);
+
+
+		mTextBox = (TextBox^)colwnd->FindName("CreateTextBox");
+
+
+		this->ShowActivated = true;
+		Show();
+		Visibility = System::Windows::Visibility::Visible;
+		this->Activate();
+	}
+
+protected:
+	void OnActivated(System::EventArgs^ e) override{
+		Window::OnActivated(e);
+		mTextBox->Focus();
+	}
+
+
+private:
+	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+		System::IO::Directory::CreateDirectory("Assets/"+mTextBox->Text);
+		Close();
+	}
+	void CancelButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+		Close();
+	}
+	TextBox ^mTextBox;
+	String ^mEx;
+
+};
 
 ref class SceneTreeView{
 public:
@@ -1051,38 +1092,51 @@ private:
 
 		treeView->ItemTemplate = datatemp;
 
+
 		//styleのセット
-		//今のところ上で設定しているので意味なし?
-		auto s = gcnew System::Windows::Style(TreeViewItem::typeid);
-		auto setter = s->Setters;
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::ExpandedEvent, gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::TreeView_Expanded)));
-		//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDrop)));
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &AssetTreeView::TreeViewItem_OnMouseLeave)));
+		{
+			//今のところ上で設定しているので意味なし?
+			auto s = gcnew System::Windows::Style(TreeViewItem::typeid);
+			auto setter = s->Setters;
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::ExpandedEvent, gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::TreeView_Expanded)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &AssetTreeView::OnDrop)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &AssetTreeView::TreeViewItem_OnMouseLeave)));
 
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::LostKeyboardFocusEvent, gcnew System::Windows::Input::KeyboardFocusChangedEventHandler(this, &AssetTreeView::AssetTreeView_OnLostKeyboardFocus)));
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::SelectedEvent, gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnSelected)));
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeftButtonUpEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnMouseClickUp)));
-		setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseDoubleClickEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnMouseDoubleClick)));
-		//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
-		//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::LostKeyboardFocusEvent, gcnew System::Windows::Input::KeyboardFocusChangedEventHandler(this, &AssetTreeView::AssetTreeView_OnLostKeyboardFocus)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::SelectedEvent, gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnSelected)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeftButtonUpEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnMouseClickUp)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseDoubleClickEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnMouseDoubleClick)));
+			//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+			//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
 
-		treeView->ItemContainerStyle = s;
+			treeView->ItemContainerStyle = s;
 
+			treeView->AllowDrop = true;
+			treeView->Drop += gcnew DragEventHandler(this, &AssetTreeView::OnDrop);
+			treeView->DragEnter += gcnew DragEventHandler(this, &AssetTreeView::OnDragOver2);
+			treeView->DragOver += gcnew DragEventHandler(this, &AssetTreeView::OnDragOver2);
+		}
 
-		treeView->AllowDrop = true;
-		treeView->Drop += gcnew DragEventHandler(this, &AssetTreeView::OnDrop);
-		treeView->DragEnter += gcnew DragEventHandler(this, &AssetTreeView::OnDragOver2);
-		treeView->DragOver += gcnew DragEventHandler(this, &AssetTreeView::OnDragOver2);
 
 		CreateAssetTreeViewItem_StartFolder(m_TreeViewItemRoot, "EngineResource");
 		CreateAssetTreeViewItem_StartFolder(m_TreeViewItemRoot, "Assets");
+		CreateAssetTreeViewItem_StartFolder(m_TreeViewItemRoot, "ScriptComponent/Scripts");
 
-		FileSystemEvent("Assets");
-		FileSystemEvent("EngineResource");
+		//FileSystemEvent("Assets");
+		//FileSystemEvent("EngineResource");
 
 		//コンテキストメニュー作成
 		{
 			auto cm = gcnew System::Windows::Controls::ContextMenu();
+
+
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "New Folder";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::MenuItem_Click_NewFolder);
+				cm->Items->Add(mitem);
+			}
+
 			{//コンテキストメニューの要素作成
 				auto mitem = gcnew System::Windows::Controls::MenuItem();
 				mitem->Header = "CreateScritp";
@@ -1090,13 +1144,13 @@ private:
 				cm->Items->Add(mitem);
 			}
 
-						{//コンテキストメニューの要素作成
-							auto mitem = gcnew System::Windows::Controls::MenuItem();
-							mitem->Header = "CreatePhysxMaterial";
-							mitem->DataContext = ".pxmaterial";
-							mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::MenuItem_Click_CreateAsset);
-							cm->Items->Add(mitem);
-						}
+			{//コンテキストメニューの要素作成
+				auto mitem = gcnew System::Windows::Controls::MenuItem();
+				mitem->Header = "CreatePhysxMaterial";
+				mitem->DataContext = ".pxmaterial";
+				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::MenuItem_Click_CreateAsset);
+				cm->Items->Add(mitem);
+			}
 
 			//ツリービューに反映
 			m_TreeView->ContextMenu = cm;
@@ -1104,6 +1158,13 @@ private:
 	}
 
 
+	//コンテキストメニューのオブジェクト作成
+	void MenuItem_Click_NewFolder(Object ^sender, System::Windows::RoutedEventArgs ^e){
+
+		auto w = gcnew NewFolderWindow(m_ParentWindow);
+
+		e->Handled = true;
+	}
 
 	//コンテキストメニューのオブジェクト作成
 	void MenuItem_Click_CreateScript(Object ^sender, System::Windows::RoutedEventArgs ^e){
@@ -1144,78 +1205,135 @@ private:
 	{
 	}
 
-	TestContent::Person ^ DirSearch(String^ dir, TestContent::Person ^par){
+	//TestContent::Person ^ DirSearch(String^ dir, TestContent::Person ^par){
+	//	if (!par)return nullptr;
+	//
+	//	auto count = par->Children->Count;
+	//	for (int i = 0; i < count;i++){
+	//		auto c = par->Children[i];
+	//		if (c->Name == dir){
+	//			return c;
+	//		}
+	//		c = DirSearch(dir,c);
+	//		if (c){
+	//			return c;
+	//		}
+	//	}
+	//
+	//	return nullptr;
+	//
+	//}
+	TestContent::Person ^ DirItemSearch(String ^folder, TestContent::Person ^par){
 		if (!par)return nullptr;
 
 		auto count = par->Children->Count;
-		for (int i = 0; i < count;i++){
-			auto c = par->Children[i];
-			if (c->Name == dir){
+		for (int j = 0; j < count; j++){
+			auto c = par->Children[j];
+			if (c->Name == folder){
 				return c;
 			}
 		}
 
 		return nullptr;
+	}
+	TestContent::Person ^ FullDirSearch(String ^fullpath, TestContent::Person ^par){
+		if (!par)return nullptr;
 
+
+		array<String^> ^r = gcnew array<String^>(1);
+		r[0] = "\\";
+		auto file = fullpath->Split(r, System::StringSplitOptions::None);
+
+		auto currentPar = par;
+		auto num = file->Length - 1;
+		for (int i = 0; i < num; i++){
+
+			auto filder = file[i];
+			currentPar = DirItemSearch(filder, currentPar);
+		
+		}
+		if (currentPar == par)return nullptr;
+
+		return currentPar;
+	}
+	TestContent::Person ^ FullDirItemSearch(String ^fullpath, TestContent::Person ^par){
+		if (!par)return nullptr;
+
+
+		array<String^> ^r = gcnew array<String^>(1);
+		r[0] = "\\";
+		auto file = fullpath->Split(r, System::StringSplitOptions::None);
+
+		auto currentPar = par;
+		auto num = file->Length;
+		for (int i = 0; i < num; i++){
+
+			auto filder = file[i];
+			currentPar = DirItemSearch(filder, currentPar);
+
+		}
+		if (currentPar == par)return nullptr;
+
+		return currentPar;
+	}
+
+	bool IsDirectory(String^ path)
+	{
+		return System::IO::Directory::Exists(path);
 	}
 	void OnCreated(Object^ source, System::IO::FileSystemEventArgs^ e)
 	{
-		array<String^> ^r = gcnew array<String^>(1);
-		r[0] = "/";
-
-		auto scr = (System::IO::FileSystemWatcher^)source;
-
-		auto sp = e->FullPath->Split(r,1,System::StringSplitOptions::None);
-
-		auto count = sp->Length-1;
-
-		auto par = DirSearch(scr->Path, m_TreeViewItemRoot);
-		int i = 0;
-		for (; i < count; i--){
-			auto dir = sp[i];
-			if (dir == scr->Path){
-				break;
-			}
-		}
-		for (; i < count; i--){
-			auto dir = sp[i];
-			par = DirSearch(dir, par);
-		}
-
-		auto item = gcnew TestContent::Person(e->Name, gcnew TestContent::MyList());
-		item->DataPtr = (IntPtr)NULL;
+		auto par = FullDirSearch(e->FullPath, m_TreeViewItemRoot);
 		if (par){
+			array<String^> ^r = gcnew array<String^>(1);
+			r[0] = "\\";
+			auto file = e->Name->Split(r, System::StringSplitOptions::None);
+			auto filename = file[file->Length - 1];
+			auto item = gcnew TestContent::Person(filename, gcnew TestContent::MyList());
+			item->DataPtr = (IntPtr)NULL;
 			par->Add(item);
+
+			//フォルダなら
+			if (IsDirectory(e->FullPath)){
+				//空のフォルダの場合　空のアイテムを追加
+				if (item->Children->Count == 0){
+					auto nullitem = gcnew TestContent::Person("", gcnew TestContent::MyList());
+					nullitem->DataPtr = (IntPtr)NULL;
+					item->Add(nullitem);
+				}
+}
+
 		}
 	}
 	void OnDeleted(Object^ source, System::IO::FileSystemEventArgs^ e)
 	{
-		int num = m_TreeViewItemRoot->Children->Count;
-		for (int i = 0; i<num; i++){
-			auto item = m_TreeViewItemRoot->Children[i];
-			if (item->Name == e->Name){
-				item->RemoveSelf();
-			}
+		auto item = FullDirItemSearch(e->FullPath, m_TreeViewItemRoot);
+		if (item){
+			item->RemoveSelf();
 		}
 	}
 	void OnRenamed(Object^ source, System::IO::RenamedEventArgs^ e)
 	{
-		int num = m_TreeViewItemRoot->Children->Count;
-		for (int i = 0; i<num; i++){
-			auto item = m_TreeViewItemRoot->Children[i];
-			if (item->Name == e->OldName){
-				item->Name = e->Name;
-			}
+		auto item = FullDirItemSearch(e->OldFullPath, m_TreeViewItemRoot);
+		if (item){
+
+			array<String^> ^r = gcnew array<String^>(1);
+			r[0] = "\\";
+			auto file = e->Name->Split(r, System::StringSplitOptions::None);
+			auto filename = file[file->Length - 1];
+			item->Name = filename;
 		}
 	}
 
 	void FileSystemEvent(String^ FolderPath)
 	{
-
 		auto fsWatcher = gcnew System::IO::FileSystemWatcher();
+		fsWatcher->Filter = "";
 		fsWatcher->Path = FolderPath;
+		fsWatcher->IncludeSubdirectories = true;
 		fsWatcher->NotifyFilter = static_cast<System::IO::NotifyFilters>
 			(System::IO::NotifyFilters::FileName |
+			System::IO::NotifyFilters::DirectoryName |
 			System::IO::NotifyFilters::Attributes |
 			System::IO::NotifyFilters::LastAccess |
 			System::IO::NotifyFilters::LastWrite |
@@ -1247,6 +1365,8 @@ private:
 		parent->Add(folder);
 
 		CreateAssetTreeViewItem(folder, Path);
+
+		FileSystemEvent(Path);
 	}
 
 	//指定フォルダから全てのフォルダとファイルを登録
@@ -1267,6 +1387,8 @@ private:
 			parent->Add(folder);
 
 			CreateAssetTreeViewItem(folder, folders->Current->FullName);
+
+			//FileSystemEvent(folders->Current->FullName);
 
 			//空のフォルダの場合　空のアイテムを追加
 			if (folder->Children->Count == 0){
@@ -1299,6 +1421,13 @@ private:
 		auto dirPath = GetFolderPath(par);
 
 		CreateAssetTreeViewItem(par, dirPath);
+
+		//空のフォルダの場合　空のアイテムを追加
+		if (par->Children->Count == 0){
+			auto nullitem = gcnew TestContent::Person("", gcnew TestContent::MyList());
+			nullitem->DataPtr = (IntPtr)NULL;
+			par->Add(nullitem);
+		}
 
 		e->Handled = true;
 	}
@@ -1383,7 +1512,7 @@ private:
 				AssetTreeView_ActorDrop(s, dragitem);
 			}
 			else{
-
+				AssetDrop(s, dragitem);
 			}
 		}
 		//Windowsファイルをドロップしたか？
@@ -1392,7 +1521,77 @@ private:
 
 		}
 
+		e->Handled = true;
 	}
+
+	//アセットファイルをドロップした処理
+	void AssetDrop(Object ^s, TestContent::Person^ dragitem){
+		auto targettreeitem = dynamic_cast<TreeViewItem^>(s);
+		//ツリービューアイテムに対してDropしたか
+		if (targettreeitem){
+			auto targetitem = dynamic_cast<TestContent::Person^>(targettreeitem->DataContext);
+			if (!targetitem)return;
+			//フォルダーに対してDropしたか
+			if (targetitem->Children->Count != 0){
+				//ドロップ先が自分の子ならTRUE
+				if (ParentCheck(dragitem, targetitem))return;
+
+				if (!MoveFile(dragitem, targetitem))return;
+
+			}
+
+			//ファイルに対してDropしたか
+			if (targetitem->Children->Count == 0){
+				targetitem = targetitem->Parent;
+
+				//フォルダーに対してDropしたか
+				if (targetitem->Children->Count != 0){
+					//ドロップ先が自分の子ならTRUE
+					if (ParentCheck(dragitem, targetitem))return;
+
+					if (!MoveFile(dragitem, targetitem))return;
+
+				}
+			}
+		}
+		//ツリービューアイテム外に対してDropしたなら
+		else{
+			//何もしない
+		}
+	}
+
+	//ターゲットがペアレントの親ならTRUE
+	bool ParentCheck(TestContent::Person^ target, TestContent::Person^ parent){
+		if (parent == m_TreeViewItemRoot){
+			return false;
+		}
+		if (target == parent){
+			return true;
+		}
+
+		return ParentCheck(target, parent->Parent);
+	}
+
+	bool MoveFile(TestContent::Person^ dragitem, TestContent::Person^ targetitem){
+
+		auto sourcePath = GetFilePath(dragitem);
+		auto destPath = GetFolderPath(targetitem) + dragitem->Name;
+
+		try{
+			//フォルダなら
+			if (dragitem->Children->Count != 0){
+				System::IO::Directory::Move(sourcePath, destPath);
+			}
+			else{
+				System::IO::File::Move(sourcePath, destPath);
+			}
+		}
+		catch(...){
+			return false;
+		}
+		return true;
+	}
+
 
 	void AssetTreeView_ActorDrop(Object ^s, TestContent::Person^ dragitem){
 
@@ -1405,10 +1604,10 @@ private:
 	void AssetTreeView_WindowsFileDrop(DragEventArgs ^e){
 
 		auto t = (array<String^>^)e->Data->GetData(System::Windows::Forms::DataFormats::FileDrop, false);
-		if (t[0]->Contains(".pmx")){
-			std::string* str = string_cast(t[0]);
-			Data::MyPostMessage(MyWindowMessage::CreatePMXtoTEStaticMesh, str);
-		}
+		//if (t[0]->Contains(".pmx")){
+		std::string* str = string_cast(t[0]);
+		Data::MyPostMessage(MyWindowMessage::CreateModelConvert, str);
+		//}
 
 	}
 
@@ -1631,35 +1830,40 @@ public:
 	//表示しているコンポーネントを全て非表示（削除）にする
 	void ClearAllComponent(){
 		if (m_ComponentPanel == nullptr)return;
+		ColorPickerWindow::WindowClose();
 		m_ComponentPanel->Children->Clear();
 	}
 
 	//コンポーネントの作成
 	void CreateComponent(String^ headerName, IntPtr comptr, array<InspectorData^>^ data){
 		if (m_ComponentPanel == nullptr)return;
+		try{
+			FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
 
-		FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
+			m_ComponentPanel->Children->Add(com);
 
-		m_ComponentPanel->Children->Add(com);
-
-		auto header = (Expander^)com->FindName("ComponentHeaderName");
-		header->Header = headerName;
-		auto dock = (DockPanel^)com->FindName("MainDock");
-		int num = data->GetLength(0);
-		for (int i = 0; i < num; i++){
-			data[i]->CreateInspector(dock);
-		}
-
-		if (comptr != (IntPtr)NULL){
-			auto cm = gcnew System::Windows::Controls::ContextMenu();
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "Remove";
-				mitem->Tag = comptr;
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemoveComponent);
-				cm->Items->Add(mitem);
+			auto header = (Expander^)com->FindName("ComponentHeaderName");
+			header->Header = headerName;
+			auto dock = (DockPanel^)com->FindName("MainDock");
+			int num = data->GetLength(0);
+			for (int i = 0; i < num; i++){
+				data[i]->CreateInspector(dock);
 			}
-			com->ContextMenu = cm;
+
+			if (comptr != (IntPtr)NULL){
+				auto cm = gcnew System::Windows::Controls::ContextMenu();
+				{//コンテキストメニューの要素作成
+					auto mitem = gcnew System::Windows::Controls::MenuItem();
+					mitem->Header = "Remove";
+					mitem->Tag = comptr;
+					mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemoveComponent);
+					cm->Items->Add(mitem);
+				}
+				com->ContextMenu = cm;
+			}
+		}
+		catch (...){
+
 		}
 
 	}

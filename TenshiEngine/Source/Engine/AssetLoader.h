@@ -146,10 +146,15 @@ public:
 };
 
 #include <vector>
+class BoneDataIK{
+public:
+	std::vector<OutputIKBone> mBoneBuffer;
+	std::vector<std::vector<IkLink>> mIK_Links;
+	std::vector<std::string> mBoneName;
+};
 class BoneData{
 public:
 	std::vector<OutputSimpleBone> mBoneBuffer;
-	std::vector<std::vector<IkLink>> mIK_Links;
 	std::vector<std::string> mBoneName;
 };
 //class AssetData{
@@ -366,6 +371,50 @@ private:
 
 		std::vector<OutputSimpleBone> buffer;
 		std::vector<std::string> bonename;
+		//頂点データを取得
+		buffer.resize(data.bone_count);
+		bonename.resize(data.bone_count);
+
+		int i = 0;
+
+		for (auto& b : buffer){
+
+
+			auto& bone = data.bone[i];
+
+			bonename[i] = bone.BoneName;
+
+			b.bone_head_pos[0] = bone.bone_head_pos[0];
+			b.bone_head_pos[1] = bone.bone_head_pos[1];
+			b.bone_head_pos[2] = bone.bone_head_pos[2];
+			b.parent_bidx = bone.parent_bidx;
+
+			i++;
+		}
+
+
+
+
+		std::string savePath = "Assets/" + name + ".tebone";
+
+		FILE *hFP;
+		fopen_s(&hFP, savePath.c_str(), "wb");
+		if (hFP != 0){
+			vecfwrite_array(buffer, hFP);
+			for (auto& name : bonename){
+				vecfwrite(name, hFP);
+			}
+
+			fclose(hFP);
+		}
+	}
+
+	void createBoneIK(pmx& data, std::string& name){
+
+		//auto itype = data.header.config[pmx::t_header::VIDX];
+
+		std::vector<OutputIKBone> buffer;
+		std::vector<std::string> bonename;
 		std::vector<std::vector<IkLink>> IK_Links;
 		//頂点データを取得
 		buffer.resize(data.bone_count);
@@ -553,10 +602,10 @@ private:
 
 		BoneDataPtr data = make_shared<BoneData>();
 		vecfread_array(data->mBoneBuffer, hFP);
-		data->mIK_Links.resize(data->mBoneBuffer.size());
-		for (auto& ik : data->mIK_Links){
-			vecfread_array(ik, hFP);
-		}
+		//data->mIK_Links.resize(data->mBoneBuffer.size());
+		//for (auto& ik : data->mIK_Links){
+		//	vecfread_array(ik, hFP);
+		//}
 		data->mBoneName.resize(data->mBoneBuffer.size());
 		for (auto& name : data->mBoneName){
 			vecfread(name, hFP);

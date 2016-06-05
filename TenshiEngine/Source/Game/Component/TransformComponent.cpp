@@ -416,6 +416,11 @@ void TransformComponent::Quaternion(const XMVECTOR& Quaternion){
 const XMVECTOR TransformComponent::Quaternion() const{
 	return XMQuaternionRotationMatrix(fromEulerYXZ(mRotate));
 }
+const XMVECTOR TransformComponent::WorldScale() const{
+	auto m = GetMatrix();
+
+	return XMVectorSet(XMVector3Length(m.r[0]).x, XMVector3Length(m.r[1]).x, XMVector3Length(m.r[2]).x, 1);
+}
 
 const XMVECTOR TransformComponent::LossyScale() const{
 	auto m = GetMatrix();
@@ -526,6 +531,7 @@ void TransformComponent::SetUndo(const XMVECTOR& pos){
 	}
 }
 
+#ifdef _ENGINE_MODE
 
 void TransformComponent::CreateInspector(){
 
@@ -593,6 +599,7 @@ void TransformComponent::CreateInspector(){
 	//Window::GetInspectorWindow()->AddParam(&mPosition.y, &mFixMatrixFlag);
 	//Window::GetInspectorWindow()->AddParam(&mPosition.z, &mFixMatrixFlag);
 }
+#endif
 
 void TransformComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
@@ -637,6 +644,10 @@ std::list<Actor*>& TransformComponent::Children(){
 }
 Actor* TransformComponent::GetParent(){
 	return mParent;
+}
+
+void TransformComponent::SetParentUniqueID(int id){
+	mParentUniqueID = id;
 }
 void TransformComponent::SetParent(Actor* parent){
 	if (mParent)

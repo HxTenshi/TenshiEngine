@@ -41,7 +41,7 @@ void PrefabFileData::Create(const char* filename){
 	m_PrefabActor->ImportData(m_FileName);
 
 	mBeforeParam = new picojson::value();
-	m_PrefabActor->ExportData(*mBeforeParam);
+	m_PrefabActor->ExportData(*mBeforeParam,true);
 
 }
 void PrefabFileData::FileUpdate(){
@@ -55,7 +55,7 @@ picojson::value PrefabFileData::Apply(){
 	file = forward_than_find_last_of(file, ".");
 	auto path = forward_than_find_last_of(m_FileName, "/");
 
-	m_PrefabActor->ExportData(path, file);
+	m_PrefabActor->ExportData(path, file, true);
 
 	picojson::value back;
 
@@ -66,7 +66,7 @@ picojson::value PrefabFileData::Apply(){
 	}
 
 	mBeforeParam = new picojson::value();
-	m_PrefabActor->ExportData(*mBeforeParam);
+	m_PrefabActor->ExportData(*mBeforeParam, true);
 
 
 	return back;

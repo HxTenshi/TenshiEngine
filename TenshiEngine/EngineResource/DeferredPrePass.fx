@@ -138,9 +138,15 @@ PS_INPUT VS( VS_INPUT input )
 	output.BefPos = mul(input.Pos, BeforeWorld);
 	output.BefPos = mul(output.BefPos, View);
 
-	output.Normal = input.Normal;
-	output.Bin = input.Bin;
-	output.Tan = input.Tan;
+	//output.Normal = input.Normal;
+	//output.Bin = input.Bin;
+	//output.Tan = input.Tan;
+
+	float3x3 WV = mul((float3x3)World, (float3x3)View);
+
+	output.Normal = mul(input.Normal, WV);
+	output.Bin = mul(input.Bin, WV);
+	output.Tan = mul(input.Tan, WV);
 
 	output.Tex = input.Tex * MTexScale + MOffset;
 	
@@ -191,9 +197,12 @@ PS_INPUT VSSkin(VS_INPUT input)
 	//output.Bin = bbin / 100.0;
 	//output.Tan = btan / 100.0;
 	pos.xyz = bpos;
-	output.Normal = bnor;
-	output.Bin = bbin;
-	output.Tan = btan;
+
+	float3x3 WV = mul((float3x3)World, (float3x3)View);
+
+	output.Normal = mul(bnor, WV);
+	output.Bin = mul(bbin, WV);
+	output.Tan = mul(btan, WV);
 
 	output.Pos = mul(pos, World);
 
@@ -256,23 +265,40 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	// 法線の準備
 	float3 N;
 
+	//[branch]
+	//if (UseTexture.y != 0.0){
+	//	float3 bump = NormalTex.Sample(NormalSamLinear, texcood).rgb * 2 - 1.0;
+	//	bump *= MNormaleScale.xyz;
+	//
+	//	//視線ベクトルを頂点座標系に変換する
+	//	float3 n;
+	//	n.x = dot(bump, input.Tan);
+	//	n.y = dot(bump, input.Bin);
+	//	n.z = dot(bump, input.Normal);
+	//	N = n;
+	//}else{
+	//	N = input.Normal;
+	//}
+	//
+	//N = mul(N, (float3x3)World);
+	//N = mul(N, (float3x3)View);
+	//N = normalize(N);
+
 	[branch]
 	if (UseTexture.y != 0.0){
 		float3 bump = NormalTex.Sample(NormalSamLinear, texcood).rgb * 2 - 1.0;
-		bump *= MNormaleScale.xyz;
+			bump *= MNormaleScale.xyz;
 
-		//視線ベクトルを頂点座標系に変換する
-		float3 n;
-		n.x = dot(bump, input.Tan);
-		n.y = dot(bump, input.Bin);
-		n.z = dot(bump, input.Normal);
-		N = n;
-	}else{
+			//視線ベクトルを頂点座標系に変換する
+			float3x3 normat = float3x3(normalize(input.Tan),
+			normalize(input.Bin),
+			normalize(input.Normal));
+		N = mul(bump, normat);
+	}
+	else{
 		N = input.Normal;
 	}
 
-	N = mul(N, (float3x3)World);
-	N = mul(N, (float3x3)View);
 	N = normalize(N);
 
 	float farClip = 100;
@@ -339,7 +365,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	
 	N = N * 0.5 + 0.5;
 
-	Out.ColorAlbedo = DifColor * MDiffuse;
+	Out.ColorAlbedo = DifColor * MDiffuse * MHightPower.y;
 	Out.ColorSpecular = float4(env.rgb, MAmbient.a);
 	Out.ColorNormal = float4(N, 1+RghColor.r);
 	Out.ColorDepth = float4(D, 1 - LD.z, LD.x, 1.0 - LD.y);

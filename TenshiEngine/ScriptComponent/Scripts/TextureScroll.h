@@ -20,12 +20,4 @@ private:
 	SERIALIZE
 	float y;
 
-	SERIALIZE
-	std::string c;
-
-	SERIALIZE
-	bool b;
-	SERIALIZE
-	float test;
-
 };

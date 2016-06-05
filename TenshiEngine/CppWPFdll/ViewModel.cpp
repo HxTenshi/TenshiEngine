@@ -4,25 +4,25 @@
 
 
 template <>
-String^ lexical_cast_(float& p){
-	return System::Convert::ToString(p);
+String^ lexical_cast_(float* p){
+	return System::Convert::ToString(*p);
 }
 template <>
-String^ lexical_cast_(int& p){
-	return System::Convert::ToString(p);
+String^ lexical_cast_(int* p){
+	return System::Convert::ToString(*p);
 }
 template <>
-String^ lexical_cast_(double& p){
-	return System::Convert::ToString(p);
+String^ lexical_cast_(double* p){
+	return System::Convert::ToString(*p);
 }
 template <>
-String^ lexical_cast_(bool& p){
-	return System::Convert::ToString(p);
+String^ lexical_cast_(bool* p){
+	return System::Convert::ToString(*p);
 }
 
 template <>
-String^ lexical_cast_(std::string& p){
-	return gcnew String(p.c_str());
+String^ lexical_cast_(std::string* p){
+	return gcnew String(p->c_str());
 }
 
 

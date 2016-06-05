@@ -46,7 +46,7 @@ private:
 
 	std::vector<XMVECTOR> mBoneInitPos;
 	std::vector<Bone> mBone;
-	std::vector<Ik> mIk;
+	//std::vector<Ik> mIk;
 
 	//UINT mLastKeyNo;
 

@@ -52,6 +52,7 @@ void Scene::MemoryLoadScene(){
 		postactor->ImportData(*act);
 		Game::AddObject(postactor);
 	}
+
 }
 
 void Scene::MemorySaveScene(){

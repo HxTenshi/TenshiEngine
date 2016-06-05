@@ -5,6 +5,10 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="ExeCompile|Win32">
+      <Configuration>ExeCompile</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -28,6 +32,13 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -35,6 +46,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -46,6 +60,10 @@
     <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'">
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -53,6 +71,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_" %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -67,7 +86,26 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/D "_XM_NO_INTRINSICS_" /D "_ENGINE_MODE" %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>dll.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_" %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -82,6 +120,8 @@
     <ClCompile Include="main.h" />
     <ClCompile Include="Reflection\ReflectionSetter.cpp" />
     <ClCompile Include="Script.cpp" />
+    <ClCompile Include="Scripts\Bullet.cpp" />
+    <ClCompile Include="Scripts\BulletEmiter.cpp" />
     <ClCompile Include="Scripts\PlayerScript.cpp" />
     <ClCompile Include="Scripts\testhit.cpp" />
     <ClCompile Include="Scripts\TextureScroll.cpp" />
@@ -90,6 +130,8 @@
   <ItemGroup>
     <ClInclude Include="Reflection\ReflectionSetter.h" />
     <ClInclude Include="Script.h" />
+    <ClInclude Include="Scripts\Bullet.h" />
+    <ClInclude Include="Scripts\BulletEmiter.h" />
     <ClInclude Include="Scripts\PlayerScript.h" />
     <ClInclude Include="Scripts\testhit.h" />
     <ClInclude Include="Scripts\TextureScroll.h" />

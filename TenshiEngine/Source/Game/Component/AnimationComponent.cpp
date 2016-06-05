@@ -11,14 +11,14 @@
 
 AnimationComponent::AnimationComponent()
 	:mCurrentSet(0)
+	, mAnimetionCapacity(10)
+	, mAnimationSets(10)
 {}
 void AnimationComponent::Initialize(){
-
-	mAnimationSets.resize(10);
-
 	for (auto& set : mAnimationSets){
 		set.Create();
 	}
+	ChangeAnimetion(0);
 }
 
 void AnimationComponent::Finish(){
@@ -40,86 +40,109 @@ void AnimationComponent::Update(){
 		}
 
 		auto& set = mAnimationSets[mCurrentSet];
-		mView.mTime = set.mTime;
-		mView.mTimeScale = set.mTimeScale;
-		mView.mWeight = set.mWeight;
-		mView.mLoop = set.mLoop;
-		mView.mFileName = set.mFileName;
+		mView.Param = set.Param;
 
-		std::vector<shared_ptr<AnimationBind>> binds(10);
+		std::vector<shared_ptr<AnimationBind>> binds(mAnimetionCapacity);
 		
-		for (int i = 0; i < 10;i++){
+		for (int i = 0; i < mAnimetionCapacity; i++){
 			binds[i] = mAnimationSets[i].mAnimationBind;
 		}
 
 		bone->UpdateAnimation(binds);
 	}
 }
+#ifdef _ENGINE_MODE
 void AnimationComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
 
 	std::function<void(int)> collbackset = [&](int f){
-		mCurrentSet = min(max(f, 0), 9);
-		auto& set = mAnimationSets[mCurrentSet];
-		mView.mTime = set.mTime;
-		mView.mTimeScale = set.mTimeScale;
-		mView.mWeight = set.mWeight;
-		mView.mLoop = set.mLoop;
-		mView.mFileName = set.mFileName;
+		ChangeAnimetion(f);
 	};
 	Window::AddInspector(new TemplateInspectorDataSet<int>("ID", &mCurrentSet, collbackset), data);
 
 	std::function<void(float)> collback = [&](float f){
-		mView.mTime = f;
-		mAnimationSets[mCurrentSet].mTime = f;
+		mView.Param.mTime = f;
+		mAnimationSets[mCurrentSet].Param.mTime = f;
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Time", &mView.mTime, collback), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("Time", &mView.Param.mTime, collback), data);
 
 
 	std::function<void(float)> collbackscale = [&](float f){
-		 mView.mTimeScale = f;
-		 mAnimationSets[mCurrentSet].mTimeScale = f;
+		mView.Param.mTimeScale = f;
+		mAnimationSets[mCurrentSet].Param.mTimeScale = f;
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<float>("TimeScale", &mView.mTimeScale, collbackscale), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("TimeScale", &mView.Param.mTimeScale, collbackscale), data);
 
 	std::function<void(float)> collbackw = [&](float f){
-		mView.mWeight = f;
-		mAnimationSets[mCurrentSet].mWeight = f;
+		mView.Param.mWeight = f;
+		mAnimationSets[mCurrentSet].Param.mWeight = f;
 		if (mAnimationSets[mCurrentSet].mAnimationBind){
 			mAnimationSets[mCurrentSet].mAnimationBind->SetWeight(f);
 		}
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Weight", &mView.mWeight, collbackw), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("Weight", &mView.Param.mWeight, collbackw), data);
 
 	std::function<void(bool)> collbackloop= [&](bool f){
-		mView.mLoop = f;
-		mAnimationSets[mCurrentSet].mLoop = f;
+		mView.Param.mLoop = f;
+		mAnimationSets[mCurrentSet].Param.mLoop = f;
 		if (mAnimationSets[mCurrentSet].mAnimationBind){
 			 mAnimationSets[mCurrentSet].mAnimationBind->SetLoopFlag(f);
 		}
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("Loop", &mView.mLoop, collbackloop), data);
+	Window::AddInspector(new TemplateInspectorDataSet<bool>("Loop", &mView.Param.mLoop, collbackloop), data);
 
 	std::function<void(std::string)> collbackpath = [&](std::string name){
-		mView.mFileName = name;
-		mAnimationSets[mCurrentSet].mFileName = name;
+		mView.Param.mFileName = name;
+		mAnimationSets[mCurrentSet].Param.mFileName = name;
 		mAnimationSets[mCurrentSet].Create();
 
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("VMD", &mView.mFileName, collbackpath), data);
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("VMD", &mView.Param.mFileName, collbackpath), data);
 
 	Window::ViewInspector("Animetion", this, data);
 }
+#endif
 
 void AnimationComponent::IO_Data(I_ioHelper* io){
-#define _KEY(x) io->func( x , #x)
-	//_KEY(mFileName);
-	//_KEY(mTime);
-	//_KEY(mTimeScale);
-	//_KEY(mLoop);
+#define _KEY(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str() )
+
+	for (int i = 0; i < mAnimetionCapacity; i++){
+		_KEY(i, mAnimationSets[i].Param.mFileName);
+		_KEY(i, mAnimationSets[i].Param.mTime);
+		_KEY(i, mAnimationSets[i].Param.mTimeScale);
+		_KEY(i, mAnimationSets[i].Param.mLoop);
+		_KEY(i, mAnimationSets[i].Param.mWeight);
+	}
+
 #undef _KEY
 }
 
+void AnimationComponent::ChangeAnimetion(int id){
+	mCurrentSet = min(max(id, 0), (mAnimetionCapacity - 1));
+	auto& set = mAnimationSets[mCurrentSet];
+	mView.Param = set.Param;
+}
+
+AnimeParam AnimationComponent::GetAnimetionParam(int id){
+	id = min(max(id, 0), (mAnimetionCapacity - 1));
+	return mAnimationSets[id].Param;
+}
+void AnimationComponent::SetAnimetionParam(int id,const AnimeParam& param){
+	id = min(max(id, 0), (mAnimetionCapacity - 1));
+	bool createflag = false;
+	if (mAnimationSets[id].Param.mFileName != param.mFileName){
+		createflag = true;
+	}
+
+	mAnimationSets[id].Param = param;
+	if (createflag){
+		mAnimationSets[id].Create();
+
+	}
+
+	mAnimationSets[mCurrentSet].mAnimationBind->SetWeight(mAnimationSets[id].Param.mWeight);
+	mAnimationSets[mCurrentSet].mAnimationBind->SetLoopFlag(mAnimationSets[id].Param.mLoop);
+}
 
 
 
@@ -132,13 +155,13 @@ void AnimeSet::Update(BoneModel* bone){
 	if (!mAnimationBind){
 		mAnimationBind = bone->BindAnimation(&mAnimeData);
 
-		mAnimationBind->SetLoopFlag(mLoop);
-		mAnimationBind->SetWeight(mWeight);
-		mAnimationBind->PlayAnimetionSetTime(mTime);
+		mAnimationBind->SetLoopFlag(Param.mLoop);
+		mAnimationBind->SetWeight(Param.mWeight);
+		mAnimationBind->PlayAnimetionSetTime(Param.mTime);
 	}
 
 	if (!mAnimationBind)return;
 
-	mTime = mAnimationBind->GetTime();
-	mAnimationBind->PlayAnimetionAddTime(0.5f * mTimeScale);
+	Param.mTime = mAnimationBind->GetTime();
+	mAnimationBind->PlayAnimetionAddTime(0.5f * Param.mTimeScale);
 }

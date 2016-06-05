@@ -1,5 +1,8 @@
 #pragma once
 
+
+#ifdef _ENGINE_MODE
+
 class Actor;
 class PhysX3Main;
 class EditorCamera;
@@ -65,4 +68,9 @@ private:
 	XMVECTOR mDragPos;
 
 	Material mSelectWireMaterial;
+	Material mSelectPhysxWireMaterial;
+	bool mCreateInspector;
+	std::string mAssetFileName;
 };
+
+#endif

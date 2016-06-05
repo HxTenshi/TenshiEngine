@@ -52,7 +52,6 @@ public:
 	~Game();
 
 	static void AddObject(Actor* actor);
-	static void AddEngineObject(Actor* actor);
 	static void DestroyObject(Actor* actor);
 	static void ActorMoveStage();
 	static PxRigidActor* CreateRigitBody();
@@ -71,8 +70,13 @@ public:
 	static void SetMainCamera(CameraComponent* Camera);
 	static CameraComponent* GetMainCamera();
 	static RenderTarget GetMainViewRenderTarget();
-	static bool IsGamePlay();
 	static void LoadScene(const std::string& FilePath);
+
+#ifdef _ENGINE_MODE
+	static void AddEngineObject(Actor* actor);
+	static bool IsGamePlay();
+	void GameStop();
+#endif
 
 	void ChangePlayGame(bool isPlay);
 	void SaveScene();
@@ -81,7 +85,6 @@ public:
 
 	float GetDeltaTime();
 	void Update();
-	void GameStop();
 	void GamePlay();
 
 	void ClearDrawList();
@@ -99,14 +102,17 @@ private:
 		Delete,
 		Count,
 	};
-	//ツリービューのアイテム削除に失敗したアクター
-	std::list<Actor*> mTreeViewItem_ErrerClearList;
 	//追加と削除
 	std::queue<std::pair<ActorMove, Actor*>> mActorMoveList;
 	//ゲームオブジェクトのリスト
 	ListMapType mList;
 	DrawListMapType mDrawList;
 	static Actor* mRootObject;
+
+#ifdef _ENGINE_MODE
+	//ツリービューのアイテム削除に失敗したアクター
+	std::list<Actor*> mTreeViewItem_ErrerClearList;
+
 	static Actor* mEngineRootObject;
 
 	SelectActor mSelectActor;
@@ -114,12 +120,13 @@ private:
 	WorldGrid mWorldGrid;
 	FPSChecker mFPS;
 	ProfileViewer mProfileViewer;
+	CommandManager mCommandManager;
 
-	SoundPlayer mSoundPlayer;
+	bool mIsPlay;
+#endif
 
 	PhysX3Main* mPhysX3Main;
 
-	CommandManager mCommandManager;
 
 	CameraComponent* mMainCamera;
 	RenderTarget mMainViewRenderTarget;
@@ -128,7 +135,6 @@ private:
 
 	static Scene m_Scene;
 
-	bool mIsPlay;
 
 	ConstantBuffer<cbGameParameter> mCBGameParameter;
 

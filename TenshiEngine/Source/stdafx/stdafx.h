@@ -25,3 +25,5 @@
 
 // デバッグ時のSTLのアロケーターをリリース仕様にする
 //#define _NO_DEBUG_HEAP 1
+
+//#define _ENGINE_MODE 0

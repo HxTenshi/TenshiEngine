@@ -1,6 +1,6 @@
 
+_REF(Bullet,mDeadTime); 
+_REF(Bullet,mSpeed); 
+_REF(BulletEmiter,mEmitObject); 
 _REF(TextureScroll,x); 
 _REF(TextureScroll,y); 
-_REF(TextureScroll,c); 
-_REF(TextureScroll,b); 
-_REF(TextureScroll,test); 

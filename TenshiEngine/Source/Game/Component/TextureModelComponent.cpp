@@ -108,6 +108,7 @@ void TextureModelComponent::SetMatrix(){
 	mModel->Update();
 }
 
+#ifdef _ENGINE_MODE
 void TextureModelComponent::CreateInspector(){
 
 	std::function<void(std::string)> collbacktex = [&](std::string name){
@@ -119,10 +120,15 @@ void TextureModelComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Texture", &mTextureName, collbacktex), data);
 	Window::ViewInspector("TextureModel", this, data);
 }
+#endif
 
 void TextureModelComponent::IO_Data(I_ioHelper* io){
-	(void)io;
 #define _KEY(x) io->func( x , #x)
 	_KEY(mTextureName);
 #undef _KEY
+}
+
+void TextureModelComponent::SetTexture(const std::string& filename){
+	mTextureName = filename;
+	mMaterial->SetTexture(filename.c_str(), 0);
 }

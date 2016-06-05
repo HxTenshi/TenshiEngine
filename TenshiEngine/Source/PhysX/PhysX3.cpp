@@ -367,7 +367,7 @@ PxShape* PhysX3Main::CreateShapeSphere(){
 }
 
 PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
-
+	if (!poly)return NULL;
 	auto vnum = poly->GetVertexNum();
 	//std::vector<PxVec3> vertexVec3(VertexNum);
 	std::vector<PxVec3> vertexVec3(vnum);

@@ -11,8 +11,7 @@
 
 #include "Game/RenderingSystem.h"
 
-
-#include "Engine/SystemLog.h"
+#include "Engine/ModelConverter.h"
 
 static std::stack<int> gIntPtrStack;
 
@@ -23,14 +22,19 @@ static CommandManager* gCommandManager;
 static CameraComponent** gMainCamera;
 //
 Actor* Game::mRootObject;
+#ifdef _ENGINE_MODE
 Actor* Game::mEngineRootObject;
+#endif
 Game* mGame = NULL;
 Scene Game::m_Scene;
 
+#ifdef _ENGINE_MODE
 static bool gIsPlay;
+#endif
 
 #include <vector>
 
+#ifdef _ENGINE_MODE
 //ツリービューが完成するまで繰り返す関数
 std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 	return [=](){
@@ -42,16 +46,21 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 		}
 	};
 }
+#endif
 
 #include "Engine/AssetLoader.h"
 
 Game::Game(){
 	_SYSTEM_LOG_H("ゲームシーンの初期化");
 	mGame = this;
+
+#ifdef _ENGINE_MODE
 	mIsPlay = false;
+#endif
 
 	HRESULT hr = S_OK;
 
+#ifdef _ENGINE_MODE
 	ScriptManager::ReCompile();
 
 	{
@@ -66,20 +75,28 @@ Game::Game(){
 		Window::CreateContextMenu_CreateObject("Box", "EngineResource/box.prefab");
 		Window::CreateContextMenu_CreateObject("Texture", "EngineResource/new Texture");
 	}
+#endif
 
 	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
 	if (FAILED(hr)){
 		//MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
 	}
 
+	mPhysX3Main = new PhysX3Main();
+	mPhysX3Main->InitializePhysX();
+	gpPhysX3Main = mPhysX3Main;
+
 	m_DeferredRendering.Initialize();
 	mPostEffectRendering.Initialize();
 
 	gpList = &mList;
 	gDrawList = &mDrawList;
-	gCommandManager = &mCommandManager;
 	gMainCamera = &mMainCamera;
+
+#ifdef _ENGINE_MODE
+	gCommandManager = &mCommandManager;
 	gIsPlay = mIsPlay;
+#endif
 
 
 
@@ -87,25 +104,21 @@ Game::Game(){
 	mRootObject->mTransform = mRootObject->AddComponent<TransformComponent>();
 	mRootObject->Initialize();
 
+#ifdef _ENGINE_MODE
 	mEngineRootObject = new Actor();
 	mEngineRootObject->mTransform = mEngineRootObject->AddComponent<TransformComponent>();
 	mEngineRootObject->Initialize();
 
 	mCamera.Initialize();
-
-	mPhysX3Main = new PhysX3Main();
-	mPhysX3Main->InitializePhysX();
-	gpPhysX3Main = mPhysX3Main;
-
 	mSelectActor.Initialize();
+#endif
+
 
 	LoadScene("./Assets/Scene_.scene");
-	
-	mSoundPlayer.Play();
 
 	mCBGameParameter = ConstantBuffer<cbGameParameter>::create(11);
 	mCBGameParameter.mParam.Time = XMFLOAT4(0, 0, 0, 0);
-	
+#ifdef _ENGINE_MODE
 	Window::SetWPFCollBack(MyWindowMessage::StackIntPtr, [&](void* p)
 	{
 		gIntPtrStack.push((int)p);
@@ -193,11 +206,12 @@ Game::Game(){
 		//delete coll;
 	});
 
-	Window::SetWPFCollBack(MyWindowMessage::CreatePMXtoTEStaticMesh, [&](void* p)
+	Window::SetWPFCollBack(MyWindowMessage::CreateModelConvert, [&](void* p)
 	{
 		std::string *s = (std::string*)p;
-		AssetLoader loader;
-		loader.LoadFile(*s);
+		ModelConverter::Comvert(*s);
+		//AssetLoader loader;
+		//loader.LoadFile(*s);
 		Window::Deleter(s);
 	});
 
@@ -223,7 +237,7 @@ Game::Game(){
 
 
 		std::string *s = (std::string*)p;
-		obj->ExportData("Assets", *s);
+		obj->ExportData("Assets", *s,true);
 
 		AssetDataBase::FileUpdate(("Assets/"+*s+".json").c_str());
 
@@ -307,13 +321,12 @@ Game::Game(){
 		}
 		Window::Deleter(s);
 	});
-
+#endif
 }
 
 Game::~Game(){
 
 	ChangePlayGame(false);
-	mSoundPlayer.Stop();
 
 	//for (auto& act : mList){
 	//	DestroyObject(act.second);
@@ -322,15 +335,19 @@ Game::~Game(){
 	ActorMoveStage();
 	TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
 	t->AllChildrenDestroy();
-
+#ifdef _ENGINE_MODE
 	TransformComponent* t2 = (TransformComponent*)mEngineRootObject->mTransform.Get();
 	t2->AllChildrenDestroy();
 
+#endif
+
 	ActorMoveStage();
 	delete mRootObject;
+#ifdef _ENGINE_MODE
 	delete mEngineRootObject;
-
 	mSelectActor.Finish();
+#endif
+
 
 	delete mPhysX3Main;
 	mPhysX3Main = NULL;
@@ -353,9 +370,13 @@ void Game::AddObject(Actor* actor){
 	actor->Initialize();
 
 	mGame->mActorMoveList.push(std::make_pair(ActorMove::Create, actor));
+
+	for (auto child : actor->mTransform->Children()){
+		AddObject(child);
+	}
 	
 }
-
+#ifdef _ENGINE_MODE
 //static
 void Game::AddEngineObject(Actor* actor){
 	if (!actor->mTransform){
@@ -369,6 +390,7 @@ void Game::AddEngineObject(Actor* actor){
 		actor->mTransform->SetParent(mEngineRootObject);
 	}
 }
+#endif
 //static
 void Game::DestroyObject(Actor* actor){
 	if (!actor)return;
@@ -384,6 +406,8 @@ void Game::ActorMoveStage(){
 		mGame->mActorMoveList.pop();
 		auto actor = tar.second;
 		if (tar.first == ActorMove::Delete){
+
+#ifdef _ENGINE_MODE
 			auto ptr = mGame->mSelectActor.GetSelectOne();
 			if (actor == ptr){
 				mGame->mSelectActor.SetSelect(NULL);
@@ -398,6 +422,7 @@ void Game::ActorMoveStage(){
 				mGame->mTreeViewItem_ErrerClearList.push_back(actor);
 			}
 			actor->mTreeViewPtr = NULL;
+#endif
 			TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
 			t->AllChildrenDestroy();
 			actor->Finish();
@@ -405,7 +430,10 @@ void Game::ActorMoveStage(){
 			delete actor;
 		}
 		else{
+
+#ifdef _ENGINE_MODE
 			Window::AddTreeViewItem(actor->Name(), actor);
+#endif
 
 			actor->Start();
 
@@ -478,10 +506,11 @@ CameraComponent* Game::GetMainCamera(){
 RenderTarget Game::GetMainViewRenderTarget(){
 	return mGame->mMainViewRenderTarget;
 }
-
+#ifdef _ENGINE_MODE
 bool Game::IsGamePlay(){
 	return gIsPlay;
 }
+#endif
 
 void Game::LoadScene(const std::string& FilePath){
 
@@ -499,6 +528,8 @@ void Game::LoadScene(const std::string& FilePath){
 
 
 void Game::ChangePlayGame(bool isPlay){
+
+#ifdef _ENGINE_MODE
 	if (mIsPlay == isPlay)return;
 
 	mIsPlay = isPlay;
@@ -519,7 +550,9 @@ void Game::ChangePlayGame(bool isPlay){
 
 		m_Scene.MemoryLoadScene();
 	}
-
+#else
+	(void)isPlay;
+#endif
 }
 
 bool g_DebugRender = true;
@@ -683,6 +716,8 @@ float Game::GetDeltaTime(){
 void Game::Update(){
 
 	ActorMoveStage();
+#ifdef _ENGINE_MODE
+	mSelectActor.UpdateInspector();
 
 	mProfileViewer.Update(1);
 	if (mIsPlay){
@@ -692,8 +727,11 @@ void Game::Update(){
 		GameStop();
 	}
 	mFPS.Update(1);
-	mSelectActor.UpdateInspector();
+#else
+	GamePlay();
+#endif
 }
+#ifdef _ENGINE_MODE
 void Game::GameStop(){
 	float deltaTime = GetDeltaTime();
 
@@ -732,6 +770,7 @@ void Game::GameStop(){
 
 	mPhysX3Main->EngineDisplay();
 }
+#endif
 void Game::GamePlay(){
 	float deltaTime = GetDeltaTime();
 

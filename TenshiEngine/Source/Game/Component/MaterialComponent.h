@@ -28,7 +28,9 @@ public:
 	void Initialize() override;
 
 	void SetMaterial(UINT SetNo, Material& material);
+#ifdef _ENGINE_MODE
 	void CreateInspector() override;
+#endif
 	Material* GetMaterialPtr(UINT GetNo) const override;
 	Material GetMaterial(UINT GetNo) const;
 

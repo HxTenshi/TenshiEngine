@@ -17,7 +17,9 @@ public:
 	void Finish() override;
 	void EngineUpdate() override;
 	void Update() override;
+#ifdef _ENGINE_MODE
 	void CreateInspector() override;
+#endif
 	void IO_Data(I_ioHelper* io) override;
 
 	//‰e‹¿”ÍˆÍ”¼Œa
@@ -28,6 +30,7 @@ public:
 	float m_AttenuationParam;
 	//ƒJƒ‰[
 	XMFLOAT3 m_Color;
+	float m_HDR;
 
 	Material mMaterial;
 

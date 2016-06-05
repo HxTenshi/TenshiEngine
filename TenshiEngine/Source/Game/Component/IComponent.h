@@ -37,9 +37,11 @@ public:
 	virtual void Update(){
 
 	}
+#ifdef _ENGINE_MODE
 	virtual void CreateInspector(){
 
 	}
+#endif
 
 	void ExportClassName(File& f){
 		std::string name = ClassName();

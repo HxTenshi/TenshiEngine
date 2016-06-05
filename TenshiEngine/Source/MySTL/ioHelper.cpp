@@ -29,6 +29,10 @@ template<>
 picojson::object I_InputHelper::get(const picojson::value& value){
 	return (picojson::object)value.get<picojson::object>();
 }
+template<>
+picojson::value I_InputHelper::get(const picojson::value& value){
+	return picojson::value();
+}
 
 
 
@@ -57,4 +61,9 @@ void I_OutputHelper::_func_out(const bool& value, const char* name){
 template<>
 void I_OutputHelper::_func_out(const picojson::object& value, const char* name){
 	o->insert(std::make_pair(name, picojson::value((picojson::object)value)));
+}
+
+template<>
+void I_OutputHelper::_func_out(const picojson::value& value, const char* name){
+	o->insert(std::make_pair(name, (picojson::value)value));
 }

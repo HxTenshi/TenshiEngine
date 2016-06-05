@@ -22,7 +22,9 @@ public:
 	void Finish() override;
 	void EngineUpdate() override;
 	void Update() override;
+#ifdef _ENGINE_MODE
 	void CreateInspector() override;
+#endif
 	void IO_Data(I_ioHelper* io) override;
 
 	XMFLOAT3 GetColor(){ return m_Color; }
@@ -31,6 +33,7 @@ public:
 private:
 	//ÉJÉâÅ[
 	XMFLOAT3 m_Color;
+	float m_HDR;
 
 	ConstantBuffer<cbChangesLight>		mCBChangeLgiht;
 	//ConstantBuffer<cbChangesMaterial>	mCBChangeLgihtMaterial;

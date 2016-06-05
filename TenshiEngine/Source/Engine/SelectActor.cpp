@@ -1,4 +1,8 @@
 
+
+
+#ifdef _ENGINE_MODE
+
 #include "SelectActor.h"
 
 #include <set>
@@ -50,7 +54,8 @@ public:
 		phy->mIsEngineMode = true;
 		mComponents.AddComponent<PhysXColliderComponent>();
 		auto col = mComponents.GetComponent<PhysXColliderComponent>();
-		col->SetMesh("EngineResource/Arrow.pmx.tesmesh");
+		col->CreateMesh(std::string("EngineResource/Arrow.pmx.tesmesh"));
+		col->SetScale(XMVectorSet(0.1, 0.1, 0.1, 1));
 
 		phy->SetKinematic(true);
 	}
@@ -116,7 +121,7 @@ void Selects::Copy(){
 	CopyDelete();
 	for (auto& act : mSelects){
 		auto data = new picojson::value();
-		act->ExportData(*data);
+		act->ExportData(*data, true);
 
 		mCopy.push_back(data);
 	}
@@ -162,6 +167,7 @@ std::list<Actor*>& Selects::GetSelects(){
 }
 
 SelectActor::SelectActor()
+	:mCreateInspector(false)
 {
 	mSelectAsset = false;
 	mDragBox = -1;
@@ -172,6 +178,11 @@ SelectActor::SelectActor()
 	mSelectWireMaterial.mDiffuse.y = 0.6f;
 	mSelectWireMaterial.mDiffuse.z = 0.1f;
 	mSelectWireMaterial.Create();
+	
+	mSelectPhysxWireMaterial.mDiffuse.x = 0.1f;
+	mSelectPhysxWireMaterial.mDiffuse.y = 0.95f;
+	mSelectPhysxWireMaterial.mDiffuse.z = 0.6f;
+	mSelectPhysxWireMaterial.Create();
 }
 
 void SelectActor::Finish(){
@@ -247,13 +258,29 @@ Actor* SelectActor::GetSelectOne(){
 void SelectActor::UpdateInspector(){
 	if (mSelects.SelectNum() != 1 && !mSelectAsset)return;
 
-	static unsigned long time_start = timeGetTime();
-	unsigned long current_time = timeGetTime();
-	unsigned long b = (current_time - time_start);
-	if (b >= 16){
-		time_start = timeGetTime();
-		//処理が追いつかない場合がある
-		Window::UpdateInspector();
+	if (!mCreateInspector){
+		if (mSelectAsset){
+			if (mSelects.SelectNum() <= 1){
+				AssetDataBase::CreateInspector(mAssetFileName.c_str());
+			}
+		}
+		else{
+			if (mSelects.SelectNum() == 1)mSelects.GetSelectOne()->CreateInspector();
+
+		}
+
+		mCreateInspector = true;
+	}
+	else{
+
+		static unsigned long time_start = timeGetTime();
+		unsigned long current_time = timeGetTime();
+		unsigned long b = (current_time - time_start);
+		if (b >= 16){
+			time_start = timeGetTime();
+			//処理が追いつかない場合がある
+			Window::UpdateInspector();
+		}
 	}
 }
 void SelectActor::Update(float deltaTime){
@@ -291,6 +318,15 @@ void SelectActor::Update(float deltaTime){
 		mVectorBox[0].mTransform->Scale(XMVectorSet(l, l, l, 1));
 		mVectorBox[1].mTransform->Scale(XMVectorSet(l, l, l, 1));
 		mVectorBox[2].mTransform->Scale(XMVectorSet(l, l, l, 1));
+
+
+		auto col = mVectorBox[0].GetComponent<PhysXColliderComponent>();
+		col->SetScale(XMVectorSet(l, l, l, 1));
+		col = mVectorBox[1].GetComponent<PhysXColliderComponent>();
+		col->SetScale(XMVectorSet(l, l, l, 1));
+		col = mVectorBox[2].GetComponent<PhysXColliderComponent>();
+		col->SetScale(XMVectorSet(l, l, l, 1));
+
 	}
 
 	mVectorBox[0].UpdateComponent(deltaTime);
@@ -335,6 +371,7 @@ void SelectActor::SelectActorDraw(){
 
 	if (mSelectAsset)return;
 
+	//メッシュ描画
 	for (auto select : mSelects.GetSelects()){
 		Game::AddDrawList(DrawStage::Engine, std::function<void()>([&, select](){
 			if (!select)return;
@@ -347,7 +384,7 @@ void SelectActor::SelectActorDraw(){
 			render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
 			render->PushSet(Rasterizer::Preset::RS_Back_Wireframe);
 
-
+			mModel->SetMatrix();
 			model.Draw(render->m_Context, mSelectWireMaterial);
 
 
@@ -355,6 +392,28 @@ void SelectActor::SelectActorDraw(){
 			render->PopDS();
 		}));
 	}
+	//Physxメッシュ描画
+	for (auto select : mSelects.GetSelects()){
+		Game::AddDrawList(DrawStage::Engine, std::function<void()>([&, select](){
+			if (!select)return;
+			auto com = select->GetComponent<PhysXColliderComponent>();
+			if (!com)return;
+
+			auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+			render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+			render->PushSet(Rasterizer::Preset::RS_Back_Wireframe);
+
+			
+			com->DrawMesh(render->m_Context, mSelectPhysxWireMaterial);
+
+
+			render->PopRS();
+			render->PopDS();
+		}));
+	}
+
+	//アロー描画
 	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
 	
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
@@ -424,7 +483,7 @@ void SelectActor::SetSelect(Actor* select){
 	}
 
 	Window::ClearInspector();
-	if (mSelects.SelectNum() == 1)mSelects.GetSelectOne()->CreateInspector();
+	mCreateInspector = false;
 }
 void SelectActor::SetSelectAsset(Actor* select,const char* filename){
 	mDragBox = -1;
@@ -442,14 +501,16 @@ void SelectActor::SetSelectAsset(Actor* select,const char* filename){
 	}
 
 	Window::ClearInspector();
-	if (mSelects.SelectNum() <= 1){
-		AssetDataBase::CreateInspector(filename);
-	}
+	mCreateInspector = false;
+
+	mAssetFileName = filename;
+
 }
 
 void SelectActor::ReCreateInspector(){
 	Window::ClearInspector();
-	if (mSelects.SelectNum() == 1)mSelects.GetSelectOne()->CreateInspector();
+	mCreateInspector = false;
+
 }
 
 
@@ -486,3 +547,4 @@ bool SelectActor::ChackHitRay(PhysX3Main* physx, EditorCamera* camera){
 	}
 	return false;
 }
+#endif

@@ -84,6 +84,7 @@ struct CBChangesPaticleParam
 	//x = num, y=impact, z=pointG-Rot
 	XMFLOAT4 Param;
 	XMFLOAT4 Wind;
+	XMFLOAT4 SmoothAlpha;
 };
 
 struct cbGameParameter//register(b11)

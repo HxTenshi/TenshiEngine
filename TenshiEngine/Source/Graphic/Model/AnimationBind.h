@@ -56,7 +56,7 @@ public:
 	void PlayAnimetionSetTime(float frame){
 		if (!mAnimeData)return;
 		float last = mAnimeData->GetLastFrameTime();
-		mKeyFraneTime = max(min(mKeyFraneTime, last), 0);
+		mKeyFraneTime = max(min(frame, last), 0);
 
 		AnimationUpdate();
 	}

@@ -16,6 +16,7 @@
 #include "PointLightComponent.h"
 #include "PostEffectComponent.h"
 #include "ParticleComponent.h"
+#include "SoundComponent.h"
 #include "Component.h"
 
 
@@ -26,22 +27,23 @@ class __ComponentFactory : public ComponentFactory{};
 __ComponentFactory initialize;
 
 ComponentFactory::ComponentFactory(){
-	_NewFunc<CameraComponent>();
 	_NewFunc<TransformComponent>();
-	_NewFunc<ModelComponent>();
 	_NewFunc<TextureModelComponent>();
-	_NewFunc<MaterialComponent>();
-	_NewFunc<AnimationComponent>();
+	_NewFunc<TextComponent>();
+	_NewFunc<ModelComponent>();
 	_NewFunc<MeshComponent>();
 	_NewFunc<MeshDrawComponent>();
+	_NewFunc<MaterialComponent>();
+	_NewFunc<AnimationComponent>();
+	_NewFunc<CameraComponent>();
+	_NewFunc<DirectionalLightComponent>();
+	_NewFunc<PointLightComponent>();
 	_NewFunc<ParticleComponent>();
 	_NewFunc<ScriptComponent>();
 	_NewFunc<PhysXComponent>();
 	_NewFunc<PhysXColliderComponent>();
-	_NewFunc<TextComponent>();
+	_NewFunc<SoundComponent>();
 	_NewFunc<PostEffectComponent>();
-	_NewFunc<DirectionalLightComponent>();
-	_NewFunc<PointLightComponent>();
 }
 
 shared_ptr<Component> ComponentFactory::Create(const std::string& ClassName){

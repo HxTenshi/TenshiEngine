@@ -6,9 +6,6 @@
 #include "TransformComponent.h"
 
 #include "Graphic/Model/Model.h"
-
-
-
 ModelComponent::ModelComponent()
 {
 	mModel =NULL;
@@ -36,10 +33,13 @@ void ModelComponent::Start(){
 void ModelComponent::Finish(){
 	m_MeshComVector.clear();
 }
-void ModelComponent::Update(){
-
+void ModelComponent::EngineUpdate(){
 }
 
+void ModelComponent::Update(){
+}
+
+#ifdef _ENGINE_MODE
 void ModelComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
 	std::function<void(std::string)> collbackpath = [&](std::string name){
@@ -66,6 +66,7 @@ void ModelComponent::CreateInspector(){
 	Window::AddInspector(new InspectorButtonDataSet("ExpanderMesh", collbackbutton), data);
 	Window::ViewInspector("ModelComponent", this, data);
 }
+#endif
 
 void ModelComponent::SetMatrix(){
 	if (!mModel)return;

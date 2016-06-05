@@ -1,3 +1,3 @@
 #pragma once
 
-#define _DRAW_MULTI_THREAD 1
+#define _DRAW_MULTI_THREAD 0

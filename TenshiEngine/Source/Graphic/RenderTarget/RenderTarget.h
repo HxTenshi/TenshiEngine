@@ -77,6 +77,66 @@ public:
 
 		return S_OK;
 	}
+	HRESULT CreateCUBE(UINT Width, UINT Height, DXGI_FORMAT format)
+	{
+		HRESULT hr = S_OK;
+
+		// Create depth stencil texture
+		D3D11_TEXTURE2D_DESC tex_desc;
+		ZeroMemory(&tex_desc, sizeof(tex_desc));
+		tex_desc.Width = Width;
+		tex_desc.Height = Height;
+		tex_desc.MipLevels = 1;
+		tex_desc.ArraySize = 6;
+		//tex_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		tex_desc.Format = format;
+		tex_desc.SampleDesc.Count = 1;
+		tex_desc.SampleDesc.Quality = 0;
+		tex_desc.Usage = D3D11_USAGE_DEFAULT;
+		//レンダーターゲットとして使用＆シェーダリソースとして利用
+		tex_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		tex_desc.CPUAccessFlags = 0;
+		tex_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+
+		//デプステクスチャの場合
+		//tex_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+		//他のメンバは省略
+		hr = Device::mpd3dDevice->CreateTexture2D(&tex_desc, nullptr, &mpTexture2D);
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("Texture2Dの作成");
+			return hr;
+		}
+
+		//Width、Heightは全レンダーターゲットとデプスバッファすべて同じにする
+
+		// RenderTargetView作成　MRTに必要な個数
+		hr = Device::mpd3dDevice->CreateRenderTargetView(mpTexture2D, nullptr, &mpRenderTargetView);
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("RenderTargetViewの作成");
+			return hr;
+		}
+		// デプスバッファ
+		//Device::mpd3dDevice->CreateDepthStencilView(texture, nullptr, &dsview);
+
+		ID3D11ShaderResourceView* pShaderResourceView;
+		hr = Device::mpd3dDevice->CreateShaderResourceView(mpTexture2D, nullptr, &pShaderResourceView);
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("ShaderResourceViewの作成");
+			return hr;
+		}
+
+		hr = mTexture.Create(pShaderResourceView);
+		if (FAILED(hr)){
+			return hr;
+		}
+
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		ClearView(render->m_Context);
+
+		return S_OK;
+	}
+
 	HRESULT CreateDepth(UINT Width, UINT Height)
 	{
 		HRESULT hr = S_OK;

@@ -8,9 +8,9 @@
 #pragma comment( lib , "dinput8.lib" )
 
 #ifdef _DEBUG
-#pragma comment(lib, "Debug/MyInput.lib")
+#pragma comment(lib, "MyInput.lib")
 #else
-#pragma comment(lib, "Release/MyInput.lib")
+#pragma comment(lib, "MyInput.lib")
 #endif
 
 //class DLLInput
