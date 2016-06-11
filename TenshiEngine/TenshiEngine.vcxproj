@@ -193,7 +193,7 @@
       <PrecompiledHeaderFile>stdafx\stdafx.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>stdafx\stdafx.h</ForcedIncludeFiles>
       <ShowIncludes>false</ShowIncludes>
-      <AdditionalOptions>/D "_XM_NO_INTRINSICS_"</AdditionalOptions>
+      <AdditionalOptions>/D "_XM_NO_INTRINSICS_" /D "_ENGINE_MODE"</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <StructMemberAlignment>Default</StructMemberAlignment>
@@ -563,6 +563,7 @@
     <ClCompile Include="Source\Game\Component\SoundComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TextureModelComponent.cpp" />
     <ClCompile Include="Source\Game\DeferredRendering.cpp" />
+    <ClCompile Include="Source\Game\DeltaTime.cpp" />
     <ClCompile Include="Source\Game\EngineObject\EditorCamera.cpp" />
     <ClCompile Include="Source\Game\EngineObject\FPSChecker.cpp" />
     <ClCompile Include="Source\Game\EngineObject\ProfileViewer.cpp" />
@@ -641,6 +642,7 @@
     <ClInclude Include="Source\Engine\ModelConverter.h" />
     <ClInclude Include="Source\Engine\SystemLog.h" />
     <ClInclude Include="Source\Game\Component\SoundComponent.h" />
+    <ClInclude Include="Source\Game\DeltaTime.h" />
     <ClInclude Include="Source\Game\EngineObject\ProfileViewer.h" />
     <ClInclude Include="Source\Engine\Profiling.h" />
     <ClInclude Include="Source\Engine\SelectActor.h" />

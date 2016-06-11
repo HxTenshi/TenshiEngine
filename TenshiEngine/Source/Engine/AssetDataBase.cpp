@@ -1,6 +1,7 @@
 #include "AssetDataBase.h"
 
 #include "Device/DirectX11Device.h"
+#include "Physx/Physx3.h"
 
 
 #include "MySTL/Utility.h"

@@ -686,7 +686,6 @@ void ScriptComponent::Unload(){
 
 	pDllClass = NULL;
 
-
 	mEndInitialize = false;
 	mEndStart = false;
 
@@ -723,6 +722,11 @@ void ScriptComponent::LoadParam(){
 void ScriptComponent::Update(){
 
 	if (pDllClass){
+
+		if (pDllClass){
+			pDllClass->game = &gSGame;
+			pDllClass->gameObject = gameObject;
+		}
 
 		if (!mEndInitialize){
 			mEndInitialize = true;

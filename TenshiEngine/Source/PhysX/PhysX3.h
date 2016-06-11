@@ -30,29 +30,6 @@
 //#include < PxSimpleFactory.h>
 #include <list>
 
-#ifdef _DEBUG
-//#pragma comment(lib,"PhysX3Gpu_x86.lib")
-//#pragma comment(lib,"PhysX3GpuCHECKED_x86.lib")
-#pragma comment(lib,"PhysX3DEBUG_x86.lib")
-//#pragma comment(lib,"PhysX3GpuDEBUG_x86.lib")
-//#pragma comment(lib,"PhysX3GpuPROFILE_x86.lib")
-//#pragma comment(lib,"PhysX3DEBUG_x86.lib")
-//#pragma comment(lib,"PhysX3CharacterKinematicDEBUG_x86.lib")
-#pragma comment(lib,"PhysX3CommonDEBUG_x86.lib")
-//#pragma comment(lib,"PhysX3CookingDEBUG_x86.lib")
-#pragma comment(lib,"PhysXProfileSDKDEBUG.lib")
-//#pragma comment(lib,"PxTaskDEBUG.lib")
-#pragma comment(lib,"PhysX3ExtensionsDEBUG.lib")
-#pragma comment(lib,"PhysX3CookingDEBUG_x86.lib")
-
-#else
-#pragma comment(lib,"PhysX3_x86.lib")
-#pragma comment(lib,"PhysX3Common_x86.lib")
-#pragma comment(lib,"PhysXProfileSDK.lib")
-#pragma comment(lib,"PhysX3Extensions.lib")
-#pragma comment(lib,"PhysX3Cooking_x86.lib")
-#endif
-
 using namespace physx;
 class Actor;
 class IPolygonsData;

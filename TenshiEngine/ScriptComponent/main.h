@@ -8,6 +8,16 @@
 
 #define SERIALIZE
 
+
+
+#define INC_ACTOR "Game/Actor.h"
+#define INC_GAME "Game/Script/IGame.h"
+#define INC_INPUT "Input/Input.h"
+#define INC_DELTA_TIME "Game/DeltaTime.h"
+#define INC_PHYSX "PhysX/IPhysXEngine.h"
+#define INC_DEBUG "engine/DebugEngine.h"
+
+
 //#include "Game/Actor.h"
 //#include "Game/Component.h"
 #include <windows.h>

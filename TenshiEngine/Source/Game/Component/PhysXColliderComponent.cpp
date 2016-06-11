@@ -6,8 +6,7 @@
 
 #include "Game/Game.h"
 #include "Game/Actor.h"
-#include <PxPhysics.h>
-#include <PxPhysicsAPI.h>
+#include "physx/physx3.h"
 
 #include "Engine/AssetDataBase.h"
 

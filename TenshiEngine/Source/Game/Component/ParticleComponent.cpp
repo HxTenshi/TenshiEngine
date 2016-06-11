@@ -166,10 +166,10 @@ void ParticleComponent::Update(){
 		if (mTimer == -1.0f){
 			Initialize();
 		}
-		mTimer += 0.016f;
+		mTimer += Game::GetDeltaTime()->GetDeltaTime();
 		if (mAutoDestroy){
 			//maxtime * impact + maxtime * loop = ç≈ëÂéûä‘
-			float maxtime = mParticleParam.Time.y * (1 - mParticleParam.Param.y) + mParticleParam.Time.y * max(mParticleParam.Param.z, 1);
+			float maxtime = mParticleParam.Time.y * (1 - mParticleParam.Param.y) + mParticleParam.Time.y * max(mParticleParam.Param.z, 1)*1.01;
 			if (maxtime <= mTimer){
 				Game::DestroyObject(gameObject);
 			}

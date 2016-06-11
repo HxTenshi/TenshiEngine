@@ -227,11 +227,16 @@ XMMATRIX CascadeShadow::CreateCropMatrix(const XMVECTOR& mini, const XMVECTOR& m
 void CascadeShadow::CascadeUpdate(){
 
 	//メインシーンのクリップ
+	auto cam = Game::GetMainCamera();
 	float nearClip = 0.01f;
 	float farClip = 100.0f;
+	if (cam){
+		nearClip = cam->GetNear();
+		farClip = cam->GetFar();
+	}
 	//デプスシーンのクリップ
 	float DnearClip = 0.01f;
-	float DfarClip = 1000.0f;
+	float DfarClip = 2000.0f;
 	float SlideBack = DfarClip/2;
 
 	float m_Lamda = 0.5f;

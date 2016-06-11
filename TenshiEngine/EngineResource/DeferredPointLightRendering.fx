@@ -38,6 +38,13 @@ cbuffer cbChangesPointLight : register(b8)
 	float4 PtLPrm;//減衰式 = Prm.x*r^Prm.w + Prm.y, Prm.z = 影響半径
 };
 
+cbuffer cbNearFar : register(b12)
+{
+	float Near;
+	float Far;
+	float2 NULLnf;
+};
+
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -81,7 +88,7 @@ float3 DepthToPosition2(float2 textureCoord, float depth)
 	float3 vpos;
 	// スクリーン座標　左上(-1,+1) 右下(+1,-1)
 	float2 spos = textureCoord * float2(2, -2) + float2(-1, 1);
-	vpos.z = Projection._m23 / (depth/* - Projection._m22*/);
+	vpos.z = Projection._m23 / (depth/*- Projection._m22*/);
 	vpos.xy = (spos.xy*vpos.z) / float2(Projection._m00, Projection._m11);
 
 	return vpos;
@@ -89,8 +96,7 @@ float3 DepthToPosition2(float2 textureCoord, float depth)
 //view depth
 float3 DepthToPosition(float2 textureCoord, float depth)
 {
-	const float FarClip = 100.0;
-	depth *= FarClip;
+	depth *= Far;
 	float4 projectedPosition = float4(textureCoord.xy * float2(2, -2) + float2(-1, 1), 0.0, 1.0);
 
 	float3 viewPosition = mul(projectedPosition, ProjectionInv).xyz;
@@ -102,17 +108,15 @@ float3 DepthToPosition(float2 textureCoord, float depth)
 float ToPerspectiveDepth(float viewDepth)
 {
 	float4 projectedPosition = mul(float4(0, 0, viewDepth, 1.0), Projection);
-	return 1.0 - (projectedPosition.z / projectedPosition.w);
+		return 1.0 - (projectedPosition.z / projectedPosition.w);
 }
 //view depth 0~1
 float ToPerspectiveDepth2(float viewDepth)
 {
-	const float FarClip = 100.0;
-	const float NearClip = 0.01;
 
 	///@note Left-hand coordinate system
-	float a = FarClip / (FarClip - NearClip);
-	float b = (NearClip * FarClip) / (NearClip - FarClip);
+	float a = Far / (Far - Near);
+	float b = (Near * Far) / (Near - Far);
 	float z = viewDepth * a + b;
 	float w = viewDepth;
 	return 1.0 - (z / w);
@@ -186,11 +190,12 @@ PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 
 	// 位置(view座標系)
 	float dep = DepthTex.Sample(DepthSamLinear, tex).r;
-	dep = ToPerspectiveDepth(dep);
-	float3 vpos = DepthToPosition2(tex, dep);
+	//dep = ToPerspectiveDepth(dep);
+	float3 vpos = DepthToPosition(tex, dep);
 
 
 		//float3 lpos = mul(PtLVPos, View).xyz;
+		//lpos.xyz = lpos.w;
 		float3 lpos = PtLVPos.xyz;
 
 		//点光源までの距離

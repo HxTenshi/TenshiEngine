@@ -30,6 +30,9 @@ public:
 	void PSSetConstantBuffers(ID3D11DeviceContext* context) const;
 	void GSSetConstantBuffers(ID3D11DeviceContext* context) const;
 
+	float GetNear();
+	float GetFar();
+
 	const XMMATRIX& GetViewMatrix();
 
 	enum class ScreenClearType{
@@ -49,6 +52,7 @@ private:
 	ConstantBuffer<CBNeverChanges>		mCBNeverChanges;
 	ConstantBuffer<CBChangeOnResize>	mCBChangeOnResize;
 	ConstantBuffer<CBBillboard>			mCBBillboard;
+	ConstantBuffer<cbNearFar>			mCBNearFar;
 
 	XMMATRIX                            mView;
 	XMMATRIX                            mProjection;

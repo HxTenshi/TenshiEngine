@@ -102,7 +102,7 @@ void Selects::MovePos(XMVECTOR& vect){
 
 	for (auto& act : mSelects){
 		auto pos = act->mTransform->Position();
-		act->mTransform->Position(pos + move);
+		act->mTransform->Position(pos + move / act->mTransform->LossyScale());
 	}
 
 }
@@ -111,8 +111,8 @@ void Selects::MoveEnd(XMVECTOR& vect){
 	mLastVect = vect;
 	for (auto& act : mSelects){
 		auto pos = act->mTransform->Position();
-		act->mTransform->Position(pos + move);
-		act->mTransform->SetUndo(pos + move);
+		act->mTransform->Position(pos + move / act->mTransform->LossyScale());
+		act->mTransform->SetUndo(pos + move / act->mTransform->LossyScale());
 	}
 
 }

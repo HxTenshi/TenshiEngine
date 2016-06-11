@@ -22,7 +22,7 @@ class FuctorySetter{
 public:
 	FuctorySetter(){
 #define _ADD(x) mFactory[typeid(x).name()] = [](){ return new x(); }
-		
+
 		//ここに作成したクラスを追加します
 
 #include "System\factory.h"
@@ -48,10 +48,11 @@ void ReleseInstance(IDllScriptComponent* p){
 
 #include <bitset>
 #include <sstream>
-DebugEngine* debug;
+DebugEngine* debug = NULL;
 int filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 
-	
+	if (!debug)return EXCEPTION_EXECUTE_HANDLER;
+
 	auto address = (unsigned long)ep->ExceptionRecord->ExceptionAddress;
 	auto ecode = ep->ExceptionRecord->ExceptionCode;
 
@@ -61,10 +62,10 @@ int filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 		debug->Log(" Exceptエラー Address[" + os.str() + "]");
 	}
 {
-		std::ostringstream os;
-		os << std::hex << code;
-		debug->Log(" +-- Code[" + os.str() + "]");
-	}
+	std::ostringstream os;
+	os << std::hex << code;
+	debug->Log(" +-- Code[" + os.str() + "]");
+}
 	if (code == EXCEPTION_FLT_DIVIDE_BY_ZERO) {
 		debug->Log(" +-- : ゼロ除算");
 	}
@@ -78,10 +79,20 @@ int filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 }
 
 void Function0(IDllScriptComponent* com, IDllScriptComponent::Func0 func){
-	debug = com->game->Debug();
+	if (com){
+		if (com->game){
+			debug = com->game->Debug();
+		}
+		else{
+			return;
+		}
+	}
+	else{
+		return;
+	}
 	__try{
 		//try{
-			(com->*func)();
+		(com->*func)();
 		//}
 		//catch (char* text){
 		//	debug->Log(text);
@@ -92,10 +103,20 @@ void Function0(IDllScriptComponent* com, IDllScriptComponent::Func0 func){
 	}
 }
 void Function1(IDllScriptComponent* com, IDllScriptComponent::Func1 func, Actor* tar){
-	debug = com->game->Debug();
+	if (com){
+		if (com->game){
+			debug = com->game->Debug();
+		}
+		else{
+			return;
+		}
+	}
+	else{
+		return;
+	}
 	__try{
 		//try{
-			(com->*func)(tar);
+		(com->*func)(tar);
 		//}
 		//catch (char* text){
 		//	debug->Log(text);

@@ -85,7 +85,7 @@ inline float3 DepthToPosition2(float2 textureCoord, float depth)
 inline float ToPerspectiveDepth(float viewDepth)
 {
 	float4 projectedPosition = mul(float4(0, 0, viewDepth, 1.0), Projection);
-		return 1.0 - (projectedPosition.z / projectedPosition.w);
+	return 1.0 - (projectedPosition.z / projectedPosition.w);
 }
 
 // V ÇåvéZÇ∑ÇÈÇΩÇﬂÇÃï÷óòä÷êî
@@ -198,12 +198,16 @@ inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	DifGen *= shadow * 0.75;
 	DifGen = DifGen + 0.25;
 
-	//DifGen *= shadow;
 
 	float roughness = norCol.a - 1;
 	float spec = LightingFuncGGX_REF(N, -normalize(vpos), -L, roughness, 0.1);
 
-
+	//if (shadow==1){
+	//	Out.Diffuse = LightColor * (DifGen*0.75+0.25);
+	//}
+	//else{
+	//	Out.Diffuse = LightColor * float4(0.2,0.2,0.3,1);
+	//}
 	Out.Diffuse = LightColor * DifGen;
 	Out.Diffuse.a = LightColor.a;
 

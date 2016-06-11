@@ -1,9 +1,7 @@
 #include "Bullet.h"
 
-#include "Game/Actor.h"
-#include "Game/Component/TransformComponent.h"
-#include "Input/Input.h"
-#include "Game/Script/IGame.h"
+#include "h_standard.h"
+#include "h_component.h"
 
 //生成時に呼ばれます（エディター中も呼ばれます）
 void Bullet::Initialize(){

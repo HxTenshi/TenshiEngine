@@ -78,6 +78,13 @@ cbuffer cbChangesLightCamera : register(b10)
 	float4 SplitPosition;
 };
 
+cbuffer cbNearFar : register(b12)
+{
+	float Near;
+	float Far;
+	float2 NULLnf;
+};
+
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -223,8 +230,6 @@ PS_INPUT VSSkin(VS_INPUT input)
 }
 
 
-const static float3 LD_normal = float3(2.0, 2.0, 100.0);
-
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
@@ -301,12 +306,13 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 	N = normalize(N);
 
-	float farClip = 100;
-	float D = input.VPos.z / farClip;
+	float D = input.VPos.z / Far;
 
 	float3 LD;
 
 	float dist = input.VPos.z + input.VPos.z*0.0001 + 0.01;
+
+	float3 LD_normal = float3(2.0, 2.0, Far);
 	[branch]
 	if (dist < SplitPosition.x)
 	{

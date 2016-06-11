@@ -6,7 +6,6 @@
 //#include <vector>
 
 #include <dsound.h>
-#pragma comment(lib,"lib/dsound.lib")
 
 #include "Window/Window.h"
 

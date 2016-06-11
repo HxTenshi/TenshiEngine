@@ -1,5 +1,7 @@
 #include "PhysXComponent.h"
 
+#include "physx/physx3.h"
+
 #include "Game/Game.h"
 PhysXComponent::PhysXComponent(){
 	mIsEngineMode = false;

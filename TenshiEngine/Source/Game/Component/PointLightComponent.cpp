@@ -76,7 +76,6 @@ void PointLightComponent::Update(){
 		auto matv = ccom->GetViewMatrix();
 		auto view = XMVector3Transform(world, matv);
 
-
 		mPointLightBuffer.mParam.ViewPosition = XMFLOAT4(view.x, view.y, view.z, 1);
 		mPointLightBuffer.mParam.Color = XMFLOAT4(m_Color.x*m_HDR, m_Color.y*m_HDR, m_Color.z*m_HDR, 1);
 

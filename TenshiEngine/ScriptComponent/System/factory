@@ -1,6 +1,8 @@
 
 _ADD(Bullet); 
 _ADD(BulletEmiter); 
+_ADD(DeltaTimeScale); 
+_ADD(MoveSmoke); 
 _ADD(PlayerScript); 
 _ADD(testhit); 
 _ADD(TextureScroll); 

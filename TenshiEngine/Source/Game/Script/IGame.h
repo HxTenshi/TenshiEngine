@@ -1,6 +1,7 @@
 #pragma once
 class Actor;
 class PhysXEngine;
+class DeltaTime;
 class DebugEngine;
 class IGame{
 public:
@@ -11,4 +12,5 @@ public:
 	virtual void LoadScene(const std::string& FilePath) = 0;
 	virtual DebugEngine* Debug() = 0;
 	virtual PhysXEngine* PhysX() = 0;
+	virtual DeltaTime* DeltaTime() = 0;
 };

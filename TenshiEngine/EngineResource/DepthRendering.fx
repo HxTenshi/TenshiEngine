@@ -38,6 +38,13 @@ cbuffer cbChangesLightCamera : register(b10)
 	float4 SplitPosition;
 };
 
+cbuffer cbNearFar : register(b12)
+{
+	float Near;
+	float Far;
+	float2 NULLnf;
+};
+
 float4x3 getBoneMatrix(uint idx)
 {
 	return BoneMatrix[idx];
@@ -113,5 +120,5 @@ float PS(PS_INPUT input) : SV_Target
 	if (UseTexture.x != 0.0){
 		if (AlbedoTex.Sample(AlbedoSamLinear, input.Tex).a < 0.01)discard;
 	}
-	return 1 - input.Pos.z / 100.0;
+	return 1 - input.Pos.z / Far;
 }

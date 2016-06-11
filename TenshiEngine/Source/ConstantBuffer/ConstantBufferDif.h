@@ -93,6 +93,12 @@ struct cbGameParameter//register(b11)
 	XMFLOAT4 Time;
 };
 
+struct cbNearFar
+{
+	float Near;
+	float Far;
+	XMFLOAT2 NULLnf;
+};
 
 //CS
 struct cbTextureSize//register(b0)

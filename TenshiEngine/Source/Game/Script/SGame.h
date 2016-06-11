@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/Game.h"
+#include "Game/DeltaTime.h"
 #include "IGame.h"
 #include "PhysX/PhysX3.h"
 #include "Engine/Debug.h"
@@ -55,6 +56,10 @@ public:
 
 	PhysXEngine* PhysX() override{
 		return Game::GetPhysXEngine();
+	}
+
+	::DeltaTime* DeltaTime(){
+		return Game::GetDeltaTime();
 	}
 	
 private:

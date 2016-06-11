@@ -1,4 +1,6 @@
 #include "Game/Game.h"
+
+#include "PhysX/PhysX3.h"
 #include "Game/Component/ComponentFactory.h"
 
 #include "Game/Component/TransformComponent.h"
@@ -27,6 +29,7 @@ Actor* Game::mEngineRootObject;
 #endif
 Game* mGame = NULL;
 Scene Game::m_Scene;
+DeltaTime* gpDeltaTime;
 
 #ifdef _ENGINE_MODE
 static bool gIsPlay;
@@ -53,6 +56,8 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 Game::Game(){
 	_SYSTEM_LOG_H("ƒQ[ƒ€ƒV[ƒ“‚Ì‰Šú‰»");
 	mGame = this;
+
+	gpDeltaTime = &mDeltaTime;
 
 #ifdef _ENGINE_MODE
 	mIsPlay = false;
@@ -457,6 +462,9 @@ PhysX3Main* Game::GetPhysX(){
 PhysXEngine* Game::GetPhysXEngine(){
 	return gpPhysX3Main;
 }
+DeltaTime* Game::GetDeltaTime(){
+	return gpDeltaTime;
+}
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
 }
@@ -586,8 +594,8 @@ void Game::Draw(){
 	//mMainCamera->ScreenClear();
 
 	mCBGameParameter.mParam.Time.x++;
-	mCBGameParameter.mParam.Time.y += 0.016f;
-	mCBGameParameter.mParam.Time.z = 0.016f;
+	mCBGameParameter.mParam.Time.y += mDeltaTime.GetDeltaTime();
+	mCBGameParameter.mParam.Time.z = mDeltaTime.GetDeltaTime();
 	mCBGameParameter.UpdateSubresource(render->m_Context);
 	mCBGameParameter.VSSetConstantBuffers(render->m_Context);
 	mCBGameParameter.PSSetConstantBuffers(render->m_Context);
@@ -692,29 +700,8 @@ void Game::SaveScene(){
 	m_Scene.SaveScene(mRootObject);
 }
 
-float Game::GetDeltaTime(){
-	float deltaTime;
-	if (Device::mDriverType == D3D_DRIVER_TYPE_REFERENCE)
-	{
-		deltaTime = (float)XM_PI * 0.0125f;
-	}
-	else
-	{
-		static float t = 0.0f;
-		static float bt = 0.0f;
-		static DWORD dwTimeStart = 0;
-		DWORD dwTimeCur = GetTickCount();
-		if (dwTimeStart == 0)
-			dwTimeStart = dwTimeCur;
-		bt = t;
-		t = (dwTimeCur - dwTimeStart) / 1000.0f;
-		deltaTime = t - bt;
-	}
-	return deltaTime;
-}
-
 void Game::Update(){
-
+	mDeltaTime.Tick();
 	ActorMoveStage();
 #ifdef _ENGINE_MODE
 	mSelectActor.UpdateInspector();
@@ -733,7 +720,8 @@ void Game::Update(){
 }
 #ifdef _ENGINE_MODE
 void Game::GameStop(){
-	float deltaTime = GetDeltaTime();
+	mDeltaTime.SetTimeScale(1.0f);
+	float deltaTime = mDeltaTime.GetDeltaTime();
 
 	mCamera.Update(deltaTime);
 
@@ -772,7 +760,7 @@ void Game::GameStop(){
 }
 #endif
 void Game::GamePlay(){
-	float deltaTime = GetDeltaTime();
+	float deltaTime = mDeltaTime.GetDeltaTime();
 
 	mRootObject->UpdateComponent(deltaTime);
 	mPhysX3Main->Display();

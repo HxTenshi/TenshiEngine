@@ -66,7 +66,12 @@ cbuffer cbChangesLightCamera : register(b10)
 	matrix LViewProjection[4];
 	float4 SplitPosition;
 };
-
+cbuffer cbNearFar : register(b12)
+{
+	float Near;
+	float Far;
+	float2 NULLnf;
+};
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {

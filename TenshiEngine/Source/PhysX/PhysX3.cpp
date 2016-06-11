@@ -8,6 +8,32 @@
 
 #include "Engine/AssetLoader.h"
 
+#include "Game/Game.h"
+
+
+#ifdef _DEBUG
+//#pragma comment(lib,"PhysX3Gpu_x86.lib")
+//#pragma comment(lib,"PhysX3GpuCHECKED_x86.lib")
+#pragma comment(lib,"PhysX3DEBUG_x86.lib")
+//#pragma comment(lib,"PhysX3GpuDEBUG_x86.lib")
+//#pragma comment(lib,"PhysX3GpuPROFILE_x86.lib")
+//#pragma comment(lib,"PhysX3DEBUG_x86.lib")
+//#pragma comment(lib,"PhysX3CharacterKinematicDEBUG_x86.lib")
+#pragma comment(lib,"PhysX3CommonDEBUG_x86.lib")
+//#pragma comment(lib,"PhysX3CookingDEBUG_x86.lib")
+#pragma comment(lib,"PhysXProfileSDKDEBUG.lib")
+//#pragma comment(lib,"PxTaskDEBUG.lib")
+#pragma comment(lib,"PhysX3ExtensionsDEBUG.lib")
+#pragma comment(lib,"PhysX3CookingDEBUG_x86.lib")
+
+#else
+#pragma comment(lib,"PhysX3_x86.lib")
+#pragma comment(lib,"PhysX3Common_x86.lib")
+#pragma comment(lib,"PhysXProfileSDK.lib")
+#pragma comment(lib,"PhysX3Extensions.lib")
+#pragma comment(lib,"PhysX3Cooking_x86.lib")
+#endif
+
 class TestOn : public physx::PxSimulationEventCallback{
 	void onConstraintBreak(PxConstraintInfo *constraints, PxU32 count) override{
 		(void)constraints;
@@ -433,6 +459,7 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 
 void PhysX3Main::StepPhysX()
 {
+	myTimestep = Game::GetDeltaTime()->GetDeltaTime();
 	//シミュレーションするものがないと出力がでる
 	gScene->simulate(myTimestep);
 
@@ -474,6 +501,8 @@ void PhysX3Main::getColumnMajor(PxMat33& m, PxVec3& t, float* mat) {
 }
 
 void PhysX3Main::EngineDisplay() {
+
+	myTimestep = Game::GetDeltaTime()->GetDeltaTime();
 
 	if (mEngineScene){
 

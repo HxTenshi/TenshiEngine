@@ -34,23 +34,24 @@ void EditorCamera::Initialize(){
 }
 void EditorCamera::Update(float deltaTime){
 	auto pos = XMVectorSet(0, 0, 0, 1);
+	float speed = 10.0f;
 	if (Input::Down(KeyCoord::Key_A)){
-		pos.x -= 0.1f;
+		pos.x -= speed;
 	}
 	if (Input::Down(KeyCoord::Key_D)){
-		pos.x += 0.1f;
+		pos.x += speed;
 	}
 	if (Input::Down(KeyCoord::Key_W)){
-		pos.z += 0.1f;
+		pos.z += speed;
 	}
 	if (Input::Down(KeyCoord::Key_S)){
-		pos.z -= 0.1f;
+		pos.z -= speed;
 	}
 	if (Input::Down(KeyCoord::Key_Q)){
-		pos.y += 0.1f;
+		pos.y += speed;
 	}
 	if (Input::Down(KeyCoord::Key_E)){
-		pos.y -= 0.1f;
+		pos.y -= speed;
 	}
 	if (Input::Trigger(MouseCoord::Right)){
 		int x, y;
@@ -84,6 +85,8 @@ void EditorCamera::Update(float deltaTime){
 		mRClickMousePos = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f);
 
 	}
+
+	pos *= deltaTime;
 	auto move = mCamera.mTransform->Position();
 	move += mCamera.mTransform->Forward() * pos.z;
 	move += mCamera.mTransform->Left() * pos.x;

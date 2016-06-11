@@ -10,7 +10,6 @@
 
 #include "Sound/Sound.h"
 
-#include "../PhysX/PhysX3.h"
 #include "Engine/ICommand.h"
 
 #include "Scene.h"
@@ -26,6 +25,7 @@
 #include "Game/EngineObject/ProfileViewer.h"
 #include "Engine/WorldGrid.h"
 
+#include "DeltaTime.h"
 
 class CameraComponent;
 
@@ -44,7 +44,13 @@ enum class DrawStage{
 };
 typedef void(*DrawFunc)();
 
-
+class PhysX3Main;
+class PhysXEngine;
+namespace physx{
+	class PxActor;
+	class PxRigidActor;
+}
+using namespace physx;
 
 class Game{
 public:
@@ -71,6 +77,7 @@ public:
 	static CameraComponent* GetMainCamera();
 	static RenderTarget GetMainViewRenderTarget();
 	static void LoadScene(const std::string& FilePath);
+	static DeltaTime* GetDeltaTime();
 
 #ifdef _ENGINE_MODE
 	static void AddEngineObject(Actor* actor);
@@ -83,7 +90,6 @@ public:
 
 	void Draw();
 
-	float GetDeltaTime();
 	void Update();
 	void GamePlay();
 
@@ -108,6 +114,8 @@ private:
 	ListMapType mList;
 	DrawListMapType mDrawList;
 	static Actor* mRootObject;
+
+	EngineDeltaTime mDeltaTime;
 
 #ifdef _ENGINE_MODE
 	//ツリービューのアイテム削除に失敗したアクター

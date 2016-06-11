@@ -31,6 +31,11 @@ void CameraComponent::Initialize()
 	mCBNeverChanges = ConstantBuffer<CBNeverChanges>::create(0);
 	mCBChangeOnResize = ConstantBuffer<CBChangeOnResize>::create(1);
 	mCBBillboard = ConstantBuffer<CBBillboard>::create(8);
+	mCBNearFar = ConstantBuffer<cbNearFar>::create(12);
+
+	mCBNearFar.mParam.Near = 0.01f;
+	mCBNearFar.mParam.Far = 1000.0f;
+	mCBNearFar.mParam.NULLnf = XMFLOAT2(0, 0);
 
 	// Initialize the view matrix
 	Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
@@ -50,22 +55,34 @@ void CameraComponent::Initialize()
 void CameraComponent::SetPerspective(){
 	UINT width = WindowState::mWidth;
 	UINT height = WindowState::mHeight;
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+	mCBNearFar.mParam.Near = 0.01f;
+	mCBNearFar.mParam.Far = 1000.0f;
+	mCBNearFar.UpdateSubresource(render->m_Context);
+
 	// Initialize the projection matrix
-	mProjection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
+	mProjection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, mCBNearFar.mParam.Near, mCBNearFar.mParam.Far);
 
 
 	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
 	XMVECTOR null;
 	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
 
-
-	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 	mCBChangeOnResize.UpdateSubresource(render->m_Context);
+
 }
 void CameraComponent::SetOrthographic(){
 	UINT width = WindowState::mWidth;
 	UINT height = WindowState::mHeight;
-	mProjection = XMMatrixOrthographicLH((FLOAT)width, (FLOAT)height, 0.01f, 4000.0f);
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+	mCBNearFar.mParam.Near = 0.01f;
+	mCBNearFar.mParam.Far = 4000.0f;
+	mCBNearFar.UpdateSubresource(render->m_Context);
+
+	mProjection = XMMatrixOrthographicLH((FLOAT)width, (FLOAT)height, mCBNearFar.mParam.Near, mCBNearFar.mParam.Far);
 
 
 	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
@@ -73,7 +90,6 @@ void CameraComponent::SetOrthographic(){
 	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
 
 
-	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 	mCBChangeOnResize.UpdateSubresource(render->m_Context);
 
 }
@@ -115,18 +131,21 @@ void CameraComponent::VSSetConstantBuffers(ID3D11DeviceContext* context) const
 	mCBNeverChanges.VSSetConstantBuffers(context);
 	mCBChangeOnResize.VSSetConstantBuffers(context);
 	mCBBillboard.VSSetConstantBuffers(context);
+	mCBNearFar.VSSetConstantBuffers(context);
 }
 void CameraComponent::PSSetConstantBuffers(ID3D11DeviceContext* context) const
 {
 	mCBNeverChanges.PSSetConstantBuffers(context);
 	mCBChangeOnResize.PSSetConstantBuffers(context);
 	mCBBillboard.PSSetConstantBuffers(context);
+	mCBNearFar.PSSetConstantBuffers(context);
 }
 void CameraComponent::GSSetConstantBuffers(ID3D11DeviceContext* context) const
 {
 	mCBNeverChanges.GSSetConstantBuffers(context);
 	mCBChangeOnResize.GSSetConstantBuffers(context);
 	mCBBillboard.GSSetConstantBuffers(context);
+	mCBNearFar.GSSetConstantBuffers(context);
 }
 
 const XMMATRIX& CameraComponent::GetViewMatrix(){
@@ -199,4 +218,13 @@ void CameraComponent::ScreenClear(){
 
 
 	render->PopDS();
+}
+
+
+float CameraComponent::GetNear(){
+	return mCBNearFar.mParam.Near;
+}
+float CameraComponent::GetFar(){
+	return mCBNearFar.mParam.Far;
+
 }

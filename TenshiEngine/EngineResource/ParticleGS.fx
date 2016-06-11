@@ -60,6 +60,19 @@ cbuffer CBChangesPaticleParam : register(b10)
 	float4 SmoothAlpha;
 };
 
+cbuffer cbGameParameter : register(b11)
+{
+	//x=AllCount,y=DeltaTimeCount,z=DeltaTime
+	float4 GameTime;
+};
+cbuffer cbNearFar : register(b12)
+{
+	float Near;
+	float Far;
+	float2 NULLnf;
+};
+
+
 // ƒWƒIƒƒgƒŠƒVƒF[ƒ_[‚Ì“ü—Íƒpƒ‰ƒ[ƒ^
 struct VS_IN
 {
@@ -95,27 +108,27 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 	GS0_OUT Out;
 	Out.time = In[0].time;
 
-	if (((uint)Param.x) <= ID){
-		Out.time.x = -10000.0f;
-		Out.v0.xz = 0;
-	}
-	if (Out.time.x <= -0.017f){
+	if (Out.time.x <= -100.0f){
 		Out.pos = In[0].pos;
 		Out.v0 = In[0].v0;
 		Out.v = In[0].v;
+		Out.time = In[0].time;
 
-		if (In[0].time.x <= -9999.0f){
-			Out.pos = In[0].pos;
-			Out.v0 = In[0].v0;
-			Out.v = In[0].v;
+		if (((uint)Param.x) > ID){
 
-			float rand = GetRandomNumber(float2(Param.w / 12345.0f, Param.w / 543.0f), 354 + ID + Param.w / 28.0f);
-			float time = GetRandomNumber(float2(rand, rand), 361 + ID);
-			Out.time.x = -(Time.y)*time * (1 - Param.y);
+			if (In[0].time.x <= -9999.0f){
+				Out.pos = In[0].pos;
+				Out.v0 = In[0].v0;
+				Out.v = In[0].v;
 
-		}
-		else{
-			Out.time.x = In[0].time.x + 0.016f;
+				float rand = GetRandomNumber(float2(Param.w / 12345.0f, Param.w / 543.0f), 354 + ID + Param.w / 28.0f);
+				float time = GetRandomNumber(float2(rand, rand), 361 + ID);
+				Out.time.x = -(Time.y)*time * (1 - Param.y) - 100.0f;
+
+			}
+			else{
+				Out.time.x = In[0].time.x + GameTime.z;
+			}
 		}
 
 	}
@@ -123,65 +136,77 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 	// ƒp[ƒeƒBƒNƒ‹‚ÌŠÔ‚ª g_LimitTime ‚ğ’´‚¦‚½‚Ì‚Å‰Šú‰»‚·‚é
 	if (Out.time.x <= 0.0f && (Param.z == 0 || Out.time.y < Param.z))
 	{
-		Out.time.y++;
-		float rand = GetRandomNumber(float2(Param.w / 12345.0f, Param.w / 543.0f), 354 + ID + Param.w/28.0f);
-		float2 rand2 = float2(rand, 1-rand);
 
-		Out.pos = World._41_42_43;
+		Out.pos = In[0].pos;
+		Out.v0 = In[0].v0;
+		Out.v = In[0].v;
+		Out.time = In[0].time;
+		if (((uint)Param.x) > ID){
+			Out.time.y++;
+			float rand = GetRandomNumber(float2(Param.w / 12345.0f, Param.w / 543.0f), 354 + ID + Param.w / 28.0f);
+			float2 rand2 = float2(rand, 1 - rand);
 
-		float px = GetRandomNumber(rand2, 353 + ID);
-		float py = GetRandomNumber(rand2, 352 + ID);
-		float pz = GetRandomNumber(rand2, 351 + ID);
-		float3 posv = float3(px, py, pz) * 2 - 1;
-		float3 nposv = posv;
-		if (length(posv) != 0){
-			nposv = normalize(posv);
+				Out.pos = World._41_42_43;
+
+			float px = GetRandomNumber(rand2, 353 + ID);
+			float py = GetRandomNumber(rand2, 352 + ID);
+			float pz = GetRandomNumber(rand2, 351 + ID);
+			float3 posv = float3(px, py, pz) * 2 - 1;
+				float3 nposv = posv;
+				if (length(posv) != 0){
+				nposv = normalize(posv);
+				}
+			Out.pos += lerp(nposv, posv, Point.w) * Point.xyz;
+
+
+			float scale = GetRandomNumber(rand2, 355 + ID);
+			Out.v0.x = ((MinMaxScale.y - MinMaxScale.x)*scale + MinMaxScale.x) / 2.0f;
+			Out.v0.y = 0;
+			Out.v0.z = 0;
+
+			float x = GetRandomNumber(rand2, 356 + ID);
+			float y = GetRandomNumber(rand2, 357 + ID);
+			float z = GetRandomNumber(rand2, 358 + ID);
+			float w = GetRandomNumber(rand2, 359 + ID);
+
+
+
+			float3 rot3 = (RotVec.xyz / 360.0f) * (3.1415926535f);
+				rot3 *= float3(x, y, z) * 2 - 1;
+
+			float3x3 ZRot =
+				float3x3(
+				cos(rot3.z), sin(rot3.z), 0,
+				-sin(rot3.z), cos(rot3.z), 0,
+				0, 0, 1);
+			float3x3 XRot =
+				float3x3(
+				1, 0, 0,
+				0, cos(rot3.x), sin(rot3.x),
+				0, -sin(rot3.x), cos(rot3.x)
+				);
+			float3x3 YRot =
+				float3x3(
+				cos(rot3.y), 0, -sin(rot3.y),
+				0, 1, 0,
+				sin(rot3.y), 0, cos(rot3.y)
+				);
+
+
+			Out.v = mul(Vector.xyz, mul(mul(XRot, YRot), ZRot));
+			Out.v -= Vector.w * Out.v * w;
+
+			Out.v = mul(Out.v, (float3x3)World);
+
+			float time = GetRandomNumber(rand2, 360 + ID);
+			Out.time.x = (Time.y - Time.x)*time + Time.x;
+			Out.time.z = Out.time.x;
 		}
-		Out.pos += lerp(nposv, posv, Point.w) * Point.xyz;
-
-
-		float scale = GetRandomNumber(rand2, 355 + ID);
-		Out.v0.x = ((MinMaxScale.y - MinMaxScale.x)*scale + MinMaxScale.x)/2.0f;
-		Out.v0.y = 0;
-		Out.v0.z = 0;
-
-		float x = GetRandomNumber(rand2, 356 + ID);
-		float y = GetRandomNumber(rand2, 357 + ID);
-		float z = GetRandomNumber(rand2, 358 + ID);
-		float w = GetRandomNumber(rand2, 359 + ID);
-
-		
-
-		float3 rot3 = (RotVec.xyz / 360.0f) * (3.1415926535f);
-		rot3 *= float3(x, y, z) * 2 - 1;
-
-		float3x3 ZRot =
-			float3x3(
-			cos(rot3.z), sin(rot3.z), 0,
-			-sin(rot3.z), cos(rot3.z), 0,
-			0, 0, 1);
-		float3x3 XRot =
-			float3x3(
-			1,0,0,
-			0, cos(rot3.x), sin(rot3.x),
-			0, -sin(rot3.x), cos(rot3.x)
-			);
-		float3x3 YRot =
-			float3x3(
-			cos(rot3.y), 0, -sin(rot3.y),
-			0,1,0,
-			sin(rot3.y), 0, cos(rot3.y)
-			);
-
-		
-		Out.v = mul(Vector.xyz, mul(mul(XRot, YRot), ZRot));
-		Out.v -= Vector.w * Out.v * w;
-
-		Out.v = mul(Out.v, (float3x3)World);
-
-		float time = GetRandomNumber(rand2, 360 + ID);
-		Out.time.x = (Time.y - Time.x)*time + Time.x;
-		Out.time.z = Out.time.x;
+		else{
+			float rand = GetRandomNumber(float2(Param.w / 12345.0f, Param.w / 543.0f), 354 + ID + Param.w / 28.0f);
+			float time = GetRandomNumber(float2(rand, rand), 361 + ID);
+			Out.time.x = -(Time.y)*time * (1 - Param.y) - 100.0f;
+		}
 	}
 	else
 	{
@@ -197,37 +222,42 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 				float3 nortar = normalize(tar);
 				//Point
 				float3 posG = nortar * G.w;
-				Out.v += posG;
+				Out.v += posG * GameTime.z;
 
 				//ƒEƒBƒ“ƒh
 				float3 left = cross(nortar,float3(0, 1, 0));
 				float3 up = cross(left, nortar);
 				float3x3 mat= float3x3(left, up, nortar);
 				float3 windVec = mul(Wind.xyz, mat);
-				Out.v += windVec;
+				Out.v += windVec * GameTime.z;
 
 			}
 
 
-		Out.pos = In[0].pos + Out.v;
+		Out.pos = In[0].pos + Out.v * GameTime.z/0.016666666;
 
 
 
+		//ƒp[ƒeƒBƒNƒ‹‚ğ‰æ–Ê‚©‚ç‚İ‚ÄL‚Î‚·
 		if (Time.w != 0){
 			float3 scrV = mul(Out.v, (float3x3)matWVP);
 			Out.v0.y = atan2(scrV.x, scrV.y);
 			Out.v0.z = length(scrV.xy) * Time.w;
 		}
 
-		Out.v *= RotVec.w;
+		float airscale = RotVec.w * GameTime.z;
+		Out.v -= Out.v * airscale;
+		if (airscale>=1){
+			Out.v = float3(0, 0, 0);
+		}
 
 		// ŠÔ‚ği‚ß‚é
-		Out.time.x = In[0].time.x - 0.016f;
+		Out.time.x = In[0].time.x - GameTime.z;
 
 
 		float4 screenpos = mul(float4(Out.pos, 1), matWVP);
 
-		float depth = screenpos.z / 100.0f;
+		float depth = screenpos.z / Far;
 		screenpos.xy /= screenpos.w;
 		screenpos.xy = screenpos.xy * 0.5 + 0.5;
 		screenpos.y = 1-screenpos.y;
@@ -247,7 +277,7 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 			//Out.v += -G.xyz;
 		}
 		else{
-			Out.v += G.xyz;
+			Out.v += G.xyz * GameTime.z;
 		}
 	}
 
@@ -338,7 +368,7 @@ typedef GS1_OUT PS_IN;
 float4 PS1_Main(PS_IN In) : SV_TARGET
 {
 	float2 tex = In.pos.xy / float2(1200, 800);
-	float Depth = In.vpos.z / 100.0f;
+	float Depth = In.vpos.z / Far;
 	float texd = DepthMap.Sample(DepthSamLinear, tex).r;
 	Depth = (Depth - texd);
 	Depth = abs(Depth);
