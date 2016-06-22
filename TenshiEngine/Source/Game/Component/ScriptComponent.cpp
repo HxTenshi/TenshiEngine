@@ -661,9 +661,41 @@ void ScriptComponent::Initialize(){
 		pDllClass->game = &gSGame;
 		pDllClass->gameObject = gameObject;
 	}
+
+#ifdef _ENGINE_MODE
+	if (Game::IsGamePlay()){
+		Initialize_Script();
+	}
+#else
+	Initialize_Script();
+#endif
 }
 
 void ScriptComponent::Start(){
+#ifdef _ENGINE_MODE
+	if (Game::IsGamePlay()){
+		Start_Script();
+	}
+
+#else
+	Start_Script();
+#endif
+}
+void ScriptComponent::Initialize_Script(){
+
+	if (!mEndInitialize){
+		mEndInitialize = true;
+		actors.Function(pDllClass, &IDllScriptComponent::Initialize);
+	}
+
+}
+
+void ScriptComponent::Start_Script(){
+
+	if (!mEndStart){
+		mEndStart = true;
+		actors.Function(pDllClass, &IDllScriptComponent::Start);
+	}
 }
 void ScriptComponent::Load(){
 	if (pDllClass)return;
@@ -726,15 +758,6 @@ void ScriptComponent::Update(){
 		if (pDllClass){
 			pDllClass->game = &gSGame;
 			pDllClass->gameObject = gameObject;
-		}
-
-		if (!mEndInitialize){
-			mEndInitialize = true;
-			actors.Function(pDllClass, &IDllScriptComponent::Initialize);
-		}
-		if (!mEndStart){
-			mEndStart = true;
-			actors.Function(pDllClass, &IDllScriptComponent::Start);
 		}
 
 		actors.Function(pDllClass, &IDllScriptComponent::Update);

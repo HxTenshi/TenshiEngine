@@ -39,6 +39,11 @@ public:
 	virtual ~Actor();
 	virtual void Initialize();
 	virtual void Start();
+
+#ifdef _ENGINE_MODE
+	virtual void Initialize_Script();
+	virtual void Start_Script();
+#endif
 	virtual void Finish();
 	virtual void EngineUpdateComponent(float deltaTime);
 	virtual void UpdateComponent(float deltaTime);
@@ -126,4 +131,5 @@ protected:
 	PrefabAssetDataPtr mPrefabAsset;
 
 	UINT mUniqueID;
+	bool mEndStart;
 };

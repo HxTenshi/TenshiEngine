@@ -25,6 +25,8 @@ public:
 	EngineDeltaTime();
 	~EngineDeltaTime();
 
+
+	void Reset();
 	void Tick();
 
 	float GetDeltaTime() const override;

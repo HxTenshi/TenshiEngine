@@ -132,6 +132,19 @@ class TestOn : public physx::PxSimulationEventCallback{
 	}
 };
 
+struct  FilterGroup
+{
+	enum  Enum
+	{
+		eSUBMARINE = (1 << 0),
+		eMINE_HEAD = (1 << 1),
+		eMINE_LINK = (1 << 2),
+		eCRAB = (1 << 3),
+		eHEIGHTFIELD = (1 << 4),
+		eTRIANGLE_MESH = (1 << 5),
+	};
+};
+
 PxFilterFlags SampleSubmarineFilterShader(
 	PxFilterObjectAttributes attributes0, PxFilterData filterData0,
 	PxFilterObjectAttributes attributes1, PxFilterData filterData1,
@@ -155,8 +168,13 @@ PxFilterFlags SampleSubmarineFilterShader(
 	{
 		return PxFilterFlag::eSUPPRESS;
 	}
+
+	if ((filterData0.word2 == FilterGroup::eTRIANGLE_MESH) &&
+		(filterData1.word2 == FilterGroup::eTRIANGLE_MESH)){
+		return PxFilterFlag::eDEFAULT;
+	}
+
 	// generate contacts for all that were not filtered above
-	
 
 	// trigger the contact callback for pairs (A,B) where
 	// the filtermask of A contains the ID of B and vice versa.
@@ -165,18 +183,6 @@ PxFilterFlags SampleSubmarineFilterShader(
 
 	return PxFilterFlag::eDEFAULT;
 }
-
-struct  FilterGroup
-{
-	enum  Enum
-	{
-		eSUBMARINE = (1 << 0),
-		eMINE_HEAD = (1 << 1),
-		eMINE_LINK = (1 << 2),
-		eCRAB = (1 << 3),
-		eHEIGHTFIELD = (1 << 4),
-	};
-};
 
 PhysX3Main::PhysX3Main()
 :gPhysicsSDK(NULL)
@@ -452,6 +458,7 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 	PxFilterData  filterData;
 	filterData.word0 = FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
 	filterData.word1 = FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
+	filterData.word2 = FilterGroup::eTRIANGLE_MESH;	//ワード1 = IDマスクcallback; 
 	shape->setSimulationFilterData(filterData);
 
 	return shape;
@@ -460,22 +467,16 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 void PhysX3Main::StepPhysX()
 {
 	myTimestep = Game::GetDeltaTime()->GetDeltaTime();
-	//シミュレーションするものがないと出力がでる
-	gScene->simulate(myTimestep);
+	if (myTimestep > 0){
+		//シミュレーションするものがないと出力がでる
+		gScene->simulate(myTimestep);
 
-	//シュミレーション中に？作成Shapeを？作成できない
-	//...perform useful work here using previous frame's state data
-	gScene->checkResults();
-	
-	while (!gScene->fetchResults())
-	{
-		//break;
-		// do something useful        
+		//シュミレーション中に？作成Shapeを？作成できない
+		//...perform useful work here using previous frame's state data
+		gScene->checkResults(true);
+		gScene->fetchResults(true);
 	}
-	//while ()
-	{
-		//break;    
-	}
+
 }
 
 void PhysX3Main::getColumnMajor(PxMat33& m, PxVec3& t, float* mat) {
@@ -504,13 +505,11 @@ void PhysX3Main::EngineDisplay() {
 
 	myTimestep = Game::GetDeltaTime()->GetDeltaTime();
 
-	if (mEngineScene){
+	if (mEngineScene && myTimestep > 0){
 
 		mEngineScene->simulate(myTimestep);
-		mEngineScene->checkResults();
-		while (!mEngineScene->fetchResults())
-		{
-		}
+		mEngineScene->checkResults(true);
+		mEngineScene->fetchResults(true);
 
 	}
 }

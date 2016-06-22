@@ -320,25 +320,15 @@ namespace Test {
 
 	///////////Frac1///////////
 
-	class Frac1 {
-
-		gcroot<System::Threading::Thread ^>UIthread = nullptr;
-
+	class WindowThreadCreator{
+		gcroot<System::Threading::Thread ^>WindowThread = nullptr;
 	public:
+		WindowThreadCreator(){
 
-		Frac1(){
+			WindowThread = gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(WindowMainThred));
 
-			UIthread = gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(WindowMainThred));
-
-			UIthread->SetApartmentState(System::Threading::ApartmentState::STA);
-			UIthread->Start();
-		}
-
-		void _CreateWindow(){
-		}
-
-		~Frac1(){ //デストラクタで.NETのメッセージボックスに分数表示
-			//System::Windows::MessageBox::Show(frac->GetMol() + "/" + frac->GetDen());
+			WindowThread->SetApartmentState(System::Threading::ApartmentState::STA);
+			WindowThread->Start();
 		}
 	};
 
@@ -352,11 +342,17 @@ namespace Test {
 	}
 
 	void NativeFraction::Initialize(){
-		frac = new Frac1();
+		mWindowThread = new WindowThreadCreator();
 	}
 	void NativeFraction::Release(){
-		delete frac;
+		delete mWindowThread;
 	}
+
+
+	//template<>
+	//void NativeFraction::Deleter(std::string* ptr){
+	//	delete ptr;
+	//}
 
 	delegate void MyDelegate();
 	delegate IntPtr MyDelegateR();
@@ -435,30 +431,29 @@ namespace Test {
 	}
 
 	void NativeFraction::UpdateComponentWindow(){
-		if (ViewData::window != nullptr){
-			auto del = gcnew MyDelegate(ViewData::window, &View::UpdateView);
-			ViewData::window->Dispatcher->BeginInvoke(del);
-		}
+		if (ViewData::window == nullptr)return;
+		
+		auto del = gcnew MyDelegate(ViewData::window, &View::UpdateView);
+		ViewData::window->Dispatcher->BeginInvoke(del);
 	}
 
 	void NativeFraction::CreateContextMenu_AddComponent(const std::string& ComponentName){
-		if (ViewData::window != nullptr){
-			auto del = gcnew MyDelegateCOM(ViewData::window, &View::CreateContextMenu_AddComponent);
-			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()));
-		}
+		if (ViewData::window == nullptr)return;
+
+		auto del = gcnew MyDelegateCOM(ViewData::window, &View::CreateContextMenu_AddComponent);
+		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()));
 	}
 
 	void NativeFraction::CreateContextMenu_CreateObject(const std::string& ObjectName, const std::string& FilePath){
-		if (ViewData::window != nullptr){
-			auto del = gcnew MyDelegateOBJ(ViewData::window, &View::CreateContextMenu_CreateObject);
-			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ObjectName.c_str()), gcnew String(FilePath.c_str()));
-		}
+		if (ViewData::window == nullptr)return;
+
+		auto del = gcnew MyDelegateOBJ(ViewData::window, &View::CreateContextMenu_CreateObject);
+		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ObjectName.c_str()), gcnew String(FilePath.c_str()));
 	}
 
 	void NativeFraction::AddTreeViewItem(const std::string& Name, void* ptr){
 		if (ViewData::window == nullptr)return;
 
-		
 		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddItem);
 		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
 	}
@@ -467,6 +462,13 @@ namespace Test {
 
 		auto del = gcnew MyDelegateI2(ViewData::window, &View::SetParent);
 		ViewData::window->Dispatcher->BeginInvoke(del, (IntPtr)parent, (IntPtr)child);
+	}
+
+	void NativeFraction::SelectTreeViewItem(void* ptr){
+		if (ViewData::window == nullptr)return;
+
+		auto del = gcnew MyDelegateI1(ViewData::window, &View::SelectTreeViewItem);
+		ViewData::window->Dispatcher->BeginInvoke(del, (IntPtr)ptr);
 	}
 
 	void NativeFraction::SetMouseEvents(bool* focus, bool* l, bool* r, int* x, int* y, int* wx, int* wy){
@@ -494,5 +496,4 @@ namespace Test {
 		}
 		return temp;
 	}
-
 }

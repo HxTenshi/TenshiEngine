@@ -56,6 +56,7 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 Game::Game(){
 	_SYSTEM_LOG_H("ƒQ[ƒ€ƒV[ƒ“‚Ì‰Šú‰»");
 	mGame = this;
+	mMainCamera = NULL;
 
 	gpDeltaTime = &mDeltaTime;
 
@@ -108,21 +109,30 @@ Game::Game(){
 	mRootObject = new Actor();
 	mRootObject->mTransform = mRootObject->AddComponent<TransformComponent>();
 	mRootObject->Initialize();
+	mRootObject->Start();
 
 #ifdef _ENGINE_MODE
 	mEngineRootObject = new Actor();
 	mEngineRootObject->mTransform = mEngineRootObject->AddComponent<TransformComponent>();
 	mEngineRootObject->Initialize();
+	mEngineRootObject->Start();
 
 	mCamera.Initialize();
 	mSelectActor.Initialize();
 #endif
 
-
+#ifdef _ENGINE_MODE
 	LoadScene("./Assets/Scene_.scene");
+#else
+	LoadScene("./Assets/Scenes/Title.scene");
+#endif
 
 	mCBGameParameter = ConstantBuffer<cbGameParameter>::create(11);
 	mCBGameParameter.mParam.Time = XMFLOAT4(0, 0, 0, 0);
+
+	mCBScreen = ConstantBuffer<cbScreen>::create(13);
+	mCBScreen.mParam.ScreenSize = XMFLOAT2((float)WindowState::mWidth,(float)WindowState::mHeight);
+	mCBScreen.mParam.NULLss = XMFLOAT2(0,0);
 #ifdef _ENGINE_MODE
 	Window::SetWPFCollBack(MyWindowMessage::StackIntPtr, [&](void* p)
 	{
@@ -163,6 +173,11 @@ Game::Game(){
 	{
 		auto act = ((Actor*)p);
 		mSelectActor.SetSelect(act);
+	});
+	Window::SetWPFCollBack(MyWindowMessage::ActorDoubleClick, [&](void* p)
+	{
+		auto act = ((Actor*)p);
+		mCamera.GoActorPosition(act);
 	});
 	Window::SetWPFCollBack(MyWindowMessage::SetActorParent, [&](void* p)
 	{
@@ -471,6 +486,9 @@ void Game::RemovePhysXActor(PxActor* act){
 void Game::RemovePhysXActorEngine(PxActor* act){
 	return gpPhysX3Main->RemoveActorEngine(act);
 }
+Actor* Game::GetRootActor(){
+	return mRootObject;
+}
 Actor* Game::FindActor(Actor* actor){
 
 	for (auto& act : (*gpList)){
@@ -522,6 +540,8 @@ bool Game::IsGamePlay(){
 
 void Game::LoadScene(const std::string& FilePath){
 
+	((EngineDeltaTime*)gpDeltaTime)->Reset();
+
 	TransformComponent* t = (TransformComponent*)mRootObject->mTransform.Get();
 	//t->AllChildrenDestroy();
 
@@ -544,11 +564,16 @@ void Game::ChangePlayGame(bool isPlay){
 	gIsPlay = mIsPlay;
 	if (isPlay){
 
+		mDeltaTime.Reset();
+
 		m_Scene.MemorySaveScene();
 
-		//for (auto& act : *gpList){
-		//	act.second->Start();
-		//}
+		for (auto& act : *gpList){
+			act.second->Initialize_Script();
+		}
+		for (auto& act : *gpList){
+			act.second->Start_Script();
+		}
 	}
 	else{
 
@@ -681,9 +706,11 @@ void Game::Draw(){
 
 	{
 		render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+		render->PushSet(BlendState::Preset::BS_Alpha);
 
 		PlayDrawList(DrawStage::UI);
 
+		render->PopBS();
 		render->PopDS();
 	}
 

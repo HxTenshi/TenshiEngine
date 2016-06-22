@@ -41,6 +41,7 @@ Actor::Actor()
 	:mComponents(this)
 	, mTreeViewPtr(NULL)
 	, mTransform(NULL)
+	, mEndStart(false)
 {
 	mName = "new Object";
 	mUniqueID = 0;
@@ -57,9 +58,24 @@ void Actor::Initialize(){
 }
 void Actor::Start(){
 	mComponents.RunStart();
+	mEndStart = true;
 }
+#ifdef _ENGINE_MODE
+void Actor::Initialize_Script(){
+	if (auto com = mComponents.GetComponent<ScriptComponent>()){
+		com->Initialize_Script();
+	}
+}
+void Actor::Start_Script(){
+	if (auto com = mComponents.GetComponent<ScriptComponent>()){
+		com->Start_Script();
+	}
+	
+}
+#endif
 void Actor::Finish(){
 	mComponents.RunFinish();
+	mEndStart = false;
 }
 
 void Actor::EngineUpdateComponent(float deltaTime){
@@ -77,6 +93,8 @@ void Actor::EngineUpdateComponent(float deltaTime){
 	}
 }
 void Actor::UpdateComponent(float deltaTime){
+	if (!mEndStart)return;
+
 	Update(deltaTime);
 
 	mTransform->Update();

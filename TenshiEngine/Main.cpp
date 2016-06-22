@@ -362,6 +362,8 @@ T& operator & (T&& t, throwNull& n){
 
 #include "MySTL\Coroutine.h"
 
+#include "Library\movie\Movie.h"
+
 
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
@@ -381,6 +383,15 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	Window mWindow(hInstance, nCmdShow);
 	if (FAILED(mWindow.Init()))
 		return 0;
+
+	CMFSession *g_lpSession = NULL;
+	{
+		//MFStartup(MF_VERSION);
+		//g_lpSession = new CMFSession(mWindow.GetGameScreenHWND());
+		//g_lpSession->LoadMovie(TEXT("EngineResource/vi.wmv"));
+		//g_lpSession->PlayMovie(FALSE);
+		//g_lpSession->SetPlayWindow();
+	}
 
 	// Main message loop
 	MSG msg = { 0 };
@@ -405,6 +416,16 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 				App.Render();
 			}
 		}
+
+
+		{
+			//g_lpSession->ReleaseMovie();
+			//delete g_lpSession;
+			//g_lpSession = NULL;
+			//MFShutdown();
+		}
+
+
 		App.CleanupDevice();
 	}
 

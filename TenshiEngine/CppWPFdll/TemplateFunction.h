@@ -67,7 +67,6 @@ void BindingInspector(System::Windows::Shapes::Rectangle^ rectangle, T* pf1, std
 		rectangle->DataContext = vm;
 	}
 
-
 	binding->Mode = BindingMode::TwoWay;
 	System::Windows::Data::BindingOperations::SetBinding(scb, SolidColorBrush::ColorProperty, binding);
 

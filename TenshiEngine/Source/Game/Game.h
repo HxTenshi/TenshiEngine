@@ -68,6 +68,7 @@ public:
 	static void RemovePhysXActorEngine(PxActor* act);
 	static void AllDestroyObject();
 	static void GetAllObject(const std::function<void(Actor*)>& collbak);
+	static Actor* GetRootActor();
 	static Actor* FindActor(Actor* actor);
 	static Actor* FindNameActor(const char* name);
 	static Actor* FindUID(UINT uid);
@@ -145,6 +146,7 @@ private:
 
 
 	ConstantBuffer<cbGameParameter> mCBGameParameter;
+	ConstantBuffer<cbScreen> mCBScreen;
 
 
 };

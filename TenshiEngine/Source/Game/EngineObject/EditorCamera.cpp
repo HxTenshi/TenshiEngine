@@ -94,6 +94,10 @@ void EditorCamera::Update(float deltaTime){
 
 	mCamera.mTransform->Position(move);
 	mCamera.UpdateComponent(deltaTime);
+
+	if (mUpdateFunc != NULL){
+		mUpdateFunc(deltaTime);
+	}
 }
 
 XMVECTOR EditorCamera::ScreenToWorldPoint(const XMVECTOR& point){
@@ -133,4 +137,47 @@ XMVECTOR EditorCamera::PointRayVector(const XMVECTOR& point){
 
 XMVECTOR EditorCamera::GetPosition(){
 	return mCamera.mTransform->Position();
+}
+
+
+#include "Library/easing.h"
+void EditorCamera::GoActorPosition(Actor* actor){
+	if (!actor)return;
+	if (!actor->mTransform)return;
+	auto targetPos = actor->mTransform->WorldPosition();
+	auto camPos = mCamera.mTransform->Position();
+	auto velo = targetPos - camPos;
+	velo = XMVector3Normalize(velo);
+	auto pos = targetPos + -velo * 5;
+	pos.w = 1;
+
+	//auto rot = XMQuaternionRotationAxis(XMVector3Cross(velo, XMVectorSet(0, 1, 0, 1)), std::acos(XMVector3Dot(velo, XMVectorSet(0, 1, 0, 1)).x));
+	auto mat = XMMatrixTranspose(XMMatrixLookAtLH(camPos, targetPos, XMVectorSet(0, 1, 0, 1)));
+	auto rot = XMQuaternionRotationMatrix(mat);
+
+	auto camRot = mCamera.mTransform->Quaternion();
+
+	mUpdateFunc = [pos, camPos, rot, camRot, this](float deltaTime){
+		static float time = 0;
+		const float maxTime = 1;
+		time += deltaTime;
+		time = max(time, 0.0f);
+		time = min(time, maxTime);
+		auto t = Easing::OutCubic(time, maxTime, 1.0, 0.0);
+		auto p = camPos * (1-t) + pos * t;
+		p.w = 1.0f;
+
+		auto q = XMQuaternionSlerp(camRot, rot, t);
+
+		this->mCamera.mTransform->Position(p);
+		this->mCamera.mTransform->Quaternion(q);
+
+		if (time >= maxTime){
+			mUpdateFunc = [](float t){};
+		}
+
+	};
+
+	mUpdateFunc(-1000);
+
 }

@@ -86,63 +86,6 @@ int Window::Init(){
 	ShowWindow(mhWnd, mnCmdShow);
 #endif
 
-	//CreateProcess(NULL, lpszPathName, NULL, NULL, TRUE,
-	//	DEBUG_PROCESS | CREATE_NEW_CONSOLE | NORMAL_PRIORITY_CLASS,
-	//	NULL, NULL, &si, &pi);
-	//hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessId);
-	///* プロセスにアタッチする */
-	//DebugActiveProcess(dwProcessId);
-	//
-	//while (TRUE){
-	//	/* イベントを待つ */
-	//	if (!WaitForDebugEvent(&debug, INFINITE)){
-	//		return;
-	//	}
-	//
-	//	switch (debug.dwDebugEventCode){
-	//	case OUTPUT_DEBUG_STRING_EVENT:   /* デバッグ文字列を受信した */
-	//		/* デバッグ文字列を読み出す */
-	//		ReadProcessMemory(hProcess,
-	//			debug.u.DebugString.lpDebugStringData,
-	//			szBuff, debug.u.DebugString.nDebugStringLength, &dwRead);
-	//		*(szBuff + dwRead) = '\0';
-	//		break;
-	//	case CREATE_PROCESS_DEBUG_EVENT:  /* プロセスを生成した */
-	//		break;
-	//	case CREATE_THREAD_DEBUG_EVENT:   /* スレッドを生成した */
-	//		break;
-	//	case EXIT_THREAD_DEBUG_EVENT:     /* スレッドが終了した */
-	//		break;
-	//	case LOAD_DLL_DEBUG_EVENT:        /* DLLをロードした */
-	//		break;
-	//	case UNLOAD_DLL_DEBUG_EVENT:      /* DLLをアンロードした */
-	//		break;
-	//	case EXCEPTION_DEBUG_EVENT:       /* 例外が発生した */
-	//		break;
-	//	case RIP_EVENT:                   /* RIPイベント */
-	//		break;
-	//
-	//	case EXIT_PROCESS_DEBUG_EVENT:    /* プロセスが終了した */
-	//		return;
-	//	default:
-	//		break;
-	//	}
-	//	/* デバッグを続行する */
-	//	ContinueDebugEvent(dwProcessId, debug.dwThreadId, DBG_CONTINUE);
-	//}
-
-	//InitCommonControls();
-
-	//mGameScreenWindow.Create(this);
-	//mInspectorWindow.Create(this);
-	//mProjectWindow.Create(this);
-
-	//ShowWindow(mhWnd, mnCmdShow);
-	//UpdateWindow(mhWnd);
-
-	//D&Dの許可
-	//DragAcceptFiles(mhWnd,true);
-
 	return S_OK;
 }
 

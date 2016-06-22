@@ -590,6 +590,8 @@
     <ClCompile Include="Source\Graphic\Shader\Shader.cpp" />
     <ClCompile Include="Source\Graphic\Shader\ShaderFile.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
+    <ClCompile Include="Source\Library\movie\Movie.cpp" />
+    <ClCompile Include="Source\Library\unknownbase.cpp" />
     <ClCompile Include="Source\MySTL\Coroutine.cpp" />
     <ClCompile Include="Source\MySTL\ioHelper.cpp" />
     <ClCompile Include="Source\MySTL\ptr.cpp" />
@@ -701,8 +703,11 @@
     <ClInclude Include="Source\Graphic\Shader\ShaderFile.h" />
     <ClInclude Include="Source\Graphic\Shader\VertexShader.h" />
     <ClInclude Include="Source\Input\Input.h" />
+    <ClInclude Include="Source\Library\easing.h" />
+    <ClInclude Include="Source\Library\movie\Movie.h" />
     <ClInclude Include="Source\Library\picojson.h" />
     <ClInclude Include="Source\Library\sqlite3.h" />
+    <ClInclude Include="Source\Library\unknownbase.h" />
     <ClInclude Include="Source\MySTL\Coroutine.h" />
     <ClInclude Include="Source\MySTL\deleter.h" />
     <ClInclude Include="Source\MySTL\File.h" />

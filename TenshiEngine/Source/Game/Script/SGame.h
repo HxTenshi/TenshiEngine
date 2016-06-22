@@ -11,6 +11,9 @@
 //ゲームのスタティック関数の肩代わり
 class SGame : public IGame{
 public:
+	Actor* GetRootActor()override{
+		return Game::GetRootActor();
+	}
 	Actor* CreateActor(const char* prefab)override{
 
 
@@ -60,6 +63,13 @@ public:
 
 	::DeltaTime* DeltaTime(){
 		return Game::GetDeltaTime();
+	}
+
+	void Shutdown(){
+#ifdef _ENGINE_MODE
+#else
+		PostQuitMessage(0);
+#endif
 	}
 	
 private:

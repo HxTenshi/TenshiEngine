@@ -16,6 +16,10 @@ public:
 	void LoadParam();
 	void Initialize() override;
 	void Start() override;
+
+	void Initialize_Script();
+	void Start_Script();
+
 	void Update() override;
 	void Finish() override;
 

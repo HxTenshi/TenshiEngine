@@ -23,6 +23,7 @@ enum class MyWindowMessage{
 
 	SelectActor,
 	SetActorParent,
+	ActorDoubleClick,
 	ActorDestroy,
 	ChangeParamComponent,
 	AddComponent,

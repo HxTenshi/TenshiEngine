@@ -100,6 +100,10 @@ public:
 	static void ClearTreeViewItem(void* ptr){
 		if (ptr)mMainWindow_WPF.ClearTreeViewItem(ptr);
 	}
+	static void SelectTreeViewItem(void* ptr){
+		if (ptr)mMainWindow_WPF.SelectTreeViewItem(ptr);
+	}
+
 
 	static void ClearInspector(){
 		mMainWindow_WPF.ClearAllComponentWindow();

@@ -22,7 +22,7 @@
 //}
 
 namespace Test {
-	class Frac1;
+	class WindowThreadCreator;
 	class NativeFraction;
 }
 
@@ -31,10 +31,8 @@ namespace Test {
 
 class CLASS_DECLSPEC Test::NativeFraction{
 
-	Frac1* frac;
+	WindowThreadCreator* mWindowThread;
 public:
-	int i;
-	char c;
 
 	NativeFraction();
 	~NativeFraction();
@@ -58,6 +56,7 @@ public:
 
 	void AddTreeViewItem(const std::string& Name, void* ptr);
 	void SetParentTreeViewItem(void* parent, void* child);
+	void SelectTreeViewItem(void* ptr);
 
 	void SetMouseEvents(bool* focus, bool* l, bool* r, int* x, int* y, int* wx, int* wy);
 

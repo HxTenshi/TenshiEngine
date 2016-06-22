@@ -257,12 +257,12 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 
 		float4 screenpos = mul(float4(Out.pos, 1), matWVP);
 
-		float depth = screenpos.z / Far;
+		float depth = screenpos.z;
 		screenpos.xy /= screenpos.w;
 		screenpos.xy = screenpos.xy * 0.5 + 0.5;
 		screenpos.y = 1-screenpos.y;
 		screenpos.xyz *= float3(1200,800,0);
-		float r = DepthMap.Load(screenpos).r;
+		float r = DepthMap.Load(screenpos).r * Far;
 		float3 nor = txDiffuse.Load(screenpos).rgb * 2 - 1;
 
 		//Out.pos = DepthMap.Load(screenpos).rgb;
@@ -372,7 +372,8 @@ float4 PS1_Main(PS_IN In) : SV_TARGET
 	float texd = DepthMap.Sample(DepthSamLinear, tex).r;
 	Depth = (Depth - texd);
 	Depth = abs(Depth);
-	Depth = (Depth > 0.05) ? 1 : (Depth / 0.05f);
+	float d = 100.0 / Far;
+	Depth = (Depth > 0.05*d) ? 1 : (Depth / (0.05f*d));
 	Depth = min(max(Depth, 0), 1);
 	//Depth = 1;
 	

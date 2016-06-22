@@ -14,7 +14,10 @@ EngineDeltaTime::EngineDeltaTime(){
 EngineDeltaTime::~EngineDeltaTime(){
 
 }
-
+void EngineDeltaTime::Reset(){
+	mNoScaleDeltaTime = 0.0f;
+	mStart.QuadPart = 0;
+}
 void EngineDeltaTime::Tick(){
 
 	LARGE_INTEGER end;
@@ -22,6 +25,8 @@ void EngineDeltaTime::Tick(){
 	if (mStart.QuadPart != 0)
 		mNoScaleDeltaTime = ((double)end.QuadPart - (double)mStart.QuadPart) / (double)mFreq.QuadPart;
 	mDeltaTime = mNoScaleDeltaTime * mScale;
+
+	mDeltaTime = min(mDeltaTime, 4.0f/60.0f);
 
 	mStart = end;
 }

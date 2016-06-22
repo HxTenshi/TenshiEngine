@@ -100,6 +100,13 @@ struct cbNearFar
 	XMFLOAT2 NULLnf;
 };
 
+//13
+struct cbScreen
+{
+	XMFLOAT2 ScreenSize;
+	XMFLOAT2 NULLss;
+};
+
 //CS
 struct cbTextureSize//register(b0)
 {

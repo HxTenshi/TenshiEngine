@@ -87,7 +87,7 @@ namespace TestContent{
 	CLASS_DECLSPEC public ref class Person : public _NofityPropertyChanged
 	{
 	public:
-		Person(String ^name, MyList ^child) :mName(name), mChildren(child), mDataPtr(NULL), mParent(nullptr), mThisIntPtr(NULL)
+		Person(String ^name, MyList ^child) :mName(name), mChildren(child), mDataPtr(NULL), mParent(nullptr), mThisIntPtr(NULL), mIsSelect(false)
 		{
 			mThisIntPtr = new gcroot<Person^>(this);
 		}
@@ -104,6 +104,7 @@ namespace TestContent{
 		property IntPtr DataPtr{ IntPtr get(){ return mDataPtr; } void set(IntPtr ptr){ mDataPtr = ptr; } }
 		property IntPtr ThisIntPtr{ IntPtr get(){ return (IntPtr)mThisIntPtr; } }
 		property Person^ Parent{ Person^ get(){ return mParent; } }
+		property bool IsSelected{ bool get(){ return mIsSelect; } void set(bool v){ mIsSelect = v; NotifyPropertyChanged("IsSelected"); }}
 		void Add(Person^ item){
 			if (item->mParent)
 				item->mParent->Children->Remove(item);
@@ -123,6 +124,7 @@ namespace TestContent{
 		MyList ^mChildren;
 		IntPtr mDataPtr;
 		Person ^mParent;
+		bool mIsSelect;
 		gcroot<Person^> *mThisIntPtr;
 	};
 }
