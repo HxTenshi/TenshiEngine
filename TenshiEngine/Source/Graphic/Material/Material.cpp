@@ -30,7 +30,8 @@ HRESULT Material::Create(const char* shaderFileName){
 	mCBMaterial.mParam.HeightPower = mHeightPower;
 	mCBMaterial.mParam.MNormaleScale = mNormalScale;
 	mCBMaterial.mParam.MOffset = mOffset;
-	mCBMaterial.mParam.MNULL = mOffset;
+	mCBMaterial.mParam.EmissivePowor = 1.0f;
+	mCBMaterial.mParam.MNULL = 0.0f;
 
 	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
 	if (!mCBUseTexture.mBuffer)
@@ -76,46 +77,71 @@ void Material::CreateShader(const char* shaderFileName){
 void Material::SetShader(bool UseAnime, ID3D11DeviceContext* context) const{
 	mShader.SetShader(UseAnime,context);
 }
-void Material::VSSetShaderResources(ID3D11DeviceContext* context) const{
+void Material::SetShader_PS(ID3D11DeviceContext* context) const{
+	mShader.SetShader_PS(context);
+}
+void Material::SetShader_VS(bool UseAnime, ID3D11DeviceContext* context) const{
+	mShader.SetShader_VS(UseAnime, context);
+}
+void Material::VSSetShaderResources(ID3D11DeviceContext* context, ForcedMaterialFilter::Enum filter) const{
 	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
 		return;
 	}
 
-	mCBMaterial.UpdateSubresource(context);
-	mCBUseTexture.UpdateSubresource(context);
+	if (filter & ForcedMaterialFilter::Color){
+		mCBMaterial.UpdateSubresource(context);
+		mCBMaterial.VSSetConstantBuffers(context);
+	}
 
-	mCBMaterial.VSSetConstantBuffers(context);
-	mCBUseTexture.VSSetConstantBuffers(context);
+	if (filter & ForcedMaterialFilter::Texture_ALL){
+		mCBUseTexture.UpdateSubresource(context);
+		mCBUseTexture.VSSetConstantBuffers(context);
+	}
 }
-void Material::PSSetShaderResources(ID3D11DeviceContext* context) const{
+void Material::PSSetShaderResources(ID3D11DeviceContext* context, ForcedMaterialFilter::Enum filter) const{
 	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
 		return;
 	}
 
 	for (UINT i = 0; i < 8; i++){
-		mTexture[i].PSSetShaderResources(context,i);
+
+		if (filter & (ForcedMaterialFilter::Texture_0 << i)){
+			mTexture[i].PSSetShaderResources(context, i);
+		}
 	}
 
-	mCBMaterial.UpdateSubresource(context);
-	mCBUseTexture.UpdateSubresource(context);
+	if (filter & ForcedMaterialFilter::Color){
+		mCBMaterial.UpdateSubresource(context);
+		mCBMaterial.PSSetConstantBuffers(context);
+	}
 
-	mCBMaterial.PSSetConstantBuffers(context);
-	mCBUseTexture.PSSetConstantBuffers(context);
+	if (filter & ForcedMaterialFilter::Texture_ALL){
+		mCBUseTexture.UpdateSubresource(context);
+		mCBUseTexture.PSSetConstantBuffers(context);
+	}
 }
-void Material::GSSetShaderResources(ID3D11DeviceContext* context) const{
+void Material::GSSetShaderResources(ID3D11DeviceContext* context, ForcedMaterialFilter::Enum filter) const{
 	if (!mCBMaterial.mBuffer || !mCBUseTexture.mBuffer){
 		return;
 	}
 
+
 	for (UINT i = 0; i < 8; i++){
-		mTexture[i].GSSetShaderResources(context, i);
+
+		if (filter & (ForcedMaterialFilter::Texture_0 << i)){
+			mTexture[i].GSSetShaderResources(context, i);
+		}
 	}
 
-	mCBMaterial.UpdateSubresource(context);
-	mCBUseTexture.UpdateSubresource(context);
+	if (filter & ForcedMaterialFilter::Color){
+		mCBMaterial.UpdateSubresource(context);
+		mCBMaterial.GSSetConstantBuffers(context);
+	}
 
-	mCBMaterial.GSSetConstantBuffers(context);
-	mCBUseTexture.GSSetConstantBuffers(context);
+	if (filter & ForcedMaterialFilter::Texture_ALL){
+		mCBUseTexture.UpdateSubresource(context);
+		mCBUseTexture.GSSetConstantBuffers(context);
+	}
 }
 
 

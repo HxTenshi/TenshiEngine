@@ -17,7 +17,9 @@
 #include "PostEffectComponent.h"
 #include "ParticleComponent.h"
 #include "SoundComponent.h"
+#include "MovieComponent.h"
 #include "Component.h"
+#include "DebugEngineScriptComponent.h"
 
 
 
@@ -43,7 +45,9 @@ ComponentFactory::ComponentFactory(){
 	_NewFunc<PhysXComponent>();
 	_NewFunc<PhysXColliderComponent>();
 	_NewFunc<SoundComponent>();
+	_NewFunc<MovieComponent>();
 	_NewFunc<PostEffectComponent>();
+	_NewFunc<DebugEngineScriptComponent>();
 }
 
 shared_ptr<Component> ComponentFactory::Create(const std::string& ClassName){

@@ -82,10 +82,14 @@ void TextureModelComponent::Finish(){
 void TextureModelComponent::SetMatrix(){
 	if (!mModel)return;
 	
-	float h = (float)WindowState::mHeight;
-	float w = (float)WindowState::mWidth;
-	float hh = (float)WindowState::mHeight / 2.0f;
-	float wh = (float)WindowState::mWidth / 2.0f;
+	//auto h = (float)WindowState::mHeight;
+	//auto w = (float)WindowState::mWidth;
+
+	auto h = (float)800.0f;
+	auto w = (float)1200.0f;
+	
+	float hh = h / 2.0f;
+	float wh = w / 2.0f;
 
 	auto s = gameObject->mTransform->Scale();
 	float sx = s.x / w;
@@ -93,6 +97,14 @@ void TextureModelComponent::SetMatrix(){
 	auto p = gameObject->mTransform->Position();
 	float px = (p.x - wh) / wh;
 	float py = (-p.y + hh) / hh;
+
+	//‚‚³‚ð‡‚í‚¹‚Ä•‚Ì”ä—¦‚ð‚ ‚í‚¹‚é
+	{
+		auto asx = 1200.0f / (float)WindowState::mWidth;
+		//px -= asx/2.0f;
+		sx *= asx;
+	}
+
 
 	auto pos = XMVectorSet(px, py, 0, 1);
 	auto rot = gameObject->mTransform->Rotate();

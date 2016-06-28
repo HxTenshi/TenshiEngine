@@ -1,5 +1,4 @@
 
-
 #include <string>
 
 #include "Model.h"
@@ -19,7 +18,9 @@
 //強制的にこのマテリアルを使用
 //static
 Material* Model::mForcedMaterial = NULL;
-Material* Model::mForcedMaterialUseTexture = NULL;
+//Material* Model::mForcedMaterialUseTexture = NULL;
+ForcedMaterialFilter::Enum Model::mForcedMaterialFilter = ForcedMaterialFilter::None;
+
 
 Model::Model()
 	: mBoneModel(NULL)
@@ -108,30 +109,47 @@ void Model::IASet(ID3D11DeviceContext* context) const{
 }
 void Model::Draw(ID3D11DeviceContext* context, const Material& material) const{
 	if (!m_MeshAssetDataPtr)return;
+	if (mBoneModel){
+		mBoneModel->SetConstantBuffer(context);
+	}
+
+	//if (mForcedMaterial){
+	//	mForcedMaterial->SetShader((bool)(mBoneModel != NULL), context);
+	//	mForcedMaterial->PSSetShaderResources(context);
+	//}
+	//else if (mForcedMaterialUseTexture){
+	//	mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL), context);
+	//	material.VSSetShaderResources(context);
+	//	material.PSSetShaderResources(context);
+	//}
+	//else{
+	//	material.SetShader((bool)(mBoneModel != NULL), context);
+	//	material.VSSetShaderResources(context,ForcedMaterialFilter::ALL);
+	//	material.PSSetShaderResources(context, ForcedMaterialFilter::ALL);
+	//}
+
+	material.SetShader((bool)(mBoneModel != NULL), context);
+	material.VSSetShaderResources(context, ForcedMaterialFilter::ALL);
+	material.PSSetShaderResources(context, ForcedMaterialFilter::ALL);
 
 	if (mForcedMaterial){
-		mForcedMaterial->SetShader((bool)(mBoneModel != NULL), context);
-		mForcedMaterial->PSSetShaderResources(context);
+		if (mForcedMaterialFilter & ForcedMaterialFilter::Shader_PS){
+			mForcedMaterial->SetShader_PS(context);
+		}
+		if (mForcedMaterialFilter & ForcedMaterialFilter::Shader_VS){
+			mForcedMaterial->SetShader_VS((bool)(mBoneModel != NULL), context);
+		}
+
+		mForcedMaterial->VSSetShaderResources(context, mForcedMaterialFilter);
+		mForcedMaterial->PSSetShaderResources(context, mForcedMaterialFilter);
 	}
-	else if (mForcedMaterialUseTexture){
-		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL), context);
-		material.VSSetShaderResources(context);
-		material.PSSetShaderResources(context);
-	}
-	else{
-		material.SetShader((bool)(mBoneModel != NULL), context);
-		material.VSSetShaderResources(context);
-		material.PSSetShaderResources(context);
-	}
+
 	if (mIsChangeMatrix){
 		mIsChangeMatrix = false;
 		mCBuffer.UpdateSubresource(context);
 	}
 	IASet(context);
 	SetConstantBuffer(context);
-	if (mBoneModel){
-		mBoneModel->SetConstantBuffer(context);
-	}
 
 	auto& buf = m_MeshAssetDataPtr->GetFileData()->GetBufferData();
 	auto& mesh = buf.GetMesh();
@@ -148,12 +166,15 @@ void Model::Draw(ID3D11DeviceContext* context, const shared_ptr<MaterialComponen
 	}
 
 	if (mForcedMaterial){
-		mForcedMaterial->SetShader((bool)(mBoneModel != NULL), context);
-		mForcedMaterial->VSSetShaderResources(context);
-		mForcedMaterial->PSSetShaderResources(context);
-	}
-	else if (mForcedMaterialUseTexture){
-		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL), context);
+		if (mForcedMaterialFilter & ForcedMaterialFilter::Shader_PS){
+			mForcedMaterial->SetShader_PS(context);
+		}
+		if (mForcedMaterialFilter & ForcedMaterialFilter::Shader_VS){
+			mForcedMaterial->SetShader_VS((bool)(mBoneModel != NULL), context);
+		}
+
+		mForcedMaterial->VSSetShaderResources(context, mForcedMaterialFilter);
+		mForcedMaterial->PSSetShaderResources(context, mForcedMaterialFilter);
 	}
 
 	if (mIsChangeMatrix){
@@ -167,15 +188,18 @@ void Model::Draw(ID3D11DeviceContext* context, const shared_ptr<MaterialComponen
 	auto& mesh = buf.GetMesh();
 	UINT i = 0;
 
+	auto filter = (ForcedMaterialFilter::Enum)~mForcedMaterialFilter;
+
 	for (const auto& m : mesh){
-		if (mForcedMaterialUseTexture){
-			material->GetMaterial(i).VSSetShaderResources(context);
-			material->GetMaterial(i).PSSetShaderResources(context);
-		}
-		else if (!mForcedMaterial){
-			material->GetMaterial(i).SetShader((bool)(mBoneModel != NULL), context);
-			material->GetMaterial(i).VSSetShaderResources(context);
-			material->GetMaterial(i).PSSetShaderResources(context);
+		{
+			if (filter & ForcedMaterialFilter::Shader_PS){
+				material->GetMaterial(i).SetShader_PS(context);
+			}
+			if (filter & ForcedMaterialFilter::Shader_VS){
+				material->GetMaterial(i).SetShader_VS((bool)(mBoneModel != NULL), context);
+			}
+			material->GetMaterial(i).VSSetShaderResources(context,filter);
+			material->GetMaterial(i).PSSetShaderResources(context,filter);
 		}
 		context->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 		i++;
@@ -190,12 +214,15 @@ void Model::Draw(ID3D11DeviceContext* context, const std::vector<weak_ptr<MeshCo
 	}
 
 	if (mForcedMaterial){
-		mForcedMaterial->SetShader((bool)(mBoneModel != NULL), context);
-		mForcedMaterial->VSSetShaderResources(context);
-		mForcedMaterial->PSSetShaderResources(context);
-	}
-	else if (mForcedMaterialUseTexture){
-		mForcedMaterialUseTexture->SetShader((bool)(mBoneModel != NULL), context);
+		if (mForcedMaterialFilter & ForcedMaterialFilter::Shader_PS){
+			mForcedMaterial->SetShader_PS(context);
+		}
+		if (mForcedMaterialFilter & ForcedMaterialFilter::Shader_VS){
+			mForcedMaterial->SetShader_VS((bool)(mBoneModel != NULL), context);
+		}
+
+		mForcedMaterial->VSSetShaderResources(context, mForcedMaterialFilter);
+		mForcedMaterial->PSSetShaderResources(context, mForcedMaterialFilter);
 	}
 
 	if (mIsChangeMatrix){
@@ -228,16 +255,15 @@ void ModelMesh::Draw(ID3D11DeviceContext* context,bool UseAnimetion) const{
 	auto& mesh = buf.GetMesh();
 	auto& m = mesh.at(m_ID);
 
-
-	if (Model::mForcedMaterialUseTexture){
-		m_MaterialComponent->GetMaterial(0).VSSetShaderResources(context);
-		m_MaterialComponent->GetMaterial(0).PSSetShaderResources(context);
+	auto filter = (ForcedMaterialFilter::Enum)~Model::mForcedMaterialFilter;
+	if (filter & ForcedMaterialFilter::Shader_PS){
+		m_MaterialComponent->GetMaterial(0).SetShader_PS(context);
 	}
-	else if (!Model::mForcedMaterial){
-		m_MaterialComponent->GetMaterial(0).SetShader(UseAnimetion, context);
-		m_MaterialComponent->GetMaterial(0).VSSetShaderResources(context);
-		m_MaterialComponent->GetMaterial(0).PSSetShaderResources(context);
+	if (filter & ForcedMaterialFilter::Shader_VS){
+		m_MaterialComponent->GetMaterial(0).SetShader_VS(UseAnimetion, context);
 	}
+	m_MaterialComponent->GetMaterial(0).VSSetShaderResources(context, filter);
+	m_MaterialComponent->GetMaterial(0).PSSetShaderResources(context, filter);
 
 	context->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 }

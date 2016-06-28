@@ -9,8 +9,9 @@ public:
 	FontFileData();
 	~FontFileData();
 
-	void Create(const char* fileName);
-	void SetText(const std::string& text);
+	void CreateFont_(const char* fileName, float FontSize);
+	void CreateTexture_(UINT width, UINT height);
+	void SetText(const std::string& text, bool center);
 	Texture GetTexture();
 
 private:
@@ -22,4 +23,6 @@ private:
 	std::string mFontName;
 	Texture mTexture;
 	ID3D11Texture2D* mTexture2D;
+	UINT mWidth;
+	UINT mHeight;
 };

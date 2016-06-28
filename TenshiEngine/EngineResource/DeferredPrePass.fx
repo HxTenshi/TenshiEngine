@@ -12,6 +12,8 @@ Texture2D SpcTex : register(t3);
 SamplerState SpcSamLinear : register(s3);
 Texture2D RoughTex : register(t4);
 SamplerState RoughSamLinear : register(s4);
+Texture2D EmissiveTex : register(t5);
+SamplerState EmissiveSamLinear : register(s5);
 
 
 Texture2D EnvironmentTex : register(t6);
@@ -50,7 +52,8 @@ cbuffer cbChangesMaterial : register( b4 )
 	float2 MHightPower;
 	float4 MNormaleScale;
 	float2 MOffset;
-	float2 MNull;
+	float EmissivePowor;
+	float MNull;
 };
 cbuffer cbChangesLightMaterial : register( b5 )
 {
@@ -367,6 +370,10 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 		float3 envR = EnvironmentRTex.Sample(EnvironmentRSamLinear, ref.xy).rgb;
 		env = lerp(env1, envR, pow(roughness, 0.5f));
 		env *= SpcColor.rgb;
+	}
+	if (UseTexture2.y != 0.0){
+		float4 emi = EmissiveTex.Sample(EmissiveSamLinear, texcood);
+		env.rgb += emi.rgb * EmissivePowor;
 	}
 	
 	N = N * 0.5 + 0.5;

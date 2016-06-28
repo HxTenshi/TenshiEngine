@@ -41,7 +41,8 @@ public:
 
 	//強制的にこのマテリアルを使用
 	static Material* mForcedMaterial;
-	static Material* mForcedMaterialUseTexture;
+	//static Material* mForcedMaterialUseTexture;
+	static ForcedMaterialFilter::Enum mForcedMaterialFilter;
 
 	XMMATRIX		mWorld;
 

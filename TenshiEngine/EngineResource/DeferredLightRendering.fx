@@ -38,6 +38,13 @@ cbuffer cbChangesLightCamera : register(b10)
 	float4 SplitPosition;
 };
 
+cbuffer cbNearFar : register(b12)
+{
+	float Near;
+	float Far;
+	float2 NULLnf;
+};
+
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -161,7 +168,7 @@ inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	float NLDot = dot(N, -L);
 
 
-	float offset = 0.0000001 + (NLDot)* 0.0000001;
+	float offset = 0.000000035;// +(NLDot)* 0.00000005;
 	// ライトデプスの準備
 	float4 LVPos = DepthTex.Sample(DepthSamLinear, input.Tex).zwyx;
 
@@ -172,8 +179,8 @@ inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 
 		//float4 debugColor = float4(0, 0, 0, 1);
 
-	float dist = vpos.z;
-	float LD;
+	float dist = vpos.z * 10;
+	float LD = 0;
 	if (dist < SplitPosition.x)
 	{
 		LD = LightDepthTex1.Sample(LightDepthSamLinear1, LVPos.xy).x;
@@ -200,6 +207,7 @@ inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 
 
 	float roughness = norCol.a - 1;
+	roughness = max(roughness, 0.1f);
 	float spec = LightingFuncGGX_REF(N, -normalize(vpos), -L, roughness, 0.1);
 
 	//if (shadow==1){
@@ -233,8 +241,8 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	if (rebirth > 0.1){
 		PS_OUTPUT_1 reb;
 		reb = main(input,-1);
-		Out.Diffuse.rgb += reb.Diffuse.rgb * rebirth;
-		Out.Specular.rgb += reb.Specular.rgb * rebirth;
+		Out.Diffuse.rgb = ((1 - rebirth) * Out.Diffuse.rgb) + reb.Diffuse.rgb * rebirth;
+		Out.Specular.rgb = ((1 - rebirth) * Out.Specular.rgb) + reb.Specular.rgb * rebirth;
 	}
 	else{
 

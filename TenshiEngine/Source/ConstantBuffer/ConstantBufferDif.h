@@ -37,7 +37,8 @@ struct cbChangesMaterial
 	XMFLOAT2 HeightPower;
 	XMFLOAT4 MNormaleScale;
 	XMFLOAT2 MOffset;
-	XMFLOAT2 MNULL;
+	float EmissivePowor;
+	float MNULL;
 };
 struct cbChangesUseTexture
 {
@@ -105,6 +106,12 @@ struct cbScreen
 {
 	XMFLOAT2 ScreenSize;
 	XMFLOAT2 NULLss;
+};
+
+//10
+struct cbFreeParam
+{
+	XMFLOAT4 free;
 };
 
 //CS

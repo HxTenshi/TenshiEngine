@@ -6,6 +6,19 @@
 #include "Game/Component/MaterialComponent.h"
 #include "Graphic/RenderTarget/RenderTarget.h"
 
+class PostEffectHelper{
+public:
+	static void SetCurrentTarget(RenderTarget* target){
+		mCurrentRenderTarget = target;
+	}
+	static RenderTarget* CurrentTarget(){
+		return mCurrentRenderTarget;
+	}
+private:
+	static RenderTarget* mCurrentRenderTarget;
+};
+
+
 class PostEffectComponent :public Component{
 public:
 

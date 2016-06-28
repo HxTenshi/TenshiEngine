@@ -4,6 +4,7 @@
 #include "PostEffectRendering.h"
 #include "Game.h"
 
+#include "Component/PostEffectComponent.h"
 
 PostEffectRendering::PostEffectRendering(){
 }
@@ -22,8 +23,13 @@ void PostEffectRendering::Rendering(IRenderingEngine* render, const std::functio
 	//デファードで解除済み
 	//RenderTarget::NullSetRendererTarget(render->m_Context);
 
+	PostEffectHelper::SetCurrentTarget(&Game::GetMainViewRenderTarget());
+
 	func();
-	
+
+	auto target = PostEffectHelper::CurrentTarget();
+	mMaterial.SetTexture(target->GetTexture(), 0);
+
 
 	Device::mRenderTargetBack->SetRendererTarget(render->m_Context);
 

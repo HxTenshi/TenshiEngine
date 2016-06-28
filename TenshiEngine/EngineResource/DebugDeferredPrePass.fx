@@ -72,6 +72,13 @@ cbuffer cbNearFar : register(b12)
 	float Far;
 	float2 NULLnf;
 };
+
+cbuffer cbScreen : register(b13)
+{
+	float2 ScreenSize;
+	float2 NULLss;
+};
+
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -95,6 +102,7 @@ struct PS_OUTPUT_1
 {
 	float4 ColorAlbedo : SV_Target0;
 };
+
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------

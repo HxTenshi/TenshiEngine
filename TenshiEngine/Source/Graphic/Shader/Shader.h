@@ -23,6 +23,8 @@ public:
 	void Create(const char* fileName);
 
 	void SetShader(bool UseAnime, ID3D11DeviceContext* context) const;
+	void SetShader_VS(bool UseAnime, ID3D11DeviceContext* context) const;
+	void SetShader_PS(ID3D11DeviceContext* context) const;
 
 private:
 	ShaderAssetDataPtr m_ShaderAssetData;

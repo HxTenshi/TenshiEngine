@@ -48,7 +48,9 @@ public:
 		auto scale = mTransform->Scale();
 
 		double time = Profiling::GetTime(mName);
-		float sx = (float)(time/(1.0 / 60.0)) * ((float)(int)WindowState::mWidth) * 0.5;
+
+		float Width = 1200.0f;//(float)WindowState::mWidth;
+		float sx = (float)(time/(1.0 / 60.0)) * (Width) * 0.5;
 
 		mTransform->Position(XMVectorSet(x + sx/2, pos.y, 0, 1));
 		mTransform->Scale(XMVectorSet(sx,scale.y, 1, 1));

@@ -42,10 +42,10 @@ static const MEDIACONTENTTYPE g_avMediaType[] = {
 		{ NULL, NULL }
 };
 #ifdef _UNICODE
-#define _istlead(c)	0
+//#define _istlead(c)	0
 #define _isttrail(c)	0
 #else
-#define _istlead(c)		_ismbblead(c)
+//#define _istlead(c)		_ismbblead(c)
 #define _isttrail(c)	_ismbbtrail(c)
 #endif //_UNICODE
 

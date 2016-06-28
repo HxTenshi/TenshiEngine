@@ -63,8 +63,8 @@ float4 PS(PS_INPUT input) : SV_Target
 	float4 dif = LightTex.Sample(LightSamLinear, input.Tex);
 	float4 lSpe = LightSpeTex.Sample(LightSpeSamLinear, input.Tex);
 
-	float4 norcol = NormalTex.Sample(NormalSamLinear, input.Tex);
-	float3 nor = norcol.xyz * 2 - 1.0;
+	//float4 norcol = NormalTex.Sample(NormalSamLinear, input.Tex);
+	//float3 nor = norcol.xyz * 2 - 1.0;
 	float4 spc = SpecularTex.Sample(SpecularSamLinear, input.Tex);
 	//float spcPow = spc.a;
 	//float3 ray = spc.xyz * 2 - 1.0;
@@ -148,5 +148,5 @@ float4 PS(PS_INPUT input) : SV_Target
 	//col = float4(l,l,l, 1);
 
 
-	return saturate(col);
+	return col;
 }

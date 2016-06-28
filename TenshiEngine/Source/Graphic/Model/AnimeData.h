@@ -61,7 +61,7 @@ public:
 
 
 			//最後のキーフレームがアニメーションの終わり
-			if (key.FrameNo > mLastKeyNo){
+			if (key.FrameNo > (unsigned int)mLastKeyNo){
 				mLastKeyNo = key.FrameNo;
 			}
 		}

@@ -23,6 +23,9 @@ TextComponent::TextComponent()
 	impl = new TextComponentMember();
 
 	impl->mTexMaterial.Create("EngineResource/texture.fx");
+
+	mFontSize = 48.0f;
+	mCenter = false;
 }
 TextComponent::~TextComponent()
 {
@@ -32,12 +35,25 @@ TextComponent::~TextComponent()
 
 void TextComponent::Initialize(){
 
+	impl->mFont.CreateFont_("", mFontSize);
+	
+	auto mBackScale = gameObject->mTransform->Scale();
+	impl->mFont.CreateTexture_(mBackScale.x, mBackScale.y);
+
 	impl->mModel.Create("EngineResource/TextureModel.tesmesh");
 	ChangeText(impl->mText);
 }
 void TextComponent::Finish(){
 }
 void TextComponent::EngineUpdate(){
+
+	auto s = gameObject->mTransform->Scale();
+	if (mBackScale.x != s.x || mBackScale.y != s.y){
+		impl->mFont.CreateTexture_(s.x, s.y);
+		ChangeText(impl->mText);
+		mBackScale = s;
+	}
+
 	DrawTextUI();
 }
 
@@ -49,10 +65,14 @@ void TextComponent::DrawTextUI(){
 
 	Game::AddDrawList(DrawStage::Init, [&](){
 
-		float h = (float)WindowState::mHeight;
-		float w = (float)WindowState::mWidth;
-		float hh = (float)WindowState::mHeight / 2.0f;
-		float wh = (float)WindowState::mWidth / 2.0f;
+		//auto h = (float)WindowState::mHeight;
+		//auto w = (float)WindowState::mWidth;
+
+		auto h = (float)800.0f;
+		auto w = (float)1200.0f;
+
+		float hh = h / 2.0f;
+		float wh = w / 2.0f;
 
 		auto s = gameObject->mTransform->Scale();
 		float sx = s.x / w;
@@ -60,6 +80,13 @@ void TextComponent::DrawTextUI(){
 		auto p = gameObject->mTransform->Position();
 		float px = (p.x - wh) / wh;
 		float py = (-p.y + hh) / hh;
+
+		//‚‚³‚ð‡‚í‚¹‚Ä•‚Ì”ä—¦‚ð‚ ‚í‚¹‚é
+		{
+			auto asx = 1200.0f / (float)WindowState::mWidth;
+			//px -= asx/2.0f;
+			sx *= asx;
+		}
 
 		auto pos = XMVectorSet(px, py, 0, 1);
 		auto rot = gameObject->mTransform->Rotate();
@@ -78,11 +105,17 @@ void TextComponent::DrawTextUI(){
 
 	Game::AddDrawList(DrawStage::UI, [&](){
 
+		auto mate = gameObject->GetComponent<MaterialComponent>();
+		if (mate){
+			auto material = mate->GetMaterial(0);
+			impl->mTexMaterial.mCBMaterial.mParam.Diffuse = material.mCBMaterial.mParam.Diffuse;
+		}
+
 		Model& model = impl->mModel;
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 
-		impl->mTexMaterial.SetTexture(impl->mFont.GetTexture());
+		impl->mTexMaterial.SetTexture(impl->mFont.GetTexture(),0);
 
 		model.Draw(render->m_Context, impl->mTexMaterial);
 
@@ -128,6 +161,12 @@ void TextComponent::CreateInspector(){
 	};
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Text", &impl->mText, collback), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("FontSize", &mFontSize, [&](float f){
+		ChangeFontSize(f);
+	}), data);
+	Window::AddInspector(new TemplateInspectorDataSet<bool>("Center", &mCenter, [&](bool f){
+		ChangeCenter(f);
+	}), data);
 	Window::ViewInspector("Text", this, data);
 }
 #endif
@@ -140,5 +179,14 @@ void TextComponent::IO_Data(I_ioHelper* io){
 
 void TextComponent::ChangeText(const std::string& text){
 	impl->mText = text;
-	impl->mFont.SetText(impl->mText);
+	impl->mFont.SetText(impl->mText, mCenter);
+}
+void TextComponent::ChangeFontSize(float size){
+	mFontSize = size;
+	impl->mFont.CreateFont_("", mFontSize);
+	ChangeText(impl->mText);
+}
+void TextComponent::ChangeCenter(bool center){
+	mCenter = center;
+	ChangeText(impl->mText);
 }

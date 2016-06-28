@@ -1,9 +1,6 @@
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
-Texture2D AlbedoTex : register(t0);
-SamplerState AlbedoSamLinear : register(s0);
-
 cbuffer cbNeverChanges : register( b0 )
 {
 	matrix View;
@@ -64,20 +61,18 @@ struct VS_INPUT
 struct PS_INPUT
 {
 	float4 Pos		: SV_POSITION;
-	float2 Tex		: TEXCOORD0;
 };
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
 //--------------------------------------------------------------------------------------
-PS_INPUT VS(float4 pos : POSITION, float2 tex : TEXCOORD0)
+PS_INPUT VS(float4 pos : POSITION)
 {
 
 	PS_INPUT Out;
 
 	pos = mul( pos, World );
 	Out.Pos = mul(pos, LViewProjection[0]);
-	Out.Tex = tex;
 	return Out;
 }
 
@@ -107,8 +102,6 @@ PS_INPUT VSSkin(VS_INPUT input)
 	bpos = mul(bpos, World);
 	Out.Pos = mul(bpos, LViewProjection[0]);
 
-	Out.Tex = input.Tex;
-
 	return Out;
 }
 
@@ -117,8 +110,5 @@ PS_INPUT VSSkin(VS_INPUT input)
 //--------------------------------------------------------------------------------------
 float PS(PS_INPUT input) : SV_Target
 {
-	if (UseTexture.x != 0.0){
-		if (AlbedoTex.Sample(AlbedoSamLinear, input.Tex).a < 0.01)discard;
-	}
 	return 1 - input.Pos.z / Far;
 }

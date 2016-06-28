@@ -24,7 +24,7 @@ public:
 	static void CreateState(DescType& desc, StateType* state){
 		Device::mpd3dDevice->CreateBlendState(&desc, state);
 	}
-	static void Set(ID3D11DeviceContext* context, StateType state){
+	static void Set(ID3D11DeviceContext* context, StateType state, UINT Mask = 0xffffffff){
 		static const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		context->OMSetBlendState(state, blendFactor, 0xffffffff);
 	}
@@ -66,7 +66,8 @@ public:
 	static void CreateState(DescType& desc, StateType* state){
 		Device::mpd3dDevice->CreateDepthStencilState(&desc, state);
 	}
-	static void Set(ID3D11DeviceContext* context, StateType state){
+	static void Set(ID3D11DeviceContext* context, StateType state, UINT Mask = 0xffffffff){
+		(void)Mask;
 		context->OMSetDepthStencilState(state, 0);
 	}
 	DescType Desc;
@@ -108,7 +109,8 @@ public:
 	static void CreateState(DescType& desc, StateType* state){
 		Device::mpd3dDevice->CreateRasterizerState(&desc, state);
 	}
-	static void Set(ID3D11DeviceContext* context, StateType state){
+	static void Set(ID3D11DeviceContext* context, StateType state, UINT Mask = 0xffffffff){
+		(void)Mask;
 		context->RSSetState(state);
 	}
 	DescType Desc;
@@ -143,9 +145,9 @@ public:
 		}
 	}
 
-	void Push(const PresetType& preset){
+	void Push(const PresetType& preset, UINT Mask = 0xffffffff){
 
-		mStack.push(mDataBase[(int)preset]);
+		mStack.push(std::make_pair(mDataBase[(int)preset], Mask));
 		_TopSet();
 	}
 
@@ -162,8 +164,8 @@ private:
 			return;
 		}
 
-		TemplateType& top = mStack.top();
-		TemplateType::Set(mDeviceContext, top.State);
+		std::pair<TemplateType, UINT>& top = mStack.top();
+		TemplateType::Set(mDeviceContext, top.first.State, top.second);
 
 	}
 
@@ -175,13 +177,13 @@ private:
 	}
 	ID3D11DeviceContext* mDeviceContext;
 	std::vector<TemplateType> mDataBase;
-	std::stack<TemplateType> mStack;
+	std::stack<std::pair<TemplateType,UINT>> mStack;
 };
 
 class IRenderingEngine{
 public:
 	virtual ~IRenderingEngine(){}
-	virtual void PushSet(BlendState::Preset preset) = 0;
+	virtual void PushSet(BlendState::Preset preset, UINT Mask) = 0;
 	virtual void PopBS() = 0;
 	virtual void PushSet(DepthStencil::Preset preset) = 0;
 	virtual void PopDS() = 0;
@@ -233,7 +235,7 @@ public:
 		IRenderingEngine::_Release();
 	}
 
-	void PushSet(BlendState::Preset preset) override{
+	void PushSet(BlendState::Preset preset,UINT Mask) override{
 		mBSSetting.Push(preset);
 	}
 	void PopBS() override{

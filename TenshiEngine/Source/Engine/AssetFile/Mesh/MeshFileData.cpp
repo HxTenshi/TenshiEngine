@@ -185,7 +185,7 @@ void MeshFileData::Create(const char* filename){
 
 		auto num = data->Indices.size();
 		data->Vertexs.resize(num);
-		for (int i = 0; i < num; i+=3){
+		for (unsigned int i = 0; i < num; i+=3){
 
 			int i0 = data->Indices[i + 0];
 			int i1 = data->Indices[i + 1];

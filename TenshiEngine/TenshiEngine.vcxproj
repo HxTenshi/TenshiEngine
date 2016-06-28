@@ -146,6 +146,7 @@
     <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\dll;$(ExecutablePath)</ExecutablePath>
     <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectName)Exe</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
     <LinkIncremental>false</LinkIncremental>
@@ -537,6 +538,7 @@
     <ClCompile Include="Source\Engine\AssetFile\Material\TextureFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshBufferData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshFileData.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\Movie\MovieFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Physx\PhysxMaterialFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Prefab\PrefabFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Shader\ShaderFileData.cpp" />
@@ -552,11 +554,14 @@
     <ClCompile Include="Source\Game\Component\CameraComponent.cpp" />
     <ClCompile Include="Source\Game\Component\Component.cpp" />
     <ClCompile Include="Source\Game\Component\ComponentFactory.cpp" />
+    <ClCompile Include="Source\Game\Component\DebugEngineScriptComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\DebugScript\DebugNaviMesh.cpp" />
     <ClCompile Include="Source\Game\Component\DirectionalLightComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MaterialComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MeshComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MeshDrawComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ModelComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\MovieComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ParticleComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PointLightComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PostEffectComponent.cpp" />
@@ -598,6 +603,7 @@
     <ClCompile Include="Source\MySTL\Reflection\Reflection.cpp" />
     <ClCompile Include="Source\MySTL\Utility.cpp" />
     <ClCompile Include="Source\PhysX\PhysX3.cpp" />
+    <ClCompile Include="Source\Application\Settings.cpp" />
     <ClCompile Include="Source\Sound\Sound.cpp" />
     <ClCompile Include="Source\stdafx\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -622,6 +628,7 @@
     <ClInclude Include="Source\Application\Define.h" />
     <ClInclude Include="Source\Application\DefineDrawMultiThread.h" />
     <ClInclude Include="Source\Application\DrawThreadQueue.h" />
+    <ClInclude Include="Source\Application\Settings.h" />
     <ClInclude Include="Source\ConstantBuffer\ConstantBuffer.h" />
     <ClInclude Include="Source\ConstantBuffer\ConstantBufferDif.h" />
     <ClInclude Include="Source\Device\DirectX11Device.h" />
@@ -632,6 +639,8 @@
     <ClInclude Include="Source\Engine\AssetFile\Material\TextureFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Mesh\MeshBufferData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Mesh\MeshFileData.h" />
+    <ClInclude Include="Source\Engine\AssetFile\Movie\MovieFileData.h" />
+    <ClInclude Include="Source\Engine\AssetFile\NaviMesh\NaviMeshFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Physx\PhysxMaterialFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Prefab\PrefabFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Shader\ShaderFileData.h" />
@@ -643,6 +652,9 @@
     <ClInclude Include="Source\Engine\ICommand.h" />
     <ClInclude Include="Source\Engine\ModelConverter.h" />
     <ClInclude Include="Source\Engine\SystemLog.h" />
+    <ClInclude Include="Source\Game\Component\DebugEngineScriptComponent.h" />
+    <ClInclude Include="Source\Game\Component\DebugScript\DebugNaviMesh.h" />
+    <ClInclude Include="Source\Game\Component\MovieComponent.h" />
     <ClInclude Include="Source\Game\Component\SoundComponent.h" />
     <ClInclude Include="Source\Game\DeltaTime.h" />
     <ClInclude Include="Source\Game\EngineObject\ProfileViewer.h" />

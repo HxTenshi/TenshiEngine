@@ -26,6 +26,7 @@ public:
 			Window::AddLog(std::string(fileName)+":VS作成失敗");
 			_SYSTEM_LOG_ERROR("シェーダー[" + fileName + ":VS]の作成");
 		}
+		
 		if (FAILED(mVertexShaderAnime->Create(fileName, "VSSkin"))){
 			Window::AddLog(std::string(fileName) + ":VSSkin作成失敗");
 			_SYSTEM_LOG_ERROR("シェーダー[" + fileName + ":VSSkin]の作成");
@@ -46,6 +47,21 @@ public:
 			if (mVertexShader)
 				mVertexShader->SetShader(context);
 		}
+		if (mPixelShader)
+			mPixelShader->SetShader(context);
+	}
+	void SetShader_VS(bool UseAnime, ID3D11DeviceContext* context) const{
+		if (UseAnime){
+			if (mVertexShaderAnime)
+				mVertexShaderAnime->SetShader(context);
+		}
+		else{
+			if (mVertexShader)
+				mVertexShader->SetShader(context);
+		}
+	}
+	void SetShader_PS(ID3D11DeviceContext* context) const{
+
 		if (mPixelShader)
 			mPixelShader->SetShader(context);
 	}

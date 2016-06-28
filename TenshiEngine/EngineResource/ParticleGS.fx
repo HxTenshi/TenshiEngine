@@ -72,6 +72,12 @@ cbuffer cbNearFar : register(b12)
 	float2 NULLnf;
 };
 
+cbuffer cbScreen : register(b13)
+{
+	float2 ScreenSize;
+	float2 NULLss;
+};
+
 
 // ジオメトリシェーダーの入力パラメータ
 struct VS_IN
@@ -367,7 +373,7 @@ typedef GS1_OUT PS_IN;
 // ピクセルシェーダ
 float4 PS1_Main(PS_IN In) : SV_TARGET
 {
-	float2 tex = In.pos.xy / float2(1200, 800);
+	float2 tex = In.pos.xy / ScreenSize;
 	float Depth = In.vpos.z / Far;
 	float texd = DepthMap.Sample(DepthSamLinear, tex).r;
 	Depth = (Depth - texd);

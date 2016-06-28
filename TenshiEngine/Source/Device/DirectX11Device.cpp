@@ -57,8 +57,6 @@ HRESULT Device::Init(const Window& window)
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
 	sd.BufferCount = 1;
-	sd.BufferDesc.Width = WindowState::mWidth;
-	sd.BufferDesc.Height = WindowState::mHeight;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
@@ -66,9 +64,17 @@ HRESULT Device::Init(const Window& window)
 	sd.OutputWindow = window.GetGameScreenHWND();
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
-	sd.Windowed = TRUE;
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+
+	sd.Windowed = TRUE;
+	sd.BufferDesc.Width = WindowState::mWidth;
+	sd.BufferDesc.Height = WindowState::mHeight;
 	sd.Flags = 0;
+
+	//sd.Windowed = FALSE;
+	//sd.BufferDesc.Width = 0;// WindowState::mWidth;
+	//sd.BufferDesc.Height = 0;//WindowState::mHeight;
+	//sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 
 	//有効なドライバータイプでブレイク
@@ -86,6 +92,17 @@ HRESULT Device::Init(const Window& window)
 		_SYSTEM_LOG_H_ERROR();
 		return hr;
 	}
+
+	
+	
+	IDXGIFactory* pfac = nullptr;
+	hr = mpSwapChain->GetParent(__uuidof(IDXGIFactory), (void**)&pfac);
+	if (pfac){
+		// 余計な機能を無効にする設定をする。(ALT+ENTER)
+		pfac->MakeWindowAssociation(window.GetMainHWND(), DXGI_MWA_NO_WINDOW_CHANGES
+			| DXGI_MWA_NO_ALT_ENTER);
+	}
+
 
 
 
@@ -108,6 +125,9 @@ HRESULT Device::Init(const Window& window)
 	render->PushEngine(new RenderingEngine(mpImmediateContext), ContextType::MainDeferrd);
 #endif
 
+
+
+	//Device::mpSwapChain->SetFullscreenState(TRUE, NULL);
 
 
 	mRenderTargetBack = new RenderTarget();
@@ -140,6 +160,16 @@ HRESULT Device::Init(const Window& window)
 	SoundDevice::Initialize();
 
 	return S_OK;
+
+	//mpImmediateContext->OMSetRenderTargets(0, 0, 0);
+	//mRenderTargetBack->Release();
+	//
+	//Device::mpSwapChain->ResizeBuffers(1,
+	//	WindowState::mWidth,
+	//	WindowState::mHeight,
+	//	DXGI_FORMAT_R8G8B8A8_UNORM,
+	//	DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+	//CreateBackBuffer();
 }
 
 

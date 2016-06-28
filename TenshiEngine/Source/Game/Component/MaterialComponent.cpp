@@ -66,6 +66,7 @@ MaterialComponent::MaterialComponent(){
 	mNormaleScale = XMFLOAT4(1, 1, 1, 1);
 	mOffset = XMFLOAT2(0,0);
 	mThickness = 0.0f;
+	mEmissivePowor = 1.0f;
 	mForwardRendering = false;
 }
 MaterialComponent::~MaterialComponent(){
@@ -106,12 +107,15 @@ void MaterialComponent::Initialize(){
 	mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
 	mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
 	mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
+	mMaterials[0].mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
 
 	if (mAlbedoTextureName != "")mMaterials[0].SetTexture(mAlbedoTextureName.c_str(), 0);
 	if (mNormalTextureName != "")mMaterials[0].SetTexture(mNormalTextureName.c_str(), 1);
 	if (mHeightTextureName != "")mMaterials[0].SetTexture(mHeightTextureName.c_str(), 2);
 	if (mSpecularTextureName != "")mMaterials[0].SetTexture(mSpecularTextureName.c_str(), 3);
 	if (mRoughnessTextureName != "")mMaterials[0].SetTexture(mRoughnessTextureName.c_str(), 4);
+	if (mEmissiveTextureName != "")mMaterials[0].SetTexture(mEmissiveTextureName.c_str(), 5);
+	
 }
 
 void MaterialComponent::SetMaterial(UINT SetNo, Material& material){
@@ -195,6 +199,10 @@ void MaterialComponent::CreateInspector(){
 		mMaterials[0].SetTexture(name.c_str(), 4);
 		mRoughnessTextureName = name;
 	};
+	std::function<void(std::string)> collbacketex = [&](std::string name){
+		mMaterials[0].SetTexture(name.c_str(), 5);
+		mEmissiveTextureName = name;
+	};
 	std::function<void(std::string)> collbackpath = [&](std::string name){
 		mMaterialPath = name;
 		LoadAssetResource(mMaterialPath);
@@ -272,6 +280,11 @@ void MaterialComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("HeightTextre", &mHeightTextureName, collbackhtex), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("SpecularTextre", &mSpecularTextureName, collbackstex), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("RoughnessTextre", &mRoughnessTextureName, collbackrtex), data);
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("EmissiveTextre", &mEmissiveTextureName, collbacketex), data);
+	Window::AddInspector(new TemplateInspectorDataSet<float>("EmissivePowor", &mEmissivePowor, [&](float f){ mEmissivePowor = f; mMaterials[0].mCBMaterial.mParam.EmissivePowor = f; }), data);
+
+	
+
 	Window::AddInspector(new InspectorVector2DataSet("TextureScale", &mTexScale.x, collbacktexsx, &mTexScale.y, collbacktexsy), data);
 	Window::AddInspector(new InspectorVector3DataSet("NormaleScale", &mNormaleScale.x, collbacknsx, &mNormaleScale.y, collbacknsy, &mNormaleScale.z, collbacknsz), data);
 	Window::AddInspector(new InspectorVector2DataSet("Offset", &mOffset.x, collbackofx, &mOffset.y, collbackofy), data);
@@ -311,8 +324,10 @@ void MaterialComponent::IO_Data(I_ioHelper* io){
 	_KEY(mHeightTextureName);
 	_KEY(mSpecularTextureName);
 	_KEY(mRoughnessTextureName);
+	_KEY(mEmissiveTextureName);
 	_KEY(mTexScale.x);
 	_KEY(mTexScale.y);
+	_KEY(mEmissivePowor);
 	_KEY(mOffset.x);
 	_KEY(mOffset.y);
 	_KEY(mHeightPower.x);

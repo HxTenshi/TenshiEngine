@@ -79,7 +79,13 @@ int Window::Init(){
 	// Create window
 	RECT rc = { 0, 0, WindowState::mWidth, WindowState::mHeight };
 	AdjustWindowRect(&rc, NULL, FALSE);
-	mhWnd = CreateWindow("GameWindowClass", "GameWindow", WS_OVERLAPPEDWINDOW,
+
+	DWORD WindowModeFlag = WS_POPUP;
+	//DWORD WindowModeFlag = WS_OVERLAPPEDWINDOW;
+
+
+	mhWnd = CreateWindow("GameWindowClass", "GameWindow", 
+		WindowModeFlag,
 		CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, mhInstance,
 		NULL);
 	mGameScreenHWND = mhWnd;
@@ -89,6 +95,7 @@ int Window::Init(){
 	return S_OK;
 }
 
+#include "Library/Movie/Movie.h"
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
@@ -96,6 +103,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
+	//ƒ€[ƒr[
+	case WM_MFSNOTIFY:
+		if (wParam != NULL){ ((CMFSession *)wParam)->HandleEvent(lParam); }
+		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		//BitBlt(hdc, 0, 0, WindowState::mWidth, WindowState::mHeight, hdc, 0, 0, SRCCOPY);

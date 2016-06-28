@@ -19,6 +19,12 @@ CascadeShadow::CascadeShadow(){
 	m_ShadowDepthDS.CreateDepth(mWidth, mHeight);
 
 
+	mCBNeverChanges = ConstantBuffer<CBNeverChanges>::create(0);
+	mCBChangeOnResize = ConstantBuffer<CBChangeOnResize>::create(1);
+
+	mCBChangeOnResize.mParam.mProjection = XMMatrixIdentity();
+	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixIdentity();
+
 	mCBChangesLightCamera = ConstantBuffer<cbChangesLightCamera>::create(10);
 }
 CascadeShadow::~CascadeShadow(){
@@ -48,6 +54,14 @@ void CascadeShadow::Update(IRenderingEngine* render){
 }
 
 void CascadeShadow::SetupShadowCB(IRenderingEngine* render, int no){
+
+	mCBNeverChanges.mParam.mView = XMMatrixTranspose(m_ShadowMatrix[no]);
+	mCBNeverChanges.mParam.mViewInv = XMMatrixTranspose(m_ShadowMatrix[no]);
+
+	mCBNeverChanges.UpdateSubresource(render->m_Context);
+	mCBNeverChanges.VSSetConstantBuffers(render->m_Context);
+	mCBChangeOnResize.UpdateSubresource(render->m_Context);
+	mCBChangeOnResize.VSSetConstantBuffers(render->m_Context);
 
 	mCBChangesLightCamera.mParam.mLViewProjection[0] = XMMatrixTranspose(m_ShadowMatrix[no]);
 	mCBChangesLightCamera.UpdateSubresource(render->m_Context);
@@ -236,7 +250,7 @@ void CascadeShadow::CascadeUpdate(){
 	}
 	//デプスシーンのクリップ
 	float DnearClip = 0.01f;
-	float DfarClip = 2000.0f;
+	float DfarClip = 10000.0f;
 	float SlideBack = DfarClip/2;
 
 	float m_Lamda = 0.5f;
@@ -346,7 +360,7 @@ void DownSample::Draw_DownSample(IRenderingEngine* render){
 	{
 		D3D11_RECT rect = CD3D11_RECT(0, 0,
 			(LONG)mWidth,
-			(LONG)mHeight * (WindowState::mHeight / (float)WindowState::mWidth));
+			(LONG)mHeight *(WindowState::mHeight / (float)WindowState::mWidth));
 		render->m_Context->RSSetScissorRects(1, &rect);
 
 		RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, &m_DownSampleRT, NULL);
@@ -408,11 +422,6 @@ void HDRGaussBulr_AND_DownSample::Create(Texture& texture, UINT x, UINT y){
 
 	bool hdr = m_DownSample.GetHDRFilter();
 
-	std::string sampling = "EngineResource/ScreenTexture.fx";
-	if (hdr){
-		sampling = "EngineResource/ScreenTextureHDR.fx";
-	}
-
 	mResultMaterial.Create("EngineResource/BloomAdd.fx");
 	mResultMaterial.SetTexture(m_GaussBuraUAV_P2.GetTexture(), 0);
 
@@ -420,7 +429,7 @@ void HDRGaussBulr_AND_DownSample::Create(Texture& texture, UINT x, UINT y){
 	mCBBloomParam = ConstantBuffer<cbHDRBloomParam>::create(1);
 	mCBBloomParam.mParam.BloomParam = XMFLOAT4(0.5f, 1,1,1);
 	if (hdr){
-		mCBBloomParam.mParam.BloomParam.x = 1.5;
+		mCBBloomParam.mParam.BloomParam.x = 1.5f;
 	}
 
 
@@ -563,6 +572,7 @@ void DeferredRendering::Initialize(){
 
 
 	mMaterialDebugDrawPrePass.Create("EngineResource/DebugDeferredPrePass.fx");
+
 	mMaterialDebugDraw.Create("EngineResource/Texture.fx");
 	mMaterialDebugDraw.SetTexture(m_AlbedoRT.GetTexture(), 0);
 
@@ -572,6 +582,8 @@ void DeferredRendering::Initialize(){
 	mHDLDownSample[1].Create(mHDLDownSample[0].GetRTTexture(), 512);
 	mHDLDownSample[2].Create(mHDLDownSample[1].GetRTTexture(), 256);
 	mHDLDownSample[3].Create(mHDLDownSample[2].GetRTTexture(), 128);
+
+	mCBBloomParam = ConstantBuffer<cbFreeParam>::create(10);
 
 }
 void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
@@ -591,7 +603,8 @@ void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, c
 
 	mCascadeShadow.Update(render);
 
-	Model::mForcedMaterialUseTexture = &mMaterialDepthShadow;
+	Model::mForcedMaterial = &mMaterialDepthShadow;
+	Model::mForcedMaterialFilter = (ForcedMaterialFilter::Enum)(ForcedMaterialFilter::Shader_PS | ForcedMaterialFilter::Texture_ALL | ForcedMaterialFilter::Color);
 
 	for (int i = 0; i < 4; i++){
 		mCascadeShadow.ClearView(render, i);
@@ -600,7 +613,8 @@ void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, c
 
 		func();
 	}
-	Model::mForcedMaterialUseTexture = NULL;
+	Model::mForcedMaterial = NULL;
+	Model::mForcedMaterialFilter = ForcedMaterialFilter::None;
 	mCascadeShadow.SetupShadowCB(render, 0);
 }
 
@@ -613,7 +627,7 @@ void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::fun
 	RenderTarget::SetRendererTarget(render->m_Context,(UINT)2, r[0], Device::mRenderTargetBack);
 
 
-	render->PushSet(BlendState::Preset::BS_Add);
+	render->PushSet(BlendState::Preset::BS_Add,0xFFFFFFFF);
 
 	//テクスチャーのセット
 	mMaterialLight.PSSetShaderResources(render->m_Context);
@@ -662,7 +676,7 @@ void DeferredRendering::Forward_Rendering(IRenderingEngine* render, RenderTarget
 	RenderTarget* r[1] = { rt };
 	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
 
-	render->PushSet(BlendState::Preset::BS_Alpha);
+	render->PushSet(BlendState::Preset::BS_Alpha, 0xFFFFFFFF);
 	render->PushSet(DepthStencil::Preset::DS_Zero_Less);
 
 	func();
@@ -677,11 +691,13 @@ void DeferredRendering::Debug_G_Buffer_Rendering(IRenderingEngine* render, const
 	const RenderTarget* r[1] = { &m_AlbedoRT};
 	RenderTarget::SetRendererTarget(render->m_Context,(UINT)1, r[0], Device::mRenderTargetBack);
 
-	Model::mForcedMaterialUseTexture = &mMaterialDebugDrawPrePass;
+	Model::mForcedMaterial = &mMaterialDebugDrawPrePass;
+	Model::mForcedMaterialFilter = (ForcedMaterialFilter::Enum)(ForcedMaterialFilter::Shader_PS | ForcedMaterialFilter::Shader_VS);
 
 	func();
 
-	Model::mForcedMaterialUseTexture = NULL;
+	Model::mForcedMaterial = NULL;
+	Model::mForcedMaterialFilter = ForcedMaterialFilter::None;
 }
 
 void DeferredRendering::Debug_AlbedoOnly_Rendering(IRenderingEngine* render,RenderTarget* rt){
@@ -710,23 +726,29 @@ void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 
 	render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
 	render->PushSet(Rasterizer::Preset::RS_None_Solid);
-	render->PushSet(BlendState::Preset::BS_Add);
+	render->PushSet(BlendState::Preset::BS_Add, 0xFFFFFFFF);
+
 
 	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, &Game::GetMainViewRenderTarget(), NULL);
 	
 	//float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	//render->m_Context->OMSetBlendState(pBlendState, blendFactor, 0xffffffff);
 	
-	
+	float pow[] = { 0.5f,0.5f,0.5f,0.5f };
 	for (int i = 0; i < mHDLDownSampleNum; i++){
+
+		mCBBloomParam.mParam.free = XMFLOAT4(pow[i], pow[i], pow[i], pow[i]);
+		mCBBloomParam.UpdateSubresource(render->m_Context);
+		mCBBloomParam.PSSetConstantBuffers(render->m_Context);
+
 		mModelTexture.Draw(render->m_Context, mHDLDownSample[i].GetResultMaterial());
 	}
 
 	//render->m_Context->OMSetBlendState(NULL, blendFactor, 0xffffffff);
 
-	render->PopBS();
 	render->PopRS();
 	render->PopDS();
+	render->PopBS();
 
 
 	RenderTarget::NullSetRendererTarget(render->m_Context);

@@ -16,6 +16,7 @@ enum class AssetFileType{
 	Image,
 	PhysxMaterial,
 	Sound,
+	Movie,
 	Count,
 };
 
@@ -42,6 +43,7 @@ private:
 	static std::unordered_map<std::string, std::function<AssetDataTemplatePtr(const char*)>> m_Factory;
 protected:
 	AssetFactory();
+	~AssetFactory();
 };
 
 class AssetDataBase{
@@ -164,6 +166,13 @@ class SoundFileData;
 using SoundAssetDataPtr = shared_ptr < AssetDataTemplate<SoundFileData> >;
 const AssetFileType AssetDataTemplate<SoundFileData>::_AssetFileType = AssetFileType::Sound;
 void AssetDataTemplate<SoundFileData>::CreateInspector(){}
+
+
+class MovieFileData;
+using MovieAssetDataPtr = shared_ptr < AssetDataTemplate<MovieFileData> >;
+const AssetFileType AssetDataTemplate<MovieFileData>::_AssetFileType = AssetFileType::Movie;
+void AssetDataTemplate<MovieFileData>::CreateInspector(){}
+
 
 template <class T>
 const AssetFileType AssetDataTemplate<T>::_AssetFileType = AssetFileType::None;

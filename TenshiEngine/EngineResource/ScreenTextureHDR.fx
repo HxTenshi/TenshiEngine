@@ -1,10 +1,4 @@
 //--------------------------------------------------------------------------------------
-// File: Tutorial07.fx
-//
-// Copyright (c) Microsoft Corporation. All rights reserved.
-//--------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------------
 // Constant Buffer Variables
 //--------------------------------------------------------------------------------------
 Texture2D txDiffuse : register( t0 );
@@ -35,7 +29,7 @@ PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = input.Pos;
-	output.Tex = input.Tex * World._11_12;
+	output.Tex = input.Tex *World._11_12;
 	
 	return output;
 }
@@ -48,5 +42,6 @@ float4 PS(PS_INPUT input) : SV_Target
 {
 	float4 col = txDiffuse.Sample(samLinear, input.Tex);
 	col.rgb -= 1;
+	col.rgb = max(col.rgb, float3(0, 0, 0));
 	return col;
 }

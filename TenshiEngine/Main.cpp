@@ -20,6 +20,7 @@
 
 #include "Application/DefineDrawMultiThread.h"
 
+#include "Game/Component/MovieComponent.h"
 
 #include "Engine/Profiling.h"
 
@@ -196,55 +197,199 @@ public:
 #if _DRAW_MULTI_THREAD
 		mUpdateEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		mDrawEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		//mMessageEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		ResetEvent(mDrawEvent);
 		ResetEvent(mUpdateEvent);
+		//ResetEvent(mMessageEvent);
 
-		mDrawThread = std::thread(std::bind(std::mem_fn(&Application::DrawThread), this));
+		mDrawThread = std::thread(std::bind(std::mem_fn(&Application::UpdateThread), this));
 #else
 #endif
 
 		return S_OK;
 	}
 
-	void Render()
-	{
-
-		{
-			auto tick = Profiling::Start("Main:Update");
-			mInputManagerRapper.Update();
-			mGame->Update();
-		}
-		{
-			auto tick = Profiling::Start("Main:Draw");
-			mGame->Draw();
-		}
-
 
 #if _DRAW_MULTI_THREAD
-		ID3D11CommandList* cmdList;
-		{
-			auto tick = Profiling::Start("Main:etc");
-			auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-			render->m_Context->FinishCommandList(false, &cmdList);
-			SetEvent(mUpdateEvent);
-		}
 
+	void UpdateThread(){
+		while (!mDestory)
+		{
+			{
+				auto tick = Profiling::Start("Main:Update");
+				mInputManagerRapper.Update();
+				mGame->Update();
+			}
+			{
+				auto tick = Profiling::Start("Main:Draw");
+				mGame->Draw();
+			}
+
+			ID3D11CommandList* cmdList;
+			{
+				auto tick = Profiling::Start("Main:etc");
+				auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+				render->m_Context->FinishCommandList(false, &cmdList);
+				SetEvent(mUpdateEvent);
+			}
 		{
 			auto tick = Profiling::Start("Main:wait");
 			WaitForSingleObject(mDrawEvent, INFINITE);
 		}
-		ResetEvent(mDrawEvent);
-		mCmdList = cmdList;
-		mCmdFlag = true;
-#else
-		auto size = DrawThreadQueue::size();
-		for (int i = 0; i < size; i++){
-			auto func = DrawThreadQueue::dequeue();
-			func();
+			ResetEvent(mDrawEvent);
+			mCmdList = cmdList;
+			mCmdFlag = true;
 		}
-		Device::mpSwapChain->Present(1, 0);
-#endif
+
+		SetEvent(mDrawEvent);
 	}
+
+
+	void Render()
+	{
+
+		while (1){
+
+			{
+				auto tick = Profiling::Start("Draw:wait");
+				WaitForSingleObject(mUpdateEvent, INFINITE);
+				ResetEvent(mUpdateEvent);
+			}
+
+			{
+				// Main message loop
+				MSG msg = { 0 };
+				while (WM_QUIT != msg.message)
+				{
+					if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+					{
+						TranslateMessage(&msg);
+						DispatchMessage(&msg);
+					}
+					else
+					{
+						break;
+					}
+				}
+				if (WM_QUIT == msg.message){
+					mDestory = true;
+					SetEvent(mDrawEvent);
+					return;
+				}
+			}
+
+			ID3D11CommandList* cmdList;
+			{
+				auto tick = Profiling::Start("Draw:etc");
+				SetEvent(mDrawEvent);
+
+				while (!mCmdFlag)
+				{
+					Sleep(1);
+				}
+
+				cmdList = (ID3D11CommandList*)mCmdList;
+				mCmdFlag = false;
+
+				auto size = DrawThreadQueue::size();
+				for (int i = 0; i < size; i++){
+					auto func = DrawThreadQueue::dequeue();
+					func();
+				}
+			}
+			{
+				auto tick = Profiling::Start("Draw:execute");
+				Device::mpImmediateContext->ExecuteCommandList(cmdList, false);
+				cmdList->Release();
+			}
+			{
+				auto tick = Profiling::Start("Draw:swap");
+
+				if (!MoviePlayFlag::IsMoviePlay()){
+					Device::mpSwapChain->Present(0, 0);
+				}
+			}
+		}
+	}
+#else
+	void Render()
+	{
+
+		// Main message loop
+		MSG msg = { 0 };
+		while (WM_QUIT != msg.message)
+		{
+			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+			else
+			{
+				{
+					auto tick = Profiling::Start("Main:Update");
+					mInputManagerRapper.Update();
+					mGame->Update();
+				}
+				{
+					auto tick = Profiling::Start("Main:Draw");
+					mGame->Draw();
+				}
+	
+				auto size = DrawThreadQueue::size();
+				for (int i = 0; i < size; i++){
+					auto func = DrawThreadQueue::dequeue();
+					func();
+				}
+				if (!MoviePlayFlag::IsMoviePlay()){
+					Device::mpSwapChain->Present(1, 0);
+				}
+			}
+		}
+	}
+#endif
+
+//	void Render()
+//	{
+//
+//		{
+//			auto tick = Profiling::Start("Main:Update");
+//			mInputManagerRapper.Update();
+//			mGame->Update();
+//		}
+//		{
+//			auto tick = Profiling::Start("Main:Draw");
+//			mGame->Draw();
+//		}
+//
+//
+//#if _DRAW_MULTI_THREAD
+//		ID3D11CommandList* cmdList;
+//		{
+//			auto tick = Profiling::Start("Main:etc");
+//			auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+//			render->m_Context->FinishCommandList(false, &cmdList);
+//			SetEvent(mUpdateEvent);
+//		}
+//
+//		{
+//			auto tick = Profiling::Start("Main:wait");
+//			WaitForSingleObject(mDrawEvent, INFINITE);
+//		}
+//		ResetEvent(mDrawEvent);
+//		mCmdList = cmdList;
+//		mCmdFlag = true;
+//#else
+//		auto size = DrawThreadQueue::size();
+//		for (int i = 0; i < size; i++){
+//			auto func = DrawThreadQueue::dequeue();
+//			func();
+//		}
+//		if (!MoviePlayFlag::IsMoviePlay()){
+//			Device::mpSwapChain->Present(1, 0);
+//	}
+//#endif
+//	}
 
 
 	void CleanupDevice()
@@ -253,7 +398,7 @@ public:
 #if _DRAW_MULTI_THREAD
 
 		mDestory = true;
-		SetEvent(mUpdateEvent);
+		SetEvent(mDrawEvent);
 		mDrawThread.join();
 
 		//スレッド終了
@@ -273,47 +418,50 @@ public:
 	}
 private:
 
-	void DrawThread(){
-		while (!mDestory)
-		{
-
-			{
-				auto tick = Profiling::Start("Draw:wait");
-				WaitForSingleObject(mUpdateEvent, INFINITE);
-			}
-			ID3D11CommandList* cmdList;
-			{
-				auto tick = Profiling::Start("Draw:etc");
-				ResetEvent(mUpdateEvent);
-				SetEvent(mDrawEvent);
-
-				while (!mDestory)
-				{
-					if (mCmdFlag || mDestory)break;
-				}
-				if (mDestory)break;
-				cmdList = (ID3D11CommandList*)mCmdList;
-				mCmdFlag = false;
-
-				auto size = DrawThreadQueue::size();
-				for (int i = 0; i < size; i++){
-					auto func = DrawThreadQueue::dequeue();
-					func();
-				}
-			}
-			{
-				auto tick = Profiling::Start("Draw:execute");
-				Device::mpImmediateContext->ExecuteCommandList(cmdList, false);
-				cmdList->Release();
-			}
-			{
-				auto tick = Profiling::Start("Draw:swap");
-				Device::mpSwapChain->Present(1, 0);
-			}
-		}
-
-		SetEvent(mDrawEvent);
-	}
+	//void DrawThread(){
+	//	while (!mDestory)
+	//	{
+	//
+	//		{
+	//			auto tick = Profiling::Start("Draw:wait");
+	//			WaitForSingleObject(mUpdateEvent, INFINITE);
+	//		}
+	//		ID3D11CommandList* cmdList;
+	//		{
+	//			auto tick = Profiling::Start("Draw:etc");
+	//			ResetEvent(mUpdateEvent);
+	//			SetEvent(mDrawEvent);
+	//
+	//			while (!mDestory)
+	//			{
+	//				if (mCmdFlag || mDestory)break;
+	//			}
+	//			if (mDestory)break;
+	//			cmdList = (ID3D11CommandList*)mCmdList;
+	//			mCmdFlag = false;
+	//
+	//			auto size = DrawThreadQueue::size();
+	//			for (int i = 0; i < size; i++){
+	//				auto func = DrawThreadQueue::dequeue();
+	//				func();
+	//			}
+	//		}
+	//		{
+	//			auto tick = Profiling::Start("Draw:execute");
+	//			Device::mpImmediateContext->ExecuteCommandList(cmdList, false);
+	//			cmdList->Release();
+	//		}
+	//		{
+	//			auto tick = Profiling::Start("Draw:swap");
+	//
+	//			if (!MoviePlayFlag::IsMoviePlay()){
+	//				Device::mpSwapChain->Present(0, 0);
+	//			}
+	//		}
+	//	}
+	//
+	//	SetEvent(mDrawEvent);
+	//}
 
 	InputManagerRapper mInputManagerRapper;
 	Game* mGame;
@@ -323,6 +471,7 @@ public:
 	volatile bool mCmdFlag;
 	volatile ID3D11CommandList* mCmdList;
 	HANDLE mUpdateEvent;
+	//HANDLE mMessageEvent;
 	HANDLE mDrawEvent;
 	std::thread mDrawThread;
 
@@ -362,7 +511,6 @@ T& operator & (T&& t, throwNull& n){
 
 #include "MySTL\Coroutine.h"
 
-#include "Library\movie\Movie.h"
 
 
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
@@ -384,17 +532,6 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	if (FAILED(mWindow.Init()))
 		return 0;
 
-	CMFSession *g_lpSession = NULL;
-	{
-		//MFStartup(MF_VERSION);
-		//g_lpSession = new CMFSession(mWindow.GetGameScreenHWND());
-		//g_lpSession->LoadMovie(TEXT("EngineResource/vi.wmv"));
-		//g_lpSession->PlayMovie(FALSE);
-		//g_lpSession->SetPlayWindow();
-	}
-
-	// Main message loop
-	MSG msg = { 0 };
 	{
 		Application App;
 		if (FAILED(App.InitDevice(mWindow)))
@@ -403,31 +540,11 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			return 0;
 		}
 
-		while (WM_QUIT != msg.message)
-		//for (int i=0; WM_QUIT != msg.message;i++)
-		{
-			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-			else
-			{
-				App.Render();
-			}
-		}
-
-
-		{
-			//g_lpSession->ReleaseMovie();
-			//delete g_lpSession;
-			//g_lpSession = NULL;
-			//MFShutdown();
-		}
-
+		
+		App.Render();
 
 		App.CleanupDevice();
 	}
 
-	return ( int )msg.wParam;
+	return 0;// (int)msg.wParam;
 }

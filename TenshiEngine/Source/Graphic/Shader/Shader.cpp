@@ -11,3 +11,12 @@ void Shader::SetShader(bool UseAnime, ID3D11DeviceContext* context) const{
 	if (!m_ShaderAssetData)return;
 	m_ShaderAssetData->GetFileData()->GetShader()->SetShader(UseAnime,context);
 }
+
+void Shader::SetShader_VS(bool UseAnime, ID3D11DeviceContext* context) const{
+	if (!m_ShaderAssetData)return;
+	m_ShaderAssetData->GetFileData()->GetShader()->SetShader_VS(UseAnime, context);
+}
+void Shader::SetShader_PS(ID3D11DeviceContext* context) const{
+	if (!m_ShaderAssetData)return;
+	m_ShaderAssetData->GetFileData()->GetShader()->SetShader_PS(context);
+}

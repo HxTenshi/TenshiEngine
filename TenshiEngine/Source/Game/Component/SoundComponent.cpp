@@ -54,6 +54,7 @@ void SoundComponent::IO_Data(I_ioHelper* io){
 	_KEY(mFileName);
 	_KEY(mIsLoop);
 	_KEY(mVolume);
+	_KEY(mAutoPlay);
 #undef _KEY
 }
 

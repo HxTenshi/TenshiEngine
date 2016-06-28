@@ -48,8 +48,6 @@ HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 		return hr;
 	}
 
-
-
 	auto file = new TextureFileData();
 	file->SetTexture(pTexture, smpler);
 
@@ -92,6 +90,15 @@ void Texture::CSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) cons
 	auto tex = mTextureAssetData->GetFileData()->GetTexture();
 	context->CSSetShaderResources(Slot, 1, &tex->mpTextureRV);
 	context->CSSetSamplers(Slot, 1, &tex->mpSamplerLinear);
+}
+
+
+shared_ptr<Release_self<ID3D11Resource>> Texture::GetResource(){
+	ID3D11Resource* res;
+	mTextureAssetData->GetFileData()->GetTexture()->mpTextureRV->GetResource(&res);
+	shared_ptr<Release_self<ID3D11Resource>> temp = make_shared<Release_self<ID3D11Resource>>();
+	(*temp) = res;
+	return temp;
 }
 
 

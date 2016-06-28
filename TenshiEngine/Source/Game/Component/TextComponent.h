@@ -33,10 +33,17 @@ public:
 
 	void IO_Data(I_ioHelper* io) override;
 	void ChangeText(const std::string& text) override;
+	void ChangeFontSize(float size);
+	void ChangeCenter(bool center);
+
 private:
 	TextComponent(const TextComponent&);
 	void operator =(const TextComponent&);
 
+	float mFontSize;
+	bool mCenter;
+
+	XMVECTOR mBackScale;
 
 	TextComponentMember* impl;
 };

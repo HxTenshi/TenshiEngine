@@ -45,6 +45,12 @@ cbuffer cbNearFar : register(b12)
 	float2 NULLnf;
 };
 
+cbuffer cbScreen : register(b13)
+{
+	float2 ScreenSize;
+	float2 NULLss;
+};
+
 //--------------------------------------------------------------------------------------
 struct VS_INPUT
 {
@@ -177,7 +183,7 @@ PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	Out.Specular = float4(0, 0, 0, 0);
 
 	//ジオメトリバッファのテクスチャ座標（法線、デプス値取得用）
-	float2 tex = input.Pos.xy / float2(1200, 800);
+	float2 tex = input.Pos.xy / ScreenSize;
 
 
 		float4 norCol = NormalTex.Sample(NormalSamLinear, tex);
@@ -226,7 +232,8 @@ PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	//float spec_pow = 255 * txSpecPow.Sample(samSpecPow, tex).x;
 	//float3 spec = pow(saturate(dot(nor, h)), spec_pow);
 	float roughness = norCol.a - 1;
-	float spec = LightingFuncGGX_REF(nor, -normalize(vpos), dir, roughness, 0.1);
+	roughness = max(roughness, 0.1f);
+	float spec = LightingFuncGGX_REF(nor, -normalize(vpos), dir, roughness, 1);
 
 	Out.Diffuse = float4(atte*df*PtLCol.xyz, 1);
 	Out.Specular = float4(atte*spec*PtLCol.xyz, 1);
@@ -242,15 +249,15 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	PS_OUTPUT_1 Out;
 	Out = main(input,1);
 
-	float2 tex = input.Pos.xy / float2(1200, 800);
+	float2 tex = input.Pos.xy / ScreenSize;
 	float rebirth = SpecularTex.Sample(SpecularSamLinear, tex).a;
 
 	//[branch]
 	if (rebirth > 0.01){
 		PS_OUTPUT_1 reb;
-		reb = main(input,-1);
-		Out.Diffuse.rgb += reb.Diffuse.rgb * rebirth;
-		Out.Specular.rgb += reb.Specular.rgb * rebirth;
+		reb = main(input, -1);
+		Out.Diffuse.rgb = ((1 - rebirth) * Out.Diffuse.rgb) + reb.Diffuse.rgb * rebirth;
+		Out.Specular.rgb = ((1 - rebirth) * Out.Specular.rgb) + reb.Specular.rgb * rebirth;
 	}
 	else{
 

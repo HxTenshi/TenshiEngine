@@ -1,8 +1,8 @@
 #pragma once
 #include "../AssetFileData.h"
 
-class ID3D11ShaderResourceView;
-class ID3D11SamplerState;
+struct ID3D11ShaderResourceView;
+struct ID3D11SamplerState;
 
 class TextureData{
 public:

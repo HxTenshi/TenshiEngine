@@ -8,6 +8,8 @@
 
 #include "Window/Window.h"
 
+#include "Library\movie\Movie.h"
+
 #include "AssetFile\Bone\BoneFileData.h"
 #include "AssetFile\Mesh\MeshFileData.h"
 #include "AssetFile\Prefab\PrefabFileData.h"
@@ -15,6 +17,7 @@
 #include "AssetFile\Material\TextureFileData.h"
 #include "AssetFile\Physx\PhysxMaterialFileData.h"
 #include "AssetFile\Sound\SoundFileData.h"
+#include "AssetFile\Movie\MovieFileData.h"
 
 
 decltype(AssetFactory::m_Factory) AssetFactory::m_Factory;
@@ -27,6 +30,11 @@ decltype(AssetDataBase::m_AssetCache) AssetDataBase::m_AssetCache;
 static __AssetFactory factory;
 
 AssetFactory::AssetFactory(){
+	//ÉÄÅ[ÉrÅ[é¸ÇË
+	{
+		MFStartup(MF_VERSION);
+	}
+
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tesmesh"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tedmesh"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tedmesh2"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));
@@ -48,6 +56,14 @@ AssetFactory::AssetFactory(){
 
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wav"), [](const char* filename){ return AssetDataTemplate<SoundFileData>::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wave"), [](const char* filename){ return AssetDataTemplate<SoundFileData>::Create(filename); }));
+
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("mp4"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wmv"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("avi"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
+}
+
+
+AssetFactory::~AssetFactory(){
 
 }
 AssetDataTemplatePtr AssetFactory::Create(const char* filename){

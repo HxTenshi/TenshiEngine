@@ -41,6 +41,6 @@ PS_INPUT VS( VS_INPUT input )
 //--------------------------------------------------------------------------------------
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float4 col = txDiffuse.Sample(samLinear, input.Tex);
+	float4 col = saturate(txDiffuse.Sample(samLinear, input.Tex));
 	return col;
 }

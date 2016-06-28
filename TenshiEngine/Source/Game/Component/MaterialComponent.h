@@ -48,6 +48,7 @@ public:
 	std::string mHeightTextureName;
 	std::string mSpecularTextureName;
 	std::string mRoughnessTextureName;
+	std::string mEmissiveTextureName;
 	std::vector<Material> mMaterials;
 	std::string mMaterialPath;
 	std::string mShaderName;
@@ -58,6 +59,7 @@ public:
 	XMFLOAT2 mHeightPower;
 	XMFLOAT4 mNormaleScale;
 	XMFLOAT2 mOffset;
+	float mEmissivePowor;
 	bool mForwardRendering;
 	float mThickness;
 };

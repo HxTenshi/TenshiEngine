@@ -195,10 +195,10 @@ void ParticleComponent::Update(){
 
 
 		if (mBlendAdd){
-			render->PushSet(BlendState::Preset::BS_Add);
+			render->PushSet(BlendState::Preset::BS_Add, 0xFFFFFFFF);
 		}
 		else{
-			render->PushSet(BlendState::Preset::BS_Alpha);
+			render->PushSet(BlendState::Preset::BS_Alpha,0xFFFFFFFF);
 		}
 
 

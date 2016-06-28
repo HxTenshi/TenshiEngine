@@ -60,6 +60,7 @@ public:
 		// デプスバッファ
 		//Device::mpd3dDevice->CreateDepthStencilView(texture, nullptr, &dsview);
 
+
 		ID3D11ShaderResourceView* pShaderResourceView;
 		hr = Device::mpd3dDevice->CreateShaderResourceView(mpTexture2D, nullptr, &pShaderResourceView);
 		if (FAILED(hr)){

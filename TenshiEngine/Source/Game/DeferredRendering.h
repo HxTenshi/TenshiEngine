@@ -98,6 +98,8 @@ private:
 	RenderTarget m_ShadowDepthRT[MAX_CASCADE];
 	RenderTarget m_ShadowDepthDS;
 
+	ConstantBuffer<CBNeverChanges> mCBNeverChanges;
+	ConstantBuffer<CBChangeOnResize> mCBChangeOnResize;
 	ConstantBuffer<cbChangesLightCamera> mCBChangesLightCamera;
 
 	static XMVECTOR mLightVect;
@@ -151,6 +153,9 @@ private:
 
 	const UINT mHDLDownSampleNum = 4;
 	HDRGaussBulr_AND_DownSample mHDLDownSample[4];
+
+
+	ConstantBuffer<cbFreeParam> mCBBloomParam;
 
 
 };

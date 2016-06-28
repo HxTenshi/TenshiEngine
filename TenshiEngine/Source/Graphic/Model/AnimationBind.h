@@ -206,7 +206,7 @@ private:
 			boneAnime.FramePoint = FindCurrentKeyPosition(boneAnime, mKeyFraneTime);
 
 			//Œ»Ý‚ÆŽŸ‚ÌƒtƒŒ[ƒ€‚ðŽæ“¾
-			auto size = boneAnime.BaseAnime->size();
+			int size = (int)boneAnime.BaseAnime->size();
 			int curID = boneAnime.FramePoint;
 			int nexID = min(curID + 1, size - 1);
 			auto& Anime = *boneAnime.BaseAnime;

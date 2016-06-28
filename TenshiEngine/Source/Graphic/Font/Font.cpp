@@ -159,12 +159,19 @@ public:
 
 	}
 
-	void Weight(BYTE* pOutBits, TextureBitmapState mTextureBitmapState){
+	void Weight(BYTE* pOutBits, TextureBitmapState mTextureBitmapState, bool Center){
+
+		if (Center){
+			float textLenght = 0.0f;
+			for (const auto& c : mCharacters){
+				textLenght += c.GetState().x + c.GetState().w;
+			}
+			mTextureBitmapState.x = (mTextureBitmapState.w - textLenght) / 2.0f;
+		}
 
 		for (const auto& c : mCharacters){
 			c.Weight(pOutBits, mTextureBitmapState);
 			mTextureBitmapState.x += c.GetState().x + c.GetState().w;
-
 		}
 	}
 
@@ -177,7 +184,8 @@ private:
 FontFileData::FontFileData()
 	:hFont(NULL)
 	, mTexture2D(NULL){
-	Create("");
+	mWidth = 128;
+	mHeight = 128;
 
 }
 FontFileData::~FontFileData(){
@@ -209,8 +217,27 @@ void FontFileData::Release(){
 	}
 }
 
-void FontFileData::Create(const char* fileName){
-	Release();
+void FontFileData::CreateFont_(const char* fileName, float FontSize){
+
+	{
+		if (mFileName != ""){
+			// リソース削除
+			RemoveFontResourceEx(
+				mFileName.c_str(), //ttfファイルへのパス
+				FR_PRIVATE,
+				&mDesign
+				);
+			mFileName = "";
+		}
+
+
+		if (hFont){
+			DeleteObject(hFont);
+			hFont = NULL;
+			mFontName = "";
+		}
+	}
+
 	mFileName = "EngineResource/meiryo.ttc";
 	//mFileName = "APJapanesefontF.ttf";
 	// フォントを使えるようにする
@@ -223,7 +250,7 @@ void FontFileData::Create(const char* fileName){
 	//mFontName = "あんずもじ湛";
 	// フォントの生成
 	LOGFONT lf = {
-		48.0f, 0, 0, 0, 0, 0, 0, 0,
+		FontSize, 0, 0, 0, 0, 0, 0, 0,
 		SHIFTJIS_CHARSET,
 		OUT_TT_ONLY_PRECIS,
 		CLIP_DEFAULT_PRECIS,
@@ -240,7 +267,15 @@ void FontFileData::Create(const char* fileName){
 	lf.lfFaceName[size] = '\0';
 
 	hFont = CreateFontIndirect(&lf);
+}
+void FontFileData::CreateTexture_(UINT width, UINT height){
 
+	{
+		if (mTexture2D){
+			mTexture2D->Release();
+			mTexture2D = NULL;
+		}
+	}
 
 
 	// CPUで書き込みができるテクスチャを作成
@@ -249,9 +284,10 @@ void FontFileData::Create(const char* fileName){
 	//desc.Width = GM.gmCellIncX;
 	//desc.Height = TM.tmHeight;
 
-
-	desc.Width = 512;
-	desc.Height = 512;
+	mWidth = width;
+	mHeight = height;
+	desc.Width = mWidth;
+	desc.Height = mHeight;
 
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
@@ -270,13 +306,12 @@ void FontFileData::Create(const char* fileName){
 	ID3D11ShaderResourceView* pShaderResourceView;
 	Device::mpd3dDevice->CreateShaderResourceView(mTexture2D, nullptr, &pShaderResourceView);
 	mTexture.Create(pShaderResourceView);
-
-
 }
 
 
-void FontFileData::SetText(const std::string& text){
+void FontFileData::SetText(const std::string& text, bool center){
 	if (!hFont)return;
+	if (!mTexture2D)return;
 
 	auto hwnd = Window::GetGameScreenHWND();
 	HDC hdc = GetDC(hwnd);
@@ -287,7 +322,6 @@ void FontFileData::SetText(const std::string& text){
 	// デバイスコンテキストとフォントハンドルの開放
 	SelectObject(hdc, oldFont);
 	ReleaseDC(hwnd, hdc);
-
 
 	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 
@@ -304,14 +338,14 @@ void FontFileData::SetText(const std::string& text){
 	BYTE* pBits = (BYTE*)hMappedResource.pData;
 
 	TextureBitmapState state;
-	state.w = 512;
-	state.h = 512;
+	state.w = mWidth;
+	state.h = mHeight;
 
 	//テクスチャーをクリア
 	int size = state.w*state.h * 4;
 	memset(pBits, 0, size);
 
-	textData.Weight(pBits, state);
+	textData.Weight(pBits, state,center);
 
 	render->m_Context->Unmap(mTexture2D, 0);
 
