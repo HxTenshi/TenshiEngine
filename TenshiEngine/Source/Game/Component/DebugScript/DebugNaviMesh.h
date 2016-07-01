@@ -13,7 +13,11 @@ public:
 	void EngineUpdate() override;
 	void Update() override;
 	void Finish() override;
+
+#ifdef _ENGINE_MODE
 	void CreateInspector(std::vector<InspectorDataSet>& data) override;
+#endif
+	void IO_Data(I_ioHelper* io) override;
 
 	void Find();
 

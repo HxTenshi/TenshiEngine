@@ -13,7 +13,10 @@ public:
 	virtual void EngineUpdate(){}
 	virtual void Update(){}
 	virtual void Finish(){}
+#ifdef _ENGINE_MODE
 	virtual void CreateInspector(std::vector<InspectorDataSet>& data){}
+#endif
+	virtual void IO_Data(I_ioHelper* io){}
 };
 
 class DebugEngineScriptComponent : public Component{

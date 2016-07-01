@@ -24,7 +24,6 @@ DebugEngineFactory gFactory;
 
 DebugEngineScriptComponent::DebugEngineScriptComponent(){
 	pClass = NULL;
-	mEndInitialize = false;
 }
 DebugEngineScriptComponent::~DebugEngineScriptComponent(){
 	if (pClass){
@@ -34,12 +33,12 @@ DebugEngineScriptComponent::~DebugEngineScriptComponent(){
 }
 
 void DebugEngineScriptComponent::Initialize(){
-	if (pClass){
-		delete pClass;
-		pClass = NULL;
-
+	if (!pClass){
+		pClass = gFactory.Get(mClassName);
 	}
-	pClass = gFactory.Get(mClassName);
+	if (pClass){
+		pClass->Initialize(gameObject);
+	}
 }
 void DebugEngineScriptComponent::Start(){
 }
@@ -51,12 +50,6 @@ void DebugEngineScriptComponent::EngineUpdate(){
 	}
 }
 void DebugEngineScriptComponent::Update(){
-	if (!mEndInitialize){
-		mEndInitialize = true;
-		if (pClass){
-			pClass->Initialize(gameObject);
-		}
-	}
 
 	if (pClass){
 		pClass->Update();
@@ -67,7 +60,6 @@ void DebugEngineScriptComponent::Finish(){
 		pClass->Finish();
 	}
 
-	mEndInitialize = false;
 	
 }
 
@@ -95,6 +87,22 @@ void DebugEngineScriptComponent::CreateInspector(){
 
 void DebugEngineScriptComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
+
+	auto back = mClassName;
 	_KEY(mClassName);
+
+	if (back != mClassName){
+		if (pClass){
+			delete pClass;
+			pClass = NULL;
+		}
+	}
+	if (!pClass){
+		pClass = gFactory.Get(mClassName);
+	}
+
+	if (pClass){
+		pClass->IO_Data(io);
+	}
 #undef _KEY
 }

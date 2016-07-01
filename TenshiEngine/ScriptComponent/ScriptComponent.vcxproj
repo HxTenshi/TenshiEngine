@@ -70,7 +70,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/D "_XM_NO_INTRINSICS_" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/D "_XM_NO_INTRINSICS_" /D "_ENGINE_MODE" %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -124,6 +124,7 @@
     <ClCompile Include="Scripts\BulletEmiter.cpp" />
     <ClCompile Include="Scripts\DeltaTimeScale.cpp" />
     <ClCompile Include="Scripts\MoveSmoke.cpp" />
+    <ClCompile Include="Scripts\PlayerController.cpp" />
     <ClCompile Include="Scripts\PlayerScript.cpp" />
     <ClCompile Include="Scripts\testhit.cpp" />
     <ClCompile Include="Scripts\TextureScroll.cpp" />
@@ -138,6 +139,7 @@
     <ClInclude Include="h_component.h" />
     <ClInclude Include="h_standard.h" />
     <ClInclude Include="Scripts\MoveSmoke.h" />
+    <ClInclude Include="Scripts\PlayerController.h" />
     <ClInclude Include="Scripts\PlayerScript.h" />
     <ClInclude Include="Scripts\testhit.h" />
     <ClInclude Include="Scripts\TextureScroll.h" />
