@@ -13,20 +13,24 @@ ShaderFileData::~ShaderFileData(){
 	m_FileName = "";
 }
 
-void ShaderFileData::Create(const char* filename){
+bool ShaderFileData::Create(const char* filename){
 
 
+	m_FileName = filename;
 	if (m_Shader){
 		delete m_Shader;
 		m_Shader = NULL;
 	}
 	m_Shader = new ShaderData();
-	m_FileName = filename;
 
 	m_Shader->Create(m_FileName.c_str());
 
+
+	return true;
 }
 
-void ShaderFileData::FileUpdate(){
+bool ShaderFileData::FileUpdate(){
 	m_Shader->Create(m_FileName.c_str());
+
+	return true;
 }

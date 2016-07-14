@@ -5,13 +5,13 @@
 #include "MySTL/ptr.h"
 #include "Engine/AssetDataBase.h"
 
-class MoviePlayFlag{
-public:
-	static bool IsMoviePlay();
-protected:
-	static long long mPlayFlag;
-};
-
+//class MoviePlayFlag{
+//public:
+//	static bool IsMoviePlay();
+//protected:
+//	static long long mPlayFlag;
+//};
+class Texture;
 class IMovieComponent{
 public:
 	virtual void LoadFile(const std::string& fileName) = 0;
@@ -20,9 +20,13 @@ public:
 	virtual void SetLoop(bool flag) = 0;
 
 	virtual bool IsPlay() const = 0;
+
+	virtual Texture *GetTexture() const = 0;
 };
 
-class MovieComponent : public IMovieComponent, public MoviePlayFlag, public Component{
+class MovieComponent : public IMovieComponent, public Component
+//, public MoviePlayFlag
+{
 public:
 	MovieComponent();
 	~MovieComponent();
@@ -44,6 +48,8 @@ public:
 	void SetLoop(bool flag) override;
 
 	bool IsPlay() const override;
+
+	Texture *GetTexture() const override;
 private:
 
 	std::string mFileName;

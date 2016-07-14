@@ -56,6 +56,17 @@ HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 	return S_OK;
 }
 
+HRESULT Texture::Create(ID3D11Texture2D* pTexture){
+	ID3D11ShaderResourceView* pShaderResourceView;
+	auto hr = Device::mpd3dDevice->CreateShaderResourceView(pTexture, nullptr, &pShaderResourceView);
+	if (FAILED(hr)){
+		_SYSTEM_LOG_ERROR("ShaderResourceView�̍쐬");
+		return hr;
+	}
+
+	return Create(pShaderResourceView);
+}
+
 HRESULT Texture::Create(const char* FileName){
 	mFileName = FileName;
 	TextureAssetDataPtr tex(NULL);

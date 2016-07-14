@@ -15,13 +15,15 @@ AssetDataTemplatePtr AssetDataTemplate<T>::Create(const char* filename){
 			delete m_FileData;
 		}
 
-		void Create(const char* filename){
-			((AssetFileData*)m_FileData)->Create(filename);
+		bool Create(const char* filename){
+			return ((AssetFileData*)m_FileData)->Create(filename);
 		}
 	};
 	auto temp = make_shared<PrivateFactory>();
 
-	temp->Create(filename);
+	if (!temp->Create(filename)){
+		return NULL;
+	}
 
 	return temp;
 }

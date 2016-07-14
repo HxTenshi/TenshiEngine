@@ -1,14 +1,8 @@
 #include "MovieComponent.h"
 
 #include "Engine/AssetFile/Movie/MovieFileData.h"
-#include "Library/Movie/Movie.h"
-
+#include "Library/Movie/MovieTexture.h"
 #include "Window/Window.h"
-
-bool MoviePlayFlag::IsMoviePlay(){
-	return (bool)(mPlayFlag != NULL);
-}
-long long MoviePlayFlag::mPlayFlag = NULL;
 
 MovieComponent::MovieComponent(){
 	mLoop = false;
@@ -20,18 +14,25 @@ MovieComponent::~MovieComponent(){
 }
 
 void MovieComponent::Initialize() {
-	if (mFileName != ""){
-		AssetDataBase::Instance(mFileName.c_str(), mMovieAssetFile);
-	}
+	LoadFile(mFileName);
 }
 void MovieComponent::Start() {
 }
 void MovieComponent::EngineUpdate() {
 
-	if (mPlayFlag == (long long)this){
-		if (!IsPlay()){
-			mPlayFlag = NULL;
-		}
+	//if (mPlayFlag == (long long)this){
+	//	if (!IsPlay()){
+	//		mPlayFlag = NULL;
+	//	}
+	//}
+
+	if (IsPlay()){
+
+		if (!mMovieAssetFile)return;
+		if (!mMovieAssetFile->GetFileData())return;
+		if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
+
+		return mMovieAssetFile->GetFileData()->GetMovieData()->TextureRendering();
 	}
 
 }
@@ -41,13 +42,15 @@ void MovieComponent::Update() {
 		mAutoPlay = false;
 		Play();
 	}
+	if (IsPlay()){
 
-	if (mPlayFlag == (long long)this){
-		if (!IsPlay()){
-			mPlayFlag = NULL;
-		}
+		if (!mMovieAssetFile)return;
+		if (!mMovieAssetFile->GetFileData())return;
+		if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
+
+		return mMovieAssetFile->GetFileData()->GetMovieData()->TextureRendering();
 	}
-
+	
 }
 void MovieComponent::Finish() {
 
@@ -69,7 +72,7 @@ void MovieComponent::CreateInspector(){
 			Play();
 		}
 	}), data);
-	Window::ViewInspector("Sound", this, data);
+	Window::ViewInspector("Movie", this, data);
 
 }
 #endif
@@ -85,18 +88,29 @@ void MovieComponent::LoadFile(const std::string& fileName) {
 	mFileName = fileName;
 	Stop();
 	AssetDataBase::Instance(mFileName.c_str(), mMovieAssetFile);
+
+
+	if (!mMovieAssetFile)return;
+	if (!mMovieAssetFile->GetFileData())return;
+	if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
+	auto end = mMovieAssetFile->GetFileData()->GetMovieData()->GetStopTime();
+	mMovieAssetFile->GetFileData()->GetMovieData()->SetTime(end);
 }
 void MovieComponent::Play() {
 	if (!mMovieAssetFile)return;
 	if (!mMovieAssetFile->GetFileData())return;
 	if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
 
-	if (MoviePlayFlag::IsMoviePlay())return;
+	//if (MoviePlayFlag::IsMoviePlay())return;
 
-	mMovieAssetFile->GetFileData()->GetMovieData()->StopMovie();
-	mMovieAssetFile->GetFileData()->GetMovieData()->PlayMovie(mLoop);
+	//mMovieAssetFile->GetFileData()->GetMovieData()->StopMovie();
+	//mMovieAssetFile->GetFileData()->GetMovieData()->PlayMovie(mLoop);
 
-	mPlayFlag = (long long)this;
+	//mPlayFlag = (long long)this;
+
+
+	mMovieAssetFile->GetFileData()->GetMovieData()->SetTime(0.0);
+	mMovieAssetFile->GetFileData()->GetMovieData()->Play();
 
 }
 void MovieComponent::Stop() {
@@ -108,8 +122,13 @@ void MovieComponent::Stop() {
 	if (!IsPlay()){
 		return;
 	}
-	mPlayFlag = NULL;
-	mMovieAssetFile->GetFileData()->GetMovieData()->StopMovie();
+	//mPlayFlag = NULL;
+	//mMovieAssetFile->GetFileData()->GetMovieData()->StopMovie();
+
+	auto end = mMovieAssetFile->GetFileData()->GetMovieData()->GetStopTime();
+	mMovieAssetFile->GetFileData()->GetMovieData()->SetTime(end);
+
+	mMovieAssetFile->GetFileData()->GetMovieData()->Stop();
 }
 void MovieComponent::SetLoop(bool flag) {
 	mLoop = flag;
@@ -120,5 +139,18 @@ bool MovieComponent::IsPlay() const{
 	if (!mMovieAssetFile)return false;
 	if (!mMovieAssetFile->GetFileData())return false;
 	if (!mMovieAssetFile->GetFileData()->GetMovieData())return false;
-	return (bool)mMovieAssetFile->GetFileData()->GetMovieData()->IsPlayMovie();
+	//return (bool)mMovieAssetFile->GetFileData()->GetMovieData()->IsPlayMovie();
+
+	auto end = mMovieAssetFile->GetFileData()->GetMovieData()->GetStopTime();
+	auto cur = mMovieAssetFile->GetFileData()->GetMovieData()->GetCurrentPosition();
+	return (bool)(end > cur);
+}
+
+
+Texture* MovieComponent::GetTexture() const{
+	if (!mMovieAssetFile)return NULL;
+	if (!mMovieAssetFile->GetFileData())return NULL;
+	if (!mMovieAssetFile->GetFileData()->GetMovieData())return NULL;
+
+	return mMovieAssetFile->GetFileData()->GetMovieData()->GetTexture();
 }

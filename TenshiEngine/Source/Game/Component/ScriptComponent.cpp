@@ -751,6 +751,7 @@ void ScriptComponent::LoadParam(){
 		mSaveParam = NULL;
 	}
 }
+int count = 0;
 void ScriptComponent::Update(){
 
 	if (pDllClass){
@@ -762,9 +763,32 @@ void ScriptComponent::Update(){
 
 		actors.Function(pDllClass, &IDllScriptComponent::Update);
 
-		for (auto& tar : mCollideMap){
+		for (auto ite = mCollideMap.begin(); ite != mCollideMap.end();){
 
-			actors.Function(pDllClass, &IDllScriptComponent::OnCollideEnter, tar.second);
+			auto& data = *ite;
+
+			if (data.second.HitCount == 0){
+
+				if (data.second.State != ColliderState::Begin){	
+					actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, data.second.Target);
+				}
+				ite = mCollideMap.erase(ite);
+				continue;
+
+			}else if (data.second.State == ColliderState::Begin){
+				actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, data.second.Target);
+				data.second.State = Enter;
+			}
+			else if (data.second.State == ColliderState::Enter){
+				actors.Function(pDllClass, &IDllScriptComponent::OnCollideEnter, data.second.Target);
+
+			}
+			//else if (data.second.State == ColliderState::Exit){
+			//	actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, data.second.Target);
+			//	ite = mCollideMap.erase(ite);
+			//	continue;
+			//}
+			++ite;
 		}
 	}
 
@@ -775,19 +799,39 @@ void ScriptComponent::Finish(){
 	actors.mList.remove(this);
 }
 
-void ScriptComponent::OnCollide(Actor* target){
-	mCollideMap[(int)target] = target;
 
-	if (pDllClass){
-		actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, target);
+void ScriptComponent::OnCollide(Actor* target){
+	auto& get = mCollideMap[(int)target];
+	if (get.Target){
+		get.HitCount++;
+		return;
 	}
+
+	mCollideMap[(int)target] = ColliderStateData(target,ColliderState::Begin,1);
+
+	//if (pDllClass){
+	//	actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, target);
+	//}
 }
 
 void ScriptComponent::LostCollide(Actor* target){
-	mCollideMap.erase((int)target);
-	if (pDllClass){
-		actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, target);
+	auto ite = mCollideMap.find((int)target);
+	if (ite == mCollideMap.end()){
+		mCollideMap[(int)target] = ColliderStateData(target, ColliderState::Begin, -1);
+		return;
 	}
+	auto& get = *ite;
+	if (get.second.Target){
+		get.second.HitCount--;
+	}
+
+
+	//mCollideMap[(int)target] = ColliderStateData(target, ColliderState::Exit);
+
+	//mCollideMap.erase((int)target);
+	//if (pDllClass){
+	//	actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, target);
+	//}
 }
 
 

@@ -15,4 +15,7 @@ public:
 
 private:
 	//ƒƒ“ƒo•Ï”
+
+	XMVECTOR mJump;
+	XMVECTOR mGravity;
 };

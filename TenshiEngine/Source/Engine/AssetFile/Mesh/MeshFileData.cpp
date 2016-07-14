@@ -152,17 +152,18 @@ void CalcTangentAndBinormal(
 }
 
 
-void MeshFileData::Create(const char* filename){
-	if (m_Polygons){
-		delete m_Polygons;
-		m_Polygons = NULL;
-	}
+bool MeshFileData::Create(const char* filename){
 	m_FileName = filename;
 
 	FILE *hFP;
 	fopen_s(&hFP, filename, "rb");
 
-	if (hFP == 0)return;
+	if (hFP == 0)return false;
+
+	if (m_Polygons){
+		delete m_Polygons;
+		m_Polygons = NULL;
+	}
 
 	std::string str = filename;
 	auto type = behind_than_find_last_of(str, ".");
@@ -290,10 +291,12 @@ void MeshFileData::Create(const char* filename){
 	fclose(hFP);
 
 	m_MeshBufferData.Create(this);
+
+	return true;
 }
 
-void MeshFileData::FileUpdate(){
-	Create(m_FileName.c_str());
+bool MeshFileData::FileUpdate(){
+	return Create(m_FileName.c_str());
 }
 
 const IPolygonsData* MeshFileData::GetPolygonsData() const{

@@ -19,6 +19,7 @@ class Texture : public ITexture{
 public:
 	Texture();
 	~Texture();
+	HRESULT Create(ID3D11Texture2D* pTexture);
 	HRESULT Create(ID3D11ShaderResourceView* pTexture);
 	HRESULT Create(const char* FileName);
 	void PSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;

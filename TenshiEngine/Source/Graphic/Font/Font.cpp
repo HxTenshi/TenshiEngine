@@ -6,17 +6,6 @@
 #include "Device/DirectX11Device.h"
 #include "Game/RenderingSystem.h"
 
-
-template <class T> void SafeRelease(T **ppT)
-{
-	if (*ppT)
-	{
-		(*ppT)->Release();
-		*ppT = NULL;
-	}
-}
-
-
 struct BitmapState{
 	int x = 0;//書き出し位置(左上)
 	int y = 0;//書き出し位置(左上)

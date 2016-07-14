@@ -10,8 +10,8 @@ public:
 		return m_FileName;
 	}
 
-	virtual void Create(const char* filename) =0;
-	virtual void FileUpdate() =0;
+	virtual bool Create(const char* filename) =0;
+	virtual bool FileUpdate() =0;
 
 private:
 	//ÉRÉsÅ[ã÷é~

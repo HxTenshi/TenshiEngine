@@ -19,7 +19,7 @@ TextureFileData::~TextureFileData(){
 	m_FileName = "";
 }
 
-void TextureFileData::Create(const char* filename){
+bool TextureFileData::Create(const char* filename){
 
 	m_FileName = filename;
 
@@ -28,7 +28,7 @@ void TextureFileData::Create(const char* filename){
 	m_TextureData.mpTextureRV = LoadDirectXTex();
 
 	if (!m_TextureData.mpTextureRV){
-		return;
+		return false;
 	}
 
 	// Create the sample state
@@ -46,10 +46,12 @@ void TextureFileData::Create(const char* filename){
 
 	Device::mpd3dDevice->CreateSamplerState(&sampDesc, &m_TextureData.mpSamplerLinear);
 
+	return true;
+
 }
 
-void TextureFileData::FileUpdate(){
-	Create(m_FileName.c_str());
+bool TextureFileData::FileUpdate(){
+	return Create(m_FileName.c_str());
 }
 
 

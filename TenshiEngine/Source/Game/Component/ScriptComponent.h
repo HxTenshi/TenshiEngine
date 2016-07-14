@@ -36,7 +36,24 @@ public:
 	IDllScriptComponent* pDllClass;
 	std::string mClassName;
 
-	std::unordered_map<int, Actor*> mCollideMap;
+	enum ColliderState{
+		Begin,
+		Enter,
+		//Exit,
+	};
+	struct ColliderStateData{
+		ColliderStateData(
+			Actor* target = NULL,
+			ColliderState state = Begin,
+			int count = 0)
+			:Target(target), State(state), HitCount(count)
+		{}
+		Actor* Target;
+		ColliderState State;
+		int HitCount;
+	};
+
+	std::unordered_map<int, ColliderStateData> mCollideMap;
 private:
 	bool mEndInitialize;
 	bool mEndStart;

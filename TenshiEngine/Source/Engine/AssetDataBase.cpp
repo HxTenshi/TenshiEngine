@@ -8,7 +8,7 @@
 
 #include "Window/Window.h"
 
-#include "Library\movie\Movie.h"
+#include "Library\movie\hwndMovie.h"
 
 #include "AssetFile\Bone\BoneFileData.h"
 #include "AssetFile\Mesh\MeshFileData.h"
@@ -32,7 +32,7 @@ static __AssetFactory factory;
 AssetFactory::AssetFactory(){
 	//ÉÄÅ[ÉrÅ[é¸ÇË
 	{
-		MFStartup(MF_VERSION);
+		//MFStartup(MF_VERSION);
 	}
 
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tesmesh"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));

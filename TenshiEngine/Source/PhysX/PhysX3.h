@@ -35,7 +35,9 @@ class Actor;
 class IPolygonsData;
 #include "IPhysXEngine.h"
 
-class PhysX3Main : public PhysXEngine{
+class PhysX3Main : public PhysXEngine
+	, public PxUserControllerHitReport, public PxControllerBehaviorCallback, public PxSceneQueryFilterCallback
+{
 public:
 
 	PhysX3Main();
@@ -50,7 +52,6 @@ public:
 
 	void EngineDisplay();
 	void Display();
-	void StepPhysX();
 
 	void ShutdownPhysX();
 
@@ -63,9 +64,25 @@ public:
 	PxShape* CreateShape();
 	PxShape* CreateShapeSphere();
 	PxShape* CreateTriangleMesh(const IPolygonsData* poly);
+	PxController* CreateController();
+
 	PxPhysics* GetSDK(){
 		return gPhysicsSDK;
 	};
+
+	// Implements PxUserControllerHitReport
+	virtual void							onShapeHit(const PxControllerShapeHit& hit);
+	virtual void							onControllerHit(const PxControllersHit& hit)		{}
+	virtual void							onObstacleHit(const PxControllerObstacleHit& hit)	{}
+
+	// Implements PxControllerBehaviorCallback
+	virtual PxControllerBehaviorFlags		getBehaviorFlags(const PxShape& shape, const PxActor& actor);
+	virtual PxControllerBehaviorFlags		getBehaviorFlags(const PxController& controller);
+	virtual PxControllerBehaviorFlags		getBehaviorFlags(const PxObstacle& obstacle);
+
+	// Implements PxSceneQueryFilterCallback
+	virtual PxQueryHitType::Enum			preFilter(const PxFilterData& filterData, const PxShape* shape, const PxRigidActor* actor, PxSceneQueryFlags& queryFlags);
+	virtual	PxQueryHitType::Enum			postFilter(const PxFilterData& filterData, const PxSceneQueryHit& hit);
 
 private:
 	void getColumnMajor(PxMat33& m, PxVec3& t, float* mat);
@@ -77,6 +94,7 @@ private:
 	PxDefaultAllocator gDefaultAllocatorCallback;
 	PxSimulationFilterShader gDefaultFilterShader;
 	PxCooking*	mCooking;
+	PxControllerManager* mControllerManager;
 
 	PxScene* gScene;
 	PxScene* mEngineScene;

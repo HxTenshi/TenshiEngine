@@ -10,8 +10,8 @@ public:
 	MeshFileData();
 	~MeshFileData();
 
-	void Create(const char* filename) override;
-	void FileUpdate() override;
+	bool Create(const char* filename) override;
+	bool FileUpdate() override;
 
 	const MeshBufferData& GetBufferData() const;
 

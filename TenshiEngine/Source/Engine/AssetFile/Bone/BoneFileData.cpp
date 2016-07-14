@@ -14,7 +14,7 @@ BoneFileData::~BoneFileData(){
 	//m_BoneData.mIK_Links.clear();
 }
 
-void BoneFileData::Create(const char* filename){
+bool BoneFileData::Create(const char* filename){
 
 	m_BoneData.mBoneBuffer.clear();
 	m_BoneData.mBoneName.clear();
@@ -25,7 +25,7 @@ void BoneFileData::Create(const char* filename){
 	FILE *hFP;
 	fopen_s(&hFP, filename, "rb");
 
-	if (hFP == 0)return;
+	if (hFP == 0)return false;
 
 	auto& data = m_BoneData;
 
@@ -47,10 +47,11 @@ void BoneFileData::Create(const char* filename){
 	}
 
 	fclose(hFP);
+	return true;
 }
 
-void BoneFileData::FileUpdate(){
-	Create(m_FileName.c_str());
+bool BoneFileData::FileUpdate(){
+	return Create(m_FileName.c_str());
 }
 
 const BoneData& BoneFileData::GetBoneData() const{

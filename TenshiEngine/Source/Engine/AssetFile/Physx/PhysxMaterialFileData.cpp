@@ -16,16 +16,16 @@ PhysxMaterialFileData::~PhysxMaterialFileData(){
 	m_FileName = "";
 }
 
-void PhysxMaterialFileData::Create(const char* filename){
+bool PhysxMaterialFileData::Create(const char* filename){
 
 
 	if (m_Material){
 		m_Material->release();
 		m_Material = NULL;
 	}
-
 	File f(filename);
-	if (!f)return;
+	if (!f)return false;
+
 	float staticfric = 0, dinamicfric = 0, restiut = 0;
 	f.In(&staticfric);
 	f.In(&dinamicfric);
@@ -34,10 +34,10 @@ void PhysxMaterialFileData::Create(const char* filename){
 	m_Material = Game::GetPhysX()->GetSDK()->createMaterial(staticfric,dinamicfric,restiut);
 	m_FileName = filename;
 
-
+	return true;
 }
 
-void PhysxMaterialFileData::FileUpdate(){
+bool PhysxMaterialFileData::FileUpdate(){
 
 	if (m_Material){
 		m_Material->release();
@@ -45,13 +45,15 @@ void PhysxMaterialFileData::FileUpdate(){
 	}
 
 	File f(m_FileName);
-	if (!f)return;
+	if (!f)return false;
 	float staticfric = 0, dinamicfric = 0, restiut = 0;
 	f.In(&staticfric);
 	f.In(&dinamicfric);
 	f.In(&restiut);
 
 	m_Material = Game::GetPhysX()->GetSDK()->createMaterial(staticfric, dinamicfric, restiut);
+
+	return true;
 }
 void PhysxMaterialFileData::SaveFile(){
 

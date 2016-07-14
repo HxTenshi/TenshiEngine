@@ -95,7 +95,7 @@ int Window::Init(){
 	return S_OK;
 }
 
-#include "Library/Movie/Movie.h"
+#include "Library/Movie/hwndMovie.h"
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
@@ -104,9 +104,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	//ƒ€[ƒr[
-	case WM_MFSNOTIFY:
-		if (wParam != NULL){ ((CMFSession *)wParam)->HandleEvent(lParam); }
-		break;
+	//case WM_MFSNOTIFY:
+	//	if (wParam != NULL){ ((CMFSession *)wParam)->HandleEvent(lParam); }
+	//	break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		//BitBlt(hdc, 0, 0, WindowState::mWidth, WindowState::mHeight, hdc, 0, 0, SRCCOPY);

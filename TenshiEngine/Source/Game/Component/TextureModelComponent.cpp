@@ -2,6 +2,7 @@
 
 #include "TextureModelComponent.h"
 #include "MaterialComponent.h"
+#include "MovieComponent.h"
 
 #include "Window/Window.h"
 #include "Game/Actor.h"
@@ -57,18 +58,26 @@ void TextureModelComponent::Update(){
 	if (!mModel)return;
 
 	auto mate = gameObject->GetComponent<MaterialComponent>();
-	if (mTextureName == "" && !mate)return;
+	auto movie = gameObject->GetComponent<MovieComponent>();
+	if (mTextureName == "" && !mate && !movie)return;
 
 	Game::AddDrawList(DrawStage::Init, std::function<void()>([&](){
 		SetMatrix();
 	}));
-	Game::AddDrawList(DrawStage::UI, std::function<void()>([mate,this](){
+	Game::AddDrawList(DrawStage::UI, std::function<void()>([mate, movie, this](){
 
 		if (mate){
 			auto material= mate->GetMaterial(0);
 			mMaterial->SetTexture(material.mTexture[0]);
 			mMaterial->mCBMaterial.mParam.Diffuse = material.mCBMaterial.mParam.Diffuse;
 			mTextureName = "";
+		}
+		if (movie){
+			auto tex = movie->GetTexture();
+			if (tex){
+				mMaterial->SetTexture(*tex);
+				mTextureName = "";
+			}
 		}
 		SetMatrix();
 		

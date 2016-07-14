@@ -10,13 +10,13 @@ void SoundFile::Release(){
 	}
 }
 
-void SoundFile::Create(const char* filename){
+bool SoundFile::Create(const char* filename){
 	// Waveファイルオープン
 	WAVEFORMATEX wFmt;
 	char *pWaveData = 0;
 	DWORD waveSize = 0;
 	if (!openWave((CHAR*)filename, wFmt, &pWaveData, waveSize))
-		return;
+		return false;
 
 	DSBUFFERDESC DSBufferDesc;
 	DSBufferDesc.dwSize = sizeof(DSBUFFERDESC);
@@ -31,7 +31,7 @@ void SoundFile::Create(const char* filename){
 	ptmpBuf->QueryInterface(IID_IDirectSoundBuffer8, (void**)&mBuffer);
 	ptmpBuf->Release();
 	if (mBuffer == 0) {
-		return;
+		return false;
 	}
 
 	// セカンダリバッファにWaveデータ書き込み
@@ -42,6 +42,7 @@ void SoundFile::Create(const char* filename){
 		mBuffer->Unlock(lpvWrite, dwLength, NULL, 0);
 	}
 	delete[] pWaveData; // 元音はもういらない
+	return true;
 }
 
 // Waveファイルオープン関数
@@ -139,12 +140,12 @@ SoundFileData::SoundFileData(){
 SoundFileData::~SoundFileData(){
 }
 
-void SoundFileData::Create(const char* filename){
-	m_SoundData.Release();
-	m_SoundData.Create(filename);
+bool SoundFileData::Create(const char* filename){
 	m_FileName = filename;
-}
-void SoundFileData::FileUpdate(){
 	m_SoundData.Release();
-	m_SoundData.Create(m_FileName.c_str());
+	return m_SoundData.Create(filename);
+}
+bool SoundFileData::FileUpdate(){
+	m_SoundData.Release();
+	return m_SoundData.Create(m_FileName.c_str());
 }

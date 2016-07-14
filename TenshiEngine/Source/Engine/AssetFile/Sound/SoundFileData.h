@@ -21,7 +21,7 @@ public:
 
 	void Duplicate(const SoundFile* out)const;
 
-	void Create(const char* filename);
+	bool Create(const char* filename);
 
 private:
 	// Waveファイルオープン関数
@@ -35,8 +35,8 @@ public:
 	SoundFileData();
 	~SoundFileData();
 
-	void Create(const char* filename) override;
-	void FileUpdate() override;
+	bool Create(const char* filename) override;
+	bool FileUpdate() override;
 
 	const SoundFile* GetSoundFile() const{
 		return &m_SoundData;

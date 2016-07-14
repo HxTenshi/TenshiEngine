@@ -13,18 +13,14 @@
 
 #ifdef _DEBUG
 //#pragma comment(lib,"PhysX3Gpu_x86.lib")
-//#pragma comment(lib,"PhysX3GpuCHECKED_x86.lib")
-#pragma comment(lib,"PhysX3DEBUG_x86.lib")
 //#pragma comment(lib,"PhysX3GpuDEBUG_x86.lib")
-//#pragma comment(lib,"PhysX3GpuPROFILE_x86.lib")
-//#pragma comment(lib,"PhysX3DEBUG_x86.lib")
-//#pragma comment(lib,"PhysX3CharacterKinematicDEBUG_x86.lib")
-#pragma comment(lib,"PhysX3CommonDEBUG_x86.lib")
-//#pragma comment(lib,"PhysX3CookingDEBUG_x86.lib")
-#pragma comment(lib,"PhysXProfileSDKDEBUG.lib")
 //#pragma comment(lib,"PxTaskDEBUG.lib")
+#pragma comment(lib,"PhysX3DEBUG_x86.lib")
+#pragma comment(lib,"PhysX3CommonDEBUG_x86.lib")
+#pragma comment(lib,"PhysXProfileSDKDEBUG.lib")
 #pragma comment(lib,"PhysX3ExtensionsDEBUG.lib")
 #pragma comment(lib,"PhysX3CookingDEBUG_x86.lib")
+#pragma comment(lib,"PhysX3CharacterKinematicDEBUG_x86.lib")
 
 #else
 #pragma comment(lib,"PhysX3_x86.lib")
@@ -32,6 +28,7 @@
 #pragma comment(lib,"PhysXProfileSDK.lib")
 #pragma comment(lib,"PhysX3Extensions.lib")
 #pragma comment(lib,"PhysX3Cooking_x86.lib")
+#pragma comment(lib,"PhysX3CharacterKinematic_x86.lib")
 #endif
 
 class TestOn : public physx::PxSimulationEventCallback{
@@ -51,21 +48,21 @@ class TestOn : public physx::PxSimulationEventCallback{
 	{
 		for (PxU32 i = 0; i < nbPairs; i++)
 		{
+			Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
+			Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
+			if (!(act0&&act1))continue;
+			auto script0 = act0->GetComponent<ScriptComponent>();
+			auto script1 = act1->GetComponent<ScriptComponent>();
 
 			const PxContactPair& cp = pairs[i];
 			if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
-				Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
-				Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
-				if (!(act0&&act1))continue;
-				auto script0 = act0->GetComponent<ScriptComponent>();
-				auto script1 = act1->GetComponent<ScriptComponent>();
 				if (script0)
 					script0->OnCollide(act1);
 				if (script1)
 					script1->OnCollide(act0);
 
-				break;
+				//break;
 
 				//if ((pairHeader.actors[0] == mSubmarineActor) || (pairHeader.actors[1] == mSubmarineActor))
 				//{
@@ -81,17 +78,12 @@ class TestOn : public physx::PxSimulationEventCallback{
 			}
 			if (cp.events & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
-				Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
-				if (!(act0&&act1))continue;
-				auto script0 = act0->GetComponent<ScriptComponent>();
-				auto script1 = act1->GetComponent<ScriptComponent>();
 				if (script0)
 					script0->LostCollide(act1);
 				if (script1)
 					script1->LostCollide(act0);
 
-				break;
+				//break;
 			}
 		}
 	}
@@ -99,51 +91,58 @@ class TestOn : public physx::PxSimulationEventCallback{
 		for (PxU32 i = 0; i < count; i++)
 		{
 			const PxTriggerPair& cp = pairs[i];
+
+			Actor* act0 = (Actor*)cp.triggerActor->userData;
+			Actor* act1 = (Actor*)cp.otherActor->userData;
+			if (!(act0&&act1))continue;
+			auto script0 = act0->GetComponent<ScriptComponent>();
+			auto script1 = act1->GetComponent<ScriptComponent>();
+
 			if (cp.status & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
-				Actor* act0 = (Actor*)cp.triggerActor->userData;
-				Actor* act1 = (Actor*)cp.otherActor->userData;
-				if (!(act0&&act1))continue;
-				auto script0 = act0->GetComponent<ScriptComponent>();
-				auto script1 = act1->GetComponent<ScriptComponent>();
 				if (script0)
 					script0->OnCollide(act1);
 				if (script1)
 					script1->OnCollide(act0);
 
-				break;
+				//break;
 			}
 			if (cp.status & PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				Actor* act0 = (Actor*)cp.triggerActor->userData;
-				Actor* act1 = (Actor*)cp.otherActor->userData;
-				if (!(act0&&act1))continue;
-				auto script0 = act0->GetComponent<ScriptComponent>();
-				auto script1 = act1->GetComponent<ScriptComponent>();
 				if (script0)
 					script0->LostCollide(act1);
 				if (script1)
 					script1->LostCollide(act0);
 
-				break;
+				//break;
 
 			}
 		}
 	}
 };
 
-struct  FilterGroup
+struct  Tag
 {
 	enum  Enum
 	{
-		eSUBMARINE = (1 << 0),
-		eMINE_HEAD = (1 << 1),
-		eMINE_LINK = (1 << 2),
-		eCRAB = (1 << 3),
-		eHEIGHTFIELD = (1 << 4),
-		eTRIANGLE_MESH = (1 << 5),
+		None = (0 << 0),
+		Player = (1 << 0),
+		Enemy = (1 << 1),
+		Field = (1 << 2),
+		UI = (1 << 3),
+		System = (1 << 4),
+		UserTag1 = (1 << 5),
+		UserTag2 = (1 << 6),
+		UserTag3 = (1 << 7),
+		UserTag4 = (1 << 8),
+		UserTag5 = (1 << 9),
+		UserTag6 = (1 << 10),
+		UserTag7 = (1 << 11),
+		UserTag8 = (1 << 12),
 	};
 };
+
+std::unordered_map<int, bool> mCollidFiler;
 
 PxFilterFlags SampleSubmarineFilterShader(
 	PxFilterObjectAttributes attributes0, PxFilterData filterData0,
@@ -156,6 +155,7 @@ PxFilterFlags SampleSubmarineFilterShader(
 	if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
 	{
 		pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
+
 	}
 	else{
 		pairFlags = PxPairFlag::eCONTACT_DEFAULT | PxPairFlag::eTRIGGER_DEFAULT;
@@ -169,20 +169,122 @@ PxFilterFlags SampleSubmarineFilterShader(
 		return PxFilterFlag::eSUPPRESS;
 	}
 
-	if ((filterData0.word2 == FilterGroup::eTRIANGLE_MESH) &&
-		(filterData1.word2 == FilterGroup::eTRIANGLE_MESH)){
-		return PxFilterFlag::eDEFAULT;
-	}
+	//if (filterData0.word3 & filterData1.word3)
+	//{
+	//}
+
+	pairFlags |= PxPairFlag::eRESOLVE_CONTACTS;
+	pairFlags |= PxPairFlag::eCCD_LINEAR;
 
 	// generate contacts for all that were not filtered above
 
 	// trigger the contact callback for pairs (A,B) where
 	// the filtermask of A contains the ID of B and vice versa.
-	if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
+	//if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
+	if (mCollidFiler[filterData0.word0 | filterData1.word0])
 		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 
 	return PxFilterFlag::eDEFAULT;
 }
+
+PX_INLINE void addForceAtPosInternal(PxRigidBody& body, const PxVec3& force, const PxVec3& pos, PxForceMode::Enum mode, bool wakeup)
+{
+	/*	if(mode == PxForceMode::eACCELERATION || mode == PxForceMode::eVELOCITY_CHANGE)
+	{
+	Ps::getFoundation().error(PxErrorCode::eINVALID_PARAMETER, __FILE__, __LINE__,
+	"PxRigidBodyExt::addForce methods do not support eACCELERATION or eVELOCITY_CHANGE modes");
+	return;
+	}*/
+
+	const PxTransform globalPose = body.getGlobalPose();
+	const PxVec3 centerOfMass = globalPose.transform(body.getCMassLocalPose().p);
+
+	const PxVec3 torque = (pos - centerOfMass).cross(force);
+	body.addForce(force, mode, wakeup);
+	body.addTorque(torque, mode, wakeup);
+}
+
+static void addForceAtLocalPos(PxRigidBody& body, const PxVec3& force, const PxVec3& pos, PxForceMode::Enum mode, bool wakeup = true)
+{
+	//transform pos to world space
+	const PxVec3 globalForcePos = body.getGlobalPose().transform(pos);
+
+	addForceAtPosInternal(body, force, globalForcePos, mode, wakeup);
+}
+
+void PhysX3Main::onShapeHit(const PxControllerShapeHit& hit){
+	PxRigidDynamic* actor = hit.shape->getActor()->is<PxRigidDynamic>();
+	if (actor)
+	{
+		if (actor->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC)
+			return;
+
+		// We only allow horizontal pushes. Vertical pushes when we stand on dynamic objects creates
+		// useless stress on the solver. It would be possible to enable/disable vertical pushes on
+		// particular objects, if the gameplay requires it.
+		const PxVec3 upVector = hit.controller->getUpDirection();
+		const PxF32 dp = hit.dir.dot(upVector);
+		//		shdfnd::printFormatted("%f\n", fabsf(dp));
+		if (fabsf(dp)<1e-3f)
+			//		if(hit.dir.y==0.0f)
+		{
+			const PxTransform globalPose = actor->getGlobalPose();
+			const PxVec3 localPos = globalPose.transformInv(toVec3(hit.worldPos));
+			::addForceAtLocalPos(*actor, hit.dir*hit.length*1000.0f, localPos, PxForceMode::eACCELERATION);
+		}
+	}
+}
+
+
+PxControllerBehaviorFlags PhysX3Main::getBehaviorFlags(const PxShape& shape, const PxActor& actor)
+{
+	const PxRigidDynamic* body = actor.is<PxRigidDynamic>();
+	if (body)
+	{
+		if (body->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC)
+			//スライドフラグを立てると坂で微妙に滑る
+			//PxControllerBehaviorFlag::eCCT_SLIDE
+			return PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT;
+	}
+	else{
+		return PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT;
+	}
+	
+	return PxControllerBehaviorFlags(0);
+}
+
+PxControllerBehaviorFlags PhysX3Main::getBehaviorFlags(const PxController&)
+{
+	return PxControllerBehaviorFlags(0);
+}
+
+PxControllerBehaviorFlags PhysX3Main::getBehaviorFlags(const PxObstacle&)
+{
+	return PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT | PxControllerBehaviorFlag::eCCT_SLIDE;
+}
+
+PxSceneQueryHitType::Enum PhysX3Main::preFilter(const PxFilterData& filterData, const PxShape* shape, const PxRigidActor* actor, PxSceneQueryFlags& queryFlags)
+{
+	//if (actor->userData == shape->getActor()->userData){
+	//
+	//	return PxSceneQueryHitType::eBLOCK;
+	//}
+
+	return PxSceneQueryHitType::eBLOCK;
+	//return PxSceneQueryHitType::eBLOCK;
+}
+
+PxSceneQueryHitType::Enum PhysX3Main::postFilter(const PxFilterData& filterData, const PxSceneQueryHit& hit)
+{
+	//if (hit.actor->userData == hit.shape->getActor()->userData){
+	//
+	//	return PxSceneQueryHitType::eBLOCK;
+	//}
+	
+	return PxSceneQueryHitType::eBLOCK;
+	//return PxSceneQueryHitType::eBLOCK;
+}
+
 
 PhysX3Main::PhysX3Main()
 :gPhysicsSDK(NULL)
@@ -194,6 +296,7 @@ PhysX3Main::PhysX3Main()
 ,myTimestep(1.0f/60.0f)
 ,mMaterial(NULL)
 , mProfileZoneManager(NULL)
+, mControllerManager(NULL)
 {
 }
 
@@ -205,6 +308,14 @@ TestOn* mTestOn = NULL;
 PxDefaultCpuDispatcher* mCpuDispatcher = NULL;
 PxVec3 gravity(0, -9.81f, 0);
 void PhysX3Main::InitializePhysX() {
+
+	mCollidFiler[0] = true;
+	for (int i = 1; i < Tag::UserTag8; i <<= 1){
+		for (int j = i; j < Tag::UserTag8; j <<= 1){
+			mCollidFiler[i | j] = true;
+		}
+	}
+
 
 	_SYSTEM_LOG_H("PhysXの初期化");
 
@@ -254,7 +365,7 @@ void PhysX3Main::InitializePhysX() {
 	PxSceneDesc sceneDesc(gPhysicsSDK->getTolerancesScale());
 	sceneDesc.gravity = gravity;
 	if (!sceneDesc.cpuDispatcher) {
-		mCpuDispatcher = PxDefaultCpuDispatcherCreate(1);
+		mCpuDispatcher = PxDefaultCpuDispatcherCreate(6);
 		if (!mCpuDispatcher){
 			std::cerr << "PxDefaultCpuDispatcherCreate failed!" << std::endl;
 
@@ -274,7 +385,7 @@ void PhysX3Main::InitializePhysX() {
 	}
 
 	// | PxSceneFlag::eDISABLE_CONTACT_CACHE | PxSceneFlag::eDISABLE_CONTACT_REPORT_BUFFER_RESIZE
-	sceneDesc.flags |= PxSceneFlag::eENABLE_KINEMATIC_PAIRS | PxSceneFlag::eENABLE_KINEMATIC_STATIC_PAIRS | PxSceneFlag::eENABLE_ACTIVETRANSFORMS;
+	sceneDesc.flags |= PxSceneFlag::eENABLE_KINEMATIC_PAIRS | PxSceneFlag::eENABLE_KINEMATIC_STATIC_PAIRS | PxSceneFlag::eENABLE_ACTIVETRANSFORMS | PxSceneFlag::eENABLE_CCD;
 	mTestOn = new TestOn();
 	sceneDesc.simulationEventCallback = mTestOn;
 
@@ -299,6 +410,10 @@ void PhysX3Main::InitializePhysX() {
 	mMaterial = gPhysicsSDK->createMaterial(0.5, 0.5, 0.5);
 
 
+	{
+		mControllerManager = PxCreateControllerManager(*gScene);
+	}
+
 	//createPlane();
 
 
@@ -306,7 +421,6 @@ void PhysX3Main::InitializePhysX() {
 
 	//gScene->simulate(myTimestep);
 }
-PxRigidStatic* p = NULL;
 void PhysX3Main::createPlane(){
 	//Create actors 
 	//1) Create ground plane
@@ -321,8 +435,6 @@ void PhysX3Main::createPlane(){
 	//if (!shape)
 	//	std::cerr << "create shape failed!" << std::endl;
 	gScene->addActor(*plane);
-
-	p = plane;
 
 	PxRigidActor* act = plane;
 	auto flag = act->getActorFlags();
@@ -347,6 +459,7 @@ PxRigidActor* PhysX3Main::createBody(){
 	auto flag = act->getActorFlags();
 	flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
 	act->setActorFlags(flag);
+	
 	return act;
 }
 PxRigidActor* PhysX3Main::createBodyEngine(){
@@ -375,24 +488,24 @@ PxShape* PhysX3Main::CreateShape(){
 	//PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
 	PxVec3 dimensions(0.5, 0.5, 0.5);
 	PxBoxGeometry geometry(dimensions);
-	auto box = gPhysicsSDK->createShape(geometry, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
+	auto shape = gPhysicsSDK->createShape(geometry, *mMaterial, true , PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
 
 	PxFilterData  filterData;
-	filterData.word0 = FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
-	filterData.word1 = FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
-	box->setSimulationFilterData(filterData);
+	filterData.word0 = Tag::None;  //ワード0 =自分のID 
+	shape->setSimulationFilterData(filterData);
+	shape->setQueryFilterData(filterData);
 
-	return box;
+	return shape;
 }
 
 PxShape* PhysX3Main::CreateShapeSphere(){
 	//PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
 	PxSphereGeometry geometry(0.5);
-	auto shape = gPhysicsSDK->createShape(geometry, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
+	auto shape = gPhysicsSDK->createShape(geometry, *mMaterial, true, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
 	PxFilterData  filterData;
-	filterData.word0 = FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
-	filterData.word1 = FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
+	filterData.word0 = Tag::None;  //ワード0 =自分のID 
 	shape->setSimulationFilterData(filterData);
+	shape->setQueryFilterData(filterData);
 
 	return shape;
 
@@ -453,31 +566,31 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 	auto mesh =  gPhysicsSDK->createTriangleMesh(readBuffer);
 
 	PxTriangleMeshGeometry meshGeo(mesh);
-	auto shape = gPhysicsSDK->createShape(meshGeo, *mMaterial, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
+	//PxShapeFlag::eSIMULATION_SHAPE
+	auto shape = gPhysicsSDK->createShape(meshGeo, *mMaterial, true, PxShapeFlag::eSCENE_QUERY_SHAPE);
 
 	PxFilterData  filterData;
-	filterData.word0 = FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
-	filterData.word1 = FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
-	filterData.word2 = FilterGroup::eTRIANGLE_MESH;	//ワード1 = IDマスクcallback; 
+	filterData.word0 = Tag::None;  //ワード0 =自分のID 
 	shape->setSimulationFilterData(filterData);
+	shape->setQueryFilterData(filterData);
 
 	return shape;
 }
 
-void PhysX3Main::StepPhysX()
-{
-	myTimestep = Game::GetDeltaTime()->GetDeltaTime();
-	if (myTimestep > 0){
-		//シミュレーションするものがないと出力がでる
-		gScene->simulate(myTimestep);
+PxController* PhysX3Main::CreateController(){
+	PxBoxControllerDesc desc;
+	//desc.height = 1.0f;
+	//desc.radius = 0.5f;
+	desc.halfHeight = 0.5f;
+	desc.material = mMaterial;
+	desc.callback = this;
+	desc.reportCallback = this;
+	desc.behaviorCallback = this;
 
-		//シュミレーション中に？作成Shapeを？作成できない
-		//...perform useful work here using previous frame's state data
-		gScene->checkResults(true);
-		gScene->fetchResults(true);
-	}
-
+	PxController* c = mControllerManager->createController(desc);
+	return c;
 }
+
 
 void PhysX3Main::getColumnMajor(PxMat33& m, PxVec3& t, float* mat) {
 	mat[0] = m.column0[0];
@@ -508,7 +621,7 @@ void PhysX3Main::EngineDisplay() {
 	if (mEngineScene && myTimestep > 0){
 
 		mEngineScene->simulate(myTimestep);
-		mEngineScene->checkResults(true);
+		//mEngineScene->checkResults(true);
 		mEngineScene->fetchResults(true);
 
 	}
@@ -516,10 +629,17 @@ void PhysX3Main::EngineDisplay() {
 
 void PhysX3Main::Display() {
 
+	myTimestep = Game::GetDeltaTime()->GetDeltaTime();
 	//Update PhysX 
-	if (gScene)
+	if (gScene && myTimestep > 0)
 	{
-		StepPhysX();
+		//シミュレーションするものがないと出力がでる
+		gScene->simulate(myTimestep);
+
+		//シュミレーション中に？作成Shapeを？作成できない
+		//...perform useful work here using previous frame's state data
+		//gScene->checkResults(true);
+		gScene->fetchResults(true);
 	}
 
 }
@@ -569,6 +689,8 @@ void PhysX3Main::ShutdownPhysX() {
 	if (mMaterial)mMaterial->release();
 	if (mCpuDispatcher)mCpuDispatcher->release();
 	if (mCooking)mCooking->release();
+	if (mControllerManager)mControllerManager->purgeControllers();
+	if (mControllerManager)mControllerManager->release();
 	if (gPhysicsSDK)gPhysicsSDK->release();
 	if (mProfileZoneManager)mProfileZoneManager->release();
 	if (mFoundation)mFoundation->release();

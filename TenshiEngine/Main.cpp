@@ -336,14 +336,14 @@ public:
 					mGame->Draw();
 				}
 	
-				auto size = DrawThreadQueue::size();
-				for (int i = 0; i < size; i++){
-					auto func = DrawThreadQueue::dequeue();
-					func();
-				}
-				if (!MoviePlayFlag::IsMoviePlay()){
+				//auto size = DrawThreadQueue::size();
+				//for (int i = 0; i < size; i++){
+				//	auto func = DrawThreadQueue::dequeue();
+				//	func();
+				//}
+				//if (!MoviePlayFlag::IsMoviePlay()){
 					Device::mpSwapChain->Present(1, 0);
-				}
+				//}
 			}
 		}
 	}
@@ -385,9 +385,9 @@ public:
 //			auto func = DrawThreadQueue::dequeue();
 //			func();
 //		}
-//		if (!MoviePlayFlag::IsMoviePlay()){
+//		//if (!MoviePlayFlag::IsMoviePlay()){
 //			Device::mpSwapChain->Present(1, 0);
-//	}
+//		//}
 //#endif
 //	}
 

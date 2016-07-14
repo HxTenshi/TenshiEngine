@@ -123,7 +123,7 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
@@ -137,14 +137,14 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\dll;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\dll;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)Exe</TargetName>
   </PropertyGroup>
@@ -552,6 +552,7 @@
     <ClCompile Include="Source\Game\Actor.cpp" />
     <ClCompile Include="Source\Game\Component\AnimationComponent.cpp" />
     <ClCompile Include="Source\Game\Component\CameraComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\CharacterControllerComponent.cpp" />
     <ClCompile Include="Source\Game\Component\Component.cpp" />
     <ClCompile Include="Source\Game\Component\ComponentFactory.cpp" />
     <ClCompile Include="Source\Game\Component\DebugEngineScriptComponent.cpp" />
@@ -595,7 +596,8 @@
     <ClCompile Include="Source\Graphic\Shader\Shader.cpp" />
     <ClCompile Include="Source\Graphic\Shader\ShaderFile.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
-    <ClCompile Include="Source\Library\movie\Movie.cpp" />
+    <ClCompile Include="Source\Library\movie\hwndMovie.cpp" />
+    <ClCompile Include="Source\Library\movie\MovieTexture.cpp" />
     <ClCompile Include="Source\Library\unknownbase.cpp" />
     <ClCompile Include="Source\MySTL\Coroutine.cpp" />
     <ClCompile Include="Source\MySTL\ioHelper.cpp" />
@@ -652,6 +654,7 @@
     <ClInclude Include="Source\Engine\ICommand.h" />
     <ClInclude Include="Source\Engine\ModelConverter.h" />
     <ClInclude Include="Source\Engine\SystemLog.h" />
+    <ClInclude Include="Source\Game\Component\CharacterControllerComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugEngineScriptComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugScript\DebugNaviMesh.h" />
     <ClInclude Include="Source\Game\Component\MovieComponent.h" />
@@ -716,7 +719,8 @@
     <ClInclude Include="Source\Graphic\Shader\VertexShader.h" />
     <ClInclude Include="Source\Input\Input.h" />
     <ClInclude Include="Source\Library\easing.h" />
-    <ClInclude Include="Source\Library\movie\Movie.h" />
+    <ClInclude Include="Source\Library\movie\hwndMovie.h" />
+    <ClInclude Include="Source\Library\movie\MovieTexture.h" />
     <ClInclude Include="Source\Library\picojson.h" />
     <ClInclude Include="Source\Library\sqlite3.h" />
     <ClInclude Include="Source\Library\unknownbase.h" />

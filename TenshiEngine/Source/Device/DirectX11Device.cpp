@@ -106,6 +106,9 @@ HRESULT Device::Init(const Window& window)
 
 
 
+
+	auto render = RenderingSystem::Instance();
+#if _DRAW_MULTI_THREAD
 	ID3D11DeviceContext *context;
 	hr = mpd3dDevice->CreateDeferredContext(NULL, &context);
 	if (FAILED(hr)){
@@ -115,13 +118,10 @@ HRESULT Device::Init(const Window& window)
 		return hr;
 	}
 
-	auto render = RenderingSystem::Instance();
-#if _DRAW_MULTI_THREAD
-
 	render->PushEngine(new RenderingEngine(mpImmediateContext), ContextType::Immediate);
 	render->PushEngine(new RenderingEngine(context), ContextType::MainDeferrd);
 #else
-	render->PushEngine(new RenderingEngine(context), ContextType::Immediate);
+	render->PushEngine(new RenderingEngine(mpImmediateContext), ContextType::Immediate);
 	render->PushEngine(new RenderingEngine(mpImmediateContext), ContextType::MainDeferrd);
 #endif
 

@@ -65,8 +65,6 @@ void PhysXColliderComponent::Update(){
 
 	UpdatePose();
 
-
-
 	//Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
 	//	
 	//	auto mModel = gameObject->GetComponent<ModelComponent>();
@@ -118,7 +116,9 @@ void PhysXColliderComponent::ShapeAttach(PxShape* shape){
 	}
 	//アタッチしていれば
 	if (mIsShapeAttach){
-		mAttachPhysXComponent->RemoveShape(*mShape);
+		if (mAttachPhysXComponent){
+			mAttachPhysXComponent->RemoveShape(*mShape);
+		}
 		mShape->release();
 	}
 	else{
@@ -129,7 +129,9 @@ void PhysXColliderComponent::ShapeAttach(PxShape* shape){
 
 	mShape = shape;
 	if (mShape){
-		mAttachPhysXComponent->AddShape(*mShape);
+		if (mAttachPhysXComponent){
+			mAttachPhysXComponent->AddShape(*mShape);
+		}
 		mIsShapeAttach = true;
 	}
 	else{

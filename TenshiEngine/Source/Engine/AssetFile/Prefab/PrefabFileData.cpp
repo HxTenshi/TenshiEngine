@@ -22,7 +22,7 @@ PrefabFileData::~PrefabFileData(){
 	m_FileName = "";
 }
 
-void PrefabFileData::Create(const char* filename){
+bool PrefabFileData::Create(const char* filename){
 
 
 	if (m_PrefabActor){
@@ -42,11 +42,13 @@ void PrefabFileData::Create(const char* filename){
 
 	mBeforeParam = new picojson::value();
 	m_PrefabActor->ExportData(*mBeforeParam,true);
+	return true;
 
 }
-void PrefabFileData::FileUpdate(){
+bool PrefabFileData::FileUpdate(){
 
 	m_PrefabActor->ImportData(m_FileName);
+	return true;
 
 }
 picojson::value PrefabFileData::Apply(){
