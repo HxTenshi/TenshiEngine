@@ -96,6 +96,10 @@ public:
 		return mUniqueID;
 	}
 
+
+	//ペアレント変更コールバックを実行
+	void RunChangeParentCallback();
+
 	void PastePrefabParam(picojson::value& json);
 
 	void ExportSceneDataStart(const std::string& pass, File& sceneFile);

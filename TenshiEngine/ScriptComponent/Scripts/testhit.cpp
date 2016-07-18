@@ -31,9 +31,9 @@ void testhit::Finish(){
 
 //コライダーとのヒット時に呼ばれます
 void testhit::OnCollideBegin(Actor* target){
-	(void)target;
 
 	auto mate = target->GetComponent<MaterialComponent>();
+	if (!mate)return;
 	auto m = mate->mAlbedo;
 	m.z=0;
 	m.x=0;
@@ -47,9 +47,8 @@ void testhit::OnCollideEnter(Actor* target){
 
 //コライダーとのロスト時に呼ばれます
 void testhit::OnCollideExit(Actor* target){
-	(void)target;
-
 	auto mate = target->GetComponent<MaterialComponent>();
+	if (!mate)return;
 	auto m = mate->mAlbedo;
 	m.z=1;
 	m.x=1;

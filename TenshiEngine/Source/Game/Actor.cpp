@@ -488,3 +488,13 @@ void* Actor::_GetScript(const char* name){
 	}
 	return NULL;
 }
+
+//ペアレント変更コールバックを実行
+void Actor::RunChangeParentCallback(){
+	for (auto& com : mComponents.mComponent){
+		com.second->ChangeParentCallback();
+	}
+	for (auto& child : mTransform->Children()){
+		child->RunChangeParentCallback();
+	}
+}

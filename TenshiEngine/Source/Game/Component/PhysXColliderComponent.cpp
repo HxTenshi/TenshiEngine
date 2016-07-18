@@ -16,18 +16,18 @@
 PhysXColliderComponent::PhysXColliderComponent(){
 	mIsSphere = false;
 	mShape = NULL;
-	mIsShapeAttach = false;
+	mAttachTarget = NULL;
 	mIsTrigger = false;
 	mPosition = XMVectorSet(0, 0, 0, 1);
 	mScale = XMVectorSet(1, 1, 1, 1);
 	mPhysicsMaterial = NULL;
+	mIsParentPhysX = false;
 }
 
 PhysXColliderComponent::~PhysXColliderComponent(){
 
 }
 void PhysXColliderComponent::Initialize(){
-	mIsParentPhysX = false;
 
 	if (!mShape){
 		CreateMesh(mMeshFile);
@@ -43,59 +43,58 @@ void PhysXColliderComponent::Initialize(){
 }
 
 void PhysXColliderComponent::Start(){
-	SearchAttachPhysXComponent();
 	SetIsTrigger(mIsTrigger);
+	if (!mAttachPhysXComponent){
+		SearchAttachPhysXComponent();
+		ShapeAttach(mShape);
+	}
 }
 
 void PhysXColliderComponent::Finish(){
 	ShapeAttach(NULL);
 	mAttachPhysXComponent = NULL;
+	mIsParentPhysX = false;
 }
 
 void PhysXColliderComponent::EngineUpdate(){
 	Update();
 }
 void PhysXColliderComponent::Update(){
-	if (!mIsShapeAttach){
-		if (!mAttachPhysXComponent)
-			if (!SearchAttachPhysXComponent())return;
-		ShapeAttach(mShape);
-		if (!mIsShapeAttach)return;
+
+	SetTransform(mPosition);
+}
+
+void PhysXColliderComponent::ChangeParentCallback(){
+	ReleaseAttach();
+	SearchAttachPhysXComponent();
+	ShapeAttach(mShape);
+}
+
+
+void PhysXColliderComponent::AttachPhysxComponent(weak_ptr<PhysXComponent> com){
+	//解放
+	ReleaseAttach();
+
+	if (com){
+		mAttachPhysXComponent = com;
+
+		Actor* par = com->gameObject;
+		mIsParentPhysX = (par != gameObject) ? true : false;
+		AttachRigidDynamic(true);
 	}
-
-	UpdatePose();
-
-	//Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
-	//	
-	//	auto mModel = gameObject->GetComponent<ModelComponent>();
-	//	if (!mModel)return;
-	//
-	//	if (!mModel->mModel)return;
-	//
-	//	auto mMaterial = gameObject->GetComponent<MaterialComponent>();
-	//	if (!mMaterial)return;
-	//	auto pT = mShape->getLocalPose();
-	//	auto Position = XMVectorSet(pT.p.x, pT.p.y, pT.p.z, 1);
-	//	auto Rotate = XMVectorSet(pT.q.x, pT.q.y, pT.q.z, pT.q.w);
-	//	auto Matrix = XMMatrixMultiply(
-	//		XMMatrixMultiply(
-	//		XMMatrixScalingFromVector(gameObject->mTransform->Scale()),
-	//		XMMatrixRotationQuaternion(Rotate)),
-	//		XMMatrixTranslationFromVector(Position));
-	//	mModel->mModel->mWorld = Matrix;
-	//	mModel->Update();
-	//
-	//	Model& model = *mModel->mModel;
-	//
-	//	model.Draw(mMaterial);
-	//}));
+	else {
+		mAttachPhysXComponent = NULL;
+		mIsParentPhysX = false;
+		AttachRigidStatic(true);
+	}
 }
 
 bool PhysXColliderComponent::SearchAttachPhysXComponent(){
 	Actor* par = gameObject;
 	while (par){
-		mAttachPhysXComponent = par->GetComponent<PhysXComponent>();
-		if (mAttachPhysXComponent){
+		auto com = par->GetComponent<PhysXComponent>();
+		if (com){
+			mAttachPhysXComponent = com;
 			mIsParentPhysX = (par != gameObject)?true:false;
 			return true;
 		}
@@ -105,123 +104,104 @@ bool PhysXColliderComponent::SearchAttachPhysXComponent(){
 }
 
 void PhysXColliderComponent::ShapeAttach(PxShape* shape){
-	//アタッチ失敗
-	if (!mAttachPhysXComponent){
-		mIsShapeAttach = false;
-		if (mShape != shape && mShape){
-			mShape->release();
-		}
-		mShape = shape;
-		return;
-	}
-	//アタッチしていれば
-	if (mIsShapeAttach){
-		if (mAttachPhysXComponent){
-			mAttachPhysXComponent->RemoveShape(*mShape);
-		}
-		mShape->release();
-	}
-	else{
-		if (mShape != shape && mShape){
-			mShape->release();
-		}
-	}
 
+	//解放
+	ReleaseAttach();
+	if (mShape != shape){
+		ReleaseShape();
+	}
 	mShape = shape;
-	if (mShape){
-		if (mAttachPhysXComponent){
-			mAttachPhysXComponent->AddShape(*mShape);
-		}
-		mIsShapeAttach = true;
+
+
+	//リジッドダイナミックがあれば
+	if (mAttachPhysXComponent){
+		AttachRigidDynamic(true);
 	}
 	else{
-		mIsShapeAttach = false;
+		AttachRigidStatic(true);
 	}
-}
-void PhysXColliderComponent::UpdatePose(){
 
-
-	//bool isKinem = false;
-	//Actor* par = gameObject;
-	//while (par){
-	//	auto com = par->GetComponent<PhysXComponent>();
-	//	if (com){
-	//		isKinem = com->GetKinematic();
-	//		break;
+	////アタッチ失敗
+	//if (!mAttachPhysXComponent){
+	//	mIsShapeAttach = false;
+	//	if (mShape != shape && mShape){
+	//		mShape->release();
 	//	}
-	//	par = par->mTransform->GetParent();
-	//}
-	//
-	//
-	//if (!par){
+	//	mShape = shape;
 	//	return;
 	//}
-	//
-	////if (!isKinem)return;
-	//XMVECTOR v;
-	//auto physxW2L = XMMatrixInverse(&v,par->mTransform->GetMatrix());
-	//
-	//auto mat = gameObject->mTransform->GetMatrix();
-	//auto localmat = XMMatrixMultiply(physxW2L, mat);
-	//
-	//auto x = XMVector3Length(localmat.r[0]);
-	//auto y = XMVector3Length(localmat.r[1]);
-	//auto z = XMVector3Length(localmat.r[2]);
-	//auto scale = XMVectorSet(x.x, y.x, z.x, 1);
-	//auto pos = localmat.r[3];
-	//
-	//
-	//auto transform = mShape->getLocalPose();
-	//
-	//transform.p = PxVec3(pos.x,pos.y, pos.z);
-	//
-	//mShape->setLocalPose(transform);
-	//
-	//
-	//
-	//if (mScale.x == scale.x&&mScale.y == scale.y&&mScale.z == scale.z)return;
-	//mScale = scale;
-	////PxBoxGeometry box(PxVec3(1.0f*scale.x, 1.0f*scale.y, 1.0f*scale.z));
-	//auto g = mShape->getGeometry();
-	//if (g.getType() == PxGeometryType::eBOX){
-	//	g.box().halfExtents = PxVec3(PxVec3(abs(0.5f*scale.x), abs(0.5f*scale.y), abs(0.5f*scale.z)));
-	//	mShape->setGeometry(g.box());
+	////アタッチしていれば
+	//if (mIsShapeAttach){
+	//	if (mAttachPhysXComponent){
+	//		mAttachPhysXComponent->RemoveShape(*mShape);
+	//	}
 	//}
-	//else if (g.getType() == PxGeometryType::eSPHERE){
-	//	g.sphere().radius = (abs(0.5f*scale.x) + abs(0.5f*scale.y) + abs(0.5f*scale.z)) / 3.0f;
-	//	mShape->setGeometry(g.sphere());
-	//}
-	//else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
-	//
-	//	auto rotate = gameObject->mTransform->Quaternion();
-	//	auto q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
-	//
-	//	g.triangleMesh().scale = PxMeshScale(PxVec3(scale.x, scale.y, scale.z), q);
-	//	mShape->setGeometry(g.triangleMesh());
-	//}
-
-	//auto scale = gameObject->mTransform->Scale();
-	//auto mat = gameObject->mTransform->GetMatrix();
-	//Actor* act = gameObject;
-	//if (mIsParentPhysX){
-	//	act = gameObject->mTransform->GetParent();
+	//if (mShape){
+	//	mShape->release();
 	//}
 	//
-	//auto mat = act->mTransform->GetMatrix();
-	//mat._14 = 0.0f;
-	//mat._24 = 0.0f;
-	//mat._34 = 0.0f;
 	//
-	//XMVECTOR scale = XMVector3Transform(gameObject->mTransform->Scale(), mat);
-	//XMVECTOR scale = XMVectorSet(mat._11, mat._22, mat._33, 1);
-
-
-
-
-	SetTransform(mPosition);
-
+	//mShape = shape;
+	//if (mShape){
+	//	if (mAttachPhysXComponent){
+	//		mAttachPhysXComponent->AddShape(*mShape);
+	//	}
+	//	mIsShapeAttach = true;
+	//}
+	//else{
+	//	mIsShapeAttach = false;
+	//}
+	//if (mShape){
+	//	mShape->userData = gameObject;
+	//}
 }
 
+//シェイプをリジッドスタティックにアタッチするか削除する
+void PhysXColliderComponent::AttachRigidStatic(bool attach){
+	if (!mShape){
+		mAttachTarget = NULL;
+		return;
+	}
+	if (attach){
+		mAttachTarget = -1;
+		Game::GetPhysX()->AddStaticShape(mShape);
+	}
+	else if (mAttachTarget == -1){
+		mAttachTarget = NULL;
+		Game::GetPhysX()->RemoveStaticShape(mShape);
+	}
+}
+//シェイプをリジッドダイナミックにアタッチするか削除する
+void PhysXColliderComponent::AttachRigidDynamic(bool attach){
+	if (!mShape){
+		mAttachTarget = NULL;
+		return;
+	}
+	if (!mAttachPhysXComponent){
+		return;
+	}
+	if (attach){
+		mAttachTarget = (int)mAttachPhysXComponent->gameObject;
+		mAttachPhysXComponent->AddShape(*mShape);
+	}
+	else if (mAttachTarget > 0){
+		if (mAttachTarget == (int)mAttachPhysXComponent->gameObject){
+			mAttachPhysXComponent->RemoveShape(*mShape);
+		}
+		mAttachTarget = NULL;
+	}
+}
+
+void PhysXColliderComponent::ReleaseShape(){
+	if (mShape){
+		mShape->release();
+		mShape = NULL;
+	}
+}
+void PhysXColliderComponent::ReleaseAttach(){
+	AttachRigidDynamic(false);
+	AttachRigidStatic(false);
+}
 
 void PhysXColliderComponent::ChangeShape(bool flag){
 	PxShape* shape = NULL;
@@ -233,6 +213,9 @@ void PhysXColliderComponent::ChangeShape(bool flag){
 		shape = Game::GetPhysX()->CreateShape();
 	}
 
+	if (shape){
+		shape->userData = gameObject;
+	}
 	ShapeAttach(shape);
 }
 
@@ -267,6 +250,9 @@ void PhysXColliderComponent::CreateMesh(const MeshAssetDataPtr& mesh){
 	if (!mesh)return;
 	auto shape = Game::GetPhysX()->CreateTriangleMesh(mesh->GetFileData()->GetPolygonsData());
 
+	if (shape){
+		shape->userData = gameObject;
+	}
 	ShapeAttach(shape);
 }
 void PhysXColliderComponent::CreateMesh(const std::string& file){
@@ -277,7 +263,9 @@ void PhysXColliderComponent::CreateMesh(const std::string& file){
 	AssetDataBase::Instance(mMeshFile.c_str(), data);
 	if (!data)return;
 	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->GetFileData()->GetPolygonsData());
-
+	if (shape){
+		shape->userData = gameObject;
+	}
 	ShapeAttach(shape);
 }
 
@@ -438,6 +426,7 @@ void PhysXColliderComponent::SetTransform(const XMVECTOR& pos){
 		transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
 	}
 	mShape->setLocalPose(transform);
+
 
 }
 const XMVECTOR& PhysXColliderComponent::GetTransform() const{

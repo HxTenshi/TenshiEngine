@@ -1,7 +1,7 @@
 #pragma once
 #include "../AssetFileData.h"
 
-class IDirectSoundBuffer8;
+struct IDirectSoundBuffer8;
 
 class SoundFile{
 public:

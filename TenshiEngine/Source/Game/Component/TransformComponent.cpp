@@ -650,6 +650,7 @@ void TransformComponent::SetParentUniqueID(int id){
 	mParentUniqueID = id;
 }
 void TransformComponent::SetParent(Actor* parent){
+	//if (mParent == parent)return;
 	if (mParent)
 		mParent->mTransform->Children().remove(gameObject);
 	mParent = parent;
@@ -657,6 +658,7 @@ void TransformComponent::SetParent(Actor* parent){
 	if (parent){
 		parent->mTransform->Children().push_back(gameObject);
 		mParentUniqueID = parent->GetUniqueID();
+		parent->RunChangeParentCallback();
 	}
 	FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
 }

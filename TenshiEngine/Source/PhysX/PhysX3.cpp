@@ -297,6 +297,7 @@ PhysX3Main::PhysX3Main()
 ,mMaterial(NULL)
 , mProfileZoneManager(NULL)
 , mControllerManager(NULL)
+, mRigidStatic(NULL)
 {
 }
 
@@ -414,6 +415,8 @@ void PhysX3Main::InitializePhysX() {
 		mControllerManager = PxCreateControllerManager(*gScene);
 	}
 
+
+	mRigidStatic = createRigidStatic();
 	//createPlane();
 
 
@@ -462,6 +465,25 @@ PxRigidActor* PhysX3Main::createBody(){
 	
 	return act;
 }
+
+
+PxRigidStatic* PhysX3Main::createRigidStatic(){
+	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
+	PxRigidStatic *actor = gPhysicsSDK->createRigidStatic(transform);
+	if (!actor){
+
+		_SYSTEM_LOG_ERROR("PhysX Actor�̍쐬");
+		std::cerr << "create actor failed!" << std::endl;
+	}
+	gScene->addActor(*actor);
+
+	auto flag = actor->getActorFlags();
+	flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
+	actor->setActorFlags(flag);
+
+	return actor;
+}
+
 PxRigidActor* PhysX3Main::createBodyEngine(){
 
 	PxTransform transform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat::createIdentity());
@@ -646,6 +668,9 @@ void PhysX3Main::Display() {
 
 void PhysX3Main::ShutdownPhysX() {
 
+
+	if (mRigidStatic)mRigidStatic->release();
+
 	{
 		physx::PxActorTypeSelectionFlags t;
 		t |= physx::PxActorTypeSelectionFlag::eRIGID_STATIC;
@@ -682,7 +707,6 @@ void PhysX3Main::ShutdownPhysX() {
 			buffer[i]->release();
 		}
 	}
-
 	if (mTestOn)delete mTestOn;
 	if (gScene)gScene->release();
 	if (mEngineScene)mEngineScene->release();
@@ -704,6 +728,13 @@ void PhysX3Main::RemoveActor(PxActor* act){
 void PhysX3Main::RemoveActorEngine(PxActor* act){
 	mEngineScene->removeActor(*act);
 	act->release();
+}
+
+void PhysX3Main::AddStaticShape(PxShape* shape){
+	mRigidStatic->attachShape(*shape);
+}
+void PhysX3Main::RemoveStaticShape(PxShape* shape){
+	mRigidStatic->detachShape(*shape);
 }
 
 Actor* PhysX3Main::Raycast(const XMVECTOR& pos,const XMVECTOR& dir,float distance){

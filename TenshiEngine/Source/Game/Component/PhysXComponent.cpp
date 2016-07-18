@@ -1,4 +1,5 @@
 #include "PhysXComponent.h"
+#include "PhysXColliderComponent.h"
 
 #include "physx/physx3.h"
 
@@ -6,6 +7,7 @@
 PhysXComponent::PhysXComponent(){
 	mIsEngineMode = false;
 	mIsKinematic = false;
+	mIsGravity = true;
 	mRigidActor = NULL;
 }
 
@@ -21,6 +23,7 @@ void PhysXComponent::Initialize(){
 	}
 
 	SetKinematic(mIsKinematic);
+	SetGravity(mIsGravity);
 
 	mRigidActor->userData = gameObject;
 }
@@ -42,11 +45,62 @@ void PhysXComponent::Start(){
 	//	}
 	//}
 	//else{
-		mRigidActor->setGlobalPose(t);
+	mRigidActor->setGlobalPose(t);
 	//}
+	{
+		auto col = gameObject->GetComponent<PhysXColliderComponent>();
+		if (col){
+			col->AttachPhysxComponent(shared_from_this());
+		}
+	}
+	ChildrenAttachShape(gameObject);
+}
+
+void PhysXComponent::ChildrenAttachShape(Actor* actor){
+
+	for (auto& act : actor->mTransform->Children()){
+		auto com = act->GetComponent<PhysXComponent>();
+		if (com)continue;
+
+		auto col = act->GetComponent<PhysXColliderComponent>();
+		if (col){
+			col->AttachPhysxComponent(shared_from_this());
+		}
+
+		ChildrenAttachShape(act);
+	}
+
 }
 void PhysXComponent::Finish(){
 	if (mRigidActor){
+
+		weak_ptr<PhysXComponent> physxCom = NULL;
+		{
+			Actor* par = gameObject;
+			while (par){
+				auto com = par->GetComponent<PhysXComponent>();
+				if (com){
+					physxCom = com;
+					break;
+				}
+				par = par->mTransform->GetParent();
+			}
+		}
+
+		//シェイプのアタッチを解放
+		auto num = mRigidActor->getNbShapes();
+		for (int i = 0; i < num; i++){
+			PxShape* temp = NULL;
+			mRigidActor->getShapes(&temp,1);
+			if (!temp)continue;
+			auto act = (Actor*)temp->userData;
+			if (!act)continue;
+			auto com = act->GetComponent<PhysXColliderComponent>();
+			if (!com)continue;
+			com->AttachPhysxComponent(physxCom);
+			
+		}
+
 		mRigidActor->userData = NULL;
 		if (mIsEngineMode){
 			Game::RemovePhysXActorEngine(mRigidActor);
@@ -54,6 +108,7 @@ void PhysXComponent::Finish(){
 		else{
 			Game::RemovePhysXActor(mRigidActor);
 		}
+
 	}
 	mRigidActor = NULL;
 }
@@ -127,7 +182,8 @@ void PhysXComponent::SetTransform(bool RebirthSet){
 
 
 void PhysXComponent::AddShape(physx::PxShape& shape){
-	mRigidActor->attachShape(shape);
+	if (mRigidActor)
+		mRigidActor->attachShape(shape);
 }
 void PhysXComponent::RemoveShape(physx::PxShape& shape){
 	if (mRigidActor)
@@ -143,6 +199,9 @@ void PhysXComponent::CreateInspector() {
 
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new TemplateInspectorDataSet<bool>("Kinematic", &mIsKinematic, collback), data);
+	Window::AddInspector(new TemplateInspectorDataSet<bool>("UseGravity", &mIsGravity, [&](bool value){
+		SetGravity(value);
+	}), data);
 	Window::ViewInspector("PhysX", this, data);
 }
 #endif
@@ -150,6 +209,7 @@ void PhysXComponent::CreateInspector() {
 void PhysXComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
 	_KEY(mIsKinematic);
+	_KEY(mIsGravity);
 
 #undef _KEY
 }
@@ -161,6 +221,15 @@ void PhysXComponent::SetKinematic(bool flag){
 		r->setRigidDynamicFlag(PxRigidDynamicFlag::eKINEMATIC, mIsKinematic);
 	}
 }
+
+void PhysXComponent::SetGravity(bool flag){
+	mIsGravity = flag;
+	if (mRigidActor){
+		auto r = (PxRigidDynamic*)mRigidActor;
+		r->setActorFlag(PxActorFlag::eDISABLE_GRAVITY,!mIsGravity);
+	}
+}
+
 
 XMVECTOR PhysXComponent::GetForceVelocity(){
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;

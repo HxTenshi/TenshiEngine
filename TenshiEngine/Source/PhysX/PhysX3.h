@@ -49,6 +49,7 @@ public:
 	PxRigidActor* createSphere();
 	PxRigidActor* createBody();
 	PxRigidActor* createBodyEngine();
+	PxRigidStatic* createRigidStatic();
 
 	void EngineDisplay();
 	void Display();
@@ -65,6 +66,9 @@ public:
 	PxShape* CreateShapeSphere();
 	PxShape* CreateTriangleMesh(const IPolygonsData* poly);
 	PxController* CreateController();
+
+	void AddStaticShape(PxShape* shape);
+	void RemoveStaticShape(PxShape* shape);
 
 	PxPhysics* GetSDK(){
 		return gPhysicsSDK;
@@ -95,6 +99,7 @@ private:
 	PxSimulationFilterShader gDefaultFilterShader;
 	PxCooking*	mCooking;
 	PxControllerManager* mControllerManager;
+	PxRigidStatic* mRigidStatic;
 
 	PxScene* gScene;
 	PxScene* mEngineScene;

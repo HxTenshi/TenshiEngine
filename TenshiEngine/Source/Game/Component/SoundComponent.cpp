@@ -72,7 +72,7 @@ void SoundComponent::LoadFile(const std::string& filename){
 		if (!sound)return;
 
 
-		mSoundFile = AssetDataTemplate<SoundFileData>::Create("");
+		mSoundFile = AssetDataTemplate<SoundFileData>::Create(new SoundFileData());
 		if (!mSoundFile)return;
 		auto file2 = mSoundFile->GetFileData();
 		if (!file2)return;

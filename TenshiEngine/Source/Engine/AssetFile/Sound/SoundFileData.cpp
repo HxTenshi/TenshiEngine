@@ -15,8 +15,9 @@ bool SoundFile::Create(const char* filename){
 	WAVEFORMATEX wFmt;
 	char *pWaveData = 0;
 	DWORD waveSize = 0;
-	if (!openWave((CHAR*)filename, wFmt, &pWaveData, waveSize))
+	if (!openWave((CHAR*)filename, wFmt, &pWaveData, waveSize)){
 		return false;
+	}
 
 	DSBUFFERDESC DSBufferDesc;
 	DSBufferDesc.dwSize = sizeof(DSBUFFERDESC);

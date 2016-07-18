@@ -42,6 +42,7 @@ public:
 	void Finish() override;
 	void EngineUpdate() override;
 	void Update() override;
+	void ChangeParentCallback() override;
 #ifdef _ENGINE_MODE
 	void CreateInspector() override;
 #endif
@@ -70,14 +71,25 @@ public:
 	void SetIsTrigger(bool flag) override;
 	bool GetIsTrigger() override;
 
+	void AttachPhysxComponent(weak_ptr<PhysXComponent> com);
 
 	physx::PxShape* GetShape();
 private:
 	bool SearchAttachPhysXComponent();
 	void ShapeAttach(physx::PxShape* shape);
-	void UpdatePose();
+
+	//シェイプをリジッドスタティックにアタッチするか削除する
+	void AttachRigidStatic(bool attach);
+	//シェイプをリジッドダイナミックにアタッチするか削除する
+	void AttachRigidDynamic(bool attach);
+	//シェイプをリリース
+	void ReleaseShape();
+	//アタッチの解放
+	void ReleaseAttach();
+
 	physx::PxShape* mShape;
-	bool mIsShapeAttach;
+	//-1 = static, 0 = none, 1~ = dynamic
+	int mAttachTarget;
 	weak_ptr<PhysXComponent> mAttachPhysXComponent;
 
 	bool mIsParentPhysX;

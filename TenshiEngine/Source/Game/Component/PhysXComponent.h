@@ -6,6 +6,7 @@
 #include "MySTL/File.h"
 #include "IComponent.h"
 #include "Type/ForceMode.h"
+#include "MySTL/ptr.h"
 
 namespace physx{
 	class PxRigidActor;
@@ -25,6 +26,8 @@ public:
 
 	virtual bool GetKinematic() = 0;
 	virtual void SetKinematic(bool flag) = 0;
+	virtual bool GetGravity() = 0;
+	virtual void SetGravity(bool flag) = 0;
 	virtual XMVECTOR GetForceVelocity() = 0;
 	virtual void SetForceVelocity(const XMVECTOR& v) = 0;
 	virtual void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) = 0;
@@ -33,8 +36,7 @@ public:
 private:
 };
 
-
-class PhysXComponent :public IPhysXComponent{
+class PhysXComponent :public enable_shared_from_this<PhysXComponent>, public IPhysXComponent{
 public:
 	PhysXComponent();
 	~PhysXComponent();
@@ -59,6 +61,9 @@ public:
 
 	bool GetKinematic() override{ return mIsKinematic; };
 	void SetKinematic(bool flag) override;
+
+	bool GetGravity() override{ return mIsGravity; };
+	void SetGravity(bool flag) override;
 	XMVECTOR GetForceVelocity() override;
 	void SetForceVelocity(const XMVECTOR& v) override;
 	void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;
@@ -66,8 +71,12 @@ public:
 
 	bool mIsEngineMode;
 private:
+
+	void ChildrenAttachShape(Actor* actor);
+
 	physx::PxRigidActor* mRigidActor;
 	bool mIsKinematic;
 	char mChengeTransformFlag;
+	bool mIsGravity;
 };
 

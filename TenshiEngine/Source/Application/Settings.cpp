@@ -38,8 +38,10 @@ Settings::Settings(){
 		"Window", "SizeX", 1200, inifile);
 	mParams.WindowSizeY = GetPrivateProfileInt(
 		"Window", "SizeY", 800, inifile);
+	int showcursor = GetPrivateProfileInt(
+		"Window", "ShowCursor", 1, inifile);
 	
 	WindowState::mWidth = (UINT)mParams.WindowSizeX;
 	WindowState::mHeight = (UINT)mParams.WindowSizeY;
-
+	ShowCursor((BOOL)showcursor);
 }

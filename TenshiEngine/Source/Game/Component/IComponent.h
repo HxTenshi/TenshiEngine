@@ -37,6 +37,11 @@ public:
 	virtual void Update(){
 
 	}
+
+	virtual void ChangeParentCallback(){
+
+	}
+
 #ifdef _ENGINE_MODE
 	virtual void CreateInspector(){
 
