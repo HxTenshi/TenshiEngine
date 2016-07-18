@@ -76,7 +76,7 @@ void PhysXComponent::Finish(){
 
 		weak_ptr<PhysXComponent> physxCom = NULL;
 		{
-			Actor* par = gameObject;
+			Actor* par = gameObject->mTransform->GetParent();
 			while (par){
 				auto com = par->GetComponent<PhysXComponent>();
 				if (com){

@@ -744,7 +744,7 @@ Actor* PhysX3Main::Raycast(const XMVECTOR& pos,const XMVECTOR& dir,float distanc
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
 	PxRaycastHit hit;
 	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit)){
-		return (Actor*)hit.actor->userData;
+		return (Actor*)hit.shape->userData;
 	}
 	return NULL;
 }
@@ -755,7 +755,7 @@ Actor* PhysX3Main::EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir){
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
 	PxRaycastHit hit;
 	if (mEngineScene->raycastSingle(ori, _dir, dis, hitflag, hit)){
-		return (Actor*)hit.actor->userData;
+		return (Actor*)hit.shape->userData;
 	}
 	return NULL;
 }

@@ -373,16 +373,17 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 		par = mAttachPhysXComponent->gameObject;
 	}
 
-	auto rot = par->mTransform->GetMatrix();
-	rot.r[0] = XMVector3Normalize(rot.r[0]);
-	rot.r[1] = XMVector3Normalize(rot.r[1]);
-	rot.r[2] = XMVector3Normalize(rot.r[2]);
-	auto quat = XMQuaternionRotationMatrix(rot);
+	auto quat = par->mTransform->WorldQuaternion();
 
-	
-	auto shmat = XMMatrixMultiply(
-		XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w)),
-		XMMatrixTranslationFromVector(XMVectorSet(transform.p.x, transform.p.y, transform.p.z, 1.0f)));
+	XMMATRIX shmat;
+	if (mAttachTarget == -1){
+		shmat = XMMatrixIdentity();
+	}
+	else{
+		shmat = XMMatrixMultiply(
+			XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w)),
+			XMMatrixTranslationFromVector(XMVectorSet(transform.p.x, transform.p.y, transform.p.z, 1.0f)));
+	}
 
 	auto wpos = par->mTransform->WorldPosition();
 
@@ -402,6 +403,16 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 
 void PhysXColliderComponent::SetTransform(const XMVECTOR& pos){
 	mPosition = pos;
+
+	if (mAttachTarget == -1){
+		auto pos_ = gameObject->mTransform->WorldPosition();
+		auto quat = gameObject->mTransform->WorldQuaternion();
+		PxTransform transform;
+		transform.p = PxVec3(pos_.x, pos_.y, pos_.z);
+		transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
+		mShape->setLocalPose(transform);
+		return;
+	}
 
 
 	XMVECTOR scale = XMVectorSet(1, 1, 1, 1);

@@ -427,6 +427,14 @@ const XMVECTOR TransformComponent::LossyScale() const{
 	
 	return XMVectorSet(1/XMVector3Length(m.r[0]).x, 1/XMVector3Length(m.r[1]).x, 1/XMVector3Length(m.r[2]).x, 1);
 }
+const XMVECTOR TransformComponent::WorldQuaternion() const{
+
+	auto m = GetMatrix();
+	m.r[0] = XMVector3Normalize(m.r[0]);
+	m.r[1] = XMVector3Normalize(m.r[1]);
+	m.r[2] = XMVector3Normalize(m.r[2]);
+	return XMQuaternionRotationMatrix(m);
+}
 const XMVECTOR& TransformComponent::WorldPosition() const{
 	return GetMatrix().r[3];
 }

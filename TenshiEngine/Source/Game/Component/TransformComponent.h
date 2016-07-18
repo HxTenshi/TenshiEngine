@@ -21,6 +21,7 @@ public:
 	virtual const XMVECTOR WorldScale() const = 0;
 	virtual const XMVECTOR LossyScale() const = 0;
 	//virtual const XMVECTOR& WorldRotate() const = 0;
+	virtual const XMVECTOR WorldQuaternion() const = 0;
 	virtual const XMVECTOR& WorldPosition() const = 0;
 	virtual void WorldPosition(const XMVECTOR& position) = 0;
 
@@ -69,6 +70,7 @@ public:
 	const XMVECTOR WorldScale() const override;
 	const XMVECTOR LossyScale() const override;
 	//const XMVECTOR& WorldRotate() const override;
+	const XMVECTOR WorldQuaternion() const override;
 	const XMVECTOR& WorldPosition() const override;
 	void WorldPosition(const XMVECTOR& position) override;
 
