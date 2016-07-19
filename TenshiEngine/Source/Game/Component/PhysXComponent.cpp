@@ -181,9 +181,10 @@ void PhysXComponent::SetTransform(bool RebirthSet){
 }
 
 
-void PhysXComponent::AddShape(physx::PxShape& shape){
-	if (mRigidActor)
-		mRigidActor->attachShape(shape);
+bool PhysXComponent::AddShape(physx::PxShape& shape){
+	if (!mRigidActor)return false;
+	mRigidActor->attachShape(shape);
+	return true;
 }
 void PhysXComponent::RemoveShape(physx::PxShape& shape){
 	if (mRigidActor)

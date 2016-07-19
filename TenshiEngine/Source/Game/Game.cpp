@@ -23,6 +23,7 @@ static Game::DrawListMapType *gDrawList;
 static PhysX3Main* gpPhysX3Main;
 static CommandManager* gCommandManager;
 static CameraComponent** gMainCamera;
+static SelectActor* gSelectActor;
 //
 Actor* Game::mRootObject;
 #ifdef _ENGINE_MODE
@@ -60,6 +61,7 @@ Game::Game(){
 	mMainCamera = NULL;
 
 	gpDeltaTime = &mDeltaTime;
+	gSelectActor = &mSelectActor;
 
 #ifdef _ENGINE_MODE
 	mIsPlay = false;
@@ -152,6 +154,7 @@ Game::Game(){
 			if (f){
 				Window::ClearTreeViewItem(p);
 				remove = true;
+				return true;
 			}
 			return false;
 		});
@@ -173,7 +176,7 @@ Game::Game(){
 	Window::SetWPFCollBack(MyWindowMessage::SelectActor, [&](void* p)
 	{
 		auto act = ((Actor*)p);
-		mSelectActor.SetSelect(act);
+		mSelectActor.SetSelect(act, true);
 	});
 	Window::SetWPFCollBack(MyWindowMessage::ActorDoubleClick, [&](void* p)
 	{
@@ -189,12 +192,12 @@ Game::Game(){
 			parent = mRootObject;
 		}
 		auto act = ((Actor*)p);
-		act->mTransform->SetParent(parent);
+		act->mTransform->SetParentWorld(parent);
 	});
 	Window::SetWPFCollBack(MyWindowMessage::ActorDestroy, [&](void* p)
 	{
-		Game::DestroyObject((Actor*)p);
-		mSelectActor.SetSelect(NULL);
+		Game::DestroyObject((Actor*)p, true);
+		mSelectActor.SetSelect(NULL, true);
 	});
 
 	Window::SetWPFCollBack(MyWindowMessage::AddComponent, [&](void* p)
@@ -244,7 +247,7 @@ Game::Game(){
 			delete a;
 		}
 		else{
-			AddObject(a);
+			AddObject(a,true);
 		}
 		Window::Deleter(s);
 	});
@@ -339,6 +342,7 @@ Game::Game(){
 			ChangePlayGame(false);
 			AllDestroyObject();
 			LoadScene(*s);
+			mCommandManager.Clear();
 		}
 		Window::Deleter(s);
 	});
@@ -378,7 +382,7 @@ Game::~Game(){
 
 }
 //static
-void Game::AddObject(Actor* actor){
+void Game::AddObject(Actor* actor, bool undoFlag){
 	if (!actor->mTransform){
 		delete actor;
 		return;
@@ -395,7 +399,12 @@ void Game::AddObject(Actor* actor){
 	for (auto child : actor->mTransform->Children()){
 		AddObject(child);
 	}
-	
+#ifdef _ENGINE_MODE
+	if (undoFlag){
+		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor));
+		gCommandManager->SetUndo(actor);
+	}
+#endif
 }
 #ifdef _ENGINE_MODE
 //static
@@ -413,11 +422,17 @@ void Game::AddEngineObject(Actor* actor){
 }
 #endif
 //static
-void Game::DestroyObject(Actor* actor){
+void Game::DestroyObject(Actor* actor, bool undoFlag){
 	if (!actor)return;
 	auto desnum = gpList->erase(actor->GetUniqueID());
 	if (!desnum)return;
 	mGame->mActorMoveList.push(std::make_pair(ActorMove::Delete, actor));
+#ifdef _ENGINE_MODE
+	if (undoFlag){
+		gCommandManager->SetUndo(actor);
+		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor));
+	}
+#endif
 }
 
 //static
@@ -429,10 +444,10 @@ void Game::ActorMoveStage(){
 		if (tar.first == ActorMove::Delete){
 
 #ifdef _ENGINE_MODE
-			auto ptr = mGame->mSelectActor.GetSelectOne();
-			if (actor == ptr){
-				mGame->mSelectActor.SetSelect(NULL);
-			}
+
+
+			mGame->mSelectActor.ReleaseSelect(actor);
+			
 			//ツリービューが作成されていれば
 			if (actor->mTreeViewPtr){
 				Window::ClearTreeViewItem(actor->mTreeViewPtr);
@@ -449,6 +464,7 @@ void Game::ActorMoveStage(){
 			actor->Finish();
 
 			delete actor;
+
 		}
 		else{
 
@@ -518,6 +534,11 @@ Actor* Game::FindUID(UINT uid){
 
 void Game::AddDrawList(DrawStage stage, std::function<void()> func){
 	(*gDrawList)[stage].push_back(func);
+}
+
+void Game::SetUndo(Actor* actor){
+	gSelectActor->PushUndo();
+	gCommandManager->SetUndo(actor);
 }
 
 void Game::SetUndo(ICommand* command){
@@ -793,7 +814,8 @@ void Game::GameStop(){
 			XMVECTOR pos = mCamera.GetPosition();
 
 			auto act = mPhysX3Main->Raycast(pos, vect,1000);
-			mSelectActor.SetSelect(act);
+			if (act)
+				mSelectActor.SetSelect(act);
 		}
 	}
 

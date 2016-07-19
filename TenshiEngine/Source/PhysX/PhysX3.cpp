@@ -238,6 +238,7 @@ void PhysX3Main::onShapeHit(const PxControllerShapeHit& hit){
 
 PxControllerBehaviorFlags PhysX3Main::getBehaviorFlags(const PxShape& shape, const PxActor& actor)
 {
+	(void)shape;
 	const PxRigidDynamic* body = actor.is<PxRigidDynamic>();
 	if (body)
 	{
@@ -247,6 +248,7 @@ PxControllerBehaviorFlags PhysX3Main::getBehaviorFlags(const PxShape& shape, con
 			return PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT;
 	}
 	else{
+		//return PxControllerBehaviorFlag::eCCT_SLIDE;
 		return PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT;
 	}
 	
@@ -265,6 +267,10 @@ PxControllerBehaviorFlags PhysX3Main::getBehaviorFlags(const PxObstacle&)
 
 PxSceneQueryHitType::Enum PhysX3Main::preFilter(const PxFilterData& filterData, const PxShape* shape, const PxRigidActor* actor, PxSceneQueryFlags& queryFlags)
 {
+	(void)filterData;
+	(void)shape;
+	(void)actor;
+	(void)queryFlags;
 	//if (actor->userData == shape->getActor()->userData){
 	//
 	//	return PxSceneQueryHitType::eBLOCK;
@@ -276,6 +282,8 @@ PxSceneQueryHitType::Enum PhysX3Main::preFilter(const PxFilterData& filterData, 
 
 PxSceneQueryHitType::Enum PhysX3Main::postFilter(const PxFilterData& filterData, const PxSceneQueryHit& hit)
 {
+	(void)filterData;
+	(void)hit;
 	//if (hit.actor->userData == hit.shape->getActor()->userData){
 	//
 	//	return PxSceneQueryHitType::eBLOCK;
@@ -366,7 +374,7 @@ void PhysX3Main::InitializePhysX() {
 	PxSceneDesc sceneDesc(gPhysicsSDK->getTolerancesScale());
 	sceneDesc.gravity = gravity;
 	if (!sceneDesc.cpuDispatcher) {
-		mCpuDispatcher = PxDefaultCpuDispatcherCreate(6);
+		mCpuDispatcher = PxDefaultCpuDispatcherCreate(1);
 		if (!mCpuDispatcher){
 			std::cerr << "PxDefaultCpuDispatcherCreate failed!" << std::endl;
 
@@ -460,7 +468,7 @@ PxRigidActor* PhysX3Main::createBody(){
 
 	PxRigidActor* act = actor;
 	auto flag = act->getActorFlags();
-	flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
+	//flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
 	act->setActorFlags(flag);
 	
 	return act;
@@ -478,7 +486,7 @@ PxRigidStatic* PhysX3Main::createRigidStatic(){
 	gScene->addActor(*actor);
 
 	auto flag = actor->getActorFlags();
-	flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
+	//flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
 	actor->setActorFlags(flag);
 
 	return actor;
@@ -601,9 +609,12 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 
 PxController* PhysX3Main::CreateController(){
 	PxBoxControllerDesc desc;
-	//desc.height = 1.0f;
-	//desc.radius = 0.5f;
 	desc.halfHeight = 0.5f;
+
+	//PxCapsuleControllerDesc desc;
+	//desc.height = 0.1f;
+	//desc.radius = 0.5f;
+
 	desc.material = mMaterial;
 	desc.callback = this;
 	desc.reportCallback = this;
@@ -758,4 +769,20 @@ Actor* PhysX3Main::EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir){
 		return (Actor*)hit.shape->userData;
 	}
 	return NULL;
+}
+
+bool PhysX3Main::RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, ::RaycastHit* result){
+	if (!result)return false;
+	PxVec3 ori(pos.x, pos.y, pos.z);
+	PxVec3 _dir(dir.x, dir.y, dir.z);
+	PxReal dis = distance;
+	PxHitFlags hitflag = PxHitFlag::eDEFAULT | PxHitFlag::eNORMAL | PxHitFlag::ePOSITION;
+	PxRaycastHit hit;
+	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit)){
+		result->hit = (Actor*)hit.shape->userData;
+		result->normal = XMVectorSet(hit.normal.x, hit.normal.y, hit.normal.z, 1.0f);
+		result->position = XMVectorSet(hit.position.x, hit.position.y, hit.position.z,1.0f);
+		return true;
+	}
+	return false;
 }

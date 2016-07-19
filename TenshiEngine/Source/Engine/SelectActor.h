@@ -18,7 +18,7 @@ public:
 	//àÍÇ¬ÇÃÇ›ÇÃëIë
 	void OneSelect(Actor* act);
 	//í«â¡Ç∆çÌèúÇÃêÿÇËë÷Ç¶
-	void TriggerSelect(Actor* act);
+	bool TriggerSelect(Actor* act);
 
 	void MoveStart(XMVECTOR& vect);
 	void MovePos(XMVECTOR& vect);
@@ -40,6 +40,20 @@ private:
 	XMVECTOR mLastVect;
 };
 
+#include <map>
+class ICommand;
+class SelectUndo{
+public:
+	SelectUndo();
+	~SelectUndo();
+	void Clear();
+	void Set(Actor* act);
+	void Remove(Actor* act);
+	void PushUndo();
+private:
+	std::map<int, ICommand*> mCommands;
+};
+
 class SelectActor{
 public:
 	SelectActor();
@@ -47,7 +61,8 @@ public:
 
 	void Initialize();
 
-	void SetSelect(Actor* select);
+	void ReleaseSelect(Actor* actor);
+	void SetSelect(Actor* select,bool dontTreeViewSelect=false);
 	void SetSelectAsset(Actor* select, const char* filename);
 	Actor* GetSelectOne();
 
@@ -58,10 +73,13 @@ public:
 
 	void SelectActorDraw();
 	bool ChackHitRay(PhysX3Main* physx, EditorCamera* camera);
+
+	void PushUndo();
 private:
 
 	Selects mSelects;
 	bool mSelectAsset;
+	bool mDontTreeViewSelect;
 	Actor* mVectorBox;
 
 	int mDragBox;
@@ -71,6 +89,7 @@ private:
 	Material mSelectPhysxWireMaterial;
 	bool mCreateInspector;
 	std::string mAssetFileName;
+	SelectUndo mSelectUndo;
 };
 
 #endif

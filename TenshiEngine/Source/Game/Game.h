@@ -57,8 +57,8 @@ public:
 	Game();
 	~Game();
 
-	static void AddObject(Actor* actor);
-	static void DestroyObject(Actor* actor);
+	static void AddObject(Actor* actor,bool undoFlag = false);
+	static void DestroyObject(Actor* actor, bool undoFlag = false);
 	static void ActorMoveStage();
 	static PxRigidActor* CreateRigitBody();
 	static PxRigidActor* CreateRigitBodyEngine();
@@ -73,6 +73,7 @@ public:
 	static Actor* FindNameActor(const char* name);
 	static Actor* FindUID(UINT uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
+	static void SetUndo(Actor* actor);
 	static void SetUndo(ICommand* command);
 	static void SetMainCamera(CameraComponent* Camera);
 	static CameraComponent* GetMainCamera();

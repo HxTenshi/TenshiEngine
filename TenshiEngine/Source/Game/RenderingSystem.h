@@ -236,6 +236,7 @@ public:
 	}
 
 	void PushSet(BlendState::Preset preset,UINT Mask) override{
+		(void)Mask;
 		mBSSetting.Push(preset);
 	}
 	void PopBS() override{

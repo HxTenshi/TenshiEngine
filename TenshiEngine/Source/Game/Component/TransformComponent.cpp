@@ -35,8 +35,9 @@ void TransformComponent::Start(){
 	SetParent(mParent);
 }
 void TransformComponent::Finish(){
-	if (mParent)
-		mParent->mTransform->Children().remove(gameObject);
+	//if (mParent)
+	//	mParent->mTransform->Children().remove(gameObject);
+	SetParent(NULL);
 }
 
 void TransformComponent::EngineUpdate(){
@@ -439,9 +440,41 @@ const XMVECTOR& TransformComponent::WorldPosition() const{
 	return GetMatrix().r[3];
 }
 void TransformComponent::WorldPosition(const XMVECTOR& position){
-	auto wp = mParent->mTransform->WorldPosition();
-	mPosition = position - wp;
-	FlagSetChangeMatrix(PhysXChangeTransformFlag::Position);
+	auto mat = mParent->mTransform->GetMatrix();
+	XMVECTOR null;
+	mat = XMMatrixInverse(&null, mat);
+	mat = XMMatrixTranslationFromVector(position) * mat;
+	Position(mat.r[3]);
+}
+void TransformComponent::WorldQuaternion(const XMVECTOR& quaternion){
+
+	auto wq = mParent->mTransform->WorldQuaternion();
+	auto q = XMQuaternionMultiply(XMQuaternionInverse(wq), quaternion);
+	Quaternion(q);
+}
+void TransformComponent::WorldScale(const XMVECTOR& scale){
+	Quaternion();
+	auto m = mParent->mTransform->GetMatrix();
+	//m = fromEulerYXZ(mRotate) * m;
+	XMVECTOR null;
+	m = XMMatrixInverse(&null, m);
+	auto s = XMVector3Rotate(scale, XMQuaternionInverse(WorldQuaternion()));
+	//auto s = scale;
+	m = XMMatrixScalingFromVector(s) * m;
+	s = XMVectorSet(XMVector3Length(m.r[0]).x, XMVector3Length(m.r[1]).x, XMVector3Length(m.r[2]).x, 1);
+	s = XMVector3Rotate(s, WorldQuaternion());
+	s.x = abs(s.x);
+	s.y = abs(s.y);
+	s.z = abs(s.z);
+	s.w = 1.0f;
+
+	//auto sm = XMMatrixScalingFromVector(scale);
+	//auto rm = XMMatrixInverse(&null, fromEulerYXZ(mRotate));
+	//sm = sm * rm;
+	//m = sm * m;
+	//auto s = XMVectorSet(XMVector3Length(m.r[0]).x, XMVector3Length(m.r[1]).x, XMVector3Length(m.r[2]).x, 1);
+
+	Scale(s);
 }
 
 const XMVECTOR& TransformComponent::Forward() const{
@@ -462,7 +495,7 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 		mFixMatrixFlag = true;
 
 
-		auto physx = gameObject->GetComponent<PhysXComponent>();
+		//auto physx = gameObject->GetComponent<PhysXComponent>();
 
 		//auto gyro = mQuaternion;
 		//float yaw = atan2(2 * gyro.x * gyro.y + 2 * gyro.w * gyro.z, gyro.w * gyro.w + gyro.x * gyro.x - gyro.y * gyro.y - gyro.z * gyro.z);
@@ -497,7 +530,7 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 
 
 		if (mParent)
-			mMatrix = XMMatrixMultiply(mMatrix, mParent->mTransform->GetMatrix());
+			mMatrix = XMMatrixMultiply(mMatrix,mParent->mTransform->GetMatrix());
 	}
 	return mMatrix;
 }
@@ -521,24 +554,6 @@ void TransformComponent::FlagSetChangeMatrix(PhysXChangeTransformFlag flag){
 	}
 }
 
-
-void TransformComponent::SetUndo(const XMVECTOR& pos){
-	
-	//コンポーネントロード時にやらないとおかしい
-	static XMVECTOR mLastUndoSetPos = mPosition;
-
-	// 外部に動かされた場合の ( 元いた場所 - 現在地 ) をUndoに追加
-	if (!XMVector3NearEqual(mLastUndoSetPos, pos, XMVectorSet(0.1f, 0.1f, 0.1f, 1))){
-		Game::SetUndo(new ChangeParamFuncCommand<XMVECTOR>(mLastUndoSetPos, mPosition, [&](const XMVECTOR& p){this->Position(p); }));
-		mLastUndoSetPos = pos;
-	}
-	// ( 現在地 - 指定した位置 ) をUndoに追加
-	if (!XMVector3NearEqual(pos, mPosition, XMVectorSet(0.01f, 0.01f, 0.01f, 1))){
-		Game::SetUndo(new ChangeParamFuncCommand<XMVECTOR>(mPosition, pos, [&](const XMVECTOR& p){this->Position(p); }));
-		mLastUndoSetPos = pos;
-	}
-}
-
 #ifdef _ENGINE_MODE
 
 void TransformComponent::CreateInspector(){
@@ -546,18 +561,18 @@ void TransformComponent::CreateInspector(){
 
 	std::function<void(float)> collbackpx = [&](float f){
 		auto pos = this->Position();
-		SetUndo(XMVectorSet(f, pos.x, pos.z, pos.w));
 		this->Position(XMVectorSet(f, pos.y, pos.z, pos.w));
+		Game::SetUndo(gameObject);
 	};
 	std::function<void(float)> collbackpy = [&](float f){
 		auto pos = this->Position();
-		SetUndo(XMVectorSet(pos.x, f, pos.z, pos.w));
 		this->Position(XMVectorSet(pos.x, f, pos.z, pos.w));
+		Game::SetUndo(gameObject);
 	};
 	std::function<void(float)> collbackpz = [&](float f){
 		auto pos = this->Position();
-		SetUndo(XMVectorSet(pos.x, pos.y, f, pos.w));
 		this->Position(XMVectorSet(pos.x, pos.y, f, pos.w));
+		Game::SetUndo(gameObject);
 	};
 	std::function<void(float)> collbackrx = [&](float f){
 		//auto pos = this->Rotate();
@@ -567,30 +582,36 @@ void TransformComponent::CreateInspector(){
 		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
 
 		mInspectorRotateDegree.x = f;
+		Game::SetUndo(gameObject);
 	};
 	std::function<void(float)> collbackry = [&](float f){
 		mRotate.y = f * (XM_PI / 180.0f);
 		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
 
 		mInspectorRotateDegree.y = f;
+		Game::SetUndo(gameObject);
 	};
 	std::function<void(float)> collbackrz = [&](float f){
 		mRotate.z = f * (XM_PI/180.0f);
 		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
 
 		mInspectorRotateDegree.z = f;
+		Game::SetUndo(gameObject);
 	};
 	std::function<void(float)> collbacksx = [&](float f){
 		auto pos = this->Scale();
 		this->Scale(XMVectorSet(f, pos.y, pos.z, pos.w));
+		Game::SetUndo(gameObject);
 	};
 	std::function<void(float)> collbacksy = [&](float f){
 		auto pos = this->Scale();
 		this->Scale(XMVectorSet(pos.x, f, pos.z, pos.w));
+		Game::SetUndo(gameObject);
 	};
 	std::function<void(float)> collbacksz = [&](float f){
 		auto pos = this->Scale();
 		this->Scale(XMVectorSet(pos.x, pos.y, f, pos.w));
+		Game::SetUndo(gameObject);
 	};
 
 	mInspectorRotateDegree = mRotate * (180.0f / XM_PI);
@@ -669,4 +690,21 @@ void TransformComponent::SetParent(Actor* parent){
 		parent->RunChangeParentCallback();
 	}
 	FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
+}
+void TransformComponent::SetParentWorld(Actor* parent){
+	auto pos = WorldPosition();
+	auto quat = WorldQuaternion();
+	auto scale = WorldScale();
+	if (mParent)
+		mParent->mTransform->Children().remove(gameObject);
+	mParent = parent;
+	mParentUniqueID = 0;
+	if (parent){
+		parent->mTransform->Children().push_back(gameObject);
+		mParentUniqueID = parent->GetUniqueID();
+		parent->RunChangeParentCallback();
+	}
+	WorldPosition(pos);
+	WorldQuaternion(quat);
+	WorldScale(scale);
 }

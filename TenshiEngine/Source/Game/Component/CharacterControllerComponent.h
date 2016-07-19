@@ -16,7 +16,9 @@ public:
 	virtual void Teleport(const XMVECTOR& position) = 0;
 	virtual bool IsGround() = 0;
 	virtual void SetSlopeLimit(float degree) = 0;
+	virtual float GetSlopeLimit() const = 0;
 	virtual void SetStepOffset(float offset) = 0;
+	virtual float GetStepOffset() const = 0;
 	virtual void SetSize(float size) = 0;
 private:
 };
@@ -43,6 +45,10 @@ public:
 	bool IsGround() override;
 	void SetSlopeLimit(float degree) override;
 	void SetStepOffset(float offset) override;
+
+	float GetSlopeLimit() const override { return mSlopeLimitDigree; }
+	float GetStepOffset() const override { return mStepOffset; }
+
 	void SetSize(float size) override;
 private:
 	physx::PxController* mController;

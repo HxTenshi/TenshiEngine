@@ -173,7 +173,7 @@ void EditorCamera::GoActorPosition(Actor* actor){
 		this->mCamera.mTransform->Quaternion(q);
 
 		if (time >= maxTime){
-			mUpdateFunc = [](float t){};
+			mUpdateFunc = [](float t){(void)t; };
 		}
 
 	};

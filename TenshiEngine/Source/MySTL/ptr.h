@@ -454,6 +454,7 @@ public: // actually private, but avoids compiler template friendship issues
 	template<class X, class Y> void
 		_internal_accept_owner(shared_ptr<X> const * ppx, Y * py) const
 	{
+		(void)py;
 		if (weak_this_.count.expired())
 		{
 			weak_this_ = shared_ptr<T>(*ppx);

@@ -80,17 +80,18 @@ void Selects::OneSelect(Actor* act){
 		mSelects.push_back(act);
 	}
 }
-void Selects::TriggerSelect(Actor* act){
+bool Selects::TriggerSelect(Actor* act){
 	//ƒkƒ‹‚Í–³Ž‹
-	if (!act)return;
+	if (!act)return false;
 	int num = (int)mSelects.size();
 	mSelects.remove(act);
 	//íœ‚³‚ê‚Ä‚¢‚ê‚Î
 	if (num != (int)mSelects.size()){
-		return;
+		return false;
 	}
 	//íœ‚³‚ê‚È‚¯‚ê‚Î’Ç‰Á
 	mSelects.push_back(act);
+	return true;
 }
 void Selects::MoveStart(XMVECTOR& vect){
 	mLastVect = vect;
@@ -112,7 +113,7 @@ void Selects::MoveEnd(XMVECTOR& vect){
 	for (auto& act : mSelects){
 		auto pos = act->mTransform->Position();
 		act->mTransform->Position(pos + move);
-		act->mTransform->SetUndo(pos + move);
+		Game::SetUndo(act);
 	}
 
 }
@@ -133,10 +134,12 @@ void Selects::CopyDelete(){
 	mCopy.clear();
 }
 void Selects::Paste(){
+	mSelects.clear();
 	for (auto& act : mCopy){
 		auto postactor = new Actor();
 		postactor->ImportDataAndNewID(*act);
 		Game::AddObject(postactor);
+		TriggerSelect(postactor);
 	}
 }
 
@@ -166,8 +169,54 @@ std::list<Actor*>& Selects::GetSelects(){
 	return mSelects;
 }
 
+SelectUndo::SelectUndo()
+{
+}
+SelectUndo::~SelectUndo(){
+	for (auto& com : mCommands){
+		delete com.second;
+	}
+}
+void SelectUndo::Clear(){
+	for (auto& com : mCommands){
+		delete com.second;
+	}
+	mCommands.clear();
+}
+void SelectUndo::Set(Actor* act){
+	if (!act)return;
+	auto temp = mCommands.find((int)act);
+	if (temp != mCommands.end()){
+		delete temp->second;
+		temp->second = new ActorUndoCommand(act);
+	}
+	else{
+		mCommands.insert(std::make_pair((int)act, new ActorUndoCommand(act)));
+	}
+}
+void SelectUndo::Remove(Actor* act){
+	if (!act)return;
+	auto temp = mCommands.find((int)act);
+	if (temp != mCommands.end()){
+		delete temp->second;
+		mCommands.erase(temp);
+	}
+}
+void SelectUndo::PushUndo(){
+	if (mCommands.size() == 0)return;
+
+	auto Link = new std::list<ICommand*>();
+
+	for (auto& com : mCommands){
+		Link->push_back(com.second);
+	}
+	Game::SetUndo(new LinkUndoCommand(Link));
+	mCommands.clear();
+}
+
 SelectActor::SelectActor()
 	:mCreateInspector(false)
+	, mDontTreeViewSelect(false)
 {
 	mSelectAsset = false;
 	mDragBox = -1;
@@ -267,7 +316,10 @@ void SelectActor::UpdateInspector(){
 		else{
 			if (mSelects.SelectNum() == 1){
 				mSelects.GetSelectOne()->CreateInspector();
-				Window::SelectTreeViewItem(mSelects.GetSelectOne()->mTreeViewPtr);
+				if (!mDontTreeViewSelect){
+					Window::SelectTreeViewItem(mSelects.GetSelectOne()->mTreeViewPtr);
+				}
+				mDontTreeViewSelect = false;
 			}
 		}
 
@@ -465,7 +517,12 @@ void SelectActor::SelectActorDraw(){
 	}));
 }
 
-void SelectActor::SetSelect(Actor* select){
+void SelectActor::ReleaseSelect(Actor* actor){
+
+	mSelects.GetSelects().remove(actor);
+}
+
+void SelectActor::SetSelect(Actor* select, bool dontTreeViewSelect){
 	mDragBox = -1;
 
 	if (mSelectAsset){
@@ -478,14 +535,23 @@ void SelectActor::SetSelect(Actor* select){
 		select = NULL;
 	}
 	if (EngineInput::Down(KeyCoord::Key_LCONTROL)){
-		mSelects.TriggerSelect(select);
+		if (mSelects.TriggerSelect(select)){
+			mSelectUndo.Set(select);
+		}
+		else{
+			mSelectUndo.Remove(select);
+
+		}
 	}
 	else{
 		mSelects.OneSelect(select);
+		mSelectUndo.Clear();
+		mSelectUndo.Set(select);
 	}
 
 	Window::ClearInspector();
 	mCreateInspector = false;
+	mDontTreeViewSelect = dontTreeViewSelect;
 }
 void SelectActor::SetSelectAsset(Actor* select,const char* filename){
 	mDragBox = -1;
@@ -549,4 +615,10 @@ bool SelectActor::ChackHitRay(PhysX3Main* physx, EditorCamera* camera){
 	}
 	return false;
 }
+
+void SelectActor::PushUndo(){
+	mSelectUndo.PushUndo();
+}
+
+
 #endif

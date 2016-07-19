@@ -164,6 +164,7 @@ namespace Easing
 	}
 	inline double InOutBack(double t, double totaltime, double max, double min, double s)
 	{
+		(void)totaltime;
 		max -= min;
 		s *= 1.525;
 		if (t / 2 < 1)

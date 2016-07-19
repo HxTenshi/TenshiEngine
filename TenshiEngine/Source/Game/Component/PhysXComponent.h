@@ -56,7 +56,7 @@ public:
 
 	void SetTransform(bool RebirthSet);
 
-	void AddShape(physx::PxShape& shape);
+	bool AddShape(physx::PxShape& shape);
 	void RemoveShape(physx::PxShape& shape);
 
 	bool GetKinematic() override{ return mIsKinematic; };

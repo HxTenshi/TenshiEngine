@@ -150,6 +150,8 @@ void CharacterControllerComponent::IO_Data(I_ioHelper* io){
 
 void CharacterControllerComponent::Move(const XMVECTOR& velocity){
 	if (!mController)return;
+	PxVec3 v(velocity.x, velocity.y, velocity.z);
+	if (!v.isFinite())return;
 
 	PxF32 elapsedTime = Game::GetDeltaTime()->GetDeltaTime();
 	PxF32 minDist = 0.0f;
@@ -161,7 +163,6 @@ void CharacterControllerComponent::Move(const XMVECTOR& velocity){
 
 	filters.mFilterCallback = Game::GetPhysX();
 
-	PxVec3 v(velocity.x, velocity.y, velocity.z);
 
 	PxControllerCollisionFlags collisionFlags =
 		mController->move(v, minDist, elapsedTime, filters, NULL);
@@ -193,16 +194,6 @@ void CharacterControllerComponent::Move(const XMVECTOR& velocity){
 }
 void CharacterControllerComponent::Teleport(const XMVECTOR& position){
 	if (!mController)return;
-
-	PxF32 elapsedTime = Game::GetDeltaTime()->GetDeltaTime();
-	PxF32 minDist = 0.0f;
-	PxControllerFilters filters;
-	PxFilterData  filterData;
-	filterData.word0 = 0;//FilterGroup::eSUBMARINE;  //ÉèÅ[Éh0 =é©ï™ÇÃID 
-	filters.mFilterData = &filterData;
-	filters.mFilterFlags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER;
-
-	filters.mFilterCallback = Game::GetPhysX();
 
 	PxExtendedVec3 v(position.x, position.y, position.z);
 

@@ -120,40 +120,6 @@ void PhysXColliderComponent::ShapeAttach(PxShape* shape){
 	else{
 		AttachRigidStatic(true);
 	}
-
-	////アタッチ失敗
-	//if (!mAttachPhysXComponent){
-	//	mIsShapeAttach = false;
-	//	if (mShape != shape && mShape){
-	//		mShape->release();
-	//	}
-	//	mShape = shape;
-	//	return;
-	//}
-	////アタッチしていれば
-	//if (mIsShapeAttach){
-	//	if (mAttachPhysXComponent){
-	//		mAttachPhysXComponent->RemoveShape(*mShape);
-	//	}
-	//}
-	//if (mShape){
-	//	mShape->release();
-	//}
-	//
-	//
-	//mShape = shape;
-	//if (mShape){
-	//	if (mAttachPhysXComponent){
-	//		mAttachPhysXComponent->AddShape(*mShape);
-	//	}
-	//	mIsShapeAttach = true;
-	//}
-	//else{
-	//	mIsShapeAttach = false;
-	//}
-	//if (mShape){
-	//	mShape->userData = gameObject;
-	//}
 }
 
 //シェイプをリジッドスタティックにアタッチするか削除する
@@ -181,8 +147,9 @@ void PhysXColliderComponent::AttachRigidDynamic(bool attach){
 		return;
 	}
 	if (attach){
-		mAttachTarget = (int)mAttachPhysXComponent->gameObject;
-		mAttachPhysXComponent->AddShape(*mShape);
+		if (mAttachPhysXComponent->AddShape(*mShape)){
+			mAttachTarget = (int)mAttachPhysXComponent->gameObject;
+		}
 	}
 	else if (mAttachTarget > 0){
 		if (mAttachTarget == (int)mAttachPhysXComponent->gameObject){

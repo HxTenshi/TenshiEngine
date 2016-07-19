@@ -18,4 +18,5 @@ private:
 
 	XMVECTOR mJump;
 	XMVECTOR mGravity;
+	XMVECTOR mToQuaternion;
 };

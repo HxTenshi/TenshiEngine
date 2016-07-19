@@ -544,6 +544,7 @@
     <ClCompile Include="Source\Engine\AssetFile\Shader\ShaderFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Sound\SoundFileData.cpp" />
     <ClCompile Include="Source\Engine\Debug.cpp" />
+    <ClCompile Include="Source\Engine\ICommand.cpp" />
     <ClCompile Include="Source\Engine\ModelConverter.cpp" />
     <ClCompile Include="Source\Engine\Profiling.cpp" />
     <ClCompile Include="Source\Engine\SelectActor.cpp" />
