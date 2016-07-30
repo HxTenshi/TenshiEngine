@@ -142,7 +142,8 @@ inline float LightingFuncGGX_REF(float3 N, float3 V, float3 L,
 	return specular;
 }
 
-
+//フロートイプシロン
+//1.192092896e-07F
 
 inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	PS_OUTPUT_1 Out;
@@ -168,7 +169,7 @@ inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	float NLDot = dot(N, -L);
 
 
-	float offset = 0.000000035;// +(NLDot)* 0.00000005;
+	float offset = 0.00000003;// 1.192092896e-07F;// 0.000000035 + (NLDot)* 0.00000005;
 	// ライトデプスの準備
 	float4 LVPos = DepthTex.Sample(DepthSamLinear, input.Tex).zwyx;
 

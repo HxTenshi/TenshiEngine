@@ -42,6 +42,10 @@ void CharacterControllerComponent::Initialize(){
 
 
 void CharacterControllerComponent::Start(){
+	if (!mController)return;
+	auto wp = gameObject->mTransform->WorldPosition();
+	PxExtendedVec3 setpos(wp.x, wp.y, wp.z);
+	mController->setPosition(setpos);
 }
 void CharacterControllerComponent::Finish(){
 	if (mController){

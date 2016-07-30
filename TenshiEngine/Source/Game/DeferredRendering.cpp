@@ -250,10 +250,10 @@ void CascadeShadow::CascadeUpdate(){
 	}
 	//デプスシーンのクリップ
 	float DnearClip = 0.01f;
-	float DfarClip = 10000.0f;
+	float DfarClip = 1000.0f;
 	float SlideBack = DfarClip/2;
 
-	float m_Lamda = 0.5f;
+	float m_Lamda = 0.75f;
 
 	// 平行分割処理.
 	float splitPositions[MAX_CASCADE + 1];
@@ -601,6 +601,7 @@ void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::
 void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 
 
+	render->PushSet(Rasterizer::Preset::RS_Back_Solid);
 	mCascadeShadow.Update(render);
 
 	Model::mForcedMaterial = &mMaterialDepthShadow;
@@ -616,6 +617,8 @@ void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, c
 	Model::mForcedMaterial = NULL;
 	Model::mForcedMaterialFilter = ForcedMaterialFilter::None;
 	mCascadeShadow.SetupShadowCB(render, 0);
+
+	render->PopRS();
 }
 
 void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){

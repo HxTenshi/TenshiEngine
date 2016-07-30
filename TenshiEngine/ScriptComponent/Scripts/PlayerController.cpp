@@ -41,8 +41,8 @@ void PlayerController::Update(){
 	
 	bool isGround = cc->IsGround();
 
+	XMVECTOR pos = gameObject->mTransform->WorldPosition();
 	if (isGround){
-		auto pos = gameObject->mTransform->WorldPosition();
 		auto d = XMVectorSet(0, -1, 0, 1);
 		RaycastHit hit;
 		if (game->PhysX()->RaycastHit(pos, d, 100.0f, &hit)){
@@ -107,9 +107,9 @@ void PlayerController::Update(){
 	}
 	
 	
-	XMVECTOR normal = XMVectorSet(0, 1, 0, 1);;
+	XMVECTOR normal = XMVectorSet(0, 1, 0, 1);
 	if (isGround){
-		auto pos = gameObject->mTransform->WorldPosition();
+		//auto pos = gameObject->mTransform->WorldPosition();
 		auto d = XMVectorSet(0, -1, 0, 1);
 		RaycastHit hit;
 		if (game->PhysX()->RaycastHit(pos, d, 100.0f, &hit)){
@@ -132,7 +132,6 @@ void PlayerController::Update(){
 		q = XMQuaternionMultiply(wq, q);
 		q = XMQuaternionNormalize(q);
 		if (XMQuaternionIsInfinite(q) || XMQuaternionIsNaN(q)){
-			
 			return;
 		}
 		gameObject->mTransform->WorldQuaternion(q);

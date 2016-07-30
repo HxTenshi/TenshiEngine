@@ -624,6 +624,11 @@ PxController* PhysX3Main::CreateController(){
 	return c;
 }
 
+PxRevoluteJoint* PhysX3Main::CreateJoint(){
+	auto joint = PxRevoluteJointCreate(*gPhysicsSDK, NULL, PxTransform(), NULL, PxTransform());
+	return joint;
+}
+
 
 void PhysX3Main::getColumnMajor(PxMat33& m, PxVec3& t, float* mat) {
 	mat[0] = m.column0[0];

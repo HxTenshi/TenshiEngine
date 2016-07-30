@@ -23,10 +23,10 @@ static Game::DrawListMapType *gDrawList;
 static PhysX3Main* gpPhysX3Main;
 static CommandManager* gCommandManager;
 static CameraComponent** gMainCamera;
-static SelectActor* gSelectActor;
 //
 Actor* Game::mRootObject;
 #ifdef _ENGINE_MODE
+static SelectActor* gSelectActor;
 Actor* Game::mEngineRootObject;
 #endif
 Game* mGame = NULL;
@@ -61,9 +61,9 @@ Game::Game(){
 	mMainCamera = NULL;
 
 	gpDeltaTime = &mDeltaTime;
+#ifdef _ENGINE_MODE
 	gSelectActor = &mSelectActor;
 
-#ifdef _ENGINE_MODE
 	mIsPlay = false;
 #endif
 
@@ -193,6 +193,7 @@ Game::Game(){
 		}
 		auto act = ((Actor*)p);
 		act->mTransform->SetParentWorld(parent);
+		SetUndo(act);
 	});
 	Window::SetWPFCollBack(MyWindowMessage::ActorDestroy, [&](void* p)
 	{
@@ -537,7 +538,9 @@ void Game::AddDrawList(DrawStage stage, std::function<void()> func){
 }
 
 void Game::SetUndo(Actor* actor){
+#ifdef _ENGINE_MODE
 	gSelectActor->PushUndo();
+#endif
 	gCommandManager->SetUndo(actor);
 }
 

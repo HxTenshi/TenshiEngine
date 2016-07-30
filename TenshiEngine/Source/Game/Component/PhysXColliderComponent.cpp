@@ -341,6 +341,9 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 	}
 
 	auto quat = par->mTransform->WorldQuaternion();
+	if (par == gameObject){
+		auto quat = XMQuaternionIdentity();
+	}
 
 	XMMATRIX shmat;
 	if (mAttachTarget == -1){
@@ -401,6 +404,17 @@ void PhysXColliderComponent::SetTransform(const XMVECTOR& pos){
 	if (mIsParentPhysX){
 
 		auto quat = gameObject->mTransform->Quaternion();
+		//f (mAttachPhysXComponent){
+		//	Actor* par = mAttachPhysXComponent->gameObject;
+		//	auto pq = par->mTransform->WorldQuaternion();
+		//	pq = XMQuaternionInverse(pq);
+		//	quat = XMQuaternionMultiply(pq, quat);
+		//
+
+		transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
+	}
+	else{
+		auto quat = XMQuaternionIdentity();
 		transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
 	}
 	mShape->setLocalPose(transform);

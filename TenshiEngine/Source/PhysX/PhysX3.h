@@ -67,6 +67,7 @@ public:
 	PxShape* CreateShapeSphere();
 	PxShape* CreateTriangleMesh(const IPolygonsData* poly);
 	PxController* CreateController();
+	PxRevoluteJoint* CreateJoint();
 
 	void AddStaticShape(PxShape* shape);
 	void RemoveStaticShape(PxShape* shape);
