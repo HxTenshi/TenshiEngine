@@ -6,6 +6,7 @@
 class ShaderFile{
 protected:
 	ShaderFile(){}
+	virtual ~ShaderFile(){}
 public:
 	//--------------------------------------------------------------------------------------
 	// Helper for compiling shaders with D3DX11

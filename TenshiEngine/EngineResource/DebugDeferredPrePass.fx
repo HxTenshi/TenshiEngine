@@ -176,7 +176,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	float4 DifColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture.x != 0.0)
 			DifColor = AlbedoTex.Sample(AlbedoSamLinear, texcood);
-
+	DifColor.a = 1.0f;
 	Out.ColorAlbedo = DifColor * MDiffuse;
 	return Out;
 }

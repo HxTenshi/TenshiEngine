@@ -500,7 +500,9 @@ void HDRGaussBulr_AND_DownSample::SetHDRFilter(bool flag){
 }
 
 
+DeferredRendering::DeferredRendering(){
 
+}
 DeferredRendering::~DeferredRendering(){
 	m_AlbedoRT.Release();
 	m_SpecularRT.Release();
@@ -512,6 +514,287 @@ DeferredRendering::~DeferredRendering(){
 	mModelTexture.Release();
 
 
+}
+
+#include "../DirectXTex/DirectXTex.h"
+void LoadImg(const std::string& filename, DirectX::ScratchImage& img){
+
+	WCHAR f[256];
+	size_t wLen = 0;
+	//ロケール指定
+	setlocale(LC_ALL, "japanese");
+	//変換
+	mbstowcs_s(&wLen, f, 255, filename.c_str(), _TRUNCATE);
+
+	DirectX::TexMetadata metadata;
+	DirectX::ScratchImage image;
+	HRESULT hr;
+	do{
+		hr = DirectX::LoadFromWICFile(f, 0, &metadata, img);
+		if (SUCCEEDED(hr)){
+			break;
+		}
+		hr = DirectX::LoadFromTGAFile(f, &metadata, img);
+		if (SUCCEEDED(hr)){
+			break;
+		}
+		hr = DirectX::LoadFromDDSFile(f, 0, &metadata, img);
+		if (SUCCEEDED(hr)){
+			break;
+		}
+	} while (false);
+
+}
+void CreateCubeMap(const std::string& filename,Texture& out){
+		HRESULT hr;
+		DirectX::TexMetadata metadata;
+		DirectX::ScratchImage image[6];
+		//LoadImg(filename + "_ft.tga", image[0]);
+		//LoadImg(filename + "_bk.tga", image[1]);
+		//LoadImg(filename + "_up.tga", image[2]);
+		//LoadImg(filename + "_dn.tga", image[3]);
+		//LoadImg(filename + "_rt.tga", image[4]);
+		//LoadImg(filename + "_lf.tga", image[5]);
+		LoadImg(filename + "_c00.hdr", image[0]);
+		LoadImg(filename + "_c01.hdr", image[1]);
+		LoadImg(filename + "_c02.hdr", image[2]);
+		LoadImg(filename + "_c03.hdr", image[3]);
+		LoadImg(filename + "_c04.hdr", image[4]);
+		LoadImg(filename + "_c05.hdr", image[5]);
+
+
+		DirectX::ScratchImage cubeimage;
+		DirectX::Image images[] =
+		{ 
+			*image[0].GetImage(0, 0, 0),
+			*image[1].GetImage(0, 0, 0),
+			*image[2].GetImage(0, 0, 0),
+			*image[3].GetImage(0, 0, 0),
+			*image[4].GetImage(0, 0, 0),
+			*image[5].GetImage(0, 0, 0)
+		};
+		cubeimage.InitializeCubeFromImages(images, 6);
+		ID3D11ShaderResourceView* temp = NULL;
+
+		DirectX::ScratchImage mipChain;
+		hr = DirectX::GenerateMipMaps(cubeimage.GetImages(), cubeimage.GetImageCount(), cubeimage.GetMetadata(), DirectX::TEX_FILTER_DEFAULT, 0, mipChain);
+		if (FAILED(hr)){
+			mipChain.Release();
+			for (int i = 0; i < 6; i++){
+				image[i].Release();
+			}
+			cubeimage.Release();
+		}
+
+		// 画像からシェーダリソースView DirectXTex
+		hr = DirectX::CreateShaderResourceView(Device::mpd3dDevice, mipChain.GetImages(), mipChain.GetImageCount(), mipChain.GetMetadata(), &temp);
+		for (int i = 0; i < 6; i++){
+			image[i].Release();
+		}
+		cubeimage.Release();
+		mipChain.Release();
+		if (FAILED(hr)){
+			return;
+		}
+
+		out.Create(temp);
+}
+void CreateCubeMapDDS(const std::string& filename, Texture& out){
+	HRESULT hr;
+	DirectX::TexMetadata metadata;
+	DirectX::ScratchImage image;
+	LoadImg(filename, image);
+
+
+	DirectX::ScratchImage cubeimage;
+	cubeimage.InitializeCubeFromImages(image.GetImages(), 6);
+	ID3D11ShaderResourceView* temp = NULL;
+
+	DirectX::ScratchImage mipChain;
+	hr = DirectX::GenerateMipMaps(cubeimage.GetImages(), cubeimage.GetImageCount(), cubeimage.GetMetadata(), DirectX::TEX_FILTER_DEFAULT, 0, mipChain);
+	if (FAILED(hr)){
+		mipChain.Release();
+		image.Release();
+		cubeimage.Release();
+	}
+
+	// 画像からシェーダリソースView DirectXTex
+	hr = DirectX::CreateShaderResourceView(Device::mpd3dDevice, mipChain.GetImages(), mipChain.GetImageCount(), mipChain.GetMetadata(), &temp);
+
+	image.Release();
+	cubeimage.Release();
+	mipChain.Release();
+	if (FAILED(hr)){
+		return;
+	}
+
+	out.Create(temp);
+}
+
+#include "Graphic/Loader/HDR.h"
+
+//int GetNumMipLevels(int width, int height)
+//{
+//	int numLevels = 1;
+//	while ((width > 1) || (height > 1))
+//	{
+//		width = max(width / 2, 1);
+//		height = max(height / 2, 1);
+//		++numLevels;
+//	}
+//
+//	return numLevels;
+//}
+//
+//void CreatePanoramaHDR(const std::string& filename, Texture& out){
+//	HRESULT hr;
+//	HDRLoaderResult result;
+//	bool temp = true;
+//	temp = temp&&HDRLoader::load(filename.c_str(), result);
+//	if (!temp)return;
+//	int mipnum = GetNumMipLevels(result.width, result.height);
+//
+//	D3D11_TEXTURE2D_DESC tex_desc;
+//	ZeroMemory(&tex_desc, sizeof(tex_desc));
+//	tex_desc.ArraySize = 1;
+//	tex_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+//	tex_desc.SampleDesc.Count = 1;
+//	tex_desc.SampleDesc.Quality = 0;
+//	tex_desc.Usage = D3D11_USAGE_DEFAULT;
+//	//レンダーターゲットとして使用＆シェーダリソースとして利用
+//	tex_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+//	tex_desc.CPUAccessFlags = 0;
+//	tex_desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+//
+//	tex_desc.Width = result.width;
+//	tex_desc.Height = result.height;
+//
+//	tex_desc.MipLevels = mipnum;
+//
+//	std::vector<D3D11_SUBRESOURCE_DATA> data(mipnum);
+//	for (auto& d : data){
+//		d.pSysMem = result.cols;
+//		d.SysMemPitch = result.width * sizeof(float) * 4;
+//		d.SysMemSlicePitch = 0;
+//	}
+//
+//	ID3D11Texture2D *tex2d;
+//	hr = Device::mpd3dDevice->CreateTexture2D(&tex_desc, &data.data()[0], &tex2d);
+//	if (FAILED(hr)){
+//		delete[] result.cols;
+//		return;
+//	}
+//
+//	
+//
+//
+//	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+//	memset(&srv_desc, 0, sizeof(srv_desc));
+//	srv_desc.Format = tex_desc.Format;
+//	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+//	srv_desc.Texture2D.MostDetailedMip = 0;
+//	srv_desc.Texture2D.MipLevels = tex_desc.MipLevels;
+//
+//	ID3D11ShaderResourceView* pShaderResourceView;
+//	hr = Device::mpd3dDevice->CreateShaderResourceView(tex2d, &srv_desc, &pShaderResourceView);
+//	if (FAILED(hr)){
+//		return;
+//	}
+//
+//	tex2d->Release();
+//	delete[] result.cols;
+//
+//	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+//	render->m_Context->GenerateMips(pShaderResourceView);
+//
+//	out.Create(pShaderResourceView);
+//}
+
+void CreateCubeMapHDR(const std::string& filename, Texture& out){
+	HRESULT hr;
+	D3D11_TEXTURE2D_DESC tex_desc;
+	ZeroMemory(&tex_desc, sizeof(tex_desc));
+	tex_desc.MipLevels = 1;
+	tex_desc.ArraySize = 6;
+	tex_desc.Format = DXGI_FORMAT_R32G32B32_UINT;
+	tex_desc.SampleDesc.Count = 1;
+	tex_desc.SampleDesc.Quality = 0;
+	tex_desc.Usage = D3D11_USAGE_DEFAULT;
+	//レンダーターゲットとして使用＆シェーダリソースとして利用
+	tex_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	tex_desc.CPUAccessFlags = 0;
+	tex_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+	HDRLoaderResult result[6];
+
+	bool temp = true;
+	temp = temp&&HDRLoader::load((filename + "_c00.hdr").c_str(), result[0]);
+	temp = temp&&HDRLoader::load((filename + "_c01.hdr").c_str(), result[1]);
+	temp = temp&&HDRLoader::load((filename + "_c02.hdr").c_str(), result[2]);
+	temp = temp&&HDRLoader::load((filename + "_c03.hdr").c_str(), result[3]);
+	temp = temp&&HDRLoader::load((filename + "_c04.hdr").c_str(), result[4]);
+	temp = temp&&HDRLoader::load((filename + "_c05.hdr").c_str(), result[5]);
+	
+	//temp = temp&&HDRLoader::load("EngineResource/Sky/SkyBox2/nave.hdr", result[0]);
+	if (!temp)return;
+
+	//FILE* f[6];
+	//f[0] = fopen((filename + "_c00.hdr").c_str(), "rb");
+	//f[1] = fopen((filename + "_c01.hdr").c_str(), "rb");
+	//f[2] = fopen((filename + "_c02.hdr").c_str(), "rb");
+	//f[3] = fopen((filename + "_c03.hdr").c_str(), "rb");
+	//f[4] = fopen((filename + "_c04.hdr").c_str(), "rb");
+	//f[5] = fopen((filename + "_c05.hdr").c_str(), "rb");
+	//for (int i = 0; i < 6; i++){
+	//	ReadHeader(f[i], result[i]);
+	//	//RGBE_ReadHeader(f[i], &result[i].width, &result[i].height, NULL);
+	//	//result[i].cols = (float *)malloc(sizeof(float) * 3 * result[i].width*result[i].height);
+	//	RGBE_ReadPixels_RLE(f[i], result[i].cols, result[i].width,result[i].height);
+	//	fclose(f[i]);
+	//}
+
+	D3D11_SUBRESOURCE_DATA data[6];
+	for (int i = 0; i < 6; i++){
+
+		data[i].pSysMem = result[i].cols;
+		auto size = sizeof(float);
+		data[i].SysMemPitch = result[i].width * size * 3;
+		data[i].SysMemSlicePitch = 0;
+	}
+
+	tex_desc.Width = result[0].width;
+	tex_desc.Height = result[0].height;
+
+
+	ID3D11Texture2D *tex2d;
+	hr = Device::mpd3dDevice->CreateTexture2D(&tex_desc,&data[0], &tex2d);
+	if (FAILED(hr)){
+		for (int i = 0; i < 6; i++){
+			delete[] result[i].cols;
+		}
+		return;
+	}
+	
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+	memset(&srv_desc, 0, sizeof(srv_desc));
+	srv_desc.Format = tex_desc.Format;
+	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	srv_desc.TextureCube.MostDetailedMip = 0;
+	srv_desc.TextureCube.MipLevels = tex_desc.MipLevels;
+
+	ID3D11ShaderResourceView* pShaderResourceView;
+	hr = Device::mpd3dDevice->CreateShaderResourceView(tex2d, &srv_desc, &pShaderResourceView);
+	if (FAILED(hr)){
+		return;
+	}
+
+	tex2d->Release();
+	for (int i = 0; i < 6; i++){
+		delete[] result[i].cols;
+	}
+
+	out.Create(pShaderResourceView);
 }
 void DeferredRendering::Initialize(){
 
@@ -526,9 +809,13 @@ void DeferredRendering::Initialize(){
 	m_LightRT.Create(w, h, DXGI_FORMAT_R11G11B10_FLOAT);
 	m_LightSpecularRT.Create(w, h, DXGI_FORMAT_R11G11B10_FLOAT);
 
-	mEnvironmentMap.Create("EngineResource/Sky/spheremap.jpg");
+	//mEnvironmentMap.Create("EngineResource/Sky/SkyBox/wells6_hd.hdr");
 	//mEnvironmentMap.Create("EngineResource/Sky/a.png");
-	mEnvironmentRMap.Create("EngineResource/Sky/spheremapr.jpg");
+	//mEnvironmentRMap.Create("EngineResource/Sky/spheremapr.jpg");
+
+	//CreateCubeMap("EngineResource/Sky/SkyBox2/SkyBox", mEnvironmentMap);
+	//CreateCubeMapHDR("EngineResource/Sky/SkyBox2/skybox", mEnvironmentMap);
+	//CreatePanoramaHDR("EngineResource/Sky/SkyBox/wells6_hd.hdr", mEnvironmentMap);
 
 	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 
@@ -536,6 +823,9 @@ void DeferredRendering::Initialize(){
 	mMaterialPrePassEnv.Create("");
 	mMaterialPrePassEnv.SetTexture(mEnvironmentMap, 6);
 	mMaterialPrePassEnv.SetTexture(mEnvironmentRMap, 7);
+
+	mMaterialSkyBox.Create("EngineResource/ScreenClearSkyBox.fx");
+	mMaterialSkyBox.SetTexture(mEnvironmentMap, 6);
 
 
 	mMaterialLight.Create("EngineResource/DeferredLightRendering.fx");
@@ -546,6 +836,12 @@ void DeferredRendering::Initialize(){
 	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(1), 4);
 	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(2), 5);
 	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(3), 6);
+
+	mMaterialSkyLight.Create("EngineResource/SkyLightRendering.fx");
+	mMaterialSkyLight.SetTexture(m_NormalRT.GetTexture(), 0);
+	mMaterialSkyLight.SetTexture(m_DepthRT.GetTexture(), 1);
+	mMaterialSkyLight.SetTexture(m_SpecularRT.GetTexture(), 2);
+	mMaterialSkyLight.SetTexture(mEnvironmentMap, 7);
 
 	mMaterialDeferred.Create("EngineResource/DeferredRendering.fx");
 	mMaterialDeferred.SetTexture(m_AlbedoRT.GetTexture(), 0);
@@ -586,6 +882,15 @@ void DeferredRendering::Initialize(){
 	mCBBloomParam = ConstantBuffer<cbFreeParam>::create(10);
 
 }
+
+
+void DeferredRendering::SetSkyTexture(const Texture& texture){
+	mEnvironmentMap = texture;
+	mMaterialPrePassEnv.SetTexture(mEnvironmentMap, 6);
+	mMaterialSkyBox.SetTexture(mEnvironmentMap, 6);
+	mMaterialSkyLight.SetTexture(mEnvironmentMap, 7);
+
+}
 void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 
 	const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
@@ -595,6 +900,13 @@ void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::
 	mMaterialPrePassEnv.PSSetShaderResources(render->m_Context);
 
 	func();
+
+	render->PushSet(DepthStencil::Preset::DS_Zero_Less);
+	render->PushSet(Rasterizer::Preset::RS_None_Solid);
+	mModelTexture.Update();
+	mModelTexture.Draw(render->m_Context, mMaterialSkyBox);
+	render->PopRS();
+	render->PopDS();
 
 
 }
@@ -636,6 +948,9 @@ void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::fun
 	mMaterialLight.PSSetShaderResources(render->m_Context);
 
 	func();
+
+
+	mModelTexture.Draw(render->m_Context, mMaterialSkyLight);
 
 
 	render->PopBS();
@@ -701,6 +1016,17 @@ void DeferredRendering::Debug_G_Buffer_Rendering(IRenderingEngine* render, const
 
 	Model::mForcedMaterial = NULL;
 	Model::mForcedMaterialFilter = ForcedMaterialFilter::None;
+	{
+		const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
+		RenderTarget::SetRendererTarget(render->m_Context, (UINT)5, r[0], Device::mRenderTargetBack);
+
+		render->PushSet(DepthStencil::Preset::DS_Zero_Less);
+		render->PushSet(Rasterizer::Preset::RS_None_Solid);
+		mModelTexture.Update();
+		mModelTexture.Draw(render->m_Context, mMaterialSkyBox);
+		render->PopRS();
+		render->PopDS();
+	}
 }
 
 void DeferredRendering::Debug_AlbedoOnly_Rendering(IRenderingEngine* render,RenderTarget* rt){

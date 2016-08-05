@@ -85,6 +85,7 @@ public:
 	static void AddEngineObject(Actor* actor);
 	static bool IsGamePlay();
 	void GameStop();
+	static void SetMainCameraEngineUpdate(CameraComponent* Camera);
 #endif
 
 	void ChangePlayGame(bool isPlay);
@@ -139,6 +140,7 @@ private:
 
 
 	CameraComponent* mMainCamera;
+	CameraComponent* mMainCameraEngineUpdate;
 	RenderTarget mMainViewRenderTarget;
 	DeferredRendering m_DeferredRendering;
 	PostEffectRendering mPostEffectRendering;

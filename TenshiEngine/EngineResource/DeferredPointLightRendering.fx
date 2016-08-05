@@ -212,7 +212,8 @@ PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	dir = dir / r;
 
 	// 減衰  A*r^n + B
-	float atte = saturate(PtLPrm.x*pow(r, PtLPrm.w) + PtLPrm.y);
+	//float atte = saturate(PtLPrm.x*pow(r, PtLPrm.w) + PtLPrm.y);
+	float atte = saturate(pow(1 - pow(r / PtLPrm.z, 4), 2)) / (pow(r, 2) + 1);
 
 	//float n = 1;//任意の値(≠0)　減衰曲線を制御
 	//float rmin = 0;// 減衰開始距離　減衰率 = 1
@@ -225,7 +226,8 @@ PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	//atte = saturate(A*pow(r, n) + B);
 
 	// 拡散
-	float df = saturate(dot(nor, dir));
+	const float PI = 3.14159265359;
+	float df = saturate(dot(nor, dir)) * 1.0f / PI;
 
 	// 鏡面
 	//float3 h = normalize(dir - normalize(vpos));//ハーフベクトル
@@ -233,7 +235,7 @@ PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	//float3 spec = pow(saturate(dot(nor, h)), spec_pow);
 	float roughness = norCol.a - 1;
 	roughness = max(roughness, 0.1f);
-	float spec = LightingFuncGGX_REF(nor, -normalize(vpos), dir, roughness, 1);
+	float spec = LightingFuncGGX_REF(nor, -normalize(vpos), dir, roughness, 0.1);
 
 	Out.Diffuse = float4(atte*df*PtLCol.xyz, 1);
 	Out.Specular = float4(atte*spec*PtLCol.xyz, 1);

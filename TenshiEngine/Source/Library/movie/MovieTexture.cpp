@@ -6,6 +6,8 @@
 
 #include "MovieTexture.h"
 
+#if _MOVETEX_ENABLE
+
 #include "Device/Directx11Device.h"
 #include "Game/RenderingSystem.h"
 
@@ -699,3 +701,5 @@ VOID CMovieToTexture::GetEvent(long* lEventCode, long* lParam1, long* lParam2, l
 {
 	m_pME->GetEvent(lEventCode, lParam1, lParam2, msTimeout);
 }
+
+#endif

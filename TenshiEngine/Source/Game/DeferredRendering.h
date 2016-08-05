@@ -108,8 +108,10 @@ private:
 
 class DeferredRendering{
 public:
+	DeferredRendering();
 	~DeferredRendering();
 	void Initialize();
+	void SetSkyTexture(const Texture& texture);
 	void G_Buffer_Rendering(IRenderingEngine* render,const std::function<void(void)>& func);
 	void ShadowDepth_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func);
 	//void End_ShadowDepth_Buffer_Rendering();
@@ -128,6 +130,7 @@ public:
 	void Debug_G_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func);
 	void Debug_AlbedoOnly_Rendering(IRenderingEngine* render,RenderTarget* rt);
 
+
 private:
 	RenderTarget m_AlbedoRT;
 	RenderTarget m_SpecularRT;
@@ -144,10 +147,12 @@ private:
 	Material mMaterialDebugDrawPrePass;
 	Material mMaterialPrePassEnv;
 	Material mMaterialLight;
+	Material mMaterialSkyLight;
 	Material mMaterialDeferred;
 	Material mMaterialDepthShadow;
 	Material mMaterialParticle;
 	Material mMaterialPostEffect;
+	Material mMaterialSkyBox;
 
 	CascadeShadow mCascadeShadow;
 
@@ -158,4 +163,6 @@ private:
 	ConstantBuffer<cbFreeParam> mCBBloomParam;
 
 
+	DeferredRendering(const DeferredRendering &);
+	DeferredRendering& operator=(const DeferredRendering &);
 };

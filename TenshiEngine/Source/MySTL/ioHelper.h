@@ -4,6 +4,7 @@
 #include <stack>
 #include <fstream>
 #include "Library/picojson.h"
+#include "MySTL/Utility.h"
 
 class I_InputHelper;
 class I_OutputHelper;
@@ -192,8 +193,27 @@ public:
 	FileOutputHelper(const std::string& fileName, I_InputHelper* _prefab) :I_OutputHelper(_prefab), jsonfile(fileName)
 	{
 		if (jsonfile.fail()){
-			error = true;
-			return;
+			//ディレクトリの作成
+			{
+				std::string path = "";
+				auto fullpath = fileName;
+				bool roop = true;
+				while (roop){
+					auto dir = forward_than_find_first_of(fullpath, "/");
+					if (dir == "")break;
+					if (path != "")path += "\\";
+					path += dir;
+					fullpath.erase(0, dir.length() + 1);
+
+					if (CreateDirectory(path.c_str(), NULL)){
+					}
+				}
+			}
+			jsonfile.open(fileName);
+			if (jsonfile.fail()){
+				error = true;
+				return;
+			}
 		}
 		pushObject("");
 		if (_prefab)_prefab->popObject();

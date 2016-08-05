@@ -51,6 +51,7 @@ AssetFactory::AssetFactory(){
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("bmp"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tif"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tga"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("hdr"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
 
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("pxmaterial"), [](const char* filename){ return AssetDataTemplate<PhysxMaterialFileData>::Create(filename); }));
 

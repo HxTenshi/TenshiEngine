@@ -73,101 +73,100 @@ private:
 #include <memory>
 
 
-#pragma comment(lib,"lib/Debug/sqlite3.lib")
-#include "Library\sqlite3.h"
-class db{
-	db(){
-
-		// DBファイル名
-		char *fileName = "DB/SQLiteDB";
-		// DBオブジェクト
-		sqlite3 *pDB = NULL;
-		// DBのオープン
-		int err = sqlite3_open(fileName, &pDB);
-		if (err != SQLITE_OK){
-			/* エラー処理 */
-		}
-
-		// テーブルの作成
-		char *errMsg = NULL;
-
-		err = sqlite3_exec(pDB,
-			"CREATE TABLE IF NOT EXISTS myTable "
-			"(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-			"name CHAR(32) NOT NULL)",
-			NULL, NULL, &errMsg);
-
-		if (err != SQLITE_OK){
-			printf("%s\n", errMsg);
-			sqlite3_free(errMsg);
-			errMsg = NULL;
-			/* TODO: エラー処理 */
-		}
-
-		// ステートメントオブジェクト
-		sqlite3_stmt *pStmt = NULL;
-
-		// データの追加
-		// ステートメントの用意
-		err = sqlite3_prepare_v2(pDB,
-			"INSERT INTO myTable (name) VALUES (?)",
-			128, &pStmt, NULL);
-
-		if (err != SQLITE_OK){
-			/* TODO:エラー処理 */
-		}
-		else{
-			int i = 0;
-			for (i = 0; i < 5; i++){
-				std::string name = "test" + std::to_string(i);
-
-				// ?の部分に値を代入
-				sqlite3_bind_text(pStmt, 1, name.c_str(), name.length(), SQLITE_STATIC);
-				while (SQLITE_DONE != sqlite3_step(pStmt)){}
-			}
-		}
-
-		// ステートメントの解放
-		sqlite3_finalize(pStmt);
-
-		// データの抽出
-		// ステートメントの用意
-		err = sqlite3_prepare_v2(pDB,
-			"SELECT * FROM myTable", 64,
-			&pStmt, NULL);
-
-		if (err != SQLITE_OK){
-			/* TODO:エラー処理 */
-		}
-		else{
-			// データの抽出
-			while (SQLITE_ROW == (err = sqlite3_step(pStmt))){
-				int id = sqlite3_column_int(pStmt, 0);
-				const unsigned char *name = sqlite3_column_text(pStmt, 1);
-				printf("id: %d, name: %s\n", id, name);
-			}
-
-			if (err != SQLITE_DONE){
-				/* TODO: エラー処理 */
-			}
-		}
-
-		// ステートメントの解放
-		sqlite3_finalize(pStmt);
-
-		// DBのクローズ
-		err = sqlite3_close(pDB);
-		if (err != SQLITE_OK){
-			/* TODO:エラー処理 */
-		}
-	}
-};
+//#pragma comment(lib,"lib/Debug/sqlite3.lib")
+//#include "Library\sqlite3.h"
+//class db{
+//	db(){
+//
+//		// DBファイル名
+//		char *fileName = "DB/SQLiteDB";
+//		// DBオブジェクト
+//		sqlite3 *pDB = NULL;
+//		// DBのオープン
+//		int err = sqlite3_open(fileName, &pDB);
+//		if (err != SQLITE_OK){
+//			/* エラー処理 */
+//		}
+//
+//		// テーブルの作成
+//		char *errMsg = NULL;
+//
+//		err = sqlite3_exec(pDB,
+//			"CREATE TABLE IF NOT EXISTS myTable "
+//			"(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+//			"name CHAR(32) NOT NULL)",
+//			NULL, NULL, &errMsg);
+//
+//		if (err != SQLITE_OK){
+//			printf("%s\n", errMsg);
+//			sqlite3_free(errMsg);
+//			errMsg = NULL;
+//			/* TODO: エラー処理 */
+//		}
+//
+//		// ステートメントオブジェクト
+//		sqlite3_stmt *pStmt = NULL;
+//
+//		// データの追加
+//		// ステートメントの用意
+//		err = sqlite3_prepare_v2(pDB,
+//			"INSERT INTO myTable (name) VALUES (?)",
+//			128, &pStmt, NULL);
+//
+//		if (err != SQLITE_OK){
+//			/* TODO:エラー処理 */
+//		}
+//		else{
+//			int i = 0;
+//			for (i = 0; i < 5; i++){
+//				std::string name = "test" + std::to_string(i);
+//
+//				// ?の部分に値を代入
+//				sqlite3_bind_text(pStmt, 1, name.c_str(), name.length(), SQLITE_STATIC);
+//				while (SQLITE_DONE != sqlite3_step(pStmt)){}
+//			}
+//		}
+//
+//		// ステートメントの解放
+//		sqlite3_finalize(pStmt);
+//
+//		// データの抽出
+//		// ステートメントの用意
+//		err = sqlite3_prepare_v2(pDB,
+//			"SELECT * FROM myTable", 64,
+//			&pStmt, NULL);
+//
+//		if (err != SQLITE_OK){
+//			/* TODO:エラー処理 */
+//		}
+//		else{
+//			// データの抽出
+//			while (SQLITE_ROW == (err = sqlite3_step(pStmt))){
+//				int id = sqlite3_column_int(pStmt, 0);
+//				const unsigned char *name = sqlite3_column_text(pStmt, 1);
+//				printf("id: %d, name: %s\n", id, name);
+//			}
+//
+//			if (err != SQLITE_DONE){
+//				/* TODO: エラー処理 */
+//			}
+//		}
+//
+//		// ステートメントの解放
+//		sqlite3_finalize(pStmt);
+//
+//		// DBのクローズ
+//		err = sqlite3_close(pDB);
+//		if (err != SQLITE_OK){
+//			/* TODO:エラー処理 */
+//		}
+//	}
+//};
 
 
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-
 #include "Application\DrawThreadQueue.h"
 
 class Application{

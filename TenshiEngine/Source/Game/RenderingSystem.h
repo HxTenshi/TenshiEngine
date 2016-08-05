@@ -25,6 +25,7 @@ public:
 		Device::mpd3dDevice->CreateBlendState(&desc, state);
 	}
 	static void Set(ID3D11DeviceContext* context, StateType state, UINT Mask = 0xffffffff){
+		(void)Mask;
 		static const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		context->OMSetBlendState(state, blendFactor, 0xffffffff);
 	}
@@ -200,6 +201,10 @@ protected:
 		:m_Context(context){
 
 	}
+private:
+
+	IRenderingEngine(const IRenderingEngine &);
+	IRenderingEngine& operator=(const IRenderingEngine &);
 };
 enum class ContextType{
 
@@ -259,6 +264,9 @@ private:
 	RenderingStateSetting<BlendState> mBSSetting;
 	RenderingStateSetting<DepthStencil> mDSSetting;
 	RenderingStateSetting<Rasterizer> mRSSetting;
+
+	RenderingEngine(const RenderingEngine &);
+	RenderingEngine& operator=(const RenderingEngine &);
 };
 
 

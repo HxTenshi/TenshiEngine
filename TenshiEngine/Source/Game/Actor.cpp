@@ -167,6 +167,10 @@ void Actor::ExportData(const std::string& path, const std::string& fileName, boo
 	}
 
 	I_ioHelper* io = new FileOutputHelper(path + "/" + fileName + ".json", prefab_io.Get());
+	if (io->error){
+		delete io;
+		return;
+	}
 
 	_ExportData(io, childExport);
 
@@ -255,7 +259,6 @@ void Actor::PastePrefabParam(picojson::value& json){
 	picojson::value param;
 	auto filter = new MemoryInputHelper(json,NULL);
 	auto io_out = new MemoryOutputHelper(param, filter, true);
-
 
 	_ExportData(io_out);
 
@@ -462,7 +465,8 @@ void Actor::_ImportData(I_ioHelper* io){
 		io->pushObject("child");
 	
 		auto a = new Actor();
-		a->ImportDataAndNewID((picojson::value)childobj);
+		auto value = (picojson::value)childobj;
+		a->ImportDataAndNewID(value);
 		if (!a->mTransform){
 			delete a;
 		}

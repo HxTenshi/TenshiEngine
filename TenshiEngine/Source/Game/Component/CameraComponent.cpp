@@ -15,14 +15,14 @@ CameraComponent::CameraComponent()
 	//mSkyMaterial.mMaterialPath = "EngineResource/Sky/Sky.pmx.txt";
 	//mSkyMaterial.Initialize();
 
-	mSkyMaterial.Create("EngineResource/NoLighting.fx");
-	mSkyMaterial.SetTexture("EngineResource/Sky/a.png");
+	//mSkyMaterial.Create("EngineResource/NoLighting.fx");
+	//mSkyMaterial.SetTexture("EngineResource/Sky/a.png");
+	//mSkyModel.Create("EngineResource/Sky/Sky.pmx.tesmesh");
 
-	mSkyModel.Create("EngineResource/Sky/Sky.pmx.tesmesh");
 }
 CameraComponent::~CameraComponent()
 {
-	mSkyModel.Release();
+	//mSkyModel.Release();
 }
 
 void CameraComponent::Initialize()
@@ -44,8 +44,9 @@ void CameraComponent::Initialize()
 
 	UpdateView();
 
-
 	SetPerspective();
+
+	SetSkyTexture(mSkyTextureFileName);
 
 	//static RenderTarget mRenderTarget;
 	//mRenderTarget.CreateCUBE(256, 256, DXGI_FORMAT_R32G32B32A32_FLOAT);
@@ -93,7 +94,12 @@ void CameraComponent::SetOrthographic(){
 	mCBChangeOnResize.UpdateSubresource(render->m_Context);
 
 }
+void CameraComponent::EngineUpdate(){
 
+#ifdef _ENGINE_MODE
+	Game::SetMainCameraEngineUpdate(this);
+#endif
+}
 void CameraComponent::Update(){
 
 	//XMVECTOR null;
@@ -115,15 +121,21 @@ void CameraComponent::Update(){
 #ifdef _ENGINE_MODE
 void CameraComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("SkyTexture", &mSkyTextureFileName, [&](std::string s){SetSkyTexture(s); }), data);
 	Window::ViewInspector("Camera", this, data);
 }
 #endif
 
 void CameraComponent::IO_Data(I_ioHelper* io){
-	(void)io;
 #define _KEY(x) io->func( x , #x)
-
+	_KEY(mSkyTextureFileName);
 #undef _KEY
+}
+
+
+void CameraComponent::SetSkyTexture(const std::string fileName){
+	mSkyTextureFileName = fileName;
+	mSkyTexture.Create(mSkyTextureFileName.c_str());
 }
 
 void CameraComponent::VSSetConstantBuffers(ID3D11DeviceContext* context) const
@@ -194,30 +206,30 @@ void CameraComponent::UpdateView(){
 
 void CameraComponent::ScreenClear(){
 
-	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-	render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
-
-
-
-	XMVECTOR pos = gameObject->mTransform->WorldPosition();
-	XMMATRIX pm = XMMatrixTranslation(pos.x, pos.y, pos.z);
-	
-	//UINT width = WindowState::mWidth;
-	//UINT height = WindowState::mHeight;
-	//auto wh = XMVectorSet(width, height, 0, 1);
-	//auto l = XMVector2Length(wh);
-	//l.x *= 2;
-	//float scale1 = 1.0f / 200.0f;
-	//float s = l.x*scale1;
-	float s = 0.1f;
-	XMMATRIX sm = XMMatrixScaling(s,s,s);
-	mSkyModel.mWorld = sm * pm;
-	mSkyModel.Update();
-
-	mSkyModel.Draw(render->m_Context, mSkyMaterial);
-
-
-	render->PopDS();
+	//auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	//render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+	//
+	//
+	//
+	//XMVECTOR pos = gameObject->mTransform->WorldPosition();
+	//XMMATRIX pm = XMMatrixTranslation(pos.x, pos.y, pos.z);
+	//
+	////UINT width = WindowState::mWidth;
+	////UINT height = WindowState::mHeight;
+	////auto wh = XMVectorSet(width, height, 0, 1);
+	////auto l = XMVector2Length(wh);
+	////l.x *= 2;
+	////float scale1 = 1.0f / 200.0f;
+	////float s = l.x*scale1;
+	//float s = 0.1f;
+	//XMMATRIX sm = XMMatrixScaling(s,s,s);
+	//mSkyModel.mWorld = sm * pm;
+	//mSkyModel.Update();
+	//
+	//mSkyModel.Draw(render->m_Context, mSkyMaterial);
+	//
+	//
+	//render->PopDS();
 }
 
 

@@ -45,7 +45,7 @@ HRESULT ShaderFile::CompileShaderFromFile(const char* szFileName, LPCSTR szEntry
 	hr = D3DCompileFromFile(
 		fname.c_str(),
 		NULL,	// macro
-		NULL,	// include
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		szEntryPoint,
 		szShaderModel,
 		dwShaderFlags,

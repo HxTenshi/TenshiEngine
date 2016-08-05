@@ -123,8 +123,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\Physx\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <LinkIncremental>true</LinkIncremental>
@@ -137,15 +137,15 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\dll;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\Physx\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\dll;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\PhysX SDK\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\Physx\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)Exe</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
@@ -186,7 +186,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>.\..\DXUT11\Core;.\..\DXUT11\Optional;.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -279,7 +279,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>.\..\DXUT11\Core;.\..\DXUT11\Optional;.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_" /D "_ENGINE_MODE"</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -326,7 +326,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>.\..\DXUT11\Core;.\..\DXUT11\Optional;.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_"</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -453,7 +453,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>.\..\DXUT11\Core;.\..\DXUT11\Optional;.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_"</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -586,6 +586,8 @@
     <ClCompile Include="Source\Game\Component\TransformComponent.cpp" />
     <ClCompile Include="Source\Graphic\Font\Font.cpp" />
     <ClCompile Include="Source\Graphic\Loader\Animation\VMD.cpp" />
+    <ClCompile Include="Source\Graphic\Loader\HDR.cpp" />
+    <ClCompile Include="Source\Graphic\Loader\HDR2.cpp" />
     <ClCompile Include="Source\Graphic\Loader\Model\PMD.cpp" />
     <ClCompile Include="Source\Graphic\Loader\Model\PMX.cpp" />
     <ClCompile Include="Source\Graphic\Material\Material.cpp" />
@@ -703,6 +705,8 @@
     <ClInclude Include="Source\Game\Script\SGame.h" />
     <ClInclude Include="Source\Graphic\Font\Font.h" />
     <ClInclude Include="Source\Graphic\Loader\Animation\VMD.h" />
+    <ClInclude Include="Source\Graphic\Loader\HDR.h" />
+    <ClInclude Include="Source\Graphic\Loader\HDR2.h" />
     <ClInclude Include="Source\Graphic\Loader\Model\PMD.h" />
     <ClInclude Include="Source\Graphic\Loader\Model\PMX.h" />
     <ClInclude Include="Source\Graphic\Material\Material.h" />

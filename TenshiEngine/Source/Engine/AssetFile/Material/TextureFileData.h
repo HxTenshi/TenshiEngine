@@ -18,6 +18,11 @@ public:
 
 	ID3D11ShaderResourceView*	mpTextureRV;
 	ID3D11SamplerState*			mpSamplerLinear;
+
+private:
+	//コピー禁止
+	TextureData(const TextureData&) = delete;
+	TextureData& operator=(const TextureData&) = delete;
 };
 
 class TextureFileData : public AssetFileData{
@@ -43,6 +48,7 @@ public:
 private:
 
 	ID3D11ShaderResourceView* LoadDirectXTex();
+	ID3D11ShaderResourceView* LoadRGBE();
 
 
 	//コピー禁止
