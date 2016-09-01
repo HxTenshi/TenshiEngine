@@ -31,6 +31,9 @@ public:
 
 	static const AssetFileType _AssetFileType = AssetFileType::None;
 	const AssetFileType m_AssetFileType;
+private:
+	IAssetDataTemplate(const IAssetDataTemplate &);
+	IAssetDataTemplate& operator=(const IAssetDataTemplate &);
 };
 
 using AssetDataTemplatePtr = shared_ptr < IAssetDataTemplate >;

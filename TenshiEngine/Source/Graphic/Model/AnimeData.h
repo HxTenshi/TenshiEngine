@@ -33,7 +33,7 @@ public:
 	}
 
 	float GetLastFrameTime(){
-		return mLastKeyNo;
+		return (float)mLastKeyNo;
 	}
 
 	void Clear(){

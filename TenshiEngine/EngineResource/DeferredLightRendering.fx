@@ -202,9 +202,11 @@ inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	float shadow = step(LD, LVPos.z + offset);
 
 	// ディフューズ角度減衰率計算
-	float DifGen = saturate(NLDot);
-	DifGen *= shadow * 0.75;
-	DifGen = DifGen + 0.25;
+	const float PI = 3.14159265359;
+	float DifGen = saturate(NLDot)  * 1.0f / PI;
+	//DifGen *= shadow * 0.75;
+	//DifGen = DifGen + 0.25;
+	DifGen *= shadow;
 
 
 	float roughness = norCol.a - 1;
@@ -220,7 +222,7 @@ inline PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	Out.Diffuse = LightColor * DifGen;
 	Out.Diffuse.a = LightColor.a;
 
-	Out.Specular = LightColor * spec;
+	Out.Specular = LightColor * spec * shadow;
 	Out.Specular.a = LightColor.a;
 
 	return Out;

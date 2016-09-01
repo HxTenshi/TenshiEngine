@@ -193,7 +193,7 @@ void CharacterControllerComponent::Move(const XMVECTOR& velocity){
 
 
 	auto pos = mController->getFootPosition();
-	auto p = XMVectorSet(pos.x, pos.y, pos.z, 1.0f);
+	auto p = XMVectorSet((FLOAT)pos.x, (FLOAT)pos.y, (FLOAT)pos.z, 1.0f);
 	gameObject->mTransform->WorldPosition(p);
 }
 void CharacterControllerComponent::Teleport(const XMVECTOR& position){
@@ -205,7 +205,7 @@ void CharacterControllerComponent::Teleport(const XMVECTOR& position){
 
 
 	auto pos = mController->getFootPosition();
-	auto p = XMVectorSet(pos.x, pos.y, pos.z, 1.0f);
+	auto p = XMVectorSet((FLOAT)pos.x, (FLOAT)pos.y, (FLOAT)pos.z, 1.0f);
 	gameObject->mTransform->WorldPosition(p);
 }
 bool CharacterControllerComponent::IsGround(){
@@ -213,7 +213,7 @@ bool CharacterControllerComponent::IsGround(){
 	PxControllerState state;
 	mController->getState(state);
 
-	return (bool)(state.collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN);
+	return (state.collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN) == 0? false:true;
 }
 
 

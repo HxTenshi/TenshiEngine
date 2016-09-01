@@ -42,7 +42,7 @@ public:
 
 	Release_self<T>& operator = (T* value){
 
-		if (m_ptr){
+		if (m_ptr && m_ptr != value){
 			m_ptr->Release();
 			m_ptr = NULL;
 		}

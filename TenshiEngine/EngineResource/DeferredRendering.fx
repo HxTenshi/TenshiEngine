@@ -63,85 +63,96 @@ float4 PS(PS_INPUT input) : SV_Target
 	float4 dif = LightTex.Sample(LightSamLinear, input.Tex);
 	float4 lSpe = LightSpeTex.Sample(LightSpeSamLinear, input.Tex);
 
-	//float4 norcol = NormalTex.Sample(NormalSamLinear, input.Tex);
+	float Roughness = NormalTex.Sample(NormalSamLinear, input.Tex).a;
 	//float3 nor = norcol.xyz * 2 - 1.0;
 	float4 spc = SpecularTex.Sample(SpecularSamLinear, input.Tex);
-	//float spcPow = spc.a;
-	//float3 ray = spc.xyz * 2 - 1.0;
-	//	//ray.z = ray.z;
-	//	float3 ref = reflect(nor, ray);       // 反射ベクトル
-	//	//ref.xy = ref.xy * ref.z;
-	//
-	//	//ref.xy *= abs(ref.z) + 1;
-	//	//ref = normalize(ref);
-	//	ref.xy = ref.xy*float2(0.5,-0.5) + 0.5;
-	//	//ref.xy *= 0.9;
-	//	//ref.xy = saturate(ref.xy);
-	//	//if (ref.y >= 1){
-	//	//	ref.y = ref.y * -1;
-	//	//}
-	//	//else if (ref.y <= 0){
-	//	//	ref.y = ref.y * -1;
-	//	//}
-	//	//ref = normalize(ref);
-	//
-	//
-	//
-	//float roughness = norcol.a;
-	//float3 env = EnvironmentTex.Sample(EnvironmentSamLinear, ref.xy).rgb;
-	//float3 envR = EnvironmentRTex.Sample(EnvironmentRSamLinear, ref.xy).rgb;
-	//env = lerp(env, envR, pow(roughness,0.5f));
-	float3 env = spc.rgb;
+		//float spcPow = spc.a;
+		//float3 ray = spc.xyz * 2 - 1.0;
+		//	//ray.z = ray.z;
+		//	float3 ref = reflect(nor, ray);       // 反射ベクトル
+		//	//ref.xy = ref.xy * ref.z;
+		//
+		//	//ref.xy *= abs(ref.z) + 1;
+		//	//ref = normalize(ref);
+		//	ref.xy = ref.xy*float2(0.5,-0.5) + 0.5;
+		//	//ref.xy *= 0.9;
+		//	//ref.xy = saturate(ref.xy);
+		//	//if (ref.y >= 1){
+		//	//	ref.y = ref.y * -1;
+		//	//}
+		//	//else if (ref.y <= 0){
+		//	//	ref.y = ref.y * -1;
+		//	//}
+		//	//ref = normalize(ref);
+		//
+		//
+		//
+		//float roughness = norcol.a;
+		//float3 env = EnvironmentTex.Sample(EnvironmentSamLinear, ref.xy).rgb;
+		//float3 envR = EnvironmentRTex.Sample(EnvironmentRSamLinear, ref.xy).rgb;
+		//env = lerp(env, envR, pow(roughness,0.5f));
+		float3 env = spc.rgb;
 
 
 
-	//float s = LightingFuncGGX_REF(nor, -ray, -LightVect.xyz, roughness, 1);
+		//float s = LightingFuncGGX_REF(nor, -ray, -LightVect.xyz, roughness, 1);
 
-	//モーションブラー
-	//float x = 3.0/1200.0;
-	//float4 c;
-	//float count = 1;
-	//for (int i = 0; i < 30; i++){
-	//	{
-	//		float x_ = x * i;
-	//
-	//		float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
-	//			vel = vel * 2 - 1.0;
-	//		if (vel.x > x_){
-	//			float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
-	//				albedo += albedo2;
-	//			count++;
-	//		}
-	//	}
-	//	{
-	//		float x_ = -x * i;
-	//
-	//		float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
-	//			vel = vel * 2 - 1.0;
-	//		if (vel.x < x_){
-	//			float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
-	//				albedo += albedo2;
-	//			count++;
-	//		}
-	//	}
-	//	
-	//}
-	//albedo /= count;
-	//albedo.a = 1;
-
-
-
-	//float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex);
-	//vel = vel * 2 - 1.0;
-	//float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex - vel);
-	//albedo = lerp(albedo, albedo2, 0.5);
+		//モーションブラー
+		//float x = 3.0/1200.0;
+		//float4 c;
+		//float count = 1;
+		//for (int i = 0; i < 30; i++){
+		//	{
+		//		float x_ = x * i;
+		//
+		//		float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
+		//			vel = vel * 2 - 1.0;
+		//		if (vel.x > x_){
+		//			float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
+		//				albedo += albedo2;
+		//			count++;
+		//		}
+		//	}
+		//	{
+		//		float x_ = -x * i;
+		//
+		//		float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex + float2(x_, 0)).xy;
+		//			vel = vel * 2 - 1.0;
+		//		if (vel.x < x_){
+		//			float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex + float2(x_, 0));
+		//				albedo += albedo2;
+		//			count++;
+		//		}
+		//	}
+		//	
+		//}
+		//albedo /= count;
+		//albedo.a = 1;
 
 
-	float4 col = albedo * dif;
+
+		//float2 vel = VelocityTex.Sample(VelocitySamLinear, input.Tex);
+		//vel = vel * 2 - 1.0;
+		//float4 albedo2 = AlbedoTex.Sample(AlbedoSamLinear, input.Tex - vel);
+		//albedo = lerp(albedo, albedo2, 0.5);
+
+
+	float4 col;
+	if (spc.a <= -0.999999f){
+		col = spc;
+		col.a = 1.0f;
+	}
+	else{
+		col = albedo * dif;
+		col.rgb += spc.rgb * lSpe.rgb;
+	}
 	//col.rgb += env * spcPow;
 	//col.rgb = lerp(col.rgb, env, spcPow);
-	col.rgb = col.rgb + env;
-	col.rgb += lSpe.rgb;
+	
+	//col.rgb *= (1-Roughness) * 0.25 + 0.75;
+	//col.rgb += col.rgb * env;
+	//col.rgb += lSpe.rgb;
+	col.rgb = pow(col.rgb, 1.0f / 2.2);
 
 	//float l = length( -ray - nor);
 	//l = abs(l);

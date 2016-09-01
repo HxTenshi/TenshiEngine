@@ -55,7 +55,7 @@ void MeshComponent::CreateInspector(){
 		SetMesh(m_FileName, m_ID);
 
 	};
-	std::function<void(float)> collbackid = [&](float id){
+	std::function<void(int)> collbackid = [&](int id){
 		m_ID = id;
 		SetMesh(m_FileName, m_ID);
 	};

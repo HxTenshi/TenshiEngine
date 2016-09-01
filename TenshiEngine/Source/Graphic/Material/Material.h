@@ -55,6 +55,7 @@ public:
 	}
 
 	void CreateShader(const char* shaderFileName);
+
 public:
 
 	XMFLOAT4 mDiffuse;

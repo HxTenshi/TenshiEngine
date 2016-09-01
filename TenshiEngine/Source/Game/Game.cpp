@@ -26,6 +26,7 @@ static CameraComponent** gMainCamera;
 //
 Actor* Game::mRootObject;
 #ifdef _ENGINE_MODE
+static CameraComponent** gMainCameraEngineUpdate;
 static SelectActor* gSelectActor;
 Actor* Game::mEngineRootObject;
 #endif
@@ -60,6 +61,7 @@ Game::Game(){
 	_SYSTEM_LOG_H("ƒQ[ƒ€ƒV[ƒ“‚Ì‰Šú‰»");
 	mGame = this;
 	mMainCamera = NULL;
+	mMainCameraEngineUpdate = NULL;
 
 	gpDeltaTime = &mDeltaTime;
 #ifdef _ENGINE_MODE
@@ -104,6 +106,7 @@ Game::Game(){
 	gMainCamera = &mMainCamera;
 
 #ifdef _ENGINE_MODE
+	gMainCameraEngineUpdate = &mMainCameraEngineUpdate;
 	gCommandManager = &mCommandManager;
 	gIsPlay = mIsPlay;
 #endif
@@ -565,6 +568,10 @@ RenderTarget Game::GetMainViewRenderTarget(){
 bool Game::IsGamePlay(){
 	return gIsPlay;
 }
+
+void Game::SetMainCameraEngineUpdate(CameraComponent* Camera){
+	*gMainCameraEngineUpdate = Camera;
+}
 #endif
 
 void Game::LoadScene(const std::string& FilePath){
@@ -621,7 +628,7 @@ void Game::ChangePlayGame(bool isPlay){
 #ifdef _ENGINE_MODE
 bool g_DebugRender = true;
 #endif
-
+#include "../Engine/AssetFile/Material/TextureFileData.h"
 void Game::Draw(){
 	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 	if (!mMainCamera){
@@ -636,6 +643,13 @@ void Game::Draw(){
 	mMainCamera->VSSetConstantBuffers(render->m_Context);
 	mMainCamera->PSSetConstantBuffers(render->m_Context);
 	mMainCamera->GSSetConstantBuffers(render->m_Context);
+	Texture skyTex = mMainCamera->GetSkyTexture();
+#ifdef _ENGINE_MODE
+	if(mMainCameraEngineUpdate){
+		skyTex = mMainCameraEngineUpdate->GetSkyTexture();
+	}
+#endif
+	m_DeferredRendering.SetSkyTexture(skyTex);
 
 	//Device::mRenderTargetBack->ClearView(Device::mpImmediateContext);
 	Device::mRenderTargetBack->ClearDepth(render->m_Context);
@@ -699,7 +713,7 @@ void Game::Draw(){
 		mMainCamera->GSSetConstantBuffers(render->m_Context);
 
 		m_DeferredRendering.G_Buffer_Rendering(render, [&](){
-			mMainCamera->ScreenClear();
+			//mMainCamera->ScreenClear();
 			PlayDrawList(DrawStage::Diffuse);
 		});
 
@@ -724,7 +738,7 @@ void Game::Draw(){
 
 		m_DeferredRendering.Debug_G_Buffer_Rendering(render,
 			[&](){
-			mMainCamera->ScreenClear();
+			//mMainCamera->ScreenClear();
 			PlayDrawList(DrawStage::Diffuse);
 		});
 
@@ -768,7 +782,24 @@ void Game::Draw(){
 	ClearDrawList();
 
 	SetMainCamera(NULL);
+#ifdef _ENGINE_MODE
+	SetMainCameraEngineUpdate(NULL);
+#endif
 
+	{
+		ID3D11ShaderResourceView *const pNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+		ID3D11SamplerState *const pSNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+		render->m_Context->PSSetShaderResources(0, 8, pNULL);
+		render->m_Context->PSSetSamplers(0, 8, pSNULL);
+		render->m_Context->VSSetShaderResources(0, 8, pNULL);
+		render->m_Context->VSSetSamplers(0, 8, pSNULL);
+		render->m_Context->GSSetShaderResources(0, 8, pNULL);
+		render->m_Context->GSSetSamplers(0, 8, pSNULL);
+		render->m_Context->PSSetShader(NULL, NULL, 0);
+		render->m_Context->VSSetShader(NULL, NULL, 0);
+		render->m_Context->GSSetShader(NULL, NULL, 0);
+		render->m_Context->CSSetShader(NULL, NULL, 0);
+	}
 }
 
 
