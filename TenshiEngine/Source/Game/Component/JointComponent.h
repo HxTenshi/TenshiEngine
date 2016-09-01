@@ -6,10 +6,11 @@
 namespace physx{
 	class PxRigidActor;
 	class PxRevoluteJoint;
+	class PxDistanceJoint;
 }
 enum class RigitActorID{
-	Actor_1,
-	Actor_2,
+	Actor_0 = 0,
+	Actor_1 = 1,
 };
 
 class IJointComponent :public Component{
@@ -35,11 +36,13 @@ public:
 #endif
 	void IO_Data(I_ioHelper* io) override;
 
-	void SetRigidActor(RigitActorID id, physx::PxRigidActor* actor);
+	void SetRigidActor(RigitActorID id, Actor* actor);
 
 private:
 
-	physx::PxRevoluteJoint* mJoint;
+	//physx::PxRevoluteJoint* mJoint;
+	physx::PxDistanceJoint* mJoint;
 	physx::PxRigidActor* mRigidActor[2];
+	int mActorUID[2];
 };
 

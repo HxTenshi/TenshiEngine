@@ -424,6 +424,8 @@ void PhysX3Main::InitializePhysX() {
 	}
 
 
+	mRigidDynamic = (PxRigidDynamic*)createBody();
+	mRigidDynamic->setRigidDynamicFlag(PxRigidBodyFlag::eKINEMATIC, true);
 	mRigidStatic = createRigidStatic();
 	//createPlane();
 
@@ -624,8 +626,13 @@ PxController* PhysX3Main::CreateController(){
 	return c;
 }
 
-PxRevoluteJoint* PhysX3Main::CreateJoint(){
-	auto joint = PxRevoluteJointCreate(*gPhysicsSDK, NULL, PxTransform(), NULL, PxTransform());
+PxRevoluteJoint* PhysX3Main::CreateRevoluteJoint(){
+	auto joint = PxRevoluteJointCreate(*gPhysicsSDK, mRigidDynamic, PxTransform(PxVec3(0), PxQuat(1.0f)), NULL, PxTransform(PxVec3(0), PxQuat(1.0f)));
+	return joint;
+
+}
+PxDistanceJoint* PhysX3Main::CreateDistanceJoint(){
+	auto joint = PxDistanceJointCreate(*gPhysicsSDK, mRigidDynamic, PxTransform(PxVec3(0), PxQuat(1.0f)), NULL, PxTransform(PxVec3(0), PxQuat(1.0f)));
 	return joint;
 }
 
@@ -685,6 +692,8 @@ void PhysX3Main::Display() {
 void PhysX3Main::ShutdownPhysX() {
 
 
+
+	if (mRigidDynamic)mRigidDynamic->release();
 	if (mRigidStatic)mRigidStatic->release();
 
 	{

@@ -11,6 +11,7 @@
 #include "Application/Define.h"
 
 #include "Engine/SystemLog.h"
+#include "Input/InputManagerRapper.h"
 
 class WindowState{
 public:
@@ -53,8 +54,10 @@ public:
 
 	}
 	int Init();
+	void Update();
 
-	static void Release(){
+	void Release(){
+		mInputManagerRapper.Release();
 		//if (mhModuleWnd)
 		//	FreeLibrary(mhModuleWnd);
 #ifdef _ENGINE_MODE
@@ -69,6 +72,13 @@ public:
 
 		return mGameScreenHWND;
 		//return mGameScreenWindow.GetHWND();
+	}
+	static bool IsActive(){
+#ifdef _ENGINE_MODE
+		return mInputManagerRapper.GetScreenFocus();
+#else
+		return GetActiveWindow() == mGameScreenHWND;
+#endif
 	}
 
 	static void SetWindowTitle(const std::string& title){
@@ -173,6 +183,8 @@ public:
 	static HWND mhWnd;
 	HINSTANCE mhInstance;
 	int mnCmdShow;
+
+	static InputManagerRapper mInputManagerRapper;
 
 
 #ifdef _ENGINE_MODE

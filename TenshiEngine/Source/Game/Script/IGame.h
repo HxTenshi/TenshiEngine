@@ -3,6 +3,7 @@ class Actor;
 class PhysXEngine;
 class DeltaTime;
 class DebugEngine;
+class System;
 class IGame{
 public:
 	virtual Actor* GetRootActor() = 0;
@@ -14,5 +15,6 @@ public:
 	virtual DebugEngine* Debug() = 0;
 	virtual PhysXEngine* PhysX() = 0;
 	virtual DeltaTime* DeltaTime() = 0;
+	virtual System* System() = 0;
 	virtual void Shutdown() = 0;
 };

@@ -54,6 +54,10 @@ public:
 		mChengeTransformFlag |= (char)flag;
 	}
 
+
+	physx::PxRigidActor* GetRigidActor(){
+		return  mRigidActor;
+	}
 	void SetTransform(bool RebirthSet);
 
 	bool AddShape(physx::PxShape& shape);

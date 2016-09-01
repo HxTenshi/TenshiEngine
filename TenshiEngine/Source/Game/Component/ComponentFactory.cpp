@@ -5,6 +5,7 @@
 #include "CharacterControllerComponent.h"
 #include "PhysXComponent.h"
 #include "PhysXColliderComponent.h"
+#include "JointComponent.h"
 #include "TextComponent.h"
 #include "CameraComponent.h"
 #include "ModelComponent.h"
@@ -46,6 +47,7 @@ ComponentFactory::ComponentFactory(){
 	_NewFunc<CharacterControllerComponent>();
 	_NewFunc<PhysXComponent>();
 	_NewFunc<PhysXColliderComponent>();
+	_NewFunc<JointComponent>();
 	_NewFunc<SoundComponent>();
 	_NewFunc<MovieComponent>();
 	_NewFunc<PostEffectComponent>();

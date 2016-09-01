@@ -584,6 +584,7 @@
     <ClCompile Include="Source\Game\Component\ScriptComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TextComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TransformComponent.cpp" />
+    <ClCompile Include="Source\Game\System.cpp" />
     <ClCompile Include="Source\Graphic\Font\Font.cpp" />
     <ClCompile Include="Source\Graphic\Loader\Animation\VMD.cpp" />
     <ClCompile Include="Source\Graphic\Loader\Model\PMD.cpp" />
@@ -598,6 +599,7 @@
     <ClCompile Include="Source\Graphic\Shader\Shader.cpp" />
     <ClCompile Include="Source\Graphic\Shader\ShaderFile.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
+    <ClCompile Include="Source\Input\InputManagerRapper.cpp" />
     <ClCompile Include="Source\Library\movie\hwndMovie.cpp" />
     <ClCompile Include="Source\Library\movie\MovieTexture.cpp" />
     <ClCompile Include="Source\Library\unknownbase.cpp" />
@@ -701,6 +703,7 @@
     <ClInclude Include="Source\Game\Component\TextComponent.h" />
     <ClInclude Include="Source\Game\Component\TransformComponent.h" />
     <ClInclude Include="Source\Game\Script\SGame.h" />
+    <ClInclude Include="Source\Game\System.h" />
     <ClInclude Include="Source\Graphic\Font\Font.h" />
     <ClInclude Include="Source\Graphic\Loader\Animation\VMD.h" />
     <ClInclude Include="Source\Graphic\Loader\Model\PMD.h" />
@@ -721,6 +724,7 @@
     <ClInclude Include="Source\Graphic\Shader\ShaderFile.h" />
     <ClInclude Include="Source\Graphic\Shader\VertexShader.h" />
     <ClInclude Include="Source\Input\Input.h" />
+    <ClInclude Include="Source\Input\InputManagerRapper.h" />
     <ClInclude Include="Source\Library\easing.h" />
     <ClInclude Include="Source\Library\movie\hwndMovie.h" />
     <ClInclude Include="Source\Library\movie\MovieTexture.h" />

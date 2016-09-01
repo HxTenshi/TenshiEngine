@@ -129,6 +129,7 @@
     <ClCompile Include="Scripts\testhit.cpp" />
     <ClCompile Include="Scripts\TextureScroll.cpp" />
     <ClCompile Include="Scripts\ThunderLight.cpp" />
+    <ClCompile Include="Scripts\TPSCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Reflection\ReflectionSetter.h" />
@@ -144,6 +145,7 @@
     <ClInclude Include="Scripts\testhit.h" />
     <ClInclude Include="Scripts\TextureScroll.h" />
     <ClInclude Include="Scripts\ThunderLight.h" />
+    <ClInclude Include="Scripts\TPSCamera.h" />
     <ClInclude Include="System\factory.h" />
     <ClInclude Include="System\include.h" />
     <ClInclude Include="System\reflection.h" />

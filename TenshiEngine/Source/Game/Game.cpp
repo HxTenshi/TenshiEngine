@@ -32,6 +32,7 @@ Actor* Game::mEngineRootObject;
 Game* mGame = NULL;
 Scene Game::m_Scene;
 DeltaTime* gpDeltaTime;
+SystemHelper Game::mSystemHelper;
 
 #ifdef _ENGINE_MODE
 static bool gIsPlay;
@@ -498,6 +499,9 @@ PhysXEngine* Game::GetPhysXEngine(){
 DeltaTime* Game::GetDeltaTime(){
 	return gpDeltaTime;
 }
+System* Game::System(){
+	return &mSystemHelper;
+}
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
 }
@@ -601,6 +605,7 @@ void Game::ChangePlayGame(bool isPlay){
 		}
 	}
 	else{
+		mSystemHelper.Initialize();
 
 		mSelectActor.SetSelect(NULL);
 
@@ -832,6 +837,7 @@ void Game::GameStop(){
 }
 #endif
 void Game::GamePlay(){
+	mSystemHelper.Update();
 	float deltaTime = mDeltaTime.GetDeltaTime();
 
 	mRootObject->UpdateComponent(deltaTime);

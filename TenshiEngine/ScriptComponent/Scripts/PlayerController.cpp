@@ -8,10 +8,14 @@
 void PlayerController::Initialize(){
 	mJump = XMVectorZero();
 	mGravity = XMVectorSet(0, -9.81f, 0,1);
+	mRotate = XMVectorZero();
 }
 
 //initializeとupdateの前に呼ばれます（エディター中も呼ばれます）
 void PlayerController::Start(){
+
+	game->System()->LockCursorPositionToWindowCenter(true);
+
 }
 
 //毎フレーム呼ばれます
@@ -25,19 +29,18 @@ void PlayerController::Update(){
 	float speed = 10.0f;
 	float x = 0, y = 0;
 	if (Input::Down(KeyCoord::Key_W)){
-		y = -1.0f;
-	}
-	if (Input::Down(KeyCoord::Key_S)){
 		y = 1.0f;
 	}
-	if (Input::Down(KeyCoord::Key_D)){
-		x = -1.0f;
+	if (Input::Down(KeyCoord::Key_S)){
+		y = -1.0f;
 	}
-	if (Input::Down(KeyCoord::Key_A)){
+	if (Input::Down(KeyCoord::Key_D)){
 		x = 1.0f;
 	}
-	
-	
+	if (Input::Down(KeyCoord::Key_A)){
+		x = -1.0f;
+	}
+
 	
 	bool isGround = cc->IsGround();
 
@@ -107,36 +110,79 @@ void PlayerController::Update(){
 	}
 	
 	
-	XMVECTOR normal = XMVectorSet(0, 1, 0, 1);
-	if (isGround){
-		//auto pos = gameObject->mTransform->WorldPosition();
-		auto d = XMVectorSet(0, -1, 0, 1);
-		RaycastHit hit;
-		if (game->PhysX()->RaycastHit(pos, d, 100.0f, &hit)){
-			normal = hit.normal;
-			normal = XMVector3Normalize(normal);
+	if (false){
+		float rotY = 0.0f;
+		float rotX = 0.0f;
+		if (Input::Down(KeyCoord::Key_Q)){
+			rotY = -1.0f;
 		}
+		if (Input::Down(KeyCoord::Key_E)){
+			rotY = 1.0f;
+		}
+		rotY *= game->DeltaTime()->GetDeltaTime();
+
+		XMVECTOR normal = XMVectorSet(0, 1, 0, 1);
+		if (isGround){
+			//auto pos = gameObject->mTransform->WorldPosition();
+			auto d = XMVectorSet(0, -1, 0, 1);
+			RaycastHit hit;
+			if (game->PhysX()->RaycastHit(pos, d, 5.0f, &hit)){
+				normal = hit.normal;
+				normal = XMVector3Normalize(normal);
+			}
+		}
+
+		{
+			auto up = gameObject->mTransform->Up();
+			up = XMVector3Normalize(up);
+			auto dot = XMVector3Dot(normal, up).x;
+			auto angle = acos(dot);
+			auto n = XMVector3Cross(up, normal);
+			n = XMVector3Normalize(n);
+			n.w = 1.0f;
+			angle = min(angle, XM_PI * time);
+			auto q = XMQuaternionRotationNormal(n, angle);
+			auto wq = gameObject->mTransform->WorldQuaternion();
+			q = XMQuaternionMultiply(wq, q);
+			q = XMQuaternionNormalize(q);
+			if (XMQuaternionIsInfinite(q) || XMQuaternionIsNaN(q)){
+				return;
+			}
+
+
+			auto rotateQ = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0);
+			q = XMQuaternionMultiply(rotateQ, q);
+			gameObject->mTransform->WorldQuaternion(q);
+		}
+	}
+	else{
+
+			{
+				int mx, my;
+				Input::MousePosition(&mx, &my);
+				auto p = game->System()->GetLockCursorPosition();
+				float _mx = mx - p.x;
+				float _my = my - p.y;
+				mRotate.y += _mx / 200.0f;
+				mRotate.x += _my / 200.0f;
+			}
+
+
+		float MAX = XM_PI / 2 - 0.1f;
+		mRotate.x = min(max(mRotate.x, -MAX),MAX);
+
+		auto left = gameObject->mTransform->Left();
+
+		auto qx = XMQuaternionRotationRollPitchYaw(mRotate.x, 0, 0);
+		//auto qx = XMQuaternionRotationAxis(left, mRotate.x);
+		//qx = XMQuaternionNormalize(qx);
+		auto qy = XMQuaternionRotationRollPitchYaw(0, mRotate.y, 0);
+		qx = XMQuaternionMultiply(qx, qy);
+		qx = XMQuaternionNormalize(qx);
+		
+		gameObject->mTransform->WorldQuaternion(qx);
 	}
 	
-	{
-		auto up = gameObject->mTransform->Up();
-		up = XMVector3Normalize(up);
-		auto dot = XMVector3Dot(normal, up).x;
-		auto angle = acos(dot);
-		auto n = XMVector3Cross(up, normal);
-		n = XMVector3Normalize(n);
-		n.w = 1.0f;
-		angle = min(angle, XM_PI * time);
-		auto q = XMQuaternionRotationNormal(n, angle);
-		auto wq = gameObject->mTransform->WorldQuaternion();
-		q = XMQuaternionMultiply(wq, q);
-		q = XMQuaternionNormalize(q);
-		if (XMQuaternionIsInfinite(q) || XMQuaternionIsNaN(q)){
-			return;
-		}
-		gameObject->mTransform->WorldQuaternion(q);
-	}
-
 }
 
 //開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）（エディター中も呼ばれます）

@@ -24,52 +24,6 @@
 
 #include "Engine/Profiling.h"
 
-class InputManagerRapper{
-public:
-
-	void Initialize(HWND hWnd, HINSTANCE hInstance){
-		mr = false;
-		ml = false;
-		mx = 0;
-		my = 0;
-		wx = 1;
-		wy = 1;
-
-		InputManager::InitDirectInput(hWnd, hInstance);
-#ifdef _ENGINE_MODE
-		mScreenFocus = false;
-		Window::SetMouseEvents(&mScreenFocus,&ml, &mr, &mx, &my, &wx, &wy);
-#else
-		mScreenFocus = true;
-#endif
-	}
-
-	void Update(){
-
-#ifdef _ENGINE_MODE
-
-		InputManager::SetMouseL(ml);
-		InputManager::SetMouseR(mr);
-		int x = (int)((float)mx / wx * WindowState::mWidth);
-		int y = (int)((float)my / wy * WindowState::mHeight);
-		InputManager::SetMouseXY(x, y);
-#else
-#endif
-
-		InputManager::Update(mScreenFocus);
-	}
-
-	void Release(){
-		InputManager::Release();
-	}
-
-private:
-	bool mScreenFocus;
-	bool mr, ml;
-	int mx, my;
-	int wx, wy;
-};
-
 #include <memory>
 
 
@@ -180,17 +134,18 @@ public:
 	{
 	}
 
-	HRESULT InitDevice(const Window& window)
+	HRESULT InitDevice(Window* window)
 	{
 
 		_SYSTEM_LOG_H("アプリケーションの初期化");
 		HRESULT hr = S_OK;
+		mWindow = window;
 
-		hr = Device::Init(window);
+		hr = Device::Init(*window);
 		if (FAILED(hr))
 			return hr;
 
-		mInputManagerRapper.Initialize(window.GetMainHWND(), window.mhInstance);
+		//mInputManagerRapper.Initialize(window.GetMainHWND(), window.mhInstance);
 
 		mGame = new Game();
 
@@ -217,7 +172,8 @@ public:
 		{
 			{
 				auto tick = Profiling::Start("Main:Update");
-				mInputManagerRapper.Update();
+				//mInputManagerRapper.Update();
+				mWindow->Update();
 				mGame->Update();
 			}
 			{
@@ -328,7 +284,8 @@ public:
 			{
 				{
 					auto tick = Profiling::Start("Main:Update");
-					mInputManagerRapper.Update();
+					mWindow->Update();
+					//mInputManagerRapper.Update();
 					mGame->Update();
 				}
 				{
@@ -410,11 +367,8 @@ public:
 
 		if (mGame)delete mGame;
 
-		mInputManagerRapper.Release();
-
 		Device::CleanupDevice();
 
-		Window::Release();
 	}
 private:
 
@@ -463,7 +417,6 @@ private:
 	//	SetEvent(mDrawEvent);
 	//}
 
-	InputManagerRapper mInputManagerRapper;
 	Game* mGame;
 
 public:
@@ -474,6 +427,8 @@ public:
 	//HANDLE mMessageEvent;
 	HANDLE mDrawEvent;
 	std::thread mDrawThread;
+
+	Window* mWindow;
 
 };
 
@@ -534,7 +489,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 
 	{
 		Application App;
-		if (FAILED(App.InitDevice(mWindow)))
+		if (FAILED(App.InitDevice(&mWindow)))
 		{
 			App.CleanupDevice();
 			return 0;
@@ -544,6 +499,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		App.Render();
 
 		App.CleanupDevice();
+		mWindow.Release();
 	}
 
 	return 0;// (int)msg.wParam;
