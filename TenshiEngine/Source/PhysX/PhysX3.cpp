@@ -298,9 +298,10 @@ PxDefaultCpuDispatcher* mCpuDispatcher = NULL;
 PxVec3 gravity(0, -9.81f, 0);
 void PhysX3Main::InitializePhysX() {
 
-	mCollideFiler[0] = true;
-	for (int i = 1; i < Layer::UserTag12; i <<= 1){
-		for (int j = i; j < Layer::UserTag12; j <<= 1){
+	for (int I = 0; I < 13; I++){
+		for (int J = I; J < 13; J++){
+			int i = 1 << I;
+			int j = 1 << J;
 			mCollideFiler[i | j] = true;
 		}
 	}

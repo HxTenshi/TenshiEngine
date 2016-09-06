@@ -1,54 +1,70 @@
 #include "PhysxLayer.h"
 #include "Window/Window.h"
 #include "Physx/Physx3.h"
+#include "Game/Game.h"
 
 PhysxLayer::PhysxLayer(){
-	mPhysX3Main = NULL;
-	_0x0 = true;
-	_0x1 = true;
-	_1x1 = true;
-	i = 0;
 	mSelects.push_back("None");
 	mSelects.push_back("Layer1");
 	mSelects.push_back("Layer2");
+	mSelects.push_back("Layer3");
+	mSelects.push_back("Layer4");
+	mSelects.push_back("Layer5");
+	mSelects.push_back("Layer6");
+	mSelects.push_back("Layer7");
+	mSelects.push_back("Layer8");
+	mSelects.push_back("Layer9");
+	mSelects.push_back("Layer10");
+	mSelects.push_back("Layer11");
+	mSelects.push_back("Layer12");
+
+
+	for (int I = 0; I < 13; I++){
+		for (int J = I; J < 13; J++){
+			int i = 1 << I;
+			int j = 1 << J;
+			mCollideFiler[i | j] = true;
+		}
+	}
+
+	for (int I = 0; I < 13; I++){
+		for (int J = I; J < 13; J++){
+			int i = 1 << I;
+			int j = 1 << J;
+
+			SetLayerFlag(I,J, mCollideFiler[i | j]);
+		}
+	}
+	
 }
 
 PhysxLayer::~PhysxLayer(){
-	mPhysX3Main = NULL;
+
 }
 
 #ifdef _ENGINE_MODE
 void PhysxLayer::CreateInspector(){
 	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("0", &mSelects[0], [&](std::string f){
-		mSelects[0] = f;
-	}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("1", &mSelects[1], [&](std::string f){
-		mSelects[1] = f;
-	}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("2", &mSelects[2], [&](std::string f){
-		mSelects[2] = f;
-	}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("0x0", &_0x0, [&](bool f){
-		_0x0 = f;
-		SetLayerFlag(0, 0, f);
-	}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("0x1", &_0x1, [&](bool f){
-		_0x1 = f;
-		SetLayerFlag(0, 1, f);
-	}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("1x1", &_1x1, [&](bool f){
-		_1x1 = f;
-		SetLayerFlag(1,1,f);
-	}), data);
 
-	Window::AddInspector(new InspectorSelectDataSet("0x0", mSelects, &i, [&](int f){
-		i=f;
-	}), data);
+	for (int i = 0; i < 13; i++){
+		Window::AddInspector(new TemplateInspectorDataSet<std::string>(std::to_string(i), &mSelects[i], [&,i](std::string f){
+			mSelects[i] = f;
+		}), data);
+	}
 
-	Window::AddInspector(new TemplateInspectorDataSet<int>("1x1", &i, [&](int f){
-		i = f;
-	}), data);
+	for (int I = 0; I < 13; I++){
+		for (int J = I; J < 13; J++){
+			int i = 1 << I;
+			int j = 1 << J;
+			std::string text = std::to_string(I) + "x" + std::to_string(J);
+
+			Window::AddInspector(new TemplateInspectorDataSet<bool>(text, &mCollideFiler[i | j], [&, I, J](bool f){
+				
+				SetLayerFlag(I, J, f);
+			}), data);
+		}
+	}
+
 	Window::ViewInspector("PhysxLayer", NULL, data);
 
 
@@ -57,8 +73,65 @@ void PhysxLayer::CreateInspector(){
 
 
 void PhysxLayer::SetLayerFlag(int l1, int l2, bool f){
-	Layer::Enum layer1 = (Layer::Enum)(1 << l1);
-	Layer::Enum layer2 = (Layer::Enum)(1 << l2);
+	int layer1 = (1 << l1);
+	int layer2 = (1 << l2);
 
-	mPhysX3Main->SetLayerCollideFlag(layer1, layer2, f);
+	mCollideFiler[layer1 | layer2] = f;
+	Game::GetPhysX()->SetLayerCollideFlag((Layer::Enum)layer1, (Layer::Enum)layer2, f);
+}
+
+void PhysxLayer::_ExportData(I_ioHelper* io, bool childExport){
+
+
+#define _KEY_COMPEL(x) io->func( x , #x,true)
+#define _KEY_COMPEL_ARR(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str(),true)
+
+	for (int i = 0; i < 13; i++){
+		_KEY_COMPEL_ARR(i, mSelects[i]);
+	}
+
+	for (int I = 0; I < 13; I++){
+		for (int J = I; J < 13; J++){
+			int i = 1 << I;
+			int j = 1 << J;
+
+			int k = i | j;
+
+			_KEY_COMPEL_ARR(k, mCollideFiler[k]);
+
+		}
+	}
+
+#undef _KEY
+#undef _KEY_COMPEL
+}
+
+void PhysxLayer::_ImportData(I_ioHelper* io){
+
+
+#define _KEY_COMPEL(x) io->func( x , #x)
+#define _KEY_COMPEL_ARR(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str())
+
+
+	for (int i = 0; i < 13; i++){
+		_KEY_COMPEL_ARR(i, mSelects[i]);
+	}
+
+	for (int I = 0; I < 13; I++){
+		for (int J = I; J < 13; J++){
+			int i = 1 << I;
+			int j = 1 << J;
+
+			int k = i | j;
+
+			_KEY_COMPEL_ARR(k, mCollideFiler[k]);
+
+			SetLayerFlag(I,J, mCollideFiler[i | j]);
+
+		}
+	}
+
+
+#undef _KEY
+#undef _KEY_COMPEL
 }

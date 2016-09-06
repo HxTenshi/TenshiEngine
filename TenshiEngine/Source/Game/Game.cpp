@@ -137,6 +137,7 @@ Game::Game(){
 	AddEngineObject(o);
 
 	gPhysxLayer = o;
+	gPhysxLayer->ImportData("Settings/PhysxLayer");
 
 	mCamera.Initialize();
 	mSelectActor.Initialize();
@@ -848,6 +849,7 @@ void Game::Draw(){
 
 void Game::SaveScene(){
 	m_Scene.SaveScene(mRootObject);
+	gPhysxLayer->ExportData("Settings","PhysxLayer");
 }
 
 void Game::Update(){

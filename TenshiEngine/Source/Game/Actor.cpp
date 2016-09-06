@@ -222,6 +222,7 @@ void Actor::_ExportData(I_ioHelper* io, bool childExport){
 	_KEY_COMPEL(mUniqueID);
 	_KEY_COMPEL(mName);
 	_KEY_COMPEL(mPrefab);
+	_KEY_COMPEL(mPhysxLayer);
 
 
 	io->pushObject("components");
@@ -402,6 +403,7 @@ void Actor::_ImportData(I_ioHelper* io){
 	_KEY(mUniqueID);
 	_KEY(mName);
 	_KEY(mPrefab);
+	_KEY(mPhysxLayer);
 
 	if (mPrefab!=""){
 		AssetDataBase::Instance(mPrefab.c_str(), mPrefabAsset);

@@ -9,24 +9,18 @@ public:
 	PhysxLayer();
 	~PhysxLayer();
 
-	void SetPhysX(PhysX3Main *ptr){
-		mPhysX3Main = ptr;
-	}
 #ifdef _ENGINE_MODE
 	void CreateInspector() override;
 #endif
 
-
+	void _ExportData(I_ioHelper* io, bool childExport = false) override;
+	void _ImportData(I_ioHelper* io) override;
 
 	std::vector<std::string>& GetSelects(){ return mSelects; };
 
 private:
 	void SetLayerFlag(int l1,int l2, bool f);
-	PhysX3Main *mPhysX3Main;
 
-	bool _0x0;
-	bool _0x1;
-	bool _1x1;
-	int i;
 	std::vector<std::string> mSelects;
+	std::unordered_map<int, bool> mCollideFiler;
 };
