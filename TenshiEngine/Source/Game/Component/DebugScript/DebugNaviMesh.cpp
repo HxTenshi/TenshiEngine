@@ -13,7 +13,7 @@ DebugNaviMesh::DebugNaviMesh(){
 DebugNaviMesh::~DebugNaviMesh(){
 
 }
-void DebugNaviMesh::Initialize(Actor* gameObject){
+void DebugNaviMesh::Initialize(GameObject gameObject){
 	mGameObject = gameObject;
 	mNaviMesh.Create(mFileName);
 }

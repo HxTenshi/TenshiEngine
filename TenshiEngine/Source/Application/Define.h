@@ -15,6 +15,12 @@ enum class MyWindowMessage{
 	CreateScriptFile,
 	CreateAssetFile,
 
+	//ƒtƒ@ƒCƒ‹‘€ìŒn
+	AssetFileChanged,
+	AssetFileCreated,
+	AssetFileDeleted,
+	AssetFileRenamed,
+
 	PlayGame,
 	StopGame,
 	CreateModelConvert,

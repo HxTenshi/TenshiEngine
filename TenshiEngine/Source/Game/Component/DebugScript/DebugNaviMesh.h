@@ -9,7 +9,7 @@ class DebugNaviMesh : public IDebugEngineScript {
 public:
 	DebugNaviMesh();
 	~DebugNaviMesh();
-	void Initialize(Actor* gameObject) override;
+	void Initialize(GameObject gameObject) override;
 	void EngineUpdate() override;
 	void Update() override;
 	void Finish() override;
@@ -30,5 +30,5 @@ private:
 	NaviMeshPolygon* mEnd;
 
 	float mSpeed;
-	Actor* mGameObject;
+	GameObject mGameObject;
 };

@@ -1,10 +1,7 @@
 #pragma once
 
-#include <string>
-#include <list>
-namespace picojson{
-	class value;
-}
+#include "Library/picojson.h"
+
 class Actor;
 
 class Scene{
@@ -13,7 +10,7 @@ public:
 	~Scene();
 
 	void LoadScene(const std::string& fileName);
-	void SaveScene(Actor* SceneRoot);
+	void SaveScene();
 
 	void MemoryLoadScene();
 	void MemorySaveScene();
@@ -25,5 +22,5 @@ private:
 
 	std::string m_MemorySaveFilePath;
 	std::string m_MemorySaveName;
-	std::list<picojson::value*> mMemorySave;
+	picojson::array m_MemorySave;
 };

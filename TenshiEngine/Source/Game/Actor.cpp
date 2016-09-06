@@ -11,48 +11,22 @@
 
 #include "Engine/AssetFile/Prefab/PrefabFileData.h"
 
-class UniqueIDGenerator{
-public:
-	UniqueIDGenerator(const char* file)
-	{
-		mID = 0;
-		if (!mFile.Open(file)){
-			mFile.FileCreate();
-		}
-		if (mFile)
-			mFile.In(&mID);
-	}
-	~UniqueIDGenerator(){
-		mFile.Clear();
-		mFile.Out(mID);
-	}
-	UINT CreateUniqueID(){
-		return ++mID;
-	}
-private:
-	UINT mID;
-	File mFile;
-};
-
-static UniqueIDGenerator gUniqueIDGenerator("./UniqueID.txt");
-
-
 Actor::Actor()
-	:mComponents(this)
-	, mTreeViewPtr(NULL)
+	: mTreeViewPtr(NULL)
 	, mTransform(NULL)
 	, mEndStart(false)
 {
 	mName = "new Object";
-	mUniqueID = 0;
+	mUniqueHash = "";
 }
 Actor::~Actor()
 {
 }
 
 void Actor::Initialize(){
+	mComponents.Initialize(this->shared_from_this());
 	for (const auto& cmp : mComponents.mComponent){
-		cmp.second->_Initialize(this);
+		cmp.second->_Initialize(this->shared_from_this());
 	}
 	mComponents.RunInitialize();
 }
@@ -142,18 +116,18 @@ void Actor::CreateInspector(){
 }
 #endif
 
-void Actor::ExportSceneDataStart(const std::string& pass, File& sceneFile){
-	for (auto child : mTransform->Children()){
-		child->ExportSceneData(pass, sceneFile);
-	}
-}
-void Actor::ExportSceneData(const std::string& pass, File& sceneFile){
-	ExportData(pass);
-	sceneFile.Out(mUniqueID);
-	for (auto child : mTransform->Children()){
-		child->ExportSceneData(pass, sceneFile);
-	}
-}
+//void Actor::ExportSceneDataStart(const std::string& pass, File& sceneFile){
+//	for (auto child : mTransform->Children()){
+//		child->ExportSceneData(pass, sceneFile);
+//	}
+//}
+//void Actor::ExportSceneData(const std::string& pass, File& sceneFile){
+//	ExportData(pass);
+//	sceneFile.Out(mUniqueID);
+//	for (auto child : mTransform->Children()){
+//		child->ExportSceneData(pass, sceneFile);
+//	}
+//}
 
 void Actor::ExportData(const std::string& path, const std::string& fileName, bool childExport){
 
@@ -177,13 +151,13 @@ void Actor::ExportData(const std::string& path, const std::string& fileName, boo
 
 	delete io;
 }
-void Actor::ExportData(const std::string& path){
-
-	if (!mUniqueID){
-		mUniqueID = gUniqueIDGenerator.CreateUniqueID();
-	}
-	ExportData(path, "Object_" + std::to_string(mUniqueID));
-}
+//void Actor::ExportData(const std::string& path){
+//
+//	if (!mUniqueID){
+//		CreateNewID();
+//	}
+//	ExportData(path, "Object_" + std::to_string(mUniqueID));
+//}
 
 void Actor::ExportData(picojson::value& json, bool childExport){
 
@@ -203,14 +177,14 @@ void Actor::ExportData(picojson::value& json, bool childExport){
 
 void Actor::_ExportData(I_ioHelper* io, bool childExport){
 
-	if (!mUniqueID){
+	if (mUniqueHash == ""){
 		CreateNewID();
 	}
 
 #define _KEY(x) io->func( x , #x)
 #define _KEY_COMPEL(x) io->func( x , #x,true)
 
-	_KEY_COMPEL(mUniqueID);
+	_KEY_COMPEL(mUniqueHash);
 	_KEY_COMPEL(mName);
 	_KEY_COMPEL(mPrefab);
 
@@ -327,13 +301,16 @@ bool Actor::ImportDataAndNewID(const std::string& fileName){
 	return true;
 }
 
+#include "Library/MD5.h"
 void Actor::CreateNewID(){
-	mUniqueID = gUniqueIDGenerator.CreateUniqueID();
+	MD5::MD5HashCoord hash;
+	MD5::GenerateMD5(hash);
+	mUniqueHash = hash.GetString();
 
 	if (!mTransform)return;
 	//UniqueID“o˜^‚µ‚È‚¨‚µ
 	for (auto child : mTransform->Children()){
-		child->mTransform->SetParentUniqueID(mUniqueID);
+		child->mTransform->SetParentUniqueID(mUniqueHash);
 	}
 }
 
@@ -390,7 +367,7 @@ void Actor::_ImportData(I_ioHelper* io){
 
 #define _KEY(x) io->func( x , #x)
 
-	_KEY(mUniqueID);
+	_KEY(mUniqueHash);
 	_KEY(mName);
 	_KEY(mPrefab);
 
@@ -471,7 +448,7 @@ void Actor::_ImportData(I_ioHelper* io){
 			delete a;
 		}
 		else{
-			a->mTransform->SetParent(this);
+			a->mTransform->SetParent(this->shared_from_this());
 		}
 	
 		io->popObject();

@@ -9,7 +9,7 @@ ActorUndoCommand::ActorUndoCommand(Actor* actor)
 }
 
 void ActorUndoCommand::Undo(){
-	auto act = new Actor();
+	auto act = make_shared<Actor>();
 	act->ImportData(mPrev);
 	auto id = act->GetUniqueID();
 	if (auto tar = Game::FindUID(id)){
@@ -25,7 +25,7 @@ ActorDestroyUndoCommand::ActorDestroyUndoCommand(Actor* actor)
 
 void ActorDestroyUndoCommand::Undo(){
 	if (auto tar = Game::FindUID(mPrev)){
-		Game::DestroyObject(tar);
+		Game::DestroyObject(tar.Get());
 	}
 }
 

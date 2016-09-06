@@ -1229,6 +1229,9 @@ private:
 
 	void OnChanged(Object^ source, System::IO::FileSystemEventArgs^ e)
 	{
+		
+		std::string* str = string_cast(e->FullPath);
+		Data::MyPostMessage(MyWindowMessage::AssetFileChanged, (void*)str);
 	}
 
 	//TestContent::Person ^ DirSearch(String^ dir, TestContent::Person ^par){
@@ -1315,21 +1318,24 @@ private:
 			r[0] = "\\";
 			auto file = e->Name->Split(r, System::StringSplitOptions::None);
 			auto filename = file[file->Length - 1];
-			auto item = gcnew TestContent::Person(filename, gcnew TestContent::MyList());
-			item->DataPtr = (IntPtr)NULL;
+			auto item = CreateAssetItem(filename);
+			if (!item)return;
 			par->Add(item);
 
 			//フォルダなら
 			if (IsDirectory(e->FullPath)){
 				//空のフォルダの場合　空のアイテムを追加
 				if (item->Children->Count == 0){
-					auto nullitem = gcnew TestContent::Person("", gcnew TestContent::MyList());
-					nullitem->DataPtr = (IntPtr)NULL;
+					auto nullitem = CreateAssetItem("");
 					item->Add(nullitem);
 				}
-}
-
+			}
+			else{
+				std::string* str = string_cast(e->FullPath);
+				Data::MyPostMessage(MyWindowMessage::AssetFileCreated, (void*)str);
+			}
 		}
+
 	}
 	void OnDeleted(Object^ source, System::IO::FileSystemEventArgs^ e)
 	{
@@ -1337,6 +1343,9 @@ private:
 		if (item){
 			item->RemoveSelf();
 		}
+
+		std::string* str = string_cast(e->FullPath);
+		Data::MyPostMessage(MyWindowMessage::AssetFileDeleted, (void*)str);
 	}
 	void OnRenamed(Object^ source, System::IO::RenamedEventArgs^ e)
 	{
@@ -1349,6 +1358,10 @@ private:
 			auto filename = file[file->Length - 1];
 			item->Name = filename;
 		}
+		
+
+		std::string* str = string_cast(e->OldFullPath + ";" + e->FullPath);
+		Data::MyPostMessage(MyWindowMessage::AssetFileRenamed, (void*)str);
 	}
 
 	void FileSystemEvent(String^ FolderPath)
@@ -1379,6 +1392,17 @@ private:
 
 	}
 
+	//ツリービューアイテムの作成
+	TestContent::Person^ CreateAssetItem(String^ name){
+
+		if (System::IO::Path::GetExtension(name) == ".meta"){
+			return nullptr;
+		}
+
+		auto temp = gcnew TestContent::Person(name, gcnew TestContent::MyList());
+		temp->DataPtr = (IntPtr)NULL;
+		return temp;
+	}
 
 	//指定フォルダから全てのフォルダとファイルを登録
 	void CreateAssetTreeViewItem_StartFolder(TestContent::Person^ parent, String^ Path){
@@ -1386,8 +1410,8 @@ private:
 
 		if (!dirs->Exists)return;
 
-		auto folder = gcnew TestContent::Person(Path, gcnew TestContent::MyList());
-		folder->DataPtr = (IntPtr)NULL;
+		auto folder = CreateAssetItem(Path);
+		if (!folder)return;
 		parent->Add(folder);
 
 		CreateAssetTreeViewItem(folder, Path);
@@ -1408,8 +1432,8 @@ private:
 
 		while (folders->MoveNext()){
 
-			auto folder = gcnew TestContent::Person(folders->Current->Name, gcnew TestContent::MyList());
-			folder->DataPtr = (IntPtr)NULL;
+			auto folder = CreateAssetItem(folders->Current->Name);
+			if (!folder)continue;
 			parent->Add(folder);
 
 			CreateAssetTreeViewItem(folder, folders->Current->FullName);
@@ -1418,8 +1442,7 @@ private:
 
 			//空のフォルダの場合　空のアイテムを追加
 			if (folder->Children->Count == 0){
-				auto nullitem = gcnew TestContent::Person("", gcnew TestContent::MyList());
-				nullitem->DataPtr = (IntPtr)NULL;
+				auto nullitem = CreateAssetItem("");
 				folder->Add(nullitem);
 			}
 
@@ -1428,8 +1451,8 @@ private:
 		auto fileenum = dirs->EnumerateFiles();
 		auto files = fileenum->GetEnumerator();
 		while (files->MoveNext()){
-			auto item = gcnew TestContent::Person(files->Current->Name, gcnew TestContent::MyList());
-			item->DataPtr = (IntPtr)NULL;
+			auto item = CreateAssetItem(files->Current->Name);
+			if (!item)continue;
 			parent->Add(item);
 		}
 
@@ -1450,8 +1473,7 @@ private:
 
 		//空のフォルダの場合　空のアイテムを追加
 		if (par->Children->Count == 0){
-			auto nullitem = gcnew TestContent::Person("", gcnew TestContent::MyList());
-			nullitem->DataPtr = (IntPtr)NULL;
+			auto nullitem = CreateAssetItem("");
 			par->Add(nullitem);
 		}
 

@@ -10,6 +10,8 @@
 
 #include "Library\movie\hwndMovie.h"
 
+#include "AssetFile\MetaFileData.h"
+
 #include "AssetFile\Bone\BoneFileData.h"
 #include "AssetFile\Mesh\MeshFileData.h"
 #include "AssetFile\Prefab\PrefabFileData.h"
@@ -26,8 +28,44 @@ public: __AssetFactory(){}
 };
 
 decltype(AssetDataBase::m_AssetCache) AssetDataBase::m_AssetCache;
+decltype(AssetDataBase::m_AssetMetaCache) AssetDataBase::m_AssetMetaCache;
 
 static __AssetFactory factory;
+
+#include "Engine/Asset/GenerateMetaFile.h"
+//static
+void AssetDataBase::InitializeMetaData(const char* filename){
+
+
+	auto s = (std::string(filename) + (".meta"));
+	auto file = m_AssetCache.find(filename);
+
+	if (file == m_AssetCache.end()){
+
+		AssetDataTemplatePtr data;
+		data = AssetFactory::Create(s.c_str());
+		if (data && (AssetFileType::Meta == data->m_AssetFileType)){
+			MetaAssetDataPtr meta = data;
+			m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), filename));
+		
+			m_AssetCache.insert(std::make_pair(filename, std::make_pair(*meta->GetFileData()->GetHash(), AssetDataTemplatePtr(NULL))));
+		
+		}
+		else{
+			MakeMetaFile(filename);
+			data = AssetFactory::Create(s.c_str());
+			if (data && (AssetFileType::Meta == data->m_AssetFileType)){
+				MetaAssetDataPtr meta = data;
+				m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), filename));
+		
+				m_AssetCache.insert(std::make_pair(filename, std::make_pair(*meta->GetFileData()->GetHash(), AssetDataTemplatePtr(NULL))));
+		
+			}
+		}
+	}
+
+}
+
 
 AssetFactory::AssetFactory(){
 	//ƒ€[ƒr[ü‚è
@@ -61,6 +99,8 @@ AssetFactory::AssetFactory(){
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("mp4"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wmv"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
 	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("avi"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
+
+	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("meta"), [](const char* filename){ return AssetDataTemplate<MetaFileData>::Create(filename); }));
 }
 
 
@@ -99,7 +139,7 @@ void AssetDataTemplate<PrefabFileData>::CreateInspector(){
 	std::function<void()> collback = [&](){
 		auto before = m_FileData->Apply();
 
-		Game::GetAllObject([&](Actor* tar){
+		Game::GetAllObject([&](GameObject tar){
 			auto str = tar->Prefab();
 			if (m_FileData->GetFileName() == str){
 
@@ -132,7 +172,7 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 	std::function<void()> collback = [&](){
 		m_FileData->FileUpdate();
 
-		Game::GetAllObject([&](Actor* tar){
+		Game::GetAllObject([&](GameObject tar){
 			auto com = tar->GetComponent<PhysXColliderComponent>();
 			if (com){
 				com->ChangeMaterial(com->GetMaterial());

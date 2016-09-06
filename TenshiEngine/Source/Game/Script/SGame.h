@@ -11,13 +11,13 @@
 //ゲームのスタティック関数の肩代わり
 class SGame : public IGame{
 public:
-	Actor* GetRootActor()override{
+	GameObject GetRootActor()override{
 		return Game::GetRootActor();
 	}
-	Actor* CreateActor(const char* prefab)override{
+	Game::GameObjectPtr CreateActor(const char* prefab)override{
 
 
-		auto a = new Actor();
+		auto a = make_shared<Actor>();
 
 		PrefabAssetDataPtr mPrefabAsset;
 		AssetDataBase::Instance(prefab, mPrefabAsset);
@@ -32,13 +32,13 @@ public:
 
 
 		if (!a->ImportDataAndNewID(prefab)){
-			delete a;
+			//delete a;
 			return NULL;
 		}
 		return a;
 	}
 
-	Actor* FindActor(const char* name)override{
+	GameObject FindActor(const char* name)override{
 		return Game::FindNameActor(name);
 	}
 	void AddObject(Actor* actor) override{

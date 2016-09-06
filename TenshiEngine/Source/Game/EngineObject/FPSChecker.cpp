@@ -29,14 +29,14 @@ public:
 };
 
 FPSChecker::FPSChecker()
-	: mFPSObject(new Text())
+	: mFPSObject(make_shared<Text>())
 	, mFrameNum(60)
 {
 	mFPSObject->Initialize();
 	mFPSObject->Start();
 }
 FPSChecker::~FPSChecker(){
-	delete mFPSObject;
+	//delete mFPSObject;
 }
 
 void FPSChecker::Update(float deltaTime){

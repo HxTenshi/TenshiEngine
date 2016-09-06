@@ -28,6 +28,7 @@ TextureModelComponent::~TextureModelComponent(){
 	}
 }
 
+#include "../../Engine/AssetFile/Material/TextureFileData.h"
 void TextureModelComponent::Initialize(){
 	if (!mModel){
 		mModel = new Model();
@@ -42,6 +43,15 @@ void TextureModelComponent::Initialize(){
 	if (!mMaterial->IsCreate()){
 		mMaterial->Create("EngineResource/Texture.fx");
 		mMaterial->SetTexture(mTextureName.c_str(), 0);
+
+		if (mTextureHash != ""){
+			MD5::MD5HashCoord hash(mTextureHash.c_str());
+			Texture tex;
+			if (tex.Create(hash) == S_OK){
+				mMaterial->SetTexture(tex, 0);
+			}
+				
+		}
 	}
 }
 
@@ -139,6 +149,17 @@ void TextureModelComponent::CreateInspector(){
 
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Texture", &mTextureName, collbacktex), data);
+
+	Window::AddInspector(new TemplateInspectorDataSet<std::string>("TextureHash", &mTextureHash, [&](std::string name){
+		MD5::MD5HashCoord hash;
+		if (AssetDataBase::FilePath2Hash(name.c_str(), hash)){
+			mTextureHash = hash.GetString();
+		}
+		else{
+			mTextureHash = "";
+		}
+		mMaterial->SetTexture(name.c_str(), 0);
+	}), data);
 	Window::ViewInspector("TextureModel", this, data);
 }
 #endif
@@ -146,6 +167,7 @@ void TextureModelComponent::CreateInspector(){
 void TextureModelComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
 	_KEY(mTextureName);
+	_KEY(mTextureHash);
 #undef _KEY
 }
 

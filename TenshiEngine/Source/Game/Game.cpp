@@ -14,6 +14,35 @@
 #include "Game/RenderingSystem.h"
 
 #include "Engine/ModelConverter.h"
+#include "Engine/Asset/GenerateMetaFile.h"
+
+#include <algorithm>
+#include <filesystem>
+
+
+void _LoadMetaFiles(const char* path){
+	namespace sys = std::tr2::sys;
+	sys::path p(path); // 列挙の起点
+	std::for_each(sys::recursive_directory_iterator(p), sys::recursive_directory_iterator(),
+		[](const sys::path& p) {
+		if (sys::is_regular_file(p)) { // ファイルなら...
+			if (p.extension() == ".meta")return;
+			//メタファイルが存在していなければ
+			if (GetFileAttributes((p.string() + ".meta").c_str()) == -1){
+				MakeMetaFile(p.string());
+			}
+			//メタファイル読み込み
+			AssetDataBase::InitializeMetaData(p.string().c_str());
+		}
+		else if (sys::is_directory(p)) { // ディレクトリなら...
+
+		}
+	});
+}
+void LoadMetaFiles() {
+	_LoadMetaFiles("EngineResource/");
+	_LoadMetaFiles("Assets/");
+}
 
 
 static std::stack<int> gIntPtrStack;
@@ -24,11 +53,11 @@ static PhysX3Main* gpPhysX3Main;
 static CommandManager* gCommandManager;
 static CameraComponent** gMainCamera;
 //
-Actor* Game::mRootObject;
+Game::GameObjectPtr Game::mRootObject;
 #ifdef _ENGINE_MODE
 static CameraComponent** gMainCameraEngineUpdate;
 static SelectActor* gSelectActor;
-Actor* Game::mEngineRootObject;
+Game::GameObjectPtr Game::mEngineRootObject;
 #endif
 Game* mGame = NULL;
 Scene Game::m_Scene;
@@ -56,7 +85,14 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 
 #include "Engine/AssetLoader.h"
 
+#include "Engine/AssetFile/MetaFileData.h"
+#include "Engine/AssetFile/Material/TextureFileData.h"
+
 Game::Game(){
+
+	LoadMetaFiles();
+	
+
 	_SYSTEM_LOG_H("ゲームシーンの初期化");
 	mGame = this;
 	mMainCamera = NULL;
@@ -112,13 +148,13 @@ Game::Game(){
 
 
 
-	mRootObject = new Actor();
+	mRootObject = make_shared<Actor>();
 	mRootObject->mTransform = mRootObject->AddComponent<TransformComponent>();
 	mRootObject->Initialize();
 	mRootObject->Start();
 
 #ifdef _ENGINE_MODE
-	mEngineRootObject = new Actor();
+	mEngineRootObject = make_shared<Actor>();
 	mEngineRootObject->mTransform = mEngineRootObject->AddComponent<TransformComponent>();
 	mEngineRootObject->Initialize();
 	mEngineRootObject->Start();
@@ -152,8 +188,8 @@ Game::Game(){
 
 		//削除失敗リストから検索して削除
 		bool remove = false;
-		mTreeViewItem_ErrerClearList.remove_if([&](Actor* tar){
-			bool f = tar == act;
+		mTreeViewItem_ErrerClearList.remove_if([&](GameObjectPtr tar){
+			bool f = tar.Get() == act;
 			if (f){
 				Window::ClearTreeViewItem(p);
 				remove = true;
@@ -166,10 +202,10 @@ Game::Game(){
 		act->mTreeViewPtr = p;
 		//ツリービューで親子関係のセット関数
 		if (auto par = act->mTransform->GetParent()){
-			if (par == mRootObject)return;
+			if (par.Get() == mRootObject.Get())return;
 
 			//ツリービューが完成するまで繰り返す関数
-			auto coll = CreateSetParentTreeViewItemColl(par, act);
+			auto coll = CreateSetParentTreeViewItemColl(par.Get(), act);
 			//とりあえず１回実行
 			coll();
 		}
@@ -192,15 +228,15 @@ Game::Game(){
 		gIntPtrStack.pop();
 		auto parent = ((Actor*)intptr);
 		if (!parent){
-			parent = mRootObject;
+			parent = mRootObject.Get();
 		}
 		auto act = ((Actor*)p);
-		act->mTransform->SetParentWorld(parent);
+		act->mTransform->SetParentWorld(parent->shared_from_this());
 		SetUndo(act);
 	});
 	Window::SetWPFCollBack(MyWindowMessage::ActorDestroy, [&](void* p)
 	{
-		Game::DestroyObject((Actor*)p, true);
+		Game::DestroyObject(((Actor*)p)->shared_from_this(), true);
 		mSelectActor.SetSelect(NULL, true);
 	});
 
@@ -246,9 +282,8 @@ Game::Game(){
 	Window::SetWPFCollBack(MyWindowMessage::CreatePrefabToActor, [&](void* p)
 	{
 		std::string *s = (std::string*)p;
-		auto a = new Actor();
+		auto a = make_shared<Actor>();
 		if (!a->ImportDataAndNewID(*s)){
-			delete a;
 		}
 		else{
 			AddObject(a,true);
@@ -371,9 +406,9 @@ Game::~Game(){
 #endif
 
 	ActorMoveStage();
-	delete mRootObject;
+	//delete mRootObject;
 #ifdef _ENGINE_MODE
-	delete mEngineRootObject;
+	////delete mEngineRootObject;
 	mSelectActor.Finish();
 #endif
 
@@ -386,16 +421,16 @@ Game::~Game(){
 
 }
 //static
-void Game::AddObject(Actor* actor, bool undoFlag){
+void Game::AddObject(GameObjectPtr actor, bool undoFlag){
 	if (!actor->mTransform){
-		delete actor;
+		//delete actor;
 		return;
 	}
-	if (actor->GetUniqueID() == 0){
+	if (actor->GetUniqueID() == ""){
 		actor->CreateNewID();
 	}
 
-	gpList->insert(std::pair<UINT, Actor*>(actor->GetUniqueID(), actor));
+	gpList->insert(std::make_pair(actor->GetUniqueID(), actor));
 	actor->Initialize();
 
 	mGame->mActorMoveList.push(std::make_pair(ActorMove::Create, actor));
@@ -405,16 +440,16 @@ void Game::AddObject(Actor* actor, bool undoFlag){
 	}
 #ifdef _ENGINE_MODE
 	if (undoFlag){
-		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor));
-		gCommandManager->SetUndo(actor);
+		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor.Get()));
+		gCommandManager->SetUndo(actor.Get());
 	}
 #endif
 }
 #ifdef _ENGINE_MODE
 //static
-void Game::AddEngineObject(Actor* actor){
+void Game::AddEngineObject(GameObjectPtr actor){
 	if (!actor->mTransform){
-		delete actor;
+		//delete actor;
 		return;
 	}
 
@@ -426,15 +461,15 @@ void Game::AddEngineObject(Actor* actor){
 }
 #endif
 //static
-void Game::DestroyObject(Actor* actor, bool undoFlag){
+void Game::DestroyObject(GameObjectPtr actor, bool undoFlag){
 	if (!actor)return;
 	auto desnum = gpList->erase(actor->GetUniqueID());
 	if (!desnum)return;
 	mGame->mActorMoveList.push(std::make_pair(ActorMove::Delete, actor));
 #ifdef _ENGINE_MODE
 	if (undoFlag){
-		gCommandManager->SetUndo(actor);
-		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor));
+		gCommandManager->SetUndo(actor.Get());
+		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor.Get()));
 	}
 #endif
 }
@@ -442,9 +477,9 @@ void Game::DestroyObject(Actor* actor, bool undoFlag){
 //static
 void Game::ActorMoveStage(){
 	while (!mGame->mActorMoveList.empty()){
-		auto& tar = mGame->mActorMoveList.front();
+		auto tar = mGame->mActorMoveList.front();
 		mGame->mActorMoveList.pop();
-		auto actor = tar.second;
+		auto actor = tar.second.Get();
 		if (tar.first == ActorMove::Delete){
 
 #ifdef _ENGINE_MODE
@@ -467,7 +502,7 @@ void Game::ActorMoveStage(){
 			t->AllChildrenDestroy();
 			actor->Finish();
 
-			delete actor;
+			//delete actor;
 
 		}
 		else{
@@ -507,20 +542,20 @@ void Game::RemovePhysXActor(PxActor* act){
 void Game::RemovePhysXActorEngine(PxActor* act){
 	return gpPhysX3Main->RemoveActorEngine(act);
 }
-Actor* Game::GetRootActor(){
+GameObject Game::GetRootActor(){
 	return mRootObject;
 }
-Actor* Game::FindActor(Actor* actor){
+GameObject Game::FindActor(Actor* actor){
 
 	for (auto& act : (*gpList)){
-		if (act.second == actor){
+		if (act.second.Get() == actor){
 			return act.second;
 		}
 	}
 	return NULL;
 }
 
-Actor* Game::FindNameActor(const char* name){
+GameObject Game::FindNameActor(const char* name){
 
 	for (auto& act : (*gpList)){
 		if (act.second->Name() == name){
@@ -530,7 +565,7 @@ Actor* Game::FindNameActor(const char* name){
 	return NULL;
 }
 
-Actor* Game::FindUID(UINT uid){
+GameObject Game::FindUID(UniqueID uid){
 	auto get = (*gpList).find(uid);
 	if (get == (*gpList).end())return NULL;
 	return get->second;
@@ -579,7 +614,7 @@ void Game::LoadScene(const std::string& FilePath){
 
 	auto children = t->Children();
 	for (auto child : children){
-		Game::DestroyObject(child);
+		Game::DestroyObject(child.lock());
 	}
 
 	m_Scene.LoadScene(FilePath);
@@ -620,12 +655,202 @@ void Game::ChangePlayGame(bool isPlay){
 #endif
 }
 
+void Game::testDraw(){
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	//{
+		static bool init = false;
+		static Texture tex;
+		static Model mModelTexture;
+		static Material mMaterial;
+		if (!init){
+			tex.Create("EngineResource/error.png");
+			init = true;
+
+			mModelTexture.Create("EngineResource/TextureModel.tesmesh");
+			mMaterial.Create("EngineResource/PostEffectRendering.fx");
+
+
+			mMaterial.SetTexture(tex, 0);
+			mMaterial.SetTexture(tex, 1);
+		}
+		for (int i = 0; i < 8; i++){
+			tex.PSSetShaderResources(render->m_Context, i);
+		}
+		ID3D11ShaderResourceView *const pNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+		ID3D11SamplerState *const pSNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+		render->m_Context->VSSetShaderResources(0, 8, pNULL);
+		render->m_Context->VSSetSamplers(0, 8, pSNULL);
+		render->m_Context->GSSetShaderResources(0, 8, pNULL);
+		render->m_Context->GSSetSamplers(0, 8, pSNULL);
+		render->m_Context->PSSetShader(NULL, NULL, 0);
+		render->m_Context->VSSetShader(NULL, NULL, 0);
+		render->m_Context->GSSetShader(NULL, NULL, 0);
+		render->m_Context->CSSetShader(NULL, NULL, 0);
+
+	//}
+
+	Device::mRenderTargetBack->ClearView(render->m_Context);
+	Device::mRenderTargetBack->ClearDepth(render->m_Context);
+	mMainViewRenderTarget.ClearView(render->m_Context);
+
+	if (!mMainCamera){
+		ClearDrawList();
+		return;
+	}
+	//ここでもアップデートしてる（仮処理）
+	mMainCamera->Update();
+	mMainCamera->VSSetConstantBuffers(render->m_Context);
+	mMainCamera->PSSetConstantBuffers(render->m_Context);
+	mMainCamera->GSSetConstantBuffers(render->m_Context);
+	Texture skyTex = mMainCamera->GetSkyTexture();
+	if (mMainCameraEngineUpdate){
+		skyTex = mMainCameraEngineUpdate->GetSkyTexture();
+	}
+	m_DeferredRendering.SetSkyTexture(skyTex);
+
+
+	// Setup the viewport
+	D3D11_VIEWPORT vp;
+	vp.Width = (FLOAT)WindowState::mWidth;
+	vp.Height = (FLOAT)WindowState::mHeight;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	render->m_Context->RSSetViewports(1, &vp);
+
+	render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+	render->PushSet(DepthStencil::Preset::DS_All_Less);
+	render->PushSet(Rasterizer::Preset::RS_Back_Solid);
+
+	//const RenderTarget* r[1] = { &mMainViewRenderTarget };
+	//RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
+
+	Device::mRenderTargetBack->SetRendererTarget(render->m_Context);
+
+	mModelTexture.Update();
+	mModelTexture.Draw(render->m_Context, mMaterial);
+
+	RenderTarget::NullSetRendererTarget(render->m_Context);
+	//mPostEffectRendering.Rendering(render, [&](){});
+
+	render->PopDS();
+	render->PopRS();
+
+	ClearDrawList();
+
+	SetMainCamera(NULL);
+	SetMainCameraEngineUpdate(NULL);
+	return;
+
+
+	mCBGameParameter.mParam.Time.x++;
+	mCBGameParameter.mParam.Time.y += mDeltaTime.GetDeltaTime();
+	mCBGameParameter.mParam.Time.z = mDeltaTime.GetDeltaTime();
+	mCBGameParameter.UpdateSubresource(render->m_Context);
+	mCBGameParameter.VSSetConstantBuffers(render->m_Context);
+	mCBGameParameter.PSSetConstantBuffers(render->m_Context);
+	mCBGameParameter.GSSetConstantBuffers(render->m_Context);
+	mCBGameParameter.CSSetConstantBuffers(render->m_Context);
+
+	mCBScreen.UpdateSubresource(render->m_Context);
+	mCBScreen.CSSetConstantBuffers(render->m_Context);
+	mCBScreen.GSSetConstantBuffers(render->m_Context);
+	mCBScreen.VSSetConstantBuffers(render->m_Context);
+	mCBScreen.PSSetConstantBuffers(render->m_Context);
+
+	//今は意味なし
+	PlayDrawList(DrawStage::Depth);
+
+
+	render->m_Context->PSSetShaderResources(0, 4, pNULL);
+	render->m_Context->PSSetSamplers(0, 4, pSNULL);
+
+	PlayDrawList(DrawStage::Init);
+	{
+
+		m_DeferredRendering.Debug_G_Buffer_Rendering(render,
+			[&](){
+			//mMainCamera->ScreenClear();
+			PlayDrawList(DrawStage::Diffuse);
+		});
+
+
+		m_DeferredRendering.Debug_AlbedoOnly_Rendering(render, &mMainViewRenderTarget);
+
+		m_DeferredRendering.Forward_Rendering(render, &mMainViewRenderTarget, [&](){
+			PlayDrawList(DrawStage::Forward);
+		});
+
+		m_DeferredRendering.Particle_Rendering(render, &mMainViewRenderTarget, [&](){
+			PlayDrawList(DrawStage::Particle);
+		});
+	}
+
+
+	mPostEffectRendering.Rendering(render, [&](){
+		PlayDrawList(DrawStage::PostEffect);
+	});
+
+	PlayDrawList(DrawStage::Engine);
+
+	render->PopDS();
+
+	{
+		render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+		render->PushSet(BlendState::Preset::BS_Alpha, 0xFFFFFFFF);
+
+		PlayDrawList(DrawStage::UI);
+
+		render->PopBS();
+		render->PopDS();
+	}
+
+	render->PopRS();
+
+	ClearDrawList();
+
+	SetMainCamera(NULL);
+	SetMainCameraEngineUpdate(NULL);
+
+	{
+		ID3D11ShaderResourceView *const pNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+		ID3D11SamplerState *const pSNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+		render->m_Context->PSSetShaderResources(0, 8, pNULL);
+		render->m_Context->PSSetSamplers(0, 8, pSNULL);
+		render->m_Context->VSSetShaderResources(0, 8, pNULL);
+		render->m_Context->VSSetSamplers(0, 8, pSNULL);
+		render->m_Context->GSSetShaderResources(0, 8, pNULL);
+		render->m_Context->GSSetSamplers(0, 8, pSNULL);
+		render->m_Context->PSSetShader(NULL, NULL, 0);
+		render->m_Context->VSSetShader(NULL, NULL, 0);
+		render->m_Context->GSSetShader(NULL, NULL, 0);
+		render->m_Context->CSSetShader(NULL, NULL, 0);
+	}
+}
+
 #ifdef _ENGINE_MODE
 bool g_DebugRender = true;
 #endif
 #include "../Engine/AssetFile/Material/TextureFileData.h"
 void Game::Draw(){
 	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+	// Setup the viewport
+	D3D11_VIEWPORT vp;
+	vp.Width = (FLOAT)WindowState::mWidth;
+	vp.Height = (FLOAT)WindowState::mHeight;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	render->m_Context->RSSetViewports(1, &vp);
+	render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
 	if (!mMainCamera){
 
 		Device::mRenderTargetBack->ClearView(render->m_Context);
@@ -737,8 +962,8 @@ void Game::Draw(){
 			PlayDrawList(DrawStage::Diffuse);
 		});
 
+
 		m_DeferredRendering.Debug_AlbedoOnly_Rendering(render,&mMainViewRenderTarget);
-		
 		
 		m_DeferredRendering.Forward_Rendering(render, &mMainViewRenderTarget, [&](){
 			PlayDrawList(DrawStage::Forward);
@@ -799,7 +1024,7 @@ void Game::Draw(){
 
 
 void Game::SaveScene(){
-	m_Scene.SaveScene(mRootObject);
+	m_Scene.SaveScene();
 }
 
 void Game::Update(){
@@ -807,7 +1032,7 @@ void Game::Update(){
 	ActorMoveStage();
 #ifdef _ENGINE_MODE
 	mSelectActor.UpdateInspector();
-
+	
 	mProfileViewer.Update(1);
 	if (mIsPlay){
 		GamePlay();
@@ -815,15 +1040,19 @@ void Game::Update(){
 	else{
 		GameStop();
 	}
-	mFPS.Update(1);
+
+	float deltaTime = mDeltaTime.GetDeltaTime();
+	mFPS.Update(deltaTime);
 #else
 	GamePlay();
 #endif
+
 }
 #ifdef _ENGINE_MODE
 void Game::GameStop(){
 	mDeltaTime.SetTimeScale(1.0f);
 	float deltaTime = mDeltaTime.GetDeltaTime();
+
 
 	mCamera.Update(deltaTime);
 
@@ -887,7 +1116,7 @@ void Game::AllDestroyObject(){
 }
 
 
-void Game::GetAllObject(const std::function<void(Actor*)>& collbak){
+void Game::GetAllObject(const std::function<void(GameObject)>& collbak){
 
 	for (auto& actpair : *gpList){
 		collbak(actpair.second);

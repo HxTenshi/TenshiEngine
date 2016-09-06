@@ -115,7 +115,6 @@ void CameraComponent::Update(){
 	At = Eye + gameObject->mTransform->Forward();
 	UpdateView();
 
-
 	Game::SetMainCamera(this);
 }
 #ifdef _ENGINE_MODE
@@ -181,6 +180,9 @@ void CameraComponent::UpdateView(){
 	mCBNeverChanges.mParam.mView = XMMatrixTranspose(mView);
 	mCBNeverChanges.mParam.mViewInv = XMMatrixTranspose(XMMatrixInverse(&null, mView));
 	mCBNeverChanges.UpdateSubresource(render->m_Context);
+
+	mCBChangeOnResize.UpdateSubresource(render->m_Context);
+	mCBNearFar.UpdateSubresource(render->m_Context);
 
 	//gameObject->mTransform->Position(Eye);
 

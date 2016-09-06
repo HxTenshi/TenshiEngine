@@ -13,24 +13,26 @@ EditorCamera::EditorCamera(){
 	mRClickMousePos = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	//mRClickEyeVect = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	//mRClickRotateAxis = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	mCamera = make_shared<Actor>();
 	mCameraComponent = new CameraComponent();
-	mCamera.mTransform = make_shared<TransformComponent>();
-	mCamera.AddComponent<TransformComponent>(mCamera.mTransform);
-	mCamera.AddComponent(shared_ptr<CameraComponent>(mCameraComponent));
+	mCamera->mTransform = make_shared<TransformComponent>();
+	mCamera->AddComponent<TransformComponent>(mCamera->mTransform);
+	mCamera->AddComponent(shared_ptr<CameraComponent>(mCameraComponent));
 
 	//UINT width = WindowState::mWidth;
 	//UINT height = WindowState::mHeight;
 	//XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
-	mCamera.mTransform->Position(XMVectorSet(0, 3, -10, 1));
-	mCamera.mTransform->Scale(XMVectorSet(1, 1, 1, 1));
 }
 EditorCamera::~EditorCamera(){
-	mCamera.Finish();
+	mCamera->Finish();
 }
 void EditorCamera::Initialize(){
-	mCamera.Finish();
-	mCamera.Initialize();
-	mCamera.Start();
+	mCamera->Finish();
+	mCamera->Initialize();
+	mCamera->Start();
+
+	mCamera->mTransform->Position(XMVectorSet(0, 3, -10, 1));
+	mCamera->mTransform->Scale(XMVectorSet(1, 1, 1, 1));
 }
 void EditorCamera::Update(float deltaTime){
 	auto pos = XMVectorSet(0, 0, 0, 1);
@@ -71,7 +73,7 @@ void EditorCamera::Update(float deltaTime){
 		XMVECTOR DragVect = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f) - mRClickMousePos;
 
 		DragVect *= 0.01f;
-		XMVECTOR xrot = XMQuaternionRotationAxis(mCamera.mTransform->Left(), DragVect.y);
+		XMVECTOR xrot = XMQuaternionRotationAxis(mCamera->mTransform->Left(), DragVect.y);
 		//Eye = XMVector3Rotate(-mRClickEyeVect, xrot) + At;
 
 		XMVECTOR yrot = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 1), DragVect.x);
@@ -79,21 +81,21 @@ void EditorCamera::Update(float deltaTime){
 		//Eye = XMVector3Rotate(-mRClickEyeVect, yrot) + At;
 
 		XMVECTOR rot = XMQuaternionMultiply(xrot, yrot);
-		XMVECTOR rotate = mCamera.mTransform->Quaternion();
+		XMVECTOR rotate = mCamera->mTransform->Quaternion();
 		rot = XMQuaternionMultiply(rotate, rot);
-		mCamera.mTransform->Quaternion(rot);
+		mCamera->mTransform->Quaternion(rot);
 		mRClickMousePos = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f);
 
 	}
 
 	pos *= deltaTime;
-	auto move = mCamera.mTransform->Position();
-	move += mCamera.mTransform->Forward() * pos.z;
-	move += mCamera.mTransform->Left() * pos.x;
+	auto move = mCamera->mTransform->Position();
+	move += mCamera->mTransform->Forward() * pos.z;
+	move += mCamera->mTransform->Left() * pos.x;
 	move.y += pos.y;
 
-	mCamera.mTransform->Position(move);
-	mCamera.UpdateComponent(deltaTime);
+	mCamera->mTransform->Position(move);
+	mCamera->UpdateComponent(deltaTime);
 
 	if (mUpdateFunc != NULL){
 		mUpdateFunc(deltaTime);
@@ -130,13 +132,13 @@ XMVECTOR EditorCamera::ScreenToWorldPoint(const XMVECTOR& point){
 XMVECTOR EditorCamera::PointRayVector(const XMVECTOR& point){
 
 	XMVECTOR end = ScreenToWorldPoint(point);
-	XMVECTOR vect = end - mCamera.mTransform->Position();
+	XMVECTOR vect = end - mCamera->mTransform->Position();
 	vect = XMVector3Normalize(vect);
 	return vect;
 }
 
 XMVECTOR EditorCamera::GetPosition(){
-	return mCamera.mTransform->Position();
+	return mCamera->mTransform->Position();
 }
 
 
@@ -145,7 +147,7 @@ void EditorCamera::GoActorPosition(Actor* actor){
 	if (!actor)return;
 	if (!actor->mTransform)return;
 	auto targetPos = actor->mTransform->WorldPosition();
-	auto camPos = mCamera.mTransform->Position();
+	auto camPos = mCamera->mTransform->Position();
 	auto velo = targetPos - camPos;
 	velo = XMVector3Normalize(velo);
 	auto pos = targetPos + -velo * 5;
@@ -155,7 +157,7 @@ void EditorCamera::GoActorPosition(Actor* actor){
 	auto mat = XMMatrixTranspose(XMMatrixLookAtLH(camPos, targetPos, XMVectorSet(0, 1, 0, 1)));
 	auto rot = XMQuaternionRotationMatrix(mat);
 
-	auto camRot = mCamera.mTransform->Quaternion();
+	auto camRot = mCamera->mTransform->Quaternion();
 
 	mUpdateFunc = [pos, camPos, rot, camRot, this](float deltaTime){
 		static float time = 0;
@@ -169,8 +171,8 @@ void EditorCamera::GoActorPosition(Actor* actor){
 
 		auto q = XMQuaternionSlerp(camRot, rot, t);
 
-		this->mCamera.mTransform->Position(p);
-		this->mCamera.mTransform->Quaternion(q);
+		this->mCamera->mTransform->Position(p);
+		this->mCamera->mTransform->Quaternion(q);
 
 		if (time >= maxTime){
 			mUpdateFunc = [](float t){(void)t; };

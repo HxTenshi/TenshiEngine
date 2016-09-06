@@ -4,10 +4,12 @@
 #include "MySTL/ptr.h"
 #include <functional>
 #include <unordered_map>
+#include <map>
 #include <string>
 
 enum class AssetFileType{
 	None,
+	Meta,
 	Prefab,
 	Temesh,
 	Tebone,
@@ -49,6 +51,7 @@ protected:
 	~AssetFactory();
 };
 
+#include "Library/MD5.h"
 class AssetDataBase{
 public:
 	
@@ -60,15 +63,26 @@ public:
 
 		AssetDataTemplatePtr data;
 
+		//メタファイルが存在しない
 		if (file == m_AssetCache.end()){
 
 			data = AssetFactory::Create(filename);
 			if (data){
-				m_AssetCache.insert(std::make_pair(filename, data));
+				MD5::MD5HashCoord hash;
+				memset(hash.key_c, NULL, sizeof(MD5::MD5HashCoord));
+				m_AssetCache.insert(std::make_pair(filename, std::make_pair(hash, data)));
 			}
 		}
+		//未ロード
+		else if (file->second.second == NULL){
+			data = AssetFactory::Create(filename);
+			if (data){
+				file->second.second = data;
+			}
+		}
+		//ロード済み
 		else{
-			data = file->second;
+			data = file->second.second;
 		}
 		
 		if (data && 
@@ -78,12 +92,60 @@ public:
 		}
 	}
 
+	template <class T>
+	static void Instance(const MD5::MD5HashCoord& hash, shared_ptr<T>& out){
+
+		auto file = m_AssetMetaCache.find(hash);
+
+
+		AssetDataTemplatePtr data;
+
+		if (file == m_AssetMetaCache.end()){
+
+		}
+		else{
+			Instance(file->second.c_str(), data);
+		}
+
+		if (data &&
+			(T::_AssetFileType == data->m_AssetFileType) ||
+			T::_AssetFileType == AssetFileType::None){
+			out = data;
+		}
+	}
+
+	static bool FilePath2Hash(const char* filename, MD5::MD5HashCoord& hash){
+
+		auto file = m_AssetCache.find(filename);
+		if (file == m_AssetCache.end())return false;
+
+		hash = file->second.first;
+		return true;
+	}
+
+	static void InitializeMetaData(const char* filename);
+
+	static void Remove(const char* filename){
+
+		auto file = m_AssetCache.find(filename);
+		if (file == m_AssetCache.end())return;
+
+		auto hashfile = m_AssetMetaCache.find(file->second.first);
+		if (hashfile != m_AssetMetaCache.end()){
+			m_AssetMetaCache.erase(hashfile);
+		}
+		
+		m_AssetCache.erase(file);
+		
+
+	}
+
 	static void FileUpdate(const char* filename){
 
 		auto file = m_AssetCache.find(filename);
 		if (file != m_AssetCache.end()){
 
-			file->second->FileUpdate();
+			file->second.second->FileUpdate();
 		}
 		else{
 			AssetDataTemplatePtr temp;
@@ -102,7 +164,8 @@ public:
 
 
 private:
-	static std::unordered_map<std::string, AssetDataTemplatePtr> m_AssetCache;
+	static std::unordered_map<std::string, std::pair<MD5::MD5HashCoord,AssetDataTemplatePtr>> m_AssetCache;
+	static std::map<MD5::MD5HashCoord, std::string> m_AssetMetaCache;
 };
 
 
@@ -134,6 +197,12 @@ private:
 	AssetDataTemplate<T>(const AssetDataTemplate<T>&) = delete;
 
 };
+
+
+class MetaFileData;
+using MetaAssetDataPtr = shared_ptr < AssetDataTemplate<MetaFileData> >;
+const AssetFileType AssetDataTemplate<MetaFileData>::_AssetFileType = AssetFileType::Meta;
+void AssetDataTemplate<MetaFileData>::CreateInspector(){}
 
 class MeshFileData;
 using MeshAssetDataPtr = shared_ptr < AssetDataTemplate<MeshFileData> >;

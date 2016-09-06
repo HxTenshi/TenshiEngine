@@ -21,8 +21,8 @@ void CharacterControllerComponent::Initialize(){
 
 	mController = Game::GetPhysX()->CreateController();
 	auto act = mController->getActor();
-	mController->setUserData(gameObject);
-	act->userData = gameObject;
+	mController->setUserData(gameObject.Get());
+	act->userData = gameObject.Get();
 	PxShape* shape = NULL;
 	act->getShapes(&shape, 1);
 	if (shape){
@@ -31,7 +31,7 @@ void CharacterControllerComponent::Initialize(){
 		filterData.word1 = 1;//FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
 		shape->setSimulationFilterData(filterData);
 		shape->setQueryFilterData(filterData);
-		shape->userData = gameObject;
+		shape->userData = gameObject.Get();
 	}
 
 	SetSlopeLimit(mSlopeLimitDigree);

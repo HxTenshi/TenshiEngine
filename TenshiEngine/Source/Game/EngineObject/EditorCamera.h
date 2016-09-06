@@ -21,7 +21,7 @@ public:
 
 private:
 	XMVECTOR	mRClickMousePos;
-	Actor		mCamera;
+	shared_ptr<Actor>		mCamera;
 	CameraComponent* mCameraComponent;
 
 	std::function<void(float)> mUpdateFunc;

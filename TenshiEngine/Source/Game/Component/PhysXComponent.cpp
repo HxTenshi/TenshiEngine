@@ -25,7 +25,7 @@ void PhysXComponent::Initialize(){
 	SetKinematic(mIsKinematic);
 	SetGravity(mIsGravity);
 
-	mRigidActor->userData = gameObject;
+	mRigidActor->userData = gameObject.Get();
 }
 
 
@@ -53,7 +53,7 @@ void PhysXComponent::Start(){
 			col->AttachPhysxComponent(shared_from_this());
 		}
 	}
-	ChildrenAttachShape(gameObject);
+	ChildrenAttachShape(gameObject.Get());
 }
 
 void PhysXComponent::ChildrenAttachShape(Actor* actor){
@@ -67,7 +67,7 @@ void PhysXComponent::ChildrenAttachShape(Actor* actor){
 			col->AttachPhysxComponent(shared_from_this());
 		}
 
-		ChildrenAttachShape(act);
+		ChildrenAttachShape(act.Get());
 	}
 
 }
@@ -76,7 +76,7 @@ void PhysXComponent::Finish(){
 
 		weak_ptr<PhysXComponent> physxCom = NULL;
 		{
-			Actor* par = gameObject->mTransform->GetParent();
+			auto par = gameObject->mTransform->GetParent();
 			while (par){
 				auto com = par->GetComponent<PhysXComponent>();
 				if (com){

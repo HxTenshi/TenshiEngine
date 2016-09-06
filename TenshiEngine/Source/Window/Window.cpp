@@ -5,6 +5,8 @@
 
 #include "../resource/resource.h"
 
+#include "Engine/Window/AssetsWindow.h"
+
 #ifdef _ENGINE_MODE
 
 #ifdef _DEBUG
@@ -59,6 +61,9 @@ int Window::Init(){
 		NULL);
 	if (!mDummyhWnd)
 		return E_FAIL;
+
+
+	AssetsWindow::Initialize();
 #else
 	WNDCLASSEX wcex;
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -93,6 +98,16 @@ int Window::Init(){
 #endif
 
 	return S_OK;
+}
+
+
+void Window::Release(){
+	//if (mhModuleWnd)
+	//	FreeLibrary(mhModuleWnd);
+#ifdef _ENGINE_MODE
+	mMainWindow_WPF.Release();
+	AssetsWindow::Finish();
+#endif
 }
 
 #include "Library/Movie/hwndMovie.h"

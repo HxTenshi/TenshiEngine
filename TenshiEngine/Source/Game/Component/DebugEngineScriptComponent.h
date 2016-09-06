@@ -9,7 +9,7 @@ struct InspectorDataSet;
 class IDebugEngineScript{
 public:
 	virtual ~IDebugEngineScript(){}
-	virtual void Initialize(Actor* gameObject){ (void)gameObject; }
+	virtual void Initialize(GameObject gameObject){ (void)gameObject; }
 	virtual void EngineUpdate(){}
 	virtual void Update(){}
 	virtual void Finish(){}

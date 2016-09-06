@@ -35,4 +35,5 @@ public:
 private:
 	Material* mMaterial;
 	std::string mTextureName;
+	std::string mTextureHash;
 };

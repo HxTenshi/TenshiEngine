@@ -54,6 +54,7 @@
 //};
 
 #include "Library/picojson.h"
+#include "Game/Types.h"
 
 class ICommand{
 public:
@@ -74,7 +75,7 @@ public:
 	ActorDestroyUndoCommand(Actor* actor);
 	void Undo() override;
 private:
-	UINT mPrev;
+	UniqueID mPrev;
 };
 #include <list>
 class LinkUndoCommand : public ICommand{

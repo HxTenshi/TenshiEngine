@@ -1030,7 +1030,7 @@ void DeferredRendering::Debug_G_Buffer_Rendering(IRenderingEngine* render, const
 }
 
 void DeferredRendering::Debug_AlbedoOnly_Rendering(IRenderingEngine* render,RenderTarget* rt){
-
+	RenderTarget::NullSetRendererTarget(render->m_Context);
 	RenderTarget* r[1] = { rt };
 	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
 

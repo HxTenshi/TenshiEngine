@@ -5,9 +5,9 @@ class DeltaTime;
 class DebugEngine;
 class IGame{
 public:
-	virtual Actor* GetRootActor() = 0;
-	virtual Actor* CreateActor(const char* prefab) = 0;
-	virtual Actor* FindActor(const char* name) = 0;
+	virtual GameObject GetRootActor() = 0;
+	virtual Game::GameObjectPtr CreateActor(const char* prefab) = 0;
+	virtual GameObject FindActor(const char* name) = 0;
 	virtual void AddObject(Actor* actor) = 0;
 	virtual void DestroyObject(Actor* actor) = 0;
 	virtual void LoadScene(const std::string& FilePath) = 0;

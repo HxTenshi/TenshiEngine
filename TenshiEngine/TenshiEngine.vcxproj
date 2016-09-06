@@ -538,12 +538,15 @@
     <ClCompile Include="Source\Engine\AssetFile\Material\TextureFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshBufferData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshFileData.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\MetaFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Movie\MovieFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Physx\PhysxMaterialFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Prefab\PrefabFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Shader\ShaderFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Sound\SoundFileData.cpp" />
+    <ClCompile Include="Source\Engine\window\AssetsWindow.cpp" />
     <ClCompile Include="Source\Engine\Debug.cpp" />
+    <ClCompile Include="Source\Engine\Asset\GenerateMetaFile.cpp" />
     <ClCompile Include="Source\Engine\ICommand.cpp" />
     <ClCompile Include="Source\Engine\ModelConverter.cpp" />
     <ClCompile Include="Source\Engine\Profiling.cpp" />
@@ -600,6 +603,7 @@
     <ClCompile Include="Source\Graphic\Shader\Shader.cpp" />
     <ClCompile Include="Source\Graphic\Shader\ShaderFile.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
+    <ClCompile Include="Source\Library\MD5.cpp" />
     <ClCompile Include="Source\Library\movie\hwndMovie.cpp" />
     <ClCompile Include="Source\Library\movie\MovieTexture.cpp" />
     <ClCompile Include="Source\Library\unknownbase.cpp" />
@@ -619,6 +623,7 @@
     </ClCompile>
     <ClCompile Include="Source\Window\Window.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Source\Library\XorShift.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lua\call_c_func.lua" />
@@ -645,6 +650,7 @@
     <ClInclude Include="Source\Engine\AssetFile\Material\TextureFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Mesh\MeshBufferData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Mesh\MeshFileData.h" />
+    <ClInclude Include="Source\Engine\AssetFile\MetaFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Movie\MovieFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\NaviMesh\NaviMeshFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Physx\PhysxMaterialFileData.h" />
@@ -652,9 +658,11 @@
     <ClInclude Include="Source\Engine\AssetFile\Shader\ShaderFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Sound\SoundFileData.h" />
     <ClInclude Include="Source\Engine\AssetLoader.h" />
+    <ClInclude Include="Source\Engine\window\AssetsWindow.h" />
     <ClInclude Include="Source\Engine\Debug.h" />
     <ClInclude Include="Source\Engine\DebugEngine.h" />
     <ClInclude Include="Source\Engine\details.h" />
+    <ClInclude Include="Source\Engine\Asset\GenerateMetaFile.h" />
     <ClInclude Include="Source\Engine\ICommand.h" />
     <ClInclude Include="Source\Engine\ModelConverter.h" />
     <ClInclude Include="Source\Engine\SystemLog.h" />
@@ -692,6 +700,7 @@
     <ClInclude Include="Source\Game\EngineObject\GameEngineObject.h" />
     <ClInclude Include="Source\Game\Game.h" />
     <ClInclude Include="Source\Game\Component\IComponent.h" />
+    <ClInclude Include="Source\Game\Script\GameObject.h" />
     <ClInclude Include="Source\Game\RenderingSystem.h" />
     <ClInclude Include="Source\Game\Script\IGame.h" />
     <ClInclude Include="Source\Game\Lua.h" />
@@ -703,6 +712,7 @@
     <ClInclude Include="Source\Game\Component\TextComponent.h" />
     <ClInclude Include="Source\Game\Component\TransformComponent.h" />
     <ClInclude Include="Source\Game\Script\SGame.h" />
+    <ClInclude Include="Source\Game\Types.h" />
     <ClInclude Include="Source\Graphic\Font\Font.h" />
     <ClInclude Include="Source\Graphic\Loader\Animation\VMD.h" />
     <ClInclude Include="Source\Graphic\Loader\HDR.h" />
@@ -726,11 +736,13 @@
     <ClInclude Include="Source\Graphic\Shader\VertexShader.h" />
     <ClInclude Include="Source\Input\Input.h" />
     <ClInclude Include="Source\Library\easing.h" />
+    <ClInclude Include="Source\Library\MD5.h" />
     <ClInclude Include="Source\Library\movie\hwndMovie.h" />
     <ClInclude Include="Source\Library\movie\MovieTexture.h" />
     <ClInclude Include="Source\Library\picojson.h" />
     <ClInclude Include="Source\Library\sqlite3.h" />
     <ClInclude Include="Source\Library\unknownbase.h" />
+    <ClInclude Include="Source\Library\XorShift.h" />
     <ClInclude Include="Source\MySTL\Coroutine.h" />
     <ClInclude Include="Source\MySTL\deleter.h" />
     <ClInclude Include="Source\MySTL\File.h" />

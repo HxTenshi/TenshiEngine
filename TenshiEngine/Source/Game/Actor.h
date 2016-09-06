@@ -7,6 +7,7 @@
 #include "Game/Component/ComponentList.h"
 
 #include "Engine/AssetDataBase.h"
+#include "Types.h"
 
 class ITransformComponent;
 class File;
@@ -16,24 +17,13 @@ namespace physx{
 	class PxTransform;
 }
 
-enum class DrawBit : unsigned char{
-	Diffuse = 0x0001,
-	Depth = 0x0002,
-	Normal = 0x0004,
-};
-
-unsigned char operator & (const unsigned char& bit, const DrawBit& bit2);
-unsigned char operator | (const DrawBit& bit, const DrawBit& bit2);
-unsigned char operator | (const unsigned char& bit, const DrawBit& bit2);
-
-
 class IActor{
 public:
 	virtual ~IActor(){}
 	virtual void* _GetScript(const char* name) = 0;
 };
 
-class Actor : public IActor{
+class Actor : public IActor, public enable_shared_from_this<Actor>{
 public:
 	Actor();
 	virtual ~Actor();
@@ -92,8 +82,8 @@ public:
 
 	std::string Prefab(){ return mPrefab; }
 
-	UINT GetUniqueID(){
-		return mUniqueID;
+	UniqueID GetUniqueID(){
+		return mUniqueHash;
 	}
 
 
@@ -102,10 +92,10 @@ public:
 
 	void PastePrefabParam(picojson::value& json);
 
-	void ExportSceneDataStart(const std::string& pass, File& sceneFile);
-	void ExportSceneData(const std::string& pass, File& sceneFile);
+	//void ExportSceneDataStart(const std::string& pass, File& sceneFile);
+	//void ExportSceneData(const std::string& pass, File& sceneFile);
 	void ExportData(const std::string& pass, const std::string& fileName, bool childExport = false);
-	void ExportData(const std::string& pass);
+	//void ExportData(const std::string& pass);
 	void ImportData(const std::string& fileName);
 	void ImportData(picojson::value& json);
 	bool ImportDataAndNewID(const std::string& fileName);
@@ -134,6 +124,6 @@ protected:
 	std::string mPrefab;
 	PrefabAssetDataPtr mPrefabAsset;
 
-	UINT mUniqueID;
+	UniqueID mUniqueHash;
 	bool mEndStart;
 };

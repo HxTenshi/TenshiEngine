@@ -190,9 +190,7 @@ ID3D11ShaderResourceView* TextureFileData::LoadRGBE(){
 	tex2d->Release();
 	delete[] result.cols;
 
-#if _DRAW_MULTI_THREAD
-	ここスレッドセーフじゃない
-#endif
+
 	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 	render->m_Context->GenerateMips(pShaderResourceView);
 

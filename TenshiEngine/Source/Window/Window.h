@@ -54,13 +54,7 @@ public:
 	}
 	int Init();
 
-	static void Release(){
-		//if (mhModuleWnd)
-		//	FreeLibrary(mhModuleWnd);
-#ifdef _ENGINE_MODE
-		mMainWindow_WPF.Release();
-#endif
-	}
+	void Release();
 
 	static HWND GetMainHWND(){
 		return mhWnd;

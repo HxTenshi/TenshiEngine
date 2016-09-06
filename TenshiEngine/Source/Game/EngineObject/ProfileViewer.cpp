@@ -15,15 +15,12 @@
 #include "Game/Component/TextureModelComponent.h"
 class ProfileBar : public Actor{
 public:
-	ProfileBar(const std::string& name,float y,const XMFLOAT4& color )
+	ProfileBar(const std::string& name,float y)
 	{
 
 		mTransform = mComponents.AddComponent<TransformComponent>();
 		mComponents.AddComponent<MaterialComponent>();
 		mComponents.AddComponent<TextureModelComponent>();
-
-		Initialize();
-		Start();
 
 		Name(name);
 
@@ -31,6 +28,14 @@ public:
 		mTransform->Position(XMVectorSet(0, y, 0, 1));
 		mTransform->Scale(XMVectorSet(0, 10, 0, 1));
 
+	}
+	~ProfileBar(){
+		Finish();
+	}
+
+	void Init(const XMFLOAT4& color){
+		Initialize();
+		Start();
 		auto mate = GetComponent<MaterialComponent>();
 		Material material;
 		material.mDiffuse = color;
@@ -38,10 +43,6 @@ public:
 		material.SetTexture("EngineResource/null4.png");
 		mate->SetMaterial(0, material);
 	}
-	~ProfileBar(){
-		Finish();
-	}
-
 
 	float ProfileBarUpdate(float x, float deltaTime){
 		auto pos = mTransform->Position();
@@ -75,21 +76,22 @@ ProfileViewer::ProfileViewer()
 	AddBar("Draw:wait", 1, XMFLOAT4(0.1, 0.1, 0.1, 1));
 }
 ProfileViewer::~ProfileViewer(){
-	for (int i = 0; i < 2; i++){
-		for (auto* bar : mProfileBars[i]){
-			delete bar;
-		}
-	}
+	//for (int i = 0; i < 2; i++){
+	//	for (auto* bar : mProfileBars[i]){
+	//		delete bar;
+	//	}
+	//}
 }
 void ProfileViewer::AddBar(const std::string& name, int CPU, const XMFLOAT4& color){
-
-	mProfileBars[CPU].push_back(new ProfileBar(name, 5 + CPU * 12.0f, color));
+	auto obj = shared_ptr<ProfileBar>(new ProfileBar(name, 5 + CPU * 12.0f));
+	obj->Init(color);
+	mProfileBars[CPU].push_back(obj);
 }
 void ProfileViewer::Update(float deltaTime){
 
 	for (int i = 0; i < 2; i++){
 		float x = 0;
-		for (auto* bar : mProfileBars[i]){
+		for (auto bar : mProfileBars[i]){
 			x += bar->ProfileBarUpdate(x, deltaTime);
 		}
 	}

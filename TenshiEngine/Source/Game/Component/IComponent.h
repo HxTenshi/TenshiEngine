@@ -3,6 +3,7 @@
 #include <String>
 #include "MySTL/File.h"
 #include "MySTL/ioHelper.h"
+#include "Game/Script/GameObject.h"
 
 class Actor;
 
@@ -16,7 +17,7 @@ public:
 
 	}
 	//コンポーネント共通初期化
-	void _Initialize(Actor* obj){
+	void _Initialize(GameObject obj){
 		gameObject = obj;
 	}
 	//AddComponent後の初期化
@@ -59,5 +60,5 @@ public:
 	}
 	virtual void IO_Data(I_ioHelper* io) = 0;
 
-	Actor* gameObject;
+	GameObject gameObject;
 };

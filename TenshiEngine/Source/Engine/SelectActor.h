@@ -80,7 +80,7 @@ private:
 	Selects mSelects;
 	bool mSelectAsset;
 	bool mDontTreeViewSelect;
-	Actor* mVectorBox;
+	shared_ptr<Actor> mVectorBox[3];
 
 	int mDragBox;
 	XMVECTOR mDragPos;

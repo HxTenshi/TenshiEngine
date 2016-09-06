@@ -22,17 +22,23 @@ class Actor;
 #include <memory>
 class ComponentList{
 public:
-	ComponentList(Actor* obj)
+	ComponentList()
 	{
-		gameObject = obj;
+		gameObject = NULL;
 		mInitializeEnd = false;
 		mStartEnd = false;
 	}
+	void Initialize(GameObject obj){
+
+		gameObject = obj;
+	}
 	void RunInitialize(){
 		auto t = GetComponent<TransformComponent>();
+		t->_Initialize(gameObject);
 		t->Initialize();
 		for (auto& p : mComponent){
 			if (p.second.Get() == t.Get())continue;
+			p.second->_Initialize(gameObject);
 			p.second->Initialize();
 		}
 		mInitializeEnd = true;
@@ -137,7 +143,7 @@ public:
 #endif
 
 private:
-	Actor* gameObject;
+	GameObject gameObject;
 
 	bool mInitializeEnd;
 	bool mStartEnd;

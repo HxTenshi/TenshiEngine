@@ -26,6 +26,7 @@
 #include "Engine/WorldGrid.h"
 
 #include "DeltaTime.h"
+#include "Script\GameObject.h"
 
 class CameraComponent;
 
@@ -54,11 +55,16 @@ using namespace physx;
 
 class Game{
 public:
+	typedef shared_ptr<Actor> GameObjectPtr;
+	typedef std::map<UniqueID, GameObjectPtr> ListMapType;
+	typedef std::map<DrawStage, std::vector<std::function<void()>>> DrawListMapType;
+
+
 	Game();
 	~Game();
 
-	static void AddObject(Actor* actor,bool undoFlag = false);
-	static void DestroyObject(Actor* actor, bool undoFlag = false);
+	static void AddObject(GameObjectPtr actor,bool undoFlag = false);
+	static void DestroyObject(GameObjectPtr actor, bool undoFlag = false);
 	static void ActorMoveStage();
 	static PxRigidActor* CreateRigitBody();
 	static PxRigidActor* CreateRigitBodyEngine();
@@ -67,11 +73,11 @@ public:
 	static void RemovePhysXActor(PxActor* act);
 	static void RemovePhysXActorEngine(PxActor* act);
 	static void AllDestroyObject();
-	static void GetAllObject(const std::function<void(Actor*)>& collbak);
-	static Actor* GetRootActor();
-	static Actor* FindActor(Actor* actor);
-	static Actor* FindNameActor(const char* name);
-	static Actor* FindUID(UINT uid);
+	static void GetAllObject(const std::function<void(GameObject)>& collbak);
+	static GameObject GetRootActor();
+	static GameObject FindActor(Actor* actor);
+	static GameObject FindNameActor(const char* name);
+	static GameObject FindUID(UniqueID uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
 	static void SetUndo(Actor* actor);
 	static void SetUndo(ICommand* command);
@@ -82,7 +88,7 @@ public:
 	static DeltaTime* GetDeltaTime();
 
 #ifdef _ENGINE_MODE
-	static void AddEngineObject(Actor* actor);
+	static void AddEngineObject(GameObjectPtr actor);
 	static bool IsGamePlay();
 	void GameStop();
 	static void SetMainCameraEngineUpdate(CameraComponent* Camera);
@@ -91,6 +97,7 @@ public:
 	void ChangePlayGame(bool isPlay);
 	void SaveScene();
 
+	void testDraw();
 	void Draw();
 
 	void Update();
@@ -99,32 +106,31 @@ public:
 	void ClearDrawList();
 	void PlayDrawList(DrawStage Stage);
 
-	typedef std::map<UINT, Actor*> ListMapType;
-	typedef std::map<DrawStage, std::vector<std::function<void()>>> DrawListMapType;
 
 private:
 	Game(const Game&);
 	Game operator = (Game&);
+
 
 	enum class ActorMove{
 		Create,
 		Delete,
 		Count,
 	};
-	//追加と削除
-	std::queue<std::pair<ActorMove, Actor*>> mActorMoveList;
+	//追加と削除ｇ
+	std::queue<std::pair<ActorMove, GameObjectPtr>> mActorMoveList;
 	//ゲームオブジェクトのリスト
 	ListMapType mList;
 	DrawListMapType mDrawList;
-	static Actor* mRootObject;
+	static GameObjectPtr mRootObject;
 
 	EngineDeltaTime mDeltaTime;
 
 #ifdef _ENGINE_MODE
 	//ツリービューのアイテム削除に失敗したアクター
-	std::list<Actor*> mTreeViewItem_ErrerClearList;
+	std::list<GameObjectPtr> mTreeViewItem_ErrerClearList;
 
-	static Actor* mEngineRootObject;
+	static GameObjectPtr mEngineRootObject;
 
 	SelectActor mSelectActor;
 	EditorCamera mCamera;

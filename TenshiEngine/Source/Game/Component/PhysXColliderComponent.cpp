@@ -78,7 +78,7 @@ void PhysXColliderComponent::AttachPhysxComponent(weak_ptr<PhysXComponent> com){
 	if (com){
 		mAttachPhysXComponent = com;
 
-		Actor* par = com->gameObject;
+		auto par = com->gameObject;
 		mIsParentPhysX = (par != gameObject) ? true : false;
 		AttachRigidDynamic(true);
 	}
@@ -90,7 +90,7 @@ void PhysXColliderComponent::AttachPhysxComponent(weak_ptr<PhysXComponent> com){
 }
 
 bool PhysXColliderComponent::SearchAttachPhysXComponent(){
-	Actor* par = gameObject;
+	auto par = gameObject;
 	while (par){
 		auto com = par->GetComponent<PhysXComponent>();
 		if (com){
@@ -181,7 +181,7 @@ void PhysXColliderComponent::ChangeShape(bool flag){
 	}
 
 	if (shape){
-		shape->userData = gameObject;
+		shape->userData = gameObject.Get();
 	}
 	ShapeAttach(shape);
 }
@@ -218,7 +218,7 @@ void PhysXColliderComponent::CreateMesh(const MeshAssetDataPtr& mesh){
 	auto shape = Game::GetPhysX()->CreateTriangleMesh(mesh->GetFileData()->GetPolygonsData());
 
 	if (shape){
-		shape->userData = gameObject;
+		shape->userData = gameObject.Get();
 	}
 	ShapeAttach(shape);
 }
@@ -231,7 +231,7 @@ void PhysXColliderComponent::CreateMesh(const std::string& file){
 	if (!data)return;
 	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->GetFileData()->GetPolygonsData());
 	if (shape){
-		shape->userData = gameObject;
+		shape->userData = gameObject.Get();
 	}
 	ShapeAttach(shape);
 }
@@ -335,13 +335,13 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 
 	auto transform = mShape->getLocalPose();
 	
-	Actor* par = gameObject;
+	auto par = gameObject;
 	if (mAttachPhysXComponent){
 		par = mAttachPhysXComponent->gameObject;
 	}
 
 	auto quat = par->mTransform->WorldQuaternion();
-	if (par == gameObject){
+	if (par.Get() == gameObject.Get()){
 		auto quat = XMQuaternionIdentity();
 	}
 
@@ -439,9 +439,11 @@ void PhysXColliderComponent::SetScale(const XMVECTOR& scale){
 		mShape->setGeometry(g.sphere());
 	}
 	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
-
-		auto rotate = gameObject->mTransform->Quaternion();
-		auto q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
+		physx::PxQuat q = physx::PxQuat(0,0,0,1);
+		if (gameObject){
+			auto rotate = gameObject->mTransform->Quaternion();
+			q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
+		}
 
 		g.triangleMesh().scale = PxMeshScale(PxVec3(scale.x, scale.y, scale.z), q);
 		mShape->setGeometry(g.triangleMesh());

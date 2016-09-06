@@ -6,10 +6,11 @@
 #include "Game/Actor.h"
 #include "Game/Game.h"
 
+
 TransformComponent::TransformComponent()
 	:mFixMatrixFlag(false)
 	, mParent(NULL)
-	, mParentUniqueID(NULL){
+	, mParentUniqueHashID(""){
 	mMatrix = XMMatrixIdentity();
 	mScale = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	mRotate = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
@@ -29,8 +30,8 @@ void TransformComponent::Initialize(){
 }
 
 void TransformComponent::Start(){
-	if (mParentUniqueID){
-		mParent = Game::FindUID(mParentUniqueID);
+	if (mParentUniqueHashID != ""){
+		mParent = Game::FindUID(mParentUniqueHashID);
 	}
 	SetParent(mParent);
 }
@@ -537,7 +538,7 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 //このゲームオブジェクトより子のオブジェクトを全てデストロイする
 void TransformComponent::AllChildrenDestroy(){
 	while (mChildren.size()){
-		Actor* child = Children().front();
+		auto child = Children().front();
 		Children().pop_front();
 		//親と子が同時に死ぬとエラーが出る
 		child->mTransform->SetParent(NULL);
@@ -562,17 +563,17 @@ void TransformComponent::CreateInspector(){
 	std::function<void(float)> collbackpx = [&](float f){
 		auto pos = this->Position();
 		this->Position(XMVectorSet(f, pos.y, pos.z, pos.w));
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 	std::function<void(float)> collbackpy = [&](float f){
 		auto pos = this->Position();
 		this->Position(XMVectorSet(pos.x, f, pos.z, pos.w));
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 	std::function<void(float)> collbackpz = [&](float f){
 		auto pos = this->Position();
 		this->Position(XMVectorSet(pos.x, pos.y, f, pos.w));
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 	std::function<void(float)> collbackrx = [&](float f){
 		//auto pos = this->Rotate();
@@ -582,36 +583,36 @@ void TransformComponent::CreateInspector(){
 		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
 
 		mInspectorRotateDegree.x = f;
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 	std::function<void(float)> collbackry = [&](float f){
 		mRotate.y = f * (XM_PI / 180.0f);
 		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
 
 		mInspectorRotateDegree.y = f;
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 	std::function<void(float)> collbackrz = [&](float f){
 		mRotate.z = f * (XM_PI/180.0f);
 		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
 
 		mInspectorRotateDegree.z = f;
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 	std::function<void(float)> collbacksx = [&](float f){
 		auto pos = this->Scale();
 		this->Scale(XMVectorSet(f, pos.y, pos.z, pos.w));
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 	std::function<void(float)> collbacksy = [&](float f){
 		auto pos = this->Scale();
 		this->Scale(XMVectorSet(pos.x, f, pos.z, pos.w));
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 	std::function<void(float)> collbacksz = [&](float f){
 		auto pos = this->Scale();
 		this->Scale(XMVectorSet(pos.x, pos.y, f, pos.w));
-		Game::SetUndo(gameObject);
+		Game::SetUndo(gameObject.Get());
 	};
 
 	mInspectorRotateDegree = mRotate * (180.0f / XM_PI);
@@ -632,7 +633,7 @@ void TransformComponent::CreateInspector(){
 
 void TransformComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
-	_KEY(mParentUniqueID);
+	_KEY(mParentUniqueHashID);
 	_KEY(mScale.x);
 	_KEY(mScale.y);
 	_KEY(mScale.z);
@@ -651,6 +652,7 @@ void TransformComponent::IO_Data(I_ioHelper* io){
 
 void TransformComponent::UpdatePhysX(PhysXChangeTransformFlag flag){
 	//Physicsと競合するためポジションを動かした場合コチラを優先
+	if (!gameObject)return;
 	auto c = gameObject->GetComponent<PhysXComponent>();
 	if (c)
 		c->SetChengeTransform(flag);
@@ -668,40 +670,46 @@ void TransformComponent::AddTorque(const XMVECTOR& force, ForceMode::Enum forceM
 		c->AddTorque(force, forceMode);
 }
 
-std::list<Actor*>& TransformComponent::Children(){
+std::list<GameObject>& TransformComponent::Children(){
 	return mChildren;
 }
-Actor* TransformComponent::GetParent(){
+GameObject TransformComponent::GetParent(){
 	return mParent;
 }
 
-void TransformComponent::SetParentUniqueID(int id){
-	mParentUniqueID = id;
+void TransformComponent::SetParentUniqueID(UniqueID id){
+	mParentUniqueHashID = id;
 }
-void TransformComponent::SetParent(Actor* parent){
+void TransformComponent::SetParent(GameObject parent){
 	//if (mParent == parent)return;
-	if (mParent)
-		mParent->mTransform->Children().remove(gameObject);
+	if (mParent){
+		mParent->mTransform->Children().remove_if([&](GameObject act){
+			return gameObject.Get() == act.Get();
+		});
+	}
 	mParent = parent;
-	mParentUniqueID = 0;
+	mParentUniqueHashID = "";
 	if (parent){
 		parent->mTransform->Children().push_back(gameObject);
-		mParentUniqueID = parent->GetUniqueID();
+		mParentUniqueHashID = parent->GetUniqueID();
 		parent->RunChangeParentCallback();
 	}
 	FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
 }
-void TransformComponent::SetParentWorld(Actor* parent){
+void TransformComponent::SetParentWorld(GameObject parent){
 	auto pos = WorldPosition();
 	auto quat = WorldQuaternion();
 	auto scale = WorldScale();
-	if (mParent)
-		mParent->mTransform->Children().remove(gameObject);
+	if (mParent){
+		mParent->mTransform->Children().remove_if([&](GameObject act){
+			return gameObject.Get() == act.Get();
+		});
+	}
 	mParent = parent;
-	mParentUniqueID = 0;
+	mParentUniqueHashID = "";
 	if (parent){
 		parent->mTransform->Children().push_back(gameObject);
-		mParentUniqueID = parent->GetUniqueID();
+		mParentUniqueHashID = parent->GetUniqueID();
 		parent->RunChangeParentCallback();
 	}
 	WorldPosition(pos);

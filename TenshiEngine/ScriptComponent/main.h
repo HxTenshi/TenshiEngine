@@ -26,6 +26,7 @@
 #include "MySTL\Reflection\MemberInfo_Data.h"
 
 #include "XNAMath/xnamath.h"
+#include "Game/Script/GameObject.h"
 
 class Actor;
 class IGame;
@@ -45,7 +46,7 @@ public:
 	typedef void(IDllScriptComponent::*Func1)(Actor*);
 
 public:
-	Actor* gameObject;
+	GameObject gameObject;
 	IGame* game;
 	friend ScriptComponent;
 };

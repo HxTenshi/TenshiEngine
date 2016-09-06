@@ -7,6 +7,7 @@
 #include "PhysXComponent.h"
 #include "IComponent.h"
 #include "Type/ForceMode.h"
+#include "Game/Types.h"
 
 class Actor;
 class Game;
@@ -48,11 +49,11 @@ public:
 	virtual void AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) = 0;
 	virtual const XMMATRIX& GetMatrix() const = 0;
 
-	virtual std::list<Actor*>& Children() = 0;
-	virtual Actor* GetParent() = 0;
-	virtual void SetParentUniqueID(int id) = 0;
-	virtual void SetParent(Actor* parent) = 0;
-	virtual void SetParentWorld(Actor* parent) = 0;
+	virtual std::list<GameObject>& Children() = 0;
+	virtual GameObject GetParent() = 0;
+	virtual void SetParentUniqueID(UniqueID id) = 0;
+	virtual void SetParent(GameObject parent) = 0;
+	virtual void SetParentWorld(GameObject parent) = 0;
 
 	virtual void AllChildrenDestroy() = 0;
 protected:
@@ -117,11 +118,11 @@ public:
 		return !mFixMatrixFlag;
 	}
 
-	std::list<Actor*>& Children() override;
-	Actor* GetParent() override;
-	void SetParentUniqueID(int id) override;
-	void SetParent(Actor* parent) override;
-	void SetParentWorld(Actor* parent) override;
+	std::list<GameObject>& Children() override;
+	GameObject GetParent() override;
+	void SetParentUniqueID(UniqueID id) override;
+	void SetParent(GameObject parent) override;
+	void SetParentWorld(GameObject parent) override;
 
 private:
 	XMVECTOR mScale;
@@ -129,9 +130,9 @@ private:
 	XMVECTOR mInspectorRotateDegree;
 	XMVECTOR mPosition;
 	mutable XMMATRIX mMatrix;
-	std::list<Actor*> mChildren;
-	Actor* mParent;
-	UINT mParentUniqueID;
+	std::list<GameObject> mChildren;
+	GameObject mParent;
+	UniqueID mParentUniqueHashID;
 
 	friend Actor;
 	friend Game;

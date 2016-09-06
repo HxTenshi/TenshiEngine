@@ -3,6 +3,7 @@
 #include "GameEngineObject.h"
 #include <string>
 #include <vector>
+#include "MySTL/ptr.h"
 class ProfileBar;
 
 class ProfileViewer : public GameEngineObject{
@@ -17,5 +18,5 @@ private:
 
 	ProfileViewer& operator = (const ProfileViewer&);
 
-	std::vector<ProfileBar*> mProfileBars[2];
+	std::vector<shared_ptr<ProfileBar>> mProfileBars[2];
 };

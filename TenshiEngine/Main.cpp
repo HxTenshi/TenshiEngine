@@ -163,7 +163,6 @@ private:
 //	}
 //};
 
-
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -204,7 +203,6 @@ public:
 		mDrawThread = std::thread(std::bind(std::mem_fn(&Application::UpdateThread), this));
 #else
 #endif
-
 		return S_OK;
 	}
 
@@ -224,20 +222,25 @@ public:
 				mGame->Draw();
 			}
 
-			ID3D11CommandList* cmdList;
+			ID3D11CommandList* cmdList = NULL;
 			{
 				auto tick = Profiling::Start("Main:etc");
 				auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-				render->m_Context->FinishCommandList(false, &cmdList);
+				if (FAILED(render->m_Context->FinishCommandList(false, &cmdList))){
+					cmdList = NULL;
+				}
 				SetEvent(mUpdateEvent);
+
 			}
-		{
-			auto tick = Profiling::Start("Main:wait");
-			WaitForSingleObject(mDrawEvent, INFINITE);
-		}
-			ResetEvent(mDrawEvent);
-			mCmdList = cmdList;
-			mCmdFlag = true;
+			{
+				auto tick = Profiling::Start("Main:wait");
+				WaitForSingleObject(mDrawEvent, INFINITE);
+			}
+				ResetEvent(mDrawEvent);
+				if (cmdList){
+					mCmdList = cmdList;
+					mCmdFlag = true;
+				}
 		}
 
 		SetEvent(mDrawEvent);
@@ -290,13 +293,14 @@ public:
 				cmdList = (ID3D11CommandList*)mCmdList;
 				mCmdFlag = false;
 
-				auto size = DrawThreadQueue::size();
-				for (int i = 0; i < size; i++){
-					auto func = DrawThreadQueue::dequeue();
-					func();
-				}
+				//auto size = DrawThreadQueue::size();
+				//for (int i = 0; i < size; i++){
+				//	auto func = DrawThreadQueue::dequeue();
+				//	func();
+				//}
 			}
 			{
+
 				auto tick = Profiling::Start("Draw:execute");
 				Device::mpImmediateContext->ExecuteCommandList(cmdList, false);
 				cmdList->Release();
@@ -304,9 +308,8 @@ public:
 			{
 				auto tick = Profiling::Start("Draw:swap");
 
-				if (!MoviePlayFlag::IsMoviePlay()){
-					Device::mpSwapChain->Present(0, 0);
-				}
+				Device::mpSwapChain->Present(0, 0);
+
 			}
 		}
 	}
@@ -341,8 +344,22 @@ public:
 				//	func();
 				//}
 				//if (!MoviePlayFlag::IsMoviePlay()){
-					Device::mpSwapChain->Present(1, 0);
+					Device::mpSwapChain->Present(0, 0);
 				//}
+
+					Device::mpImmediateContext->ClearState();
+
+					// Setup the viewport
+					D3D11_VIEWPORT vp;
+					vp.Width = (FLOAT)WindowState::mWidth;
+					vp.Height = (FLOAT)WindowState::mHeight;
+					vp.MinDepth = 0.0f;
+					vp.MaxDepth = 1.0f;
+					vp.TopLeftX = 0;
+					vp.TopLeftY = 0;
+					Device::mpImmediateContext->RSSetViewports(1, &vp);
+
+					Device::mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			}
 		}
 	}
@@ -413,7 +430,6 @@ public:
 
 		Device::CleanupDevice();
 
-		Window::Release();
 	}
 private:
 
@@ -536,6 +552,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		if (FAILED(App.InitDevice(mWindow)))
 		{
 			App.CleanupDevice();
+			mWindow.Release();
 			return 0;
 		}
 
@@ -543,6 +560,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		App.Render();
 
 		App.CleanupDevice();
+		mWindow.Release();
 	}
 
 	return 0;// (int)msg.wParam;

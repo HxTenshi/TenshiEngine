@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameEngineObject.h"
+#include "Game/Script/GameObject.h"
 
 class Actor;
 
@@ -14,7 +15,7 @@ private:
 
 	FPSChecker& operator = (const FPSChecker&);
 
-	Actor* mFPSObject;
+	shared_ptr<Actor> mFPSObject;
 
 	const int mFrameNum;
 
