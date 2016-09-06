@@ -55,6 +55,8 @@ public:
 	void CreateContextMenu_CreateObject(const std::string& ObjectName, const std::string& FilePath);
 
 	void AddTreeViewItem(const std::string& Name, void* ptr);
+	void AddEngineTreeViewItem(const std::string& Name, void* ptr);
+
 	void SetParentTreeViewItem(void* parent, void* child);
 	void SelectTreeViewItem(void* ptr);
 

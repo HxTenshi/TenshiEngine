@@ -295,7 +295,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 	float4 DifColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture.x != 0.0){
-			DifColor.rgb = pow(AlbedoTex.Sample(AlbedoSamLinear, texcood).rgb,2.2);
+			DifColor = pow(AlbedoTex.Sample(AlbedoSamLinear, texcood),2.2);
 			//DifColor = AlbedoTex.SampleLevel(AlbedoSamLinear, texcood,0);
 		}
 	if (DifColor.a < 0.01)discard;

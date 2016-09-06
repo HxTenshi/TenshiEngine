@@ -27,6 +27,7 @@
 
 #include "DeltaTime.h"
 #include "Script\GameObject.h"
+#include "System.h"
 
 class CameraComponent;
 
@@ -76,6 +77,7 @@ public:
 	static void GetAllObject(const std::function<void(GameObject)>& collbak);
 	static GameObject GetRootActor();
 	static GameObject FindActor(Actor* actor);
+	static GameObject FindEngineActor(Actor* actor);
 	static GameObject FindNameActor(const char* name);
 	static GameObject FindUID(UniqueID uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
@@ -86,6 +88,8 @@ public:
 	static RenderTarget GetMainViewRenderTarget();
 	static void LoadScene(const std::string& FilePath);
 	static DeltaTime* GetDeltaTime();
+	static System* System();
+	static std::vector<std::string>& GetLayerNames();
 
 #ifdef _ENGINE_MODE
 	static void AddEngineObject(GameObjectPtr actor);
@@ -97,7 +101,6 @@ public:
 	void ChangePlayGame(bool isPlay);
 	void SaveScene();
 
-	void testDraw();
 	void Draw();
 
 	void Update();
@@ -110,7 +113,6 @@ public:
 private:
 	Game(const Game&);
 	Game operator = (Game&);
-
 
 	enum class ActorMove{
 		Create,
@@ -125,6 +127,8 @@ private:
 	static GameObjectPtr mRootObject;
 
 	EngineDeltaTime mDeltaTime;
+	static SystemHelper mSystemHelper;
+
 
 #ifdef _ENGINE_MODE
 	//ツリービューのアイテム削除に失敗したアクター

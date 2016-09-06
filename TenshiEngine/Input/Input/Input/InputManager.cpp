@@ -3,6 +3,7 @@
 #define _EXPORTING
 #include "Input.h"
 #include "../DS4.h"
+#include "../XInput.h"
 
 
 //static
@@ -25,6 +26,8 @@ BYTE					InputManager::diKeyState[256];		// キーボード情報
 DS4* InputManager::ds4 = NULL;
 int InputManager::mDS4Input[(int)PAD_DS4_KeyCoord::Count];
 
+XInput* InputManager::xinput = NULL;
+int InputManager::mXInput[(int)PAD_X_KeyCoord::Count];
 
 //static
 void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
@@ -42,6 +45,9 @@ void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
 	}
 	for (int i = 0; i < (int)PAD_DS4_KeyCoord::Count; i++){
 		mDS4Input[i] = 0;
+	}
+	for (int i = 0; i < (int)PAD_X_KeyCoord::Count; i++){
+		mXInput[i] = 0;
 	}
 
 	//LPDIRECTINPUTDEVICE8	pDIJoypad = NULL;			// ジョイパッドデバイス
@@ -76,6 +82,9 @@ void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
 	ds4 = new DS4();
 	ds4->Initialize_And_FindHID();
 
+
+	xinput = new XInput();
+
 	return;
 }
 
@@ -86,6 +95,10 @@ void InputManager::Release(){
 	if (ds4){
 		ds4->Release();
 		delete ds4;
+	}
+
+	if (xinput){
+		delete xinput;
 	}
 }
 
@@ -151,6 +164,20 @@ void InputManager::Update(bool TargetFocus){
 		}
 		else{
 			mDS4Input[i] = 0;
+		}
+	}
+
+	xinput->Read();
+	for (int i = 0; i < (int)PAD_X_KeyCoord::Count; i++){
+
+		if (xinput->Down((PAD_X_KeyCoord)i) && TargetFocus){
+			mXInput[i]++;
+		}
+		else if (mXInput[i]>0){
+			mXInput[i] = -1;
+		}
+		else{
+			mXInput[i] = 0;
 		}
 	}
 }

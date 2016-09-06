@@ -73,7 +73,7 @@ public:
 	}
 
 #ifdef _ENGINE_MODE
-	void CreateInspector();
+	virtual void CreateInspector();
 #endif
 
 	std::string Name(){return mName;}
@@ -109,14 +109,18 @@ public:
 
 	void* mTreeViewPtr;
 
+	int GetLayer(){
+		return mPhysxLayer;
+	}
+
 protected:
 	ComponentList mComponents;
 
 protected:
 
 
-	void _ExportData(I_ioHelper* io, bool childExport=false);
-	void _ImportData(I_ioHelper* io);
+	virtual void _ExportData(I_ioHelper* io, bool childExport=false);
+	virtual void _ImportData(I_ioHelper* io);
 
 	std::queue<std::function<void()>> mUpdateStageCollQueue;
 	std::string mName;
@@ -126,4 +130,6 @@ protected:
 
 	UniqueID mUniqueHash;
 	bool mEndStart;
+
+	int mPhysxLayer;
 };

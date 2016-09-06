@@ -141,21 +141,7 @@ HRESULT Device::Init(const Window& window)
 
 	//レンダーターゲットと深度ステンシルの関連付け
 	mRenderTargetBack->SetRendererTarget(mpImmediateContext);
-
-	// Setup the viewport
-	D3D11_VIEWPORT vp;
-	vp.Width = (FLOAT)WindowState::mWidth;
-	vp.Height = (FLOAT)WindowState::mHeight;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	mpImmediateContext->RSSetViewports(1, &vp);
 	mRenderTargetBack->ClearView(mpImmediateContext);
-
-	// Set primitive topology
-	//インデックスの並び　Z字など
-	mpImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	SoundDevice::Initialize();
 

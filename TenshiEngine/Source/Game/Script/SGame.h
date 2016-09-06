@@ -7,6 +7,7 @@
 #include "Engine/Debug.h"
 #include "Engine/DebugEngine.h"
 #include "Engine/AssetFile/Prefab/PrefabFileData.h"
+#include "Game/System.h"
 
 //ゲームのスタティック関数の肩代わり
 class SGame : public IGame{
@@ -63,6 +64,9 @@ public:
 
 	::DeltaTime* DeltaTime(){
 		return Game::GetDeltaTime();
+	}
+	::System* System(){
+		return Game::System();
 	}
 
 	void Shutdown(){

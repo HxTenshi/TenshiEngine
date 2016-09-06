@@ -8,6 +8,7 @@
 XMVECTOR CascadeShadow::mLightVect = XMVectorSet(0,-1,0,1);
 
 CascadeShadow::CascadeShadow(){
+
 	mWidth = WindowState::mWidth;
 	mHeight = WindowState::mHeight;
 	//mWidth = 1024;
@@ -942,6 +943,7 @@ void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::fun
 	RenderTarget::SetRendererTarget(render->m_Context,(UINT)2, r[0], Device::mRenderTargetBack);
 
 
+	render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
 	render->PushSet(BlendState::Preset::BS_Add,0xFFFFFFFF);
 
 	//テクスチャーのセット
@@ -954,6 +956,7 @@ void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::fun
 
 
 	render->PopBS();
+	render->PopDS();
 }
 
 #include "Input/Input.h"

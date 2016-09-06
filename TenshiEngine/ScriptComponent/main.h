@@ -16,6 +16,7 @@
 #define INC_DELTA_TIME "Game/DeltaTime.h"
 #define INC_PHYSX "PhysX/IPhysXEngine.h"
 #define INC_DEBUG "engine/DebugEngine.h"
+#define INC_SYSTEM "Game/System.h"
 
 
 //#include "Game/Actor.h"

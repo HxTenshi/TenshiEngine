@@ -121,28 +121,7 @@ class TestOn : public physx::PxSimulationEventCallback{
 	}
 };
 
-struct  Tag
-{
-	enum  Enum
-	{
-		None = (0 << 0),
-		Player = (1 << 0),
-		Enemy = (1 << 1),
-		Field = (1 << 2),
-		UI = (1 << 3),
-		System = (1 << 4),
-		UserTag1 = (1 << 5),
-		UserTag2 = (1 << 6),
-		UserTag3 = (1 << 7),
-		UserTag4 = (1 << 8),
-		UserTag5 = (1 << 9),
-		UserTag6 = (1 << 10),
-		UserTag7 = (1 << 11),
-		UserTag8 = (1 << 12),
-	};
-};
-
-std::unordered_map<int, bool> mCollidFiler;
+std::unordered_map<int, bool> mCollideFiler;
 
 PxFilterFlags SampleSubmarineFilterShader(
 	PxFilterObjectAttributes attributes0, PxFilterData filterData0,
@@ -181,10 +160,11 @@ PxFilterFlags SampleSubmarineFilterShader(
 	// trigger the contact callback for pairs (A,B) where
 	// the filtermask of A contains the ID of B and vice versa.
 	//if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
-	if (mCollidFiler[filterData0.word0 | filterData1.word0])
+	if (mCollideFiler[filterData0.word0 | filterData1.word0]){
 		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
-
-	return PxFilterFlag::eDEFAULT;
+		return PxFilterFlag::eDEFAULT;
+	}
+	return PxFilterFlag::eSUPPRESS;
 }
 
 PX_INLINE void addForceAtPosInternal(PxRigidBody& body, const PxVec3& force, const PxVec3& pos, PxForceMode::Enum mode, bool wakeup)
@@ -318,10 +298,11 @@ PxDefaultCpuDispatcher* mCpuDispatcher = NULL;
 PxVec3 gravity(0, -9.81f, 0);
 void PhysX3Main::InitializePhysX() {
 
-	mCollidFiler[0] = true;
-	for (int i = 1; i < Tag::UserTag8; i <<= 1){
-		for (int j = i; j < Tag::UserTag8; j <<= 1){
-			mCollidFiler[i | j] = true;
+	for (int I = 0; I < 13; I++){
+		for (int J = I; J < 13; J++){
+			int i = 1 << I;
+			int j = 1 << J;
+			mCollideFiler[i | j] = true;
 		}
 	}
 
@@ -424,6 +405,8 @@ void PhysX3Main::InitializePhysX() {
 	}
 
 
+	mRigidDynamic = (PxRigidDynamic*)createBody();
+	mRigidDynamic->setRigidDynamicFlag(PxRigidBodyFlag::eKINEMATIC, true);
 	mRigidStatic = createRigidStatic();
 	//createPlane();
 
@@ -521,7 +504,7 @@ PxShape* PhysX3Main::CreateShape(){
 	auto shape = gPhysicsSDK->createShape(geometry, *mMaterial, true , PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
 
 	PxFilterData  filterData;
-	filterData.word0 = Tag::None;  //ワード0 =自分のID 
+	filterData.word0 = Layer::None;  //ワード0 =自分のID 
 	shape->setSimulationFilterData(filterData);
 	shape->setQueryFilterData(filterData);
 
@@ -533,7 +516,7 @@ PxShape* PhysX3Main::CreateShapeSphere(){
 	PxSphereGeometry geometry(0.5);
 	auto shape = gPhysicsSDK->createShape(geometry, *mMaterial, true, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
 	PxFilterData  filterData;
-	filterData.word0 = Tag::None;  //ワード0 =自分のID 
+	filterData.word0 = Layer::None;  //ワード0 =自分のID 
 	shape->setSimulationFilterData(filterData);
 	shape->setQueryFilterData(filterData);
 
@@ -600,7 +583,7 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 	auto shape = gPhysicsSDK->createShape(meshGeo, *mMaterial, true, PxShapeFlag::eSCENE_QUERY_SHAPE);
 
 	PxFilterData  filterData;
-	filterData.word0 = Tag::None;  //ワード0 =自分のID 
+	filterData.word0 = Layer::None;  //ワード0 =自分のID 
 	shape->setSimulationFilterData(filterData);
 	shape->setQueryFilterData(filterData);
 
@@ -624,8 +607,13 @@ PxController* PhysX3Main::CreateController(){
 	return c;
 }
 
-PxRevoluteJoint* PhysX3Main::CreateJoint(){
-	auto joint = PxRevoluteJointCreate(*gPhysicsSDK, NULL, PxTransform(), NULL, PxTransform());
+PxRevoluteJoint* PhysX3Main::CreateRevoluteJoint(){
+	auto joint = PxRevoluteJointCreate(*gPhysicsSDK, mRigidDynamic, PxTransform(PxVec3(0), PxQuat(1.0f)), NULL, PxTransform(PxVec3(0), PxQuat(1.0f)));
+	return joint;
+
+}
+PxDistanceJoint* PhysX3Main::CreateDistanceJoint(){
+	auto joint = PxDistanceJointCreate(*gPhysicsSDK, mRigidDynamic, PxTransform(PxVec3(0), PxQuat(1.0f)), NULL, PxTransform(PxVec3(0), PxQuat(1.0f)));
 	return joint;
 }
 
@@ -685,6 +673,8 @@ void PhysX3Main::Display() {
 void PhysX3Main::ShutdownPhysX() {
 
 
+
+	if (mRigidDynamic)mRigidDynamic->release();
 	if (mRigidStatic)mRigidStatic->release();
 
 	{
@@ -736,6 +726,12 @@ void PhysX3Main::ShutdownPhysX() {
 	if (mFoundation)mFoundation->release();
 }
 
+bool PhysX3Main::GetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2){
+	return mCollideFiler[l1 | l2];
+}
+void PhysX3Main::SetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2, bool flag){
+	mCollideFiler[l1 | l2] = flag;
+}
 
 void PhysX3Main::RemoveActor(PxActor* act){
 	gScene->removeActor(*act);

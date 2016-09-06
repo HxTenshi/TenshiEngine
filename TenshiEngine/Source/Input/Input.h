@@ -95,6 +95,26 @@ public:
 	}
 
 
+	static bool Trigger(PAD_X_KeyCoord key){
+		return DLLInput::XTrigger(key);
+	}
+	static int Down(PAD_X_KeyCoord key){
+		return DLLInput::XDown(key);
+	}
+	static bool Up(PAD_X_KeyCoord key){
+		return DLLInput::XUp(key);
+	}
+
+	static XMVECTOR Analog(PAD_X_LevelCoord key){
+		float x;
+		DLLInput::XAnalog1(key, &x);
+		return XMVectorSet(x, 0, 0, 1);
+	}
+	static XMVECTOR Analog(PAD_X_Velo2Coord key){
+		float x, y;
+		DLLInput::XAnalog2(key, &x, &y);
+		return XMVectorSet(x, y, 0, 1);
+	}
 private:
 
 

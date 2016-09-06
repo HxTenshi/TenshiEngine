@@ -14,6 +14,7 @@
 #include "Game/RenderingSystem.h"
 
 #include "Engine/ModelConverter.h"
+#include "SettingObject\PhysxLayer.h"
 #include "Engine/Asset/GenerateMetaFile.h"
 
 #include <algorithm>
@@ -62,6 +63,9 @@ Game::GameObjectPtr Game::mEngineRootObject;
 Game* mGame = NULL;
 Scene Game::m_Scene;
 DeltaTime* gpDeltaTime;
+SystemHelper Game::mSystemHelper;
+
+PhysxLayer* gPhysxLayer;
 
 #ifdef _ENGINE_MODE
 static bool gIsPlay;
@@ -158,6 +162,17 @@ Game::Game(){
 	mEngineRootObject->mTransform = mEngineRootObject->AddComponent<TransformComponent>();
 	mEngineRootObject->Initialize();
 	mEngineRootObject->Start();
+
+
+	auto o = new PhysxLayer();
+	o->mTransform = o->AddComponent<TransformComponent>();
+	o->Initialize();
+	o->Start();
+	Window::AddEngineTreeViewItem("PhysxLayer", (void*)o);
+	AddEngineObject(o);
+
+	gPhysxLayer = o;
+	gPhysxLayer->ImportData("Settings/PhysxLayer");
 
 	mCamera.Initialize();
 	mSelectActor.Initialize();
@@ -536,6 +551,12 @@ PhysXEngine* Game::GetPhysXEngine(){
 DeltaTime* Game::GetDeltaTime(){
 	return gpDeltaTime;
 }
+System* Game::System(){
+	return &mSystemHelper;
+}
+std::vector<std::string>& Game::GetLayerNames(){
+	return gPhysxLayer->GetSelects();
+}
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
 }
@@ -554,8 +575,19 @@ GameObject Game::FindActor(Actor* actor){
 	}
 	return NULL;
 }
+Actor* Game::FindEngineActor(Actor* actor){
 
-GameObject Game::FindNameActor(const char* name){
+	
+	for (auto& act : mEngineRootObject->mTransform->Children()){
+		if (act == actor){
+			return act;
+		}
+	}
+	return NULL;
+}
+
+
+Actor* Game::FindNameActor(const char* name){
 
 	for (auto& act : (*gpList)){
 		if (act.second->Name() == name){
@@ -643,6 +675,7 @@ void Game::ChangePlayGame(bool isPlay){
 		}
 	}
 	else{
+		mSystemHelper.Initialize();
 
 		mSelectActor.SetSelect(NULL);
 
@@ -653,183 +686,6 @@ void Game::ChangePlayGame(bool isPlay){
 #else
 	(void)isPlay;
 #endif
-}
-
-void Game::testDraw(){
-
-	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-	//{
-		static bool init = false;
-		static Texture tex;
-		static Model mModelTexture;
-		static Material mMaterial;
-		if (!init){
-			tex.Create("EngineResource/error.png");
-			init = true;
-
-			mModelTexture.Create("EngineResource/TextureModel.tesmesh");
-			mMaterial.Create("EngineResource/PostEffectRendering.fx");
-
-
-			mMaterial.SetTexture(tex, 0);
-			mMaterial.SetTexture(tex, 1);
-		}
-		for (int i = 0; i < 8; i++){
-			tex.PSSetShaderResources(render->m_Context, i);
-		}
-		ID3D11ShaderResourceView *const pNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-		ID3D11SamplerState *const pSNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-		render->m_Context->VSSetShaderResources(0, 8, pNULL);
-		render->m_Context->VSSetSamplers(0, 8, pSNULL);
-		render->m_Context->GSSetShaderResources(0, 8, pNULL);
-		render->m_Context->GSSetSamplers(0, 8, pSNULL);
-		render->m_Context->PSSetShader(NULL, NULL, 0);
-		render->m_Context->VSSetShader(NULL, NULL, 0);
-		render->m_Context->GSSetShader(NULL, NULL, 0);
-		render->m_Context->CSSetShader(NULL, NULL, 0);
-
-	//}
-
-	Device::mRenderTargetBack->ClearView(render->m_Context);
-	Device::mRenderTargetBack->ClearDepth(render->m_Context);
-	mMainViewRenderTarget.ClearView(render->m_Context);
-
-	if (!mMainCamera){
-		ClearDrawList();
-		return;
-	}
-	//ここでもアップデートしてる（仮処理）
-	mMainCamera->Update();
-	mMainCamera->VSSetConstantBuffers(render->m_Context);
-	mMainCamera->PSSetConstantBuffers(render->m_Context);
-	mMainCamera->GSSetConstantBuffers(render->m_Context);
-	Texture skyTex = mMainCamera->GetSkyTexture();
-	if (mMainCameraEngineUpdate){
-		skyTex = mMainCameraEngineUpdate->GetSkyTexture();
-	}
-	m_DeferredRendering.SetSkyTexture(skyTex);
-
-
-	// Setup the viewport
-	D3D11_VIEWPORT vp;
-	vp.Width = (FLOAT)WindowState::mWidth;
-	vp.Height = (FLOAT)WindowState::mHeight;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	render->m_Context->RSSetViewports(1, &vp);
-
-	render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
-	render->PushSet(DepthStencil::Preset::DS_All_Less);
-	render->PushSet(Rasterizer::Preset::RS_Back_Solid);
-
-	//const RenderTarget* r[1] = { &mMainViewRenderTarget };
-	//RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
-
-	Device::mRenderTargetBack->SetRendererTarget(render->m_Context);
-
-	mModelTexture.Update();
-	mModelTexture.Draw(render->m_Context, mMaterial);
-
-	RenderTarget::NullSetRendererTarget(render->m_Context);
-	//mPostEffectRendering.Rendering(render, [&](){});
-
-	render->PopDS();
-	render->PopRS();
-
-	ClearDrawList();
-
-	SetMainCamera(NULL);
-	SetMainCameraEngineUpdate(NULL);
-	return;
-
-
-	mCBGameParameter.mParam.Time.x++;
-	mCBGameParameter.mParam.Time.y += mDeltaTime.GetDeltaTime();
-	mCBGameParameter.mParam.Time.z = mDeltaTime.GetDeltaTime();
-	mCBGameParameter.UpdateSubresource(render->m_Context);
-	mCBGameParameter.VSSetConstantBuffers(render->m_Context);
-	mCBGameParameter.PSSetConstantBuffers(render->m_Context);
-	mCBGameParameter.GSSetConstantBuffers(render->m_Context);
-	mCBGameParameter.CSSetConstantBuffers(render->m_Context);
-
-	mCBScreen.UpdateSubresource(render->m_Context);
-	mCBScreen.CSSetConstantBuffers(render->m_Context);
-	mCBScreen.GSSetConstantBuffers(render->m_Context);
-	mCBScreen.VSSetConstantBuffers(render->m_Context);
-	mCBScreen.PSSetConstantBuffers(render->m_Context);
-
-	//今は意味なし
-	PlayDrawList(DrawStage::Depth);
-
-
-	render->m_Context->PSSetShaderResources(0, 4, pNULL);
-	render->m_Context->PSSetSamplers(0, 4, pSNULL);
-
-	PlayDrawList(DrawStage::Init);
-	{
-
-		m_DeferredRendering.Debug_G_Buffer_Rendering(render,
-			[&](){
-			//mMainCamera->ScreenClear();
-			PlayDrawList(DrawStage::Diffuse);
-		});
-
-
-		m_DeferredRendering.Debug_AlbedoOnly_Rendering(render, &mMainViewRenderTarget);
-
-		m_DeferredRendering.Forward_Rendering(render, &mMainViewRenderTarget, [&](){
-			PlayDrawList(DrawStage::Forward);
-		});
-
-		m_DeferredRendering.Particle_Rendering(render, &mMainViewRenderTarget, [&](){
-			PlayDrawList(DrawStage::Particle);
-		});
-	}
-
-
-	mPostEffectRendering.Rendering(render, [&](){
-		PlayDrawList(DrawStage::PostEffect);
-	});
-
-	PlayDrawList(DrawStage::Engine);
-
-	render->PopDS();
-
-	{
-		render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
-		render->PushSet(BlendState::Preset::BS_Alpha, 0xFFFFFFFF);
-
-		PlayDrawList(DrawStage::UI);
-
-		render->PopBS();
-		render->PopDS();
-	}
-
-	render->PopRS();
-
-	ClearDrawList();
-
-	SetMainCamera(NULL);
-	SetMainCameraEngineUpdate(NULL);
-
-	{
-		ID3D11ShaderResourceView *const pNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-		ID3D11SamplerState *const pSNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-		render->m_Context->PSSetShaderResources(0, 8, pNULL);
-		render->m_Context->PSSetSamplers(0, 8, pSNULL);
-		render->m_Context->VSSetShaderResources(0, 8, pNULL);
-		render->m_Context->VSSetSamplers(0, 8, pSNULL);
-		render->m_Context->GSSetShaderResources(0, 8, pNULL);
-		render->m_Context->GSSetSamplers(0, 8, pSNULL);
-		render->m_Context->PSSetShader(NULL, NULL, 0);
-		render->m_Context->VSSetShader(NULL, NULL, 0);
-		render->m_Context->GSSetShader(NULL, NULL, 0);
-		render->m_Context->CSSetShader(NULL, NULL, 0);
-	}
 }
 
 #ifdef _ENGINE_MODE
@@ -962,8 +818,8 @@ void Game::Draw(){
 			PlayDrawList(DrawStage::Diffuse);
 		});
 
-
 		m_DeferredRendering.Debug_AlbedoOnly_Rendering(render,&mMainViewRenderTarget);
+		
 		
 		m_DeferredRendering.Forward_Rendering(render, &mMainViewRenderTarget, [&](){
 			PlayDrawList(DrawStage::Forward);
@@ -1025,6 +881,7 @@ void Game::Draw(){
 
 void Game::SaveScene(){
 	m_Scene.SaveScene();
+	gPhysxLayer->ExportData("Settings","PhysxLayer");
 }
 
 void Game::Update(){
@@ -1032,7 +889,7 @@ void Game::Update(){
 	ActorMoveStage();
 #ifdef _ENGINE_MODE
 	mSelectActor.UpdateInspector();
-	
+
 	mProfileViewer.Update(1);
 	if (mIsPlay){
 		GamePlay();
@@ -1046,13 +903,11 @@ void Game::Update(){
 #else
 	GamePlay();
 #endif
-
 }
 #ifdef _ENGINE_MODE
 void Game::GameStop(){
 	mDeltaTime.SetTimeScale(1.0f);
 	float deltaTime = mDeltaTime.GetDeltaTime();
-
 
 	mCamera.Update(deltaTime);
 
@@ -1092,6 +947,7 @@ void Game::GameStop(){
 }
 #endif
 void Game::GamePlay(){
+	mSystemHelper.Update();
 	float deltaTime = mDeltaTime.GetDeltaTime();
 
 	mRootObject->UpdateComponent(deltaTime);

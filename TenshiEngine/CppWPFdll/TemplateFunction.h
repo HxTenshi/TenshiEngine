@@ -73,6 +73,13 @@ void BindingInspector(System::Windows::Shapes::Rectangle^ rectangle, T* pf1, std
 	rectangle->AddHandler(System::Windows::Controls::Canvas::MouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(ViewData::window, &View::CreateColorPickerWindow), true);
 }
 
+template <class T>
+void BindingInspector(ComboBox^ combobox, T* pf, std::function<void(T)> collback){
+	auto vm = gcnew ViewModel<T>(pf, collback);
+	combobox->DataContext = vm;
+	combobox->SetBinding(ComboBox::SelectedIndexProperty, "Value");
+}
+
 ref class XAMLResource{
 public:
 	static System::Collections::Generic::Dictionary<int, String^> ^DataBase = gcnew System::Collections::Generic::Dictionary<int, String^>();

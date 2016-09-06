@@ -54,6 +54,10 @@ public:
 		mChengeTransformFlag |= (char)flag;
 	}
 
+
+	physx::PxRigidActor* GetRigidActor(){
+		return  mRigidActor;
+	}
 	void SetTransform(bool RebirthSet);
 
 	bool AddShape(physx::PxShape& shape);
@@ -68,6 +72,7 @@ public:
 	void SetForceVelocity(const XMVECTOR& v) override;
 	void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;
 	void AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;
+	
 
 	bool mIsEngineMode;
 private:

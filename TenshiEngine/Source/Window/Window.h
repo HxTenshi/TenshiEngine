@@ -11,6 +11,7 @@
 #include "Application/Define.h"
 
 #include "Engine/SystemLog.h"
+#include "Input/InputManagerRapper.h"
 
 class WindowState{
 public:
@@ -53,6 +54,7 @@ public:
 
 	}
 	int Init();
+	void Update();
 
 	void Release();
 
@@ -63,6 +65,13 @@ public:
 
 		return mGameScreenHWND;
 		//return mGameScreenWindow.GetHWND();
+	}
+	static bool IsActive(){
+#ifdef _ENGINE_MODE
+		return mInputManagerRapper.GetScreenFocus();
+#else
+		return GetActiveWindow() == mGameScreenHWND;
+#endif
 	}
 
 	static void SetWindowTitle(const std::string& title){
@@ -83,6 +92,9 @@ public:
 	}
 	static void AddTreeViewItem(const std::string& name, void* ptr){
 		mMainWindow_WPF.AddTreeViewItem(name, ptr);
+	}
+	static void AddEngineTreeViewItem(const std::string& name, void* ptr){
+		mMainWindow_WPF.AddEngineTreeViewItem(name, ptr);
 	}
 	static void SetParentTreeViewItem(void* parent, void* child){
 		mMainWindow_WPF.SetParentTreeViewItem(parent, child);
@@ -135,6 +147,8 @@ public:
 	}
 	static void AddInspector(InspectorButtonDataSet* dataset, std::vector<InspectorDataSet>& data){
 		data.push_back(InspectorDataSet(InspectorDataFormat::Button, dataset));
+	}static void AddInspector(InspectorSelectDataSet* dataset, std::vector<InspectorDataSet>& data){
+		data.push_back(InspectorDataSet(InspectorDataFormat::Select, dataset));
 	}
 
 	static void ViewInspector(const std::string& ComponentName,Component* comptr, std::vector<InspectorDataSet>& data){
@@ -167,6 +181,8 @@ public:
 	static HWND mhWnd;
 	HINSTANCE mhInstance;
 	int mnCmdShow;
+
+	static InputManagerRapper mInputManagerRapper;
 
 
 #ifdef _ENGINE_MODE

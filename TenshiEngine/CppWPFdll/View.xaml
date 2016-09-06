@@ -34,7 +34,7 @@
                 </Setter.Value>
             </Setter>
         </Style>-->
-        
+
         <Style TargetType="ScrollBar">
             <Setter Property="Margin" Value="-5,0,0,0" />
             <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
@@ -88,7 +88,7 @@
             -->
         </Style>
     </Border.Resources>
-    
+
     <DockPanel>
         <!--<ScrollViewer VerticalScrollBarVisibility="Visible">
             <StackPanel Name="a" Background="#FF646464" Width="100" Height="1000">
@@ -111,9 +111,19 @@
                     <RowDefinition Height="Auto" MinHeight="5"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Border Grid.Row="0" Name="TreeView">
+                <TabControl TabStripPlacement="Top" Background="#FF646464" BorderBrush="#FF191919">
+                    <TabItem Name="tabIitemContent1" Header="Scene" Background="#FF4B4B4B" BorderBrush="#FF191919">
+                        <Border Grid.Row="0" Name="TreeView">
+                            
 
-                </Border>
+                        </Border>
+                    </TabItem>
+                    <TabItem Name="tabIitemContent2" Header="Setting" Background="#FF4B4B4B" BorderBrush="#FF191919">
+                        <Border Grid.Row="0" Name="EngineTreeView">
+
+                        </Border>
+                    </TabItem>
+                </TabControl>
                 <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch"/>
 
                 <Border Grid.Row="2" Name="AssetTreeView">

@@ -74,6 +74,8 @@ public:
 	void AttachPhysxComponent(weak_ptr<PhysXComponent> com);
 
 	physx::PxShape* GetShape();
+
+	void SetPhysxLayer(int layer);
 private:
 	bool SearchAttachPhysXComponent();
 	void ShapeAttach(physx::PxShape* shape);

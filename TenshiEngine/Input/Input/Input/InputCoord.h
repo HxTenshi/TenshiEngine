@@ -362,3 +362,38 @@ enum class PAD_DS4_Velo3Coord{
 	Velo3_Acceleration,
 	Count,
 };
+
+enum class PAD_X_KeyCoord{
+	Button_UP,
+	Button_DOWN,
+	Button_LEFT,
+	Button_RIGHT,
+	Button_A,
+	Button_B,
+	Button_X,
+	Button_Y,
+	Button_L1,
+	Button_L2,
+	Button_L3,
+	Button_R1,
+	Button_R2,
+	Button_R3,
+	Button_START,
+	Button_BACK,
+	Count,
+};
+enum class PAD_X_LevelCoord{
+	Level_L2,
+	Level_R2,
+	Level_LStickX,
+	Level_LStickY,
+	Level_RStickX,
+	Level_RStickY,
+	Count,
+};
+
+enum class PAD_X_Velo2Coord{
+	Velo2_LStick,
+	Velo2_RStick,
+	Count,
+};

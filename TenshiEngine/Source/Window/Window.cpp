@@ -31,6 +31,8 @@ Test::NativeFraction Window::mMainWindow_WPF;
 
 HWND Window::mGameScreenHWND = NULL;
 
+InputManagerRapper Window::mInputManagerRapper;
+
 
 int Window::Init(){
 
@@ -97,9 +99,14 @@ int Window::Init(){
 	ShowWindow(mhWnd, mnCmdShow);
 #endif
 
+	mInputManagerRapper.Initialize(GetMainHWND(), mhInstance);
+
 	return S_OK;
 }
 
+void Window::Update(){
+	mInputManagerRapper.Update();
+}
 
 void Window::Release(){
 	//if (mhModuleWnd)
