@@ -2,6 +2,7 @@
 
 #include "IComponent.h"
 #include "MySTL/ptr.h"
+#include "Game/Types.h"
 
 namespace physx{
 	class PxRigidActor;
@@ -36,13 +37,13 @@ public:
 #endif
 	void IO_Data(I_ioHelper* io) override;
 
-	void SetRigidActor(RigitActorID id, Actor* actor);
+	void SetRigidActor(RigitActorID id, GameObject actor);
 
 private:
 
 	//physx::PxRevoluteJoint* mJoint;
 	physx::PxDistanceJoint* mJoint;
 	physx::PxRigidActor* mRigidActor[2];
-	int mActorUID[2];
+	UniqueID mActorUID[2];
 };
 

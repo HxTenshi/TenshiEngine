@@ -133,6 +133,7 @@ private:
 #ifdef _ENGINE_MODE
 	//ツリービューのアイテム削除に失敗したアクター
 	std::list<GameObjectPtr> mTreeViewItem_ErrerClearList;
+	static std::list<GameObjectPtr> mEngineObjects;
 
 	static GameObjectPtr mEngineRootObject;
 

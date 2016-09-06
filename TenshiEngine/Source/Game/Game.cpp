@@ -59,13 +59,14 @@ Game::GameObjectPtr Game::mRootObject;
 static CameraComponent** gMainCameraEngineUpdate;
 static SelectActor* gSelectActor;
 Game::GameObjectPtr Game::mEngineRootObject;
+std::list<Game::GameObjectPtr> Game::mEngineObjects;
 #endif
 Game* mGame = NULL;
 Scene Game::m_Scene;
 DeltaTime* gpDeltaTime;
 SystemHelper Game::mSystemHelper;
 
-PhysxLayer* gPhysxLayer;
+weak_ptr<PhysxLayer> gPhysxLayer;
 
 #ifdef _ENGINE_MODE
 static bool gIsPlay;
@@ -164,15 +165,13 @@ Game::Game(){
 	mEngineRootObject->Start();
 
 
-	auto o = new PhysxLayer();
-	o->mTransform = o->AddComponent<TransformComponent>();
-	o->Initialize();
-	o->Start();
-	Window::AddEngineTreeViewItem("PhysxLayer", (void*)o);
-	AddEngineObject(o);
-
+	auto o = make_shared<PhysxLayer>();
 	gPhysxLayer = o;
+	o->mTransform = o->AddComponent<TransformComponent>();
 	gPhysxLayer->ImportData("Settings/PhysxLayer");
+	AddEngineObject(o);
+	Window::AddEngineTreeViewItem("PhysxLayer", (void*)o.Get());
+
 
 	mCamera.Initialize();
 	mSelectActor.Initialize();
@@ -473,6 +472,7 @@ void Game::AddEngineObject(GameObjectPtr actor){
 	if (!actor->mTransform->GetParent()){
 		actor->mTransform->SetParent(mEngineRootObject);
 	}
+	mEngineObjects.push_back(actor);
 }
 #endif
 //static
@@ -575,11 +575,11 @@ GameObject Game::FindActor(Actor* actor){
 	}
 	return NULL;
 }
-Actor* Game::FindEngineActor(Actor* actor){
+GameObject Game::FindEngineActor(Actor* actor){
 
 	
 	for (auto& act : mEngineRootObject->mTransform->Children()){
-		if (act == actor){
+		if (act.Get() == actor){
 			return act;
 		}
 	}
@@ -587,7 +587,7 @@ Actor* Game::FindEngineActor(Actor* actor){
 }
 
 
-Actor* Game::FindNameActor(const char* name){
+GameObject Game::FindNameActor(const char* name){
 
 	for (auto& act : (*gpList)){
 		if (act.second->Name() == name){

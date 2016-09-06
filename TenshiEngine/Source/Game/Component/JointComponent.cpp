@@ -6,8 +6,8 @@
 #include <PxPhysicsAPI.h>
 
 JointComponent::JointComponent(){
-	mActorUID[0] = NULL;
-	mActorUID[1] = NULL;
+	mActorUID[0] = "";
+	mActorUID[1] = "";
 	mRigidActor[0] = NULL;
 	mRigidActor[1] = NULL;
 	mJoint = NULL;
@@ -29,11 +29,11 @@ void JointComponent::Initialize(){
 
 void JointComponent::Start(){
 
-	if (mActorUID[0]){
+	if (mActorUID[0] == ""){
 		auto act = Game::FindUID(mActorUID[0]);
 		SetRigidActor(RigitActorID::Actor_0, act);
 	}
-	if (mActorUID[1]){
+	if (mActorUID[1] == ""){
 		auto act = Game::FindUID(mActorUID[1]);
 		SetRigidActor(RigitActorID::Actor_1, act);
 	}
@@ -42,8 +42,8 @@ void JointComponent::Start(){
 void JointComponent::Finish(){
 	mRigidActor[0] = NULL;
 	mRigidActor[1] = NULL;
-	mActorUID[0] = NULL;
-	mActorUID[1] = NULL;
+	mActorUID[0] = "";
+	mActorUID[1] = "";
 	if (mJoint){
 		mJoint->release();
 	}
@@ -64,7 +64,7 @@ void JointComponent::CreateInspector() {
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("RigidActor_0", &actor0, [&](std::string f){
 		actor0 = f;
 		auto act = Game::FindNameActor(f.c_str());
-		mActorUID[0] = NULL;
+		mActorUID[0] = "";
 		if (act){
 			mActorUID[0] = act->GetUniqueID();
 		}
@@ -75,7 +75,7 @@ void JointComponent::CreateInspector() {
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("RigidActor_1", &actor1, [&](std::string f){
 		actor1 = f;
 		auto act = Game::FindNameActor(f.c_str());
-		mActorUID[1] = NULL;
+		mActorUID[1] = "";
 		if (act){
 			mActorUID[1] = act->GetUniqueID();
 		}
@@ -96,7 +96,7 @@ void JointComponent::IO_Data(I_ioHelper* io){
 }
 
 
-void JointComponent::SetRigidActor(RigitActorID id, Actor* actor){
+void JointComponent::SetRigidActor(RigitActorID id, GameObject actor){
 	int ID = (int)id;
 	if (ID != 0 && ID != 1){
 		return;

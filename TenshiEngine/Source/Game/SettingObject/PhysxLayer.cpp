@@ -35,7 +35,6 @@ PhysxLayer::PhysxLayer(){
 			SetLayerFlag(I,J, mCollideFiler[i | j]);
 		}
 	}
-	
 }
 
 PhysxLayer::~PhysxLayer(){

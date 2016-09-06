@@ -540,6 +540,7 @@ void TransformComponent::AllChildrenDestroy(){
 	while (mChildren.size()){
 		auto child = Children().front();
 		Children().pop_front();
+		if (!child)continue;
 		//親と子が同時に死ぬとエラーが出る
 		child->mTransform->SetParent(NULL);
 		Game::DestroyObject(child);
