@@ -83,7 +83,7 @@ public:
 	}
 
 #ifdef _ENGINE_MODE
-	void CreateInspector();
+	virtual void CreateInspector();
 #endif
 
 	std::string Name(){return mName;}
@@ -119,6 +119,10 @@ public:
 
 	void* mTreeViewPtr;
 
+	int GetLayer(){
+		return mPhysxLayer;
+	}
+
 protected:
 	ComponentList mComponents;
 
@@ -136,4 +140,6 @@ protected:
 
 	UINT mUniqueID;
 	bool mEndStart;
+
+	int mPhysxLayer;
 };

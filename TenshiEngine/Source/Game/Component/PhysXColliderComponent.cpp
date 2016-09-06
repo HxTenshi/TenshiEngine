@@ -40,6 +40,8 @@ void PhysXColliderComponent::Initialize(){
 
 	SetTransform(mPosition);
 	SetScale(mScale);
+
+	SetPhysxLayer(gameObject->GetLayer());
 }
 
 void PhysXColliderComponent::Start(){
@@ -450,4 +452,14 @@ void PhysXColliderComponent::SetScale(const XMVECTOR& scale){
 }
 const XMVECTOR& PhysXColliderComponent::GetScale() const{
 	return mScale;
+}
+
+void PhysXColliderComponent::SetPhysxLayer(int layer){
+	if (!mShape)return;
+	PxFilterData  filterData;
+	auto l = (Layer::Enum)(1 << layer);
+
+	filterData.word0 = l;  //ƒ[ƒh0 =Ž©•ª‚ÌID 
+	mShape->setSimulationFilterData(filterData);
+	mShape->setQueryFilterData(filterData);
 }

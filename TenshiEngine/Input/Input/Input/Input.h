@@ -44,6 +44,14 @@ public:
 	CLASS_DECLSPEC static void DS4Analog2(PAD_DS4_Velo2Coord coord,float* x, float* y);
 	CLASS_DECLSPEC static void DS4Analog3(PAD_DS4_Velo3Coord coord,float* x, float* y, float* z);
 
+
+	CLASS_DECLSPEC static bool XTrigger(PAD_X_KeyCoord key);
+	CLASS_DECLSPEC static int XDown(PAD_X_KeyCoord key);
+	CLASS_DECLSPEC static bool XUp(PAD_X_KeyCoord key);
+
+	CLASS_DECLSPEC static void XAnalog1(PAD_X_LevelCoord coord, float* x);
+	CLASS_DECLSPEC static void XAnalog2(PAD_X_Velo2Coord coord, float* x, float* y);
+
 private:
 
 };
@@ -54,6 +62,7 @@ private:
 #include <dinput.h>
 
 class DS4;
+class XInput;
 class InputManager{
 public:
 
@@ -81,6 +90,10 @@ private:
 
 	static DS4* ds4;
 	static int mDS4Input[(int)PAD_DS4_KeyCoord::Count];
+
+
+	static XInput* xinput;
+	static int mXInput[(int)PAD_X_KeyCoord::Count];
 
 	static bool mDIKeyboardDeviceLost;
 

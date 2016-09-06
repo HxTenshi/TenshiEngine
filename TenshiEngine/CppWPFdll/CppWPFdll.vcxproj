@@ -158,6 +158,7 @@
     <Page Include="WindowXAML\InspectorCheckBox.xaml" />
     <Page Include="WindowXAML\InspectorColor.xaml" />
     <Page Include="WindowXAML\InspectorFloat.xaml" />
+    <Page Include="WindowXAML\InspectorSelectBox.xaml" />
     <Page Include="WindowXAML\InspectorSlideBar.xaml" />
     <Page Include="WindowXAML\InspectorVector3.xaml" />
     <Page Include="View.xaml" />

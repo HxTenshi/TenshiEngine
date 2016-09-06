@@ -15,6 +15,8 @@
 
 #include "Engine/ModelConverter.h"
 
+#include "SettingObject\PhysxLayer.h"
+
 
 static std::stack<int> gIntPtrStack;
 
@@ -34,6 +36,8 @@ Game* mGame = NULL;
 Scene Game::m_Scene;
 DeltaTime* gpDeltaTime;
 SystemHelper Game::mSystemHelper;
+
+PhysxLayer* gPhysxLayer;
 
 #ifdef _ENGINE_MODE
 static bool gIsPlay;
@@ -123,6 +127,16 @@ Game::Game(){
 	mEngineRootObject->mTransform = mEngineRootObject->AddComponent<TransformComponent>();
 	mEngineRootObject->Initialize();
 	mEngineRootObject->Start();
+
+
+	auto o = new PhysxLayer();
+	o->mTransform = o->AddComponent<TransformComponent>();
+	o->Initialize();
+	o->Start();
+	Window::AddEngineTreeViewItem("PhysxLayer", (void*)o);
+	AddEngineObject(o);
+
+	gPhysxLayer = o;
 
 	mCamera.Initialize();
 	mSelectActor.Initialize();
@@ -505,6 +519,9 @@ DeltaTime* Game::GetDeltaTime(){
 System* Game::System(){
 	return &mSystemHelper;
 }
+std::vector<std::string>& Game::GetLayerNames(){
+	return gPhysxLayer->GetSelects();
+}
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
 }
@@ -523,6 +540,17 @@ Actor* Game::FindActor(Actor* actor){
 	}
 	return NULL;
 }
+Actor* Game::FindEngineActor(Actor* actor){
+
+	
+	for (auto& act : mEngineRootObject->mTransform->Children()){
+		if (act == actor){
+			return act;
+		}
+	}
+	return NULL;
+}
+
 
 Actor* Game::FindNameActor(const char* name){
 
@@ -631,6 +659,21 @@ bool g_DebugRender = true;
 #include "../Engine/AssetFile/Material/TextureFileData.h"
 void Game::Draw(){
 	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+	// Setup the viewport
+	D3D11_VIEWPORT vp;
+	vp.Width = (FLOAT)WindowState::mWidth;
+	vp.Height = (FLOAT)WindowState::mHeight;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	render->m_Context->RSSetViewports(1, &vp);
+
+	// Set primitive topology
+	//インデックスの並び　Z字など
+	render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	if (!mMainCamera){
 
 		Device::mRenderTargetBack->ClearView(render->m_Context);

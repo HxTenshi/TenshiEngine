@@ -3,6 +3,7 @@
 #include "Game/Component/ScriptComponent.h"
 #include "Game/Component/PointLightComponent.h"
 #include "Game/Component/MeshDrawComponent.h"
+#include "Game/Component/PhysxColliderComponent.h"
 #include "MySTL/File.h"
 #include "MySTL/ptr.h"
 #include "Game.h"
@@ -45,6 +46,7 @@ Actor::Actor()
 {
 	mName = "new Object";
 	mUniqueID = 0;
+	mPhysxLayer = 0;
 }
 Actor::~Actor()
 {
@@ -135,6 +137,13 @@ void Actor::CreateInspector(){
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Name", &mName, collback), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Prefab", &mPrefab, collbackpre), data);
+	Window::AddInspector(new InspectorSelectDataSet("Layer", Game::GetLayerNames() , &mPhysxLayer, [&](int f){
+		mPhysxLayer = f;
+		if (auto com = mComponents.GetComponent<PhysXColliderComponent>()){
+			com->SetPhysxLayer(mPhysxLayer);
+		}
+	}), data);
+
 	Window::ViewInspector("Actor",NULL,data);
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->CreateInspector();

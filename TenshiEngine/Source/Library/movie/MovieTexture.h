@@ -7,7 +7,7 @@
 #ifndef MOVIETEX_H
 #define MOVIETEX_H
 
-#define _MOVETEX_ENABLE 0
+#define _MOVETEX_ENABLE 1
 #if _MOVETEX_ENABLE
 
 #include <d3d11.h>

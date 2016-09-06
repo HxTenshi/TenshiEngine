@@ -17,6 +17,7 @@ enum class InspectorDataFormat{
 	SlideBar,
 	Color,
 	Button,
+	Select,
 	Count,
 };
 struct InspectorDataSet{
@@ -31,6 +32,15 @@ struct InspectorLabelDataSet{
 	const std::string Text;
 private:
 	InspectorLabelDataSet& operator =(const InspectorLabelDataSet&);
+};
+struct InspectorSelectDataSet{
+	InspectorSelectDataSet(std::string t, std::vector<std::string> selects, int *d, std::function<void(int)> collback) :Text(t), select(selects), data(d), collBack(collback){}
+	const std::string Text;
+	std::vector<std::string> select;
+	int* data;
+	std::function<void(int)> collBack;
+private:
+	InspectorSelectDataSet& operator =(const InspectorSelectDataSet&);
 };
 
 template <class T>

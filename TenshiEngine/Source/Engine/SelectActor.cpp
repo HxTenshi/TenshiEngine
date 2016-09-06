@@ -531,7 +531,7 @@ void SelectActor::SetSelect(Actor* select, bool dontTreeViewSelect){
 	mSelectAsset = false;
 
 	//ë∂ç›ÇµÇ»ÇØÇÍÇŒNULL
-	if (!Game::FindActor(select)){
+	if (!Game::FindActor(select) && !Game::FindEngineActor(select)){
 		select = NULL;
 	}
 	if (EngineInput::Down(KeyCoord::Key_LCONTROL)){

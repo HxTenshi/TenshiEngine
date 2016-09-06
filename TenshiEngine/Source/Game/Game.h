@@ -71,6 +71,7 @@ public:
 	static void GetAllObject(const std::function<void(Actor*)>& collbak);
 	static Actor* GetRootActor();
 	static Actor* FindActor(Actor* actor);
+	static Actor* FindEngineActor(Actor* actor);
 	static Actor* FindNameActor(const char* name);
 	static Actor* FindUID(UINT uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
@@ -82,6 +83,7 @@ public:
 	static void LoadScene(const std::string& FilePath);
 	static DeltaTime* GetDeltaTime();
 	static System* System();
+	static std::vector<std::string>& GetLayerNames();
 
 #ifdef _ENGINE_MODE
 	static void AddEngineObject(Actor* actor);

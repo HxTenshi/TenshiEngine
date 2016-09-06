@@ -28,7 +28,7 @@ void PlayerController::Update(){
 	
 	float speed = 10.0f;
 	float x = 0, y = 0;
-	if (Input::Down(KeyCoord::Key_W)){
+	if (Input::Down(KeyCoord::Key_W) || Input::Down(PAD_X_KeyCoord::Button_UP)){
 		y = 1.0f;
 	}
 	if (Input::Down(KeyCoord::Key_S)){
@@ -76,7 +76,7 @@ void PlayerController::Update(){
 
 	if (isGround){
 		mJump = XMVectorZero();
-		if (Input::Trigger(KeyCoord::Key_SPACE)){
+		if (Input::Trigger(KeyCoord::Key_SPACE) || Input::Down(PAD_X_KeyCoord::Button_A)){
   			mJump.y += 3.5f;
 		}
 		v *= speed;

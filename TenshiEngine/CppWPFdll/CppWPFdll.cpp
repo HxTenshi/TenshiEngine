@@ -126,6 +126,22 @@ void CreateInspectorButton(DockPanel^ dockPanel, String^ text, std::function<voi
 
 }
 
+void CreateInspectorSelect(DockPanel^ dockPanel,std::vector<std::string>& selects, String^ text, int* p, std::function<void(int)> collback){
+	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_SELECT);
+	dockPanel->Children->Add(com);
+	DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
+	auto tb = (TextBlock^)com->FindName("FloatName");
+	if (tb)tb->Text = text;
+	auto ccbox = (ComboBox^)com->FindName("Value");
+	//auto item = gcnew System::Windows::Controls::ComboBoxItem();
+	//item->DataContext = "aiueo";
+	for (auto& t : selects){
+		ccbox->Items->Add(gcnew String(t.c_str()));
+	}
+
+	BindingInspector<int>(ccbox, p, collback);
+}
+
 void OnClick(System::Object ^sender, System::Windows::RoutedEventArgs ^e)
 {
 	throw gcnew System::NotImplementedException();
@@ -275,6 +291,23 @@ private:
 	InspectorButtonDataSet *m_data;
 };
 
+ref class InspectorSelect : public InspectorData{
+public:
+	InspectorSelect(InspectorSelectDataSet* data)
+		: m_data(data){
+	}
+	~InspectorSelect(){
+		this->!InspectorSelect();
+	}
+	!InspectorSelect(){
+		delete m_data;
+	}
+
+	void CreateInspector(DockPanel^ dockPanel) override;
+private:
+	InspectorSelectDataSet *m_data;
+};
+
 void InspectorLabel::CreateInspector(DockPanel^ dockPanel){
 	CreateInspectorTextBlock(dockPanel, Text);
 }
@@ -294,6 +327,9 @@ void InspectorColor::CreateInspector(DockPanel^ dockPanel) {
 }
 void InspectorButton::CreateInspector(DockPanel^ dockPanel){
 	CreateInspectorButton(dockPanel, gcnew String(m_data->Text.c_str()), m_data->collBack);
+}
+void InspectorSelect::CreateInspector(DockPanel^ dockPanel){
+	CreateInspectorSelect(dockPanel, m_data->select ,gcnew String(m_data->Text.c_str()),m_data->data, m_data->collBack);
 }
 
 HWND Data::mhWnd = NULL;
@@ -401,6 +437,9 @@ namespace Test {
 				if (d.format == InspectorDataFormat::Button){
 					a[i] = gcnew InspectorButton((InspectorButtonDataSet*)d.data);
 				}
+				if (d.format == InspectorDataFormat::Select){
+					a[i] = gcnew InspectorSelect((InspectorSelectDataSet*)d.data);
+				}
 				i++;
 			}
 
@@ -455,6 +494,12 @@ namespace Test {
 		if (ViewData::window == nullptr)return;
 
 		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddItem);
+		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
+	}
+	void NativeFraction::AddEngineTreeViewItem(const std::string& Name, void* ptr){
+		if (ViewData::window == nullptr)return;
+
+		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddEngineItem);
 		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
 	}
 	void NativeFraction::SetParentTreeViewItem(void* parent, void* child){

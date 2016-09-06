@@ -246,11 +246,11 @@ public:
 				cmdList = (ID3D11CommandList*)mCmdList;
 				mCmdFlag = false;
 
-				auto size = DrawThreadQueue::size();
-				for (int i = 0; i < size; i++){
-					auto func = DrawThreadQueue::dequeue();
-					func();
-				}
+				//auto size = DrawThreadQueue::size();
+				//for (int i = 0; i < size; i++){
+				//	auto func = DrawThreadQueue::dequeue();
+				//	func();
+				//}
 			}
 			{
 				auto tick = Profiling::Start("Draw:execute");
@@ -260,9 +260,9 @@ public:
 			{
 				auto tick = Profiling::Start("Draw:swap");
 
-				if (!MoviePlayFlag::IsMoviePlay()){
+				//if (!MoviePlayFlag::IsMoviePlay()){
 					Device::mpSwapChain->Present(0, 0);
-				}
+				//}
 			}
 		}
 	}

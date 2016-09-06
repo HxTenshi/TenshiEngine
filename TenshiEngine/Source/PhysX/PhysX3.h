@@ -35,6 +35,27 @@ class Actor;
 class IPolygonsData;
 #include "IPhysXEngine.h"
 
+struct  Layer
+{
+	enum  Enum
+	{
+		None = (0 << 0),
+		UserTag1 = (1 << 1),
+		UserTag2 = (1 << 2),
+		UserTag3 = (1 << 3),
+		UserTag4 = (1 << 4),
+		UserTag5 = (1 << 5),
+		UserTag6 = (1 << 6),
+		UserTag7 = (1 << 7),
+		UserTag8 = (1 << 8),
+		UserTag9 = (1 << 9),
+		UserTag10 = (1 << 10),
+		UserTag11 = (1 << 11),
+		UserTag12 = (1 << 12),
+	};
+};
+
+
 class PhysX3Main : public PhysXEngine
 	, public PxUserControllerHitReport, public PxControllerBehaviorCallback, public PxSceneQueryFilterCallback
 {
@@ -69,6 +90,9 @@ public:
 	PxController* CreateController();
 	PxRevoluteJoint* CreateRevoluteJoint();
 	PxDistanceJoint* CreateDistanceJoint();
+
+	bool GetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2);
+	void SetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2, bool flag);
 
 	void AddStaticShape(PxShape* shape);
 	void RemoveStaticShape(PxShape* shape);

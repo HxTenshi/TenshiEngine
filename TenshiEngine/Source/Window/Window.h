@@ -100,6 +100,9 @@ public:
 	static void AddTreeViewItem(const std::string& name, void* ptr){
 		mMainWindow_WPF.AddTreeViewItem(name, ptr);
 	}
+	static void AddEngineTreeViewItem(const std::string& name, void* ptr){
+		mMainWindow_WPF.AddEngineTreeViewItem(name, ptr);
+	}
 	static void SetParentTreeViewItem(void* parent, void* child){
 		mMainWindow_WPF.SetParentTreeViewItem(parent, child);
 	}
@@ -151,6 +154,8 @@ public:
 	}
 	static void AddInspector(InspectorButtonDataSet* dataset, std::vector<InspectorDataSet>& data){
 		data.push_back(InspectorDataSet(InspectorDataFormat::Button, dataset));
+	}static void AddInspector(InspectorSelectDataSet* dataset, std::vector<InspectorDataSet>& data){
+		data.push_back(InspectorDataSet(InspectorDataFormat::Select, dataset));
 	}
 
 	static void ViewInspector(const std::string& ComponentName,Component* comptr, std::vector<InspectorDataSet>& data){

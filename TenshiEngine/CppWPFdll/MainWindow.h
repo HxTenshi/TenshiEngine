@@ -1676,6 +1676,9 @@ public:
 		mSceneTreeView = gcnew SceneTreeView(TreeViewDec);
 		m_SceneContextMenu = mSceneTreeView->GetContextMenu();
 
+		auto EngineTreeViewDec = (Border ^)contents->FindName("EngineTreeView");
+		mEngineTreeView = gcnew SceneTreeView(EngineTreeViewDec);
+
 		auto AssetTreeViewDec = (Border ^)contents->FindName("AssetTreeView");
 		mAssetTreeView = gcnew AssetTreeView(this,AssetTreeViewDec);
 
@@ -2015,6 +2018,10 @@ private:
 			mSceneTreeView->SelectTreeViewItem(treeviewptr);
 		}
 
+		void AddEngineItem(String ^Name, IntPtr ptr){
+			mEngineTreeView->AddItem(Name, ptr);
+		}
+
 
 #pragma region メニューバー
 
@@ -2086,6 +2093,7 @@ private:
 	System::Windows::Controls::ContextMenu ^m_SceneContextMenu;
 
 	SceneTreeView ^mSceneTreeView;
+	SceneTreeView ^mEngineTreeView;
 	AssetTreeView ^mAssetTreeView;
 
 };
