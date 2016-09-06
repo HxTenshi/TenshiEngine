@@ -22,6 +22,7 @@ public:
 	HRESULT Create(ID3D11Texture2D* pTexture);
 	HRESULT Create(ID3D11ShaderResourceView* pTexture);
 	HRESULT Create(const char* FileName);
+	HRESULT Create(const MD5::MD5HashCoord& hash);
 	void PSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;
 	void GSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;
 	void CSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;

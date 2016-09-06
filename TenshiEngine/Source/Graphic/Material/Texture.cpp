@@ -27,7 +27,7 @@ Texture::~Texture()
 
 
 HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
-
+	mFileName = "";
 	HRESULT hr = S_OK;
 	// Create the sample state
 	D3D11_SAMPLER_DESC sampDesc;
@@ -57,6 +57,7 @@ HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 }
 
 HRESULT Texture::Create(ID3D11Texture2D* pTexture){
+	mFileName = "";
 	ID3D11ShaderResourceView* pShaderResourceView;
 	auto hr = Device::mpd3dDevice->CreateShaderResourceView(pTexture, nullptr, &pShaderResourceView);
 	if (FAILED(hr)){
@@ -73,6 +74,14 @@ HRESULT Texture::Create(const char* FileName){
 	AssetDataBase::Instance(FileName, tex);
 	mTextureAssetData = tex;
 	return ((bool)mTextureAssetData)?S_OK:E_FAIL;
+}
+
+HRESULT Texture::Create(const MD5::MD5HashCoord& hash){
+	mFileName = "";// FileName;
+	TextureAssetDataPtr tex(NULL);
+	AssetDataBase::Instance(hash, tex);
+	mTextureAssetData = tex;
+	return ((bool)mTextureAssetData) ? S_OK : E_FAIL;
 }
 
 void Texture::PSSetShaderResources(ID3D11DeviceContext* context,UINT Slot) const{

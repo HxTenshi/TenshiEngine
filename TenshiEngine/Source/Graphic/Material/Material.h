@@ -48,6 +48,7 @@ public:
 	void SetTexture(const char* FileName, UINT Slot = 0);
 	void SetTexture(const Texture& Tex, UINT Slot = 0);
 
+
 	void ExportData(File& f);
 
 	bool IsCreate(){

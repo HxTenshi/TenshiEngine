@@ -41,6 +41,8 @@ HRESULT Model::Create(const char* FileName){
 	mCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
 	if (!mCBuffer.mBuffer)
 		return E_FAIL;
+	mCBuffer.mParam.mWorld = XMMatrixTranspose(mWorld);
+	mCBuffer.mParam.mBeforeWorld = mCBuffer.mParam.mWorld;
 
 
 	return S_OK;
@@ -148,6 +150,8 @@ void Model::Draw(ID3D11DeviceContext* context, const Material& material) const{
 		mIsChangeMatrix = false;
 		mCBuffer.UpdateSubresource(context);
 	}
+	//mCBuffer.UpdateSubresource(context);
+
 	IASet(context);
 	SetConstantBuffer(context);
 
@@ -181,6 +185,7 @@ void Model::Draw(ID3D11DeviceContext* context, const shared_ptr<MaterialComponen
 		mIsChangeMatrix = false;
 		mCBuffer.UpdateSubresource(context);
 	}
+	//mCBuffer.UpdateSubresource(context);
 
 	IASet(context);
 	SetConstantBuffer(context);
