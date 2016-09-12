@@ -57,6 +57,9 @@ void Scene::SaveScene(){
 	});
 	picojson::value out(arr);
 
+	if (m_FilePath == ""){
+		m_FilePath = "Assets/new.scene";
+	}
 	{
 		File scenefile;
 		if (!scenefile.Open(m_FilePath)){

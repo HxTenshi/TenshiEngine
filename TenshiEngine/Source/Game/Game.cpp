@@ -178,9 +178,9 @@ Game::Game(){
 #endif
 
 #ifdef _ENGINE_MODE
-	LoadScene("./Assets/Scene_.scene");
+	//LoadScene("./Assets/Scene_.scene");
 #else
-	LoadScene("./Assets/Scenes/Title.scene");
+	//LoadScene("./Assets/Scenes/Title.scene");
 #endif
 
 	mCBGameParameter = ConstantBuffer<cbGameParameter>::create(11);

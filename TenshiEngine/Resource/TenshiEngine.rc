@@ -25,11 +25,7 @@ LANGUAGE 9, 1
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 
-#if defined(_ENGINE_MODE)
-IDI_TUTORIAL1       ICON         "./e.ico"
-#else
-IDI_TUTORIAL1       ICON         "./game.ico"
-#endif
+IDI_TUTORIAL1       ICON         "./Resource/e.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

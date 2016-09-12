@@ -85,5 +85,6 @@
     <Page Include="WindowXAML\LogListBox.xaml" />
     <Page Include="WindowXAML\CreateTextBox.xaml" />
     <Page Include="WindowXAML\InspectorButton.xaml" />
+    <Page Include="WindowXAML\InspectorSelectBox.xaml" />
   </ItemGroup>
 </Project>
