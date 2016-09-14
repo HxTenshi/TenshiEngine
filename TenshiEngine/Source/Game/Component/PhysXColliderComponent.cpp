@@ -288,7 +288,7 @@ void PhysXColliderComponent::CreateInspector() {
 	Window::AddInspector(new InspectorVector3DataSet("Position", &mPosition.x, [&](float f){SetTransform(XMVectorSet(f, mPosition.y, mPosition.z, 1)); }, &mPosition.y, [&](float f){SetTransform(XMVectorSet(mPosition.x, f, mPosition.z, 1)); }, &mPosition.z, [&](float f){SetTransform(XMVectorSet(mPosition.x, mPosition.y, f, 1)); }), data);
 	Window::AddInspector(new InspectorVector3DataSet("Scale", &mScale.x, [&](float f){SetScale(XMVectorSet(f, mScale.y, mScale.z, 1)); }, &mScale.y, [&](float f){SetScale(XMVectorSet(mScale.x, f, mScale.z, 1)); }, &mScale.z, [&](float f){SetScale(XMVectorSet(mScale.x, mScale.y, f, 1)); }), data);
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("PhysxMaterial", &mPhysicsMaterialFile, collbackmatepath), data);
-	Window::ViewInspector("Collider", this, data);
+	Window::ViewInspector("Collider", this, data, this);
 }
 #endif
 
@@ -344,7 +344,7 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 
 	auto quat = par->mTransform->WorldQuaternion();
 	if (par.Get() == gameObject.Get()){
-		auto quat = XMQuaternionIdentity();
+		quat = XMQuaternionIdentity();
 	}
 
 	XMMATRIX shmat;

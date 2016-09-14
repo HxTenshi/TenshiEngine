@@ -45,7 +45,7 @@ void SoundComponent::CreateInspector(){
 			Play();
 		}
 	}), data);
-	Window::ViewInspector("Sound", this, data);
+	Window::ViewInspector("Sound", this, data, this);
 
 }
 #endif

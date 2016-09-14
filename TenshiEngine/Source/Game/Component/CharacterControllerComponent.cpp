@@ -137,7 +137,7 @@ void CharacterControllerComponent::CreateInspector() {
 	Window::AddInspector(new TemplateInspectorDataSet<float>("Size", &mSize, [&](float f){
 		SetSize(f);
 	}), data);
-	Window::ViewInspector("CharacterController", this, data);
+	Window::ViewInspector("CharacterController", this, data, this);
 }
 #endif
 

@@ -61,7 +61,7 @@ void MeshComponent::CreateInspector(){
 	};
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Mesh", &m_FileName, collbackpath), data);
 	Window::AddInspector(new TemplateInspectorDataSet<int>("ID", &m_ID, collbackid), data);
-	Window::ViewInspector("MeshComponent", this, data);
+	Window::ViewInspector("MeshComponent", this, data, this);
 }
 #endif
 

@@ -64,7 +64,7 @@ void MeshDrawComponent::Update(){
 void MeshDrawComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
 
-	Window::ViewInspector("MeshRender", this, data);
+	Window::ViewInspector("MeshRender", this, data, this);
 }
 #endif
 

@@ -203,7 +203,7 @@ void PhysXComponent::CreateInspector() {
 	Window::AddInspector(new TemplateInspectorDataSet<bool>("UseGravity", &mIsGravity, [&](bool value){
 		SetGravity(value);
 	}), data);
-	Window::ViewInspector("PhysX", this, data);
+	Window::ViewInspector("PhysX", this, data, this);
 }
 #endif
 

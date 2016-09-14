@@ -428,7 +428,7 @@ void ParticleComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<bool>("AutoDestroy", &mAutoDestroy, [&](bool f){mAutoDestroy = f; }), data);
 
 
-	Window::ViewInspector("Particle", this, data);
+	Window::ViewInspector("Particle", this, data, this);
 }
 #endif
 

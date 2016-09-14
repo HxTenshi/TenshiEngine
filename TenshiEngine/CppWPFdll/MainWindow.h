@@ -1671,6 +1671,7 @@ public:
 		, mAssetTreeView(nullptr)
 	{
 
+		this->Closing += gcnew System::ComponentModel::CancelEventHandler(this, &View::Window_Closing);
 		//DataContext = gcnew ViewModel();
 		Background = Brushes::Black;
 		//w:1184, h : 762
@@ -1816,6 +1817,35 @@ public:
 
 	}
 
+
+	void Window_Closing(Object^ sender, System::ComponentModel::CancelEventArgs^ e)
+	{
+		//bool noSave = false;
+		Data::_SendMessage(WM_DESTROY);
+		for (;;){
+			if (Data::GetHWND() == NULL){
+				break;
+			}
+			Sleep(1);
+		}
+		// If data is dirty, notify user and ask for a response
+		//if (this->isDataDirty)
+		//{
+		//	string msg = "Data is dirty. Close without saving?";
+		//	MessageBoxResult result =
+		//		MessageBox.Show(
+		//		msg,
+		//		"Data App",
+		//		MessageBoxButton.YesNo,
+		//		MessageBoxImage.Warning);
+		//	if (result == MessageBoxResult.No)
+		//	{
+		//		// If user doesn't want to close, cancel closure
+		//		e.Cancel = true;
+		//	}
+		//}
+	}
+
 	int count = 0;
 	void AddLog(String^ log){
 		count++;
@@ -1852,7 +1882,7 @@ public:
 	}
 
 	//コンポーネントの作成
-	void CreateComponent(String^ headerName, IntPtr comptr, array<InspectorData^>^ data){
+	void CreateComponent(Object^ head, IntPtr comptr, array<InspectorData^>^ data){
 		if (m_ComponentPanel == nullptr)return;
 		try{
 			FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
@@ -1860,20 +1890,72 @@ public:
 			m_ComponentPanel->Children->Add(com);
 
 			auto header = (Expander^)com->FindName("ComponentHeaderName");
-			header->Header = headerName;
+			header->Header = head;
 			auto dock = (DockPanel^)com->FindName("MainDock");
 			int num = data->GetLength(0);
 			for (int i = 0; i < num; i++){
 				data[i]->CreateInspector(dock);
 			}
 
-			if (comptr != (IntPtr)NULL){
+			//if (comptr != (IntPtr)NULL)
+			{
 				auto cm = gcnew System::Windows::Controls::ContextMenu();
 				{//コンテキストメニューの要素作成
 					auto mitem = gcnew System::Windows::Controls::MenuItem();
 					mitem->Header = "Remove";
 					mitem->Tag = comptr;
 					mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemoveComponent);
+					if (comptr == (IntPtr)NULL){
+						mitem->IsEnabled = false;
+					}
+					cm->Items->Add(mitem);
+				}
+				com->ContextMenu = cm;
+			}
+		}
+		catch (...){
+
+		}
+
+	}
+
+	//コンポーネントの作成
+	void CreateComponent(InspectorData^ head, IntPtr comptr, array<InspectorData^>^ data){
+		if (m_ComponentPanel == nullptr)return;
+		try{
+			FrameworkElement ^com = LoadContentsFromResource(IDR_COMPONENT);
+
+			m_ComponentPanel->Children->Add(com);
+
+			auto header = (Expander^)com->FindName("ComponentHeaderName");
+
+			DockPanel^ panel = gcnew DockPanel();
+			panel->VerticalAlignment = System::Windows::VerticalAlignment::Top;
+			head->CreateInspector(panel);
+
+			auto child = (DockPanel^)panel->Children[0];
+			auto tb = (TextBlock^)child->FindName("FloatName");
+			if (tb)
+				tb->Foreground = System::Windows::Media::Brushes::White;
+
+			header->Header = panel;
+			auto dock = (DockPanel^)com->FindName("MainDock");
+			int num = data->GetLength(0);
+			for (int i = 0; i < num; i++){
+				data[i]->CreateInspector(dock);
+			}
+
+			//if (comptr != (IntPtr)NULL)
+			{
+				auto cm = gcnew System::Windows::Controls::ContextMenu();
+				{//コンテキストメニューの要素作成
+					auto mitem = gcnew System::Windows::Controls::MenuItem();
+					mitem->Header = "Remove";
+					mitem->Tag = comptr;
+					mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &View::MenuItem_Click_RemoveComponent);
+					if (comptr == (IntPtr)NULL){
+						mitem->IsEnabled = false;
+					}
 					cm->Items->Add(mitem);
 				}
 				com->ContextMenu = cm;

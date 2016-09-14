@@ -64,7 +64,7 @@ void PhysxLayer::CreateInspector(){
 		}
 	}
 
-	Window::ViewInspector("PhysxLayer", NULL, data);
+	Window::ViewInspector("PhysxLayer", NULL, data, this);
 
 
 }

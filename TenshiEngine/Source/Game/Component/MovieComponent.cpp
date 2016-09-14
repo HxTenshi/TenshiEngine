@@ -72,7 +72,7 @@ void MovieComponent::CreateInspector(){
 			Play();
 		}
 	}), data);
-	Window::ViewInspector("Movie", this, data);
+	Window::ViewInspector("Movie", this, data, this);
 
 }
 #endif

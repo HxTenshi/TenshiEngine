@@ -12,6 +12,7 @@
 
 #include "Engine/SystemLog.h"
 #include "Input/InputManagerRapper.h"
+#include "Game/Parts/enabled.h"
 
 class WindowState{
 public:
@@ -153,6 +154,12 @@ public:
 
 	static void ViewInspector(const std::string& ComponentName,Component* comptr, std::vector<InspectorDataSet>& data){
 		mMainWindow_WPF.CreateComponentWindow(ComponentName, (void*)comptr, data);
+	}
+	static void ViewInspector(const std::string& ComponentName, Component* comptr, std::vector<InspectorDataSet>& data, Enabled* enable){
+
+		auto checkbox = new TemplateInspectorDataSet<bool>(ComponentName, &enable->m_IsEnabled, [&, enable](bool f){
+			f ? enable->Enable() : enable->Disable(); });
+		mMainWindow_WPF.CreateComponentWindowUseEnable(ComponentName, (void*)comptr, data, checkbox);
 	}
 	static void UpdateInspector(){
 		mMainWindow_WPF.UpdateComponentWindow();

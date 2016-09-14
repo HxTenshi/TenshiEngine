@@ -160,7 +160,7 @@ void TextureModelComponent::CreateInspector(){
 		}
 		mMaterial->SetTexture(name.c_str(), 0);
 	}), data);
-	Window::ViewInspector("TextureModel", this, data);
+	Window::ViewInspector("TextureModel", this, data, this);
 }
 #endif
 

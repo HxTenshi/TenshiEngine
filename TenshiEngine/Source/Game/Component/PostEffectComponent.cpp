@@ -76,7 +76,7 @@ void PostEffectComponent::CreateInspector(){
 
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collback), data);
 
-	Window::ViewInspector("PostEffect", this, data);
+	Window::ViewInspector("PostEffect", this, data, this);
 }
 #endif
 

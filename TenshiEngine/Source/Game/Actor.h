@@ -5,6 +5,7 @@
 #include <functional>
 #include <queue>
 #include "Game/Component/ComponentList.h"
+#include "Game/Parts/Enabled.h"
 
 #include "Engine/AssetDataBase.h"
 #include "Types.h"
@@ -23,19 +24,22 @@ public:
 	virtual void* _GetScript(const char* name) = 0;
 };
 
-class Actor : public IActor, public enable_shared_from_this<Actor>{
+class Actor 
+	: public IActor
+	, public Enabled
+	, public enable_shared_from_this<Actor>{
 public:
 	Actor();
 	virtual ~Actor();
 	virtual void Initialize();
 	virtual void Start();
+	virtual void Finish();
 
 #ifdef _ENGINE_MODE
 	virtual void Initialize_Script();
 	virtual void Start_Script();
-#endif
-	virtual void Finish();
 	virtual void EngineUpdateComponent(float deltaTime);
+#endif
 	virtual void UpdateComponent(float deltaTime);
 	virtual void Update(float deltaTime);
 
@@ -132,4 +136,9 @@ protected:
 	bool mEndStart;
 
 	int mPhysxLayer;
+
+
+private:
+	virtual void OnEnabled()override;
+	virtual void OnDisabled()override;
 };

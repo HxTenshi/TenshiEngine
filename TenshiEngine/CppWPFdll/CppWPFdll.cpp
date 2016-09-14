@@ -393,60 +393,76 @@ namespace Test {
 	delegate void MyDelegate();
 	delegate IntPtr MyDelegateR();
 	//delegate void MyDelegateI(IntViewModel ^);
-	delegate void MyDelegateF(String^, IntPtr, array<InspectorData^>^);
+	delegate void MyDelegateF(Object^, IntPtr, array<InspectorData^>^);
+	delegate void MyDelegateF2(InspectorData^, IntPtr, array<InspectorData^>^);
 	delegate void MyDelegateITEM(String^, IntPtr);
 	delegate void MyDelegateCOM(String^);
 	delegate void MyDelegateOBJ(String^, String^);
 	delegate void MyDelegateI2(IntPtr, IntPtr);
 	delegate void MyDelegateI1(IntPtr);
+	array<InspectorData^>^ _CreateComponents(std::vector<InspectorDataSet>& data){
+		int num = data.size();
+		array<InspectorData^> ^a = gcnew array<InspectorData^>(num);
+		int i = 0;
+		for (auto& d : data){
+			if (d.format == InspectorDataFormat::Label){
+				a[i] = gcnew InspectorLabel((InspectorLabelDataSet*)d.data);
+			}
+			if (d.format == InspectorDataFormat::String){
+				a[i] = gcnew Inspector<std::string>((TemplateInspectorDataSet<std::string>*)d.data);
+			}
+			if (d.format == InspectorDataFormat::Float){
+				a[i] = gcnew Inspector<float>((TemplateInspectorDataSet<float>*)d.data);
+			}
+			if (d.format == InspectorDataFormat::Bool){
+				a[i] = gcnew Inspector<bool>((TemplateInspectorDataSet<bool>*)d.data);
+			}
+			if (d.format == InspectorDataFormat::Int){
+				a[i] = gcnew Inspector<int>((TemplateInspectorDataSet<int>*)d.data);
+			}
+			if (d.format == InspectorDataFormat::Vector2){
+				a[i] = gcnew InspectorVector2((InspectorVector2DataSet*)d.data);
+			}
+			if (d.format == InspectorDataFormat::Vector3){
+				a[i] = gcnew InspectorVector3((InspectorVector3DataSet*)d.data);
+			}
+			if (d.format == InspectorDataFormat::SlideBar){
+				a[i] = gcnew InspectorFloatSlideBar((InspectorSlideBarDataSet*)d.data);
+			}
+			if (d.format == InspectorDataFormat::Color){
+				a[i] = gcnew InspectorColor((InspectorColorDataSet*)d.data);
+			}
+			if (d.format == InspectorDataFormat::Button){
+				a[i] = gcnew InspectorButton((InspectorButtonDataSet*)d.data);
+			}
+			if (d.format == InspectorDataFormat::Select){
+				a[i] = gcnew InspectorSelect((InspectorSelectDataSet*)d.data);
+			}
+			i++;
+		}
+		return a;
+	}
 	void NativeFraction::CreateComponentWindow(const std::string& ComponentName, void* comptr, std::vector<InspectorDataSet>& data){
 		if (ViewData::window != nullptr){
-			auto del = gcnew MyDelegateF(ViewData::window, &View::CreateComponent);
-			//System::Array<std::vector<InspectorData>> ^f;
-			int num = data.size();
-			array<InspectorData^> ^a = gcnew array<InspectorData^>(num);
-			int i = 0;
-			for (auto& d : data){
-				if (d.format == InspectorDataFormat::Label){
-					a[i] = gcnew InspectorLabel((InspectorLabelDataSet*)d.data);
-				}
-				if (d.format == InspectorDataFormat::String){
-					a[i] = gcnew Inspector<std::string>((TemplateInspectorDataSet<std::string>*)d.data);
-				}
-				if (d.format == InspectorDataFormat::Float){
-					a[i] = gcnew Inspector<float>((TemplateInspectorDataSet<float>*)d.data);
-				}
-				if (d.format == InspectorDataFormat::Bool){
-					a[i] = gcnew Inspector<bool>((TemplateInspectorDataSet<bool>*)d.data);
-				}
-				if (d.format == InspectorDataFormat::Int){
-					a[i] = gcnew Inspector<int>((TemplateInspectorDataSet<int>*)d.data);
-				}
-				if (d.format == InspectorDataFormat::Vector2){
-					a[i] = gcnew InspectorVector2((InspectorVector2DataSet*)d.data);
-				}
-				if (d.format == InspectorDataFormat::Vector3){
-					a[i] = gcnew InspectorVector3((InspectorVector3DataSet*)d.data);
-				}
-				if (d.format == InspectorDataFormat::SlideBar){
-					a[i] = gcnew InspectorFloatSlideBar((InspectorSlideBarDataSet*)d.data);
-				}
-				if (d.format == InspectorDataFormat::Color){
-					a[i] = gcnew InspectorColor((InspectorColorDataSet*)d.data);
-				}
-				if (d.format == InspectorDataFormat::Button){
-					a[i] = gcnew InspectorButton((InspectorButtonDataSet*)d.data);
-				}
-				if (d.format == InspectorDataFormat::Select){
-					a[i] = gcnew InspectorSelect((InspectorSelectDataSet*)d.data);
-				}
-				i++;
-			}
+			array<InspectorData^> ^a = _CreateComponents(data);
 
+			auto del = gcnew MyDelegateF(ViewData::window, &View::CreateComponent);
 			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()), (IntPtr)comptr, a);
 
 		}
 	}
+	void NativeFraction::CreateComponentWindowUseEnable(const std::string& ComponentName, void* comptr, std::vector<InspectorDataSet>& data, TemplateInspectorDataSet<bool>* enable){
+		if (ViewData::window != nullptr){
+			array<InspectorData^> ^a = _CreateComponents(data);
+
+			auto del = gcnew MyDelegateF2(ViewData::window, &View::CreateComponent);
+
+			auto header = gcnew Inspector<bool>(enable);
+			ViewData::window->Dispatcher->BeginInvoke(del, header, (IntPtr)comptr, a);
+
+		}
+	}
+
 
 	void NativeFraction::ChangeTreeViewName(void* ptr, std::string& name){
 		if (ViewData::window != nullptr){

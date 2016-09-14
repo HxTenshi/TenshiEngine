@@ -701,18 +701,9 @@ void TransformComponent::SetParentWorld(GameObject parent){
 	auto pos = WorldPosition();
 	auto quat = WorldQuaternion();
 	auto scale = WorldScale();
-	if (mParent){
-		mParent->mTransform->Children().remove_if([&](GameObject act){
-			return gameObject.Get() == act.Get();
-		});
-	}
-	mParent = parent;
-	mParentUniqueHashID = "";
-	if (parent){
-		parent->mTransform->Children().push_back(gameObject);
-		mParentUniqueHashID = parent->GetUniqueID();
-		parent->RunChangeParentCallback();
-	}
+
+	SetParent(parent);
+
 	WorldPosition(pos);
 	WorldQuaternion(quat);
 	WorldScale(scale);

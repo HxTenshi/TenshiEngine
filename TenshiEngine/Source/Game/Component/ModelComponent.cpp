@@ -64,7 +64,7 @@ void ModelComponent::CreateInspector(){
 		ExpanderMesh();
 	};
 	Window::AddInspector(new InspectorButtonDataSet("ExpanderMesh", collbackbutton), data);
-	Window::ViewInspector("ModelComponent", this, data);
+	Window::ViewInspector("ModelComponent", this, data, this);
 }
 #endif
 

@@ -81,7 +81,7 @@ void DebugEngineScriptComponent::CreateInspector(){
 	if (pClass){
 		pClass->CreateInspector(data);
 	}
-	Window::ViewInspector("DebugEngineScript", this, data);
+	Window::ViewInspector("DebugEngineScript", this, data, this);
 }
 #endif
 

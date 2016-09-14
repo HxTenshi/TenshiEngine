@@ -128,7 +128,7 @@ void DirectionalLightComponent::CreateInspector(){
 	Window::AddInspector(new InspectorColorDataSet("Color", &m_Color.x, collbackx, &m_Color.y, collbacky, &m_Color.z, collbackz, NULL, [](float){}), data);
 	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &m_HDR, [&](float f){m_HDR = f; }), data);
 
-	Window::ViewInspector("DirectionalLight", this, data);
+	Window::ViewInspector("DirectionalLight", this, data, this);
 }
 #endif
 

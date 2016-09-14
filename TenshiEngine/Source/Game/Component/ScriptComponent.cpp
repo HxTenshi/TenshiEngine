@@ -910,7 +910,7 @@ void ScriptComponent::CreateInspector(){
 
 	}
 
-	Window::ViewInspector("Script", this, data);
+	Window::ViewInspector("Script", this, data, this);
 }
 #endif
 

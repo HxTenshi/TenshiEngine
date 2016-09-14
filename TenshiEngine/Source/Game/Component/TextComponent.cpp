@@ -167,7 +167,7 @@ void TextComponent::CreateInspector(){
 	Window::AddInspector(new TemplateInspectorDataSet<bool>("Center", &mCenter, [&](bool f){
 		ChangeCenter(f);
 	}), data);
-	Window::ViewInspector("Text", this, data);
+	Window::ViewInspector("Text", this, data, this);
 }
 #endif
 

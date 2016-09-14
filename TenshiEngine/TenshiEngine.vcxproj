@@ -706,6 +706,7 @@
     <ClInclude Include="Source\Game\EngineObject\GameEngineObject.h" />
     <ClInclude Include="Source\Game\Game.h" />
     <ClInclude Include="Source\Game\Component\IComponent.h" />
+    <ClInclude Include="Source\Game\Parts\Enabled.h" />
     <ClInclude Include="Source\Game\Script\GameObject.h" />
     <ClInclude Include="Source\Game\RenderingSystem.h" />
     <ClInclude Include="Source\Game\Script\IGame.h" />

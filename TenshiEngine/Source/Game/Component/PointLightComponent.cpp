@@ -140,7 +140,7 @@ void PointLightComponent::CreateInspector(){
 	//Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &m_Color.x, collbackx), data);
 	//Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &m_Color.y, collbacky), data);
 	//Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &m_Color.z, collbackz), data);
-	Window::ViewInspector("PointLight", this, data);
+	Window::ViewInspector("PointLight", this, data, this);
 }
 #endif
 

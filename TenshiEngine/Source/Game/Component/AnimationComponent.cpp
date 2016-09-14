@@ -99,7 +99,7 @@ void AnimationComponent::CreateInspector(){
 	};
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("VMD", &mView.Param.mFileName, collbackpath), data);
 
-	Window::ViewInspector("Animetion", this, data);
+	Window::ViewInspector("Animetion", this, data, this);
 }
 #endif
 

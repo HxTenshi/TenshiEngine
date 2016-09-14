@@ -83,7 +83,7 @@ void JointComponent::CreateInspector() {
 		SetRigidActor(RigitActorID::Actor_1, act);
 	}), data);
 
-	Window::ViewInspector("Joint", this, data);
+	Window::ViewInspector("Joint", this, data, this);
 }
 #endif
 

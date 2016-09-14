@@ -207,7 +207,7 @@ public:
 	void Render()
 	{
 
-		while (1){
+		for(;;){
 
 			{
 				auto tick = Profiling::Start("Draw:wait");
@@ -486,6 +486,16 @@ T& operator & (T&& t, throwNull& n){
 
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
+
+#ifdef _ENGINE_MODE
+	if (FindWindow("TenshiEngineDummyWindowClass", NULL) != NULL){ /* 二重起動防止 */
+		return FALSE;
+	}
+#else
+	if (FindWindow("GameWindowClass", NULL) != NULL){ /* 二重起動防止 */
+		return FALSE;
+	}
+#endif
 
 	//メモリリーク検出
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);

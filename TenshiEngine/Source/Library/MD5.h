@@ -32,7 +32,7 @@ namespace MD5{
 
 		MD5HashCoord(const char* hash){
 			memset(key_c, 0, sizeof(char)* 16);
-			memccpy(key_c, hash, '\0', sizeof(char) * 16);
+			memcpy_s(key_c, sizeof(key_c), hash, sizeof(char) * 16);
 		}
 		MD5HashCoord(){}
 	};

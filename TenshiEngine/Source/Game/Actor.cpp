@@ -36,6 +36,10 @@ void Actor::Start(){
 	mComponents.RunStart();
 	mEndStart = true;
 }
+void Actor::Finish(){
+	mComponents.RunFinish();
+	mEndStart = false;
+}
 #ifdef _ENGINE_MODE
 void Actor::Initialize_Script(){
 	if (auto com = mComponents.GetComponent<ScriptComponent>()){
@@ -48,12 +52,6 @@ void Actor::Start_Script(){
 	}
 	
 }
-#endif
-void Actor::Finish(){
-	mComponents.RunFinish();
-	mEndStart = false;
-}
-
 void Actor::EngineUpdateComponent(float deltaTime){
 	Update(deltaTime);
 
@@ -68,6 +66,8 @@ void Actor::EngineUpdateComponent(float deltaTime){
 		child->EngineUpdateComponent(deltaTime);
 	}
 }
+#endif
+
 void Actor::UpdateComponent(float deltaTime){
 	if (!mEndStart)return;
 
@@ -118,7 +118,7 @@ void Actor::CreateInspector(){
 		}
 	}), data);
 
-	Window::ViewInspector("Actor",NULL,data);
+	Window::ViewInspector("Actor",NULL,data,this);
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->CreateInspector();
 	}
@@ -483,10 +483,31 @@ void* Actor::_GetScript(const char* name){
 
 //ペアレント変更コールバックを実行
 void Actor::RunChangeParentCallback(){
+
 	for (auto& com : mComponents.mComponent){
+		this->ChildEnableChanged(com.second.Get());
 		com.second->ChangeParentCallback();
 	}
 	for (auto& child : mTransform->Children()){
+		this->ChildEnableChanged(child.Get());
 		child->RunChangeParentCallback();
+	}
+}
+
+
+void Actor::OnEnabled(){
+	for (auto& com : mComponents.mComponent){
+		this->ChildEnableChanged(com.second.Get());
+	}
+	for (auto child : mTransform->Children()){
+		this->ChildEnableChanged(child.Get());
+	}
+}
+void Actor::OnDisabled(){
+	for (auto& com : mComponents.mComponent){
+		this->ChildEnableChanged(com.second.Get());
+	}
+	for (auto child : mTransform->Children()){
+		this->ChildEnableChanged(child.Get());
 	}
 }

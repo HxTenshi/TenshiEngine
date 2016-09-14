@@ -4,10 +4,13 @@
 #include "MySTL/File.h"
 #include "MySTL/ioHelper.h"
 #include "Game/Script/GameObject.h"
+#include "Game/Parts/Enabled.h"
 
 class Actor;
 
-class Component{
+class Component
+	:public Enabled
+{
 public:
 	Component()
 		:gameObject(NULL){
@@ -32,9 +35,6 @@ public:
 	virtual void Finish(){
 
 	}
-	virtual void EngineUpdate(){
-
-	}
 	virtual void Update(){
 
 	}
@@ -44,9 +44,8 @@ public:
 	}
 
 #ifdef _ENGINE_MODE
-	virtual void CreateInspector(){
-
-	}
+	virtual void EngineUpdate(){}
+	virtual void CreateInspector(){}
 #endif
 
 	void ExportClassName(File& f){
@@ -61,4 +60,5 @@ public:
 	virtual void IO_Data(I_ioHelper* io) = 0;
 
 	GameObject gameObject;
+
 };

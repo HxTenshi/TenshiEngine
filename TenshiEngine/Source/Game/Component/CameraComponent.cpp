@@ -121,7 +121,7 @@ void CameraComponent::Update(){
 void CameraComponent::CreateInspector(){
 	auto data = Window::CreateInspector();
 	Window::AddInspector(new TemplateInspectorDataSet<std::string>("SkyTexture", &mSkyTextureFileName, [&](std::string s){SetSkyTexture(s); }), data);
-	Window::ViewInspector("Camera", this, data);
+	Window::ViewInspector("Camera", this, data, this);
 }
 #endif
 
