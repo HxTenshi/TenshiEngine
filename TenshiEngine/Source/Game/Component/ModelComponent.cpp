@@ -6,6 +6,9 @@
 #include "TransformComponent.h"
 
 #include "Graphic/Model/Model.h"
+
+#include "Engine/Inspector.h"
+
 ModelComponent::ModelComponent()
 {
 	mModel =NULL;
@@ -41,7 +44,9 @@ void ModelComponent::Update(){
 
 #ifdef _ENGINE_MODE
 void ModelComponent::CreateInspector(){
-	auto data = Window::CreateInspector();
+
+	Inspector ins("Model", this);
+	ins.AddEnableButton(this);
 	std::function<void(std::string)> collbackpath = [&](std::string name){
 		mFileName = name;
 		if (mModel){
@@ -57,14 +62,14 @@ void ModelComponent::CreateInspector(){
 		mBoneFileName = name;
 		mModel->CreateBoneModel(mBoneFileName.c_str());
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Model", &mFileName, collbackpath), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Bone", &mBoneFileName, collbackbonepath), data);
+	ins.Add("Model", &mFileName, collbackpath);
+	ins.Add("Bone", &mBoneFileName, collbackbonepath);
 
 	std::function<void(void)> collbackbutton = [&](){
 		ExpanderMesh();
 	};
-	Window::AddInspector(new InspectorButtonDataSet("ExpanderMesh", collbackbutton), data);
-	Window::ViewInspector("ModelComponent", this, data, this);
+	ins.AddButton("ExpanderMesh", collbackbutton);
+	ins.Complete();
 }
 #endif
 

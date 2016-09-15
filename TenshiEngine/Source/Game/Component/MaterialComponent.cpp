@@ -5,6 +5,7 @@
 #include "Window/Window.h"
 
 #include"Graphic/Material/Material.h"
+#include "Engine/Inspector.h"
 
 void MaterialComponent::LoadAssetResource(const std::string& path){
 
@@ -138,39 +139,20 @@ Material MaterialComponent::GetMaterial(UINT GetNo) const{
 #ifdef _ENGINE_MODE
 void MaterialComponent::CreateInspector(){
 
-	auto data = Window::CreateInspector();
-	std::function<void(float)> collbackx = [&](float f){
-		mAlbedo.x = f;
+	std::function<void(Color)> collbackAlb = [&](Color f){
+		mAlbedo.x = f.r;
+		mAlbedo.y = f.g;
+		mAlbedo.z = f.b;
+		mAlbedo.w = f.a;
 		SetAlbedoColor(mAlbedo);
 	};
 
-	std::function<void(float)> collbacky = [&](float f){
-		mAlbedo.y = f;
-		SetAlbedoColor(mAlbedo);
-	};
 
-	std::function<void(float)> collbackz = [&](float f){
-		mAlbedo.z = f;
-		SetAlbedoColor(mAlbedo);
-	};
-
-	std::function<void(float)> collbacka = [&](float f){
-		mAlbedo.w = f;
-		SetAlbedoColor(mAlbedo);
-	};
-
-	std::function<void(float)> collbackxs = [&](float f){
-		mSpecular.x = f;
-		SetSpecularColor(mSpecular);
-	};
-
-	std::function<void(float)> collbackys = [&](float f){
-		mSpecular.y = f;
-		SetSpecularColor(mSpecular);
-	};
-
-	std::function<void(float)> collbackzs = [&](float f){
-		mSpecular.z = f;
+	std::function<void(Color)> collbackSpec = [&](Color f){
+		mSpecular.x = f.r;
+		mSpecular.y = f.g;
+		mSpecular.z = f.b;
+		mSpecular.w = f.a;
 		SetSpecularColor(mSpecular);
 	};
 
@@ -213,24 +195,18 @@ void MaterialComponent::CreateInspector(){
 		mMaterials[0].CreateShader(mShaderName.c_str());
 	};
 
-	std::function<void(float)> collbacktexsx = [&](float f){
-		mTexScale.x = f;
+	std::function<void(Vector2)> collbackTex = [&](Vector2 f){
+		mTexScale.x = f.x;
+		mTexScale.y = f.y;
 		mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
 	};
 
-	std::function<void(float)> collbacktexsy = [&](float f){
-		mTexScale.y = f;
-		mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
-	};
-	std::function<void(float)> collbackofx = [&](float f){
-		mOffset.x = f;
+	std::function<void(Vector2)> collbackOffset = [&](Vector2 f){
+		mOffset.x = f.x;
+		mOffset.y = f.y;
 		mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
 	};
 
-	std::function<void(float)> collbackofy = [&](float f){
-		mOffset.y = f;
-		mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
-	};
 	std::function<void(float)> collbackH = [&](float f){
 		mHeightPower.x = f;
 		mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
@@ -244,21 +220,17 @@ void MaterialComponent::CreateInspector(){
 		mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
 	};
 
-	std::function<void(float)> collbacknsx = [&](float f){
-		mNormaleScale.x = f;
-		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
-	};
-	std::function<void(float)> collbacknsy = [&](float f){
-		mNormaleScale.y = f;
-		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
-	};	
-	std::function<void(float)> collbacknsz = [&](float f){
-		mNormaleScale.z = f;
+	std::function<void(Vector3)> collbackNormalScale = [&](Vector3 f){
+		mNormaleScale.x = f.x;
+		mNormaleScale.y = f.y;
+		mNormaleScale.z = f.z;
 		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
 	};
 
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Material", &mMaterialPath, collbackpath), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("UseAlpha", &mForwardRendering, [&](bool f)
+	Inspector ins("Material",this);
+	
+	ins.Add("Material", &mMaterialPath, collbackpath);
+	ins.Add("UseAlpha", &mForwardRendering, [&](bool f)
 	{
 		mForwardRendering = f; 
 		if (f){
@@ -268,31 +240,36 @@ void MaterialComponent::CreateInspector(){
 			mMaterials[0].CreateShader("EngineResource/DeferredPrePass.fx");
 		}
 
-	}), data);
-	Window::AddInspector(new InspectorColorDataSet("Albedo", &mAlbedo.x, collbackx, &mAlbedo.y, collbacky, &mAlbedo.z, collbackz, &mAlbedo.w, collbacka), data);
-	Window::AddInspector(new InspectorColorDataSet("Specular", &mSpecular.x, collbackxs, &mSpecular.y, collbackys, &mSpecular.z, collbackzs, NULL, [](float){}), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("Roughness",0,1,&mSpecular.w, collbackas), data);
-	//Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &mAlbedo.x, collbackx), data);
-	//Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &mAlbedo.y, collbacky), data);
-	//Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &mAlbedo.z, collbackz), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("AlbedoTextre", &mAlbedoTextureName, collbacktex), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("NormalTextre", &mNormalTextureName, collbackntex), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("HeightTextre", &mHeightTextureName, collbackhtex), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("SpecularTextre", &mSpecularTextureName, collbackstex), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("RoughnessTextre", &mRoughnessTextureName, collbackrtex), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("EmissiveTextre", &mEmissiveTextureName, collbacketex), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("EmissivePowor", &mEmissivePowor, [&](float f){ mEmissivePowor = f; mMaterials[0].mCBMaterial.mParam.EmissivePowor = f; }), data);
+	});
 
-	
+	auto alb = Color(mAlbedo);
+	ins.Add("Albedo", &alb, collbackAlb);
 
-	Window::AddInspector(new InspectorVector2DataSet("TextureScale", &mTexScale.x, collbacktexsx, &mTexScale.y, collbacktexsy), data);
-	Window::AddInspector(new InspectorVector3DataSet("NormaleScale", &mNormaleScale.x, collbacknsx, &mNormaleScale.y, collbacknsy, &mNormaleScale.z, collbacknsz), data);
-	Window::AddInspector(new InspectorVector2DataSet("Offset", &mOffset.x, collbackofx, &mOffset.y, collbackofy), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("HightPower", -10, 10, &mHeightPower.x, collbackH), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &mHeightPower.y, collbackHDR), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Thickness", &mThickness, collbackThick), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collbacksha), data);
-	Window::ViewInspector("Material", this, data);
+	auto spec = Color(mSpecular);
+	ins.Add("Specular", &spec, collbackSpec);
+	ins.AddSlideBar("Roughness", 0, 1, &mSpecular.w, collbackas);
+	ins.Add("AlbedoTextre", &mAlbedoTextureName, collbacktex);
+	ins.Add("NormalTextre", &mNormalTextureName, collbackntex);
+	ins.Add("HeightTextre", &mHeightTextureName, collbackhtex);
+	ins.Add("SpecularTextre", &mSpecularTextureName, collbackstex);
+	ins.Add("RoughnessTextre", &mRoughnessTextureName, collbackrtex);
+	ins.Add("EmissiveTextre", &mEmissiveTextureName, collbacketex);
+	ins.Add("EmissivePowor", &mEmissivePowor, [&](float f){ mEmissivePowor = f; mMaterials[0].mCBMaterial.mParam.EmissivePowor = f; });
+
+	auto tex = Vector2(mTexScale);
+	ins.Add("TextureScale", &tex, collbackTex);
+
+	auto texNormal = Vector3(mNormaleScale);
+	ins.Add("NormaleScale", &texNormal, collbackNormalScale);
+
+	auto off = Vector2(mOffset);
+	ins.Add("Offset", &off, collbackOffset);
+
+	ins.AddSlideBar("HightPower", -10, 10, &mHeightPower.x, collbackH);
+	ins.Add("HDR", &mHeightPower.y, collbackHDR);
+	ins.Add("Thickness", &mThickness, collbackThick);
+	ins.Add("Shader", &mShaderName, collbacksha);
+	ins.Complete();
 
 }
 #endif

@@ -29,7 +29,7 @@ public:
 	//減衰曲線パラメータ
 	float m_AttenuationParam;
 	//カラー
-	XMFLOAT3 m_Color;
+	XMFLOAT4 m_Color;
 	float m_HDR;
 
 	Material mMaterial;

@@ -8,6 +8,7 @@
 #include "Engine/DebugEngine.h"
 #include "Engine/AssetFile/Prefab/PrefabFileData.h"
 #include "Game/System.h"
+#include "Application/shutdown.h"
 
 //ゲームのスタティック関数の肩代わり
 class SGame : public IGame{
@@ -71,8 +72,9 @@ public:
 
 	void Shutdown(){
 #ifdef _ENGINE_MODE
+		//Game::ChangePlayGame(false);
 #else
-		PostQuitMessage(0);
+		App::Shutdown();
 #endif
 	}
 	

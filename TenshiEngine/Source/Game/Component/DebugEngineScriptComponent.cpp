@@ -5,6 +5,8 @@
 
 #include "DebugScript/DebugNaviMesh.h"
 
+#include "Engine/Inspector.h"
+
 class DebugEngineFactory{
 public:
 	DebugEngineFactory(){
@@ -66,22 +68,23 @@ void DebugEngineScriptComponent::Finish(){
 #ifdef _ENGINE_MODE
 void DebugEngineScriptComponent::CreateInspector(){
 
-	auto data = Window::CreateInspector();
+	Inspector ins("DebugEngineScript",this);
+	ins.AddEnableButton(this);
 
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Class", &mClassName, [&](std::string f){mClassName = f;
+	ins.Add("Class", &mClassName, [&](std::string f){mClassName = f;
 		if (pClass){
 			delete pClass;
 			pClass = NULL;
 
 		}
 		pClass = gFactory.Get(mClassName);
-	}), data);
+	});
 
 
 	if (pClass){
-		pClass->CreateInspector(data);
+		pClass->CreateInspector(&ins);
 	}
-	Window::ViewInspector("DebugEngineScript", this, data, this);
+	ins.Complete();
 }
 #endif
 

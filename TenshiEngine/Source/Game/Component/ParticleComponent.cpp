@@ -8,6 +8,7 @@
 #include "Game/RenderingSystem.h"
 #include "Game/Game.h"
 
+#include "Engine/Inspector.h"
 
 #define _MAX_CAPACITY_PARTICLE 5000
 
@@ -299,51 +300,36 @@ void ParticleComponent::Update(){
 #ifdef _ENGINE_MODE
 void ParticleComponent::CreateInspector(){
 
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new InspectorLabelDataSet("Particle"), data);
+	Inspector ins("Particle",this);
+	ins.AddEnableButton(this);
+	ins.AddLabel("Particle");
 
-	std::function<void(float)> collbackVx = [&](float f){
-		mParticleParam.Vector.x = f;
-	};
-	std::function<void(float)> collbackVy = [&](float f){
-		mParticleParam.Vector.y = f;
-	};
-	std::function<void(float)> collbackVz = [&](float f){
-		mParticleParam.Vector.z = f;
+	std::function<void(Vector3)> collbackV = [&](Vector3 f){
+		mParticleParam.Vector.x = f.x;
+		mParticleParam.Vector.y = f.y;
+		mParticleParam.Vector.z = f.z;
 	};
 	std::function<void(float)> collbackSpeed = [&](float f){
 		mParticleParam.Vector.w = f;
 	};
-	std::function<void(float)> collbackMinVx = [&](float f){
-		mParticleParam.Rot.x = f;
+	std::function<void(Vector3)> collbackMinV = [&](Vector3 f){
+		mParticleParam.Rot.x = f.z;
+		mParticleParam.Rot.y = f.y;
+		mParticleParam.Rot.z = f.z;
 	};
-	std::function<void(float)> collbackMinVy = [&](float f){
-		mParticleParam.Rot.y = f;
-	};
-	std::function<void(float)> collbackMinVz = [&](float f){
-		mParticleParam.Rot.z = f;
-	};
-	std::function<void(float)> collbackPx = [&](float f){
-		mParticleParam.Point.x = f;
-	};
-	std::function<void(float)> collbackPy = [&](float f){
-		mParticleParam.Point.y = f;
-	};
-	std::function<void(float)> collbackPz = [&](float f){
-		mParticleParam.Point.z = f;
+	std::function<void(Vector3)> collbackP = [&](Vector3 f){
+		mParticleParam.Point.x = f.x;
+		mParticleParam.Point.y = f.y;
+		mParticleParam.Point.z = f.z;
 	};
 	std::function<void(float)> collbackPT = [&](float f){
 		mParticleParam.Point.w = f;
 	};
 
-	std::function<void(float)> collbackGx = [&](float f){
-		mParticleParam.G.x = f;
-	};
-	std::function<void(float)> collbackGy = [&](float f){
-		mParticleParam.G.y = f;
-	};
-	std::function<void(float)> collbackGz = [&](float f){
-		mParticleParam.G.z = f;
+	std::function<void(float)> collbackG = [&](float f){
+		mParticleParam.G.x = f.z;
+		mParticleParam.G.y = f.y;
+		mParticleParam.G.z = f.z;
 	};
 	std::function<void(float)> collbackMinS = [&](float f){
 		mParticleParam.MinMaxScale.x = f;
@@ -393,42 +379,48 @@ void ParticleComponent::CreateInspector(){
 		mBlendAdd = f;
 	};
 
-	Window::AddInspector(new TemplateInspectorDataSet<int>("Capacity", &mParticleCapacity, collbackCap), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Num", &mParticleParam.Param.x, collbackNum), data);
-	Window::AddInspector(new InspectorVector3DataSet("Vector", &mParticleParam.Vector.x, collbackVx, &mParticleParam.Vector.y, collbackVy, &mParticleParam.Vector.z, collbackVz), data);
-	Window::AddInspector(new InspectorVector3DataSet("RandRot", &mParticleParam.Rot.x, collbackMinVx, &mParticleParam.Rot.y, collbackMinVy, &mParticleParam.Rot.z, collbackMinVz), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("SubSpeed", &mParticleParam.Vector.w, collbackSpeed), data);
+	ins.Add("Capacity", &mParticleCapacity, collbackCap);
+	ins.Add("Num", &mParticleParam.Param.x, collbackNum);
+	auto v = Vector3(mParticleParam.Vector);
+	ins.Add("Vector", &v, collbackV);
 
-	Window::AddInspector(new InspectorVector3DataSet("EmitPoint", &mParticleParam.Point.x, collbackPx, &mParticleParam.Point.y, collbackPy, &mParticleParam.Point.z, collbackPz), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("EmitType", &mParticleParam.Point.w, collbackPT), data);
+	auto r = Vector3(mParticleParam.Rot);
+	ins.Add("RandRot", &r, collbackMinV);
 
-	Window::AddInspector(new InspectorVector3DataSet("Gravity", &mParticleParam.G.x, collbackGx, &mParticleParam.G.y, collbackGy, &mParticleParam.G.z, collbackGz), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("MinScale", &mParticleParam.MinMaxScale.x, collbackMinS), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("MaxScale", &mParticleParam.MinMaxScale.y, collbackMaxS), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("MinTime", &mParticleParam.Time.x, collbackMinT), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("MaxTime", &mParticleParam.Time.y, collbackMaxT), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Impact", &mParticleParam.Param.y, collbackInp), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Z-Collision", &mParticleParam.Time.z, collbackZCol), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Bound", &mParticleParam.MinMaxScale.z, collbackRef), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Friction", &mParticleParam.MinMaxScale.w, collbackFri), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("AirFriction", &mParticleParam.Rot.w, collbackAirFri), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("PointGravity", &mParticleParam.G.w, collbackPosG), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("V-Rot&Bura", &mParticleParam.Time.w, collbackVB), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Loop", &mParticleParam.Param.z, collbackLoop), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("PopAlpha", &mParticleParam.SmoothAlpha.x, [&](float f){mParticleParam.SmoothAlpha.x = f; }), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("DeathAlpha", &mParticleParam.SmoothAlpha.y, [&](float f){mParticleParam.SmoothAlpha.y = f; }), data);
-	Window::AddInspector(new InspectorVector3DataSet("Wind",
-		&mParticleParam.Wind.x, [&](float x){
-			mParticleParam.Wind.x = x; },
-		&mParticleParam.Wind.y, [&](float x){
-			mParticleParam.Wind.y = x; },
-		&mParticleParam.Wind.z, [&](float x){
-			mParticleParam.Wind.z = x; }), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("BlendModeAdd", &mBlendAdd, collbackAdd), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("AutoDestroy", &mAutoDestroy, [&](bool f){mAutoDestroy = f; }), data);
+	ins.Add("SubSpeed", &mParticleParam.Vector.w, collbackSpeed);
 
+	auto e = Vector3(mParticleParam.Point);
+	ins.Add("EmitPoint", &e, collbackP);
 
-	Window::ViewInspector("Particle", this, data, this);
+	ins.Add("EmitType", &mParticleParam.Point.w, collbackPT);
+
+	auto g = Vector3(mParticleParam.G);
+	ins.Add("Gravity", &g, collbackG);
+	ins.Add("MinScale", &mParticleParam.MinMaxScale.x, collbackMinS);
+	ins.Add("MaxScale", &mParticleParam.MinMaxScale.y, collbackMaxS);
+	ins.Add("MinTime", &mParticleParam.Time.x, collbackMinT);
+	ins.Add("MaxTime", &mParticleParam.Time.y, collbackMaxT);
+	ins.Add("Impact", &mParticleParam.Param.y, collbackInp);
+	ins.Add("Z-Collision", &mParticleParam.Time.z, collbackZCol);
+	ins.Add("Bound", &mParticleParam.MinMaxScale.z, collbackRef);
+	ins.Add("Friction", &mParticleParam.MinMaxScale.w, collbackFri);
+	ins.Add("AirFriction", &mParticleParam.Rot.w, collbackAirFri);
+	ins.Add("PointGravity", &mParticleParam.G.w, collbackPosG);
+	ins.Add("V-Rot&Bura", &mParticleParam.Time.w, collbackVB);
+	ins.Add("Loop", &mParticleParam.Param.z, collbackLoop);
+	ins.Add("PopAlpha", &mParticleParam.SmoothAlpha.x, [&](float f){mParticleParam.SmoothAlpha.x = f; });
+	ins.Add("DeathAlpha", &mParticleParam.SmoothAlpha.y, [&](float f){mParticleParam.SmoothAlpha.y = f; });
+
+	auto w = Vector3(mParticleParam.Wind);
+	ins.Add("Gravity", &w, [&](Vector3 f){
+			mParticleParam.Wind.x = f.x;
+			mParticleParam.Wind.y = f.y;
+			mParticleParam.Wind.z = f.z;
+	});
+	ins.Add("BlendModeAdd", &mBlendAdd, collbackAdd);
+	ins.Add("AutoDestroy", &mAutoDestroy, [&](bool f){mAutoDestroy = f; });
+
+	ins.Complete();
 }
 #endif
 

@@ -11,6 +11,8 @@
 #include "Graphic/Model/Model.h"
 #include "Game/Game.h"
 
+#include "Engine/Inspector.h"
+
 TextureModelComponent::TextureModelComponent()
 {
 	mModel= NULL;
@@ -147,10 +149,11 @@ void TextureModelComponent::CreateInspector(){
 		mMaterial->SetTexture(mTextureName.c_str(),0);
 	};
 
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Texture", &mTextureName, collbacktex), data);
+	Inspector ins("TextureModel",this);
+	ins.AddEnableButton(this);
+	ins.Add("Texture", &mTextureName, collbacktex);
 
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("TextureHash", &mTextureHash, [&](std::string name){
+	ins.Add("TextureHash", &mTextureHash, [&](std::string name){
 		MD5::MD5HashCoord hash;
 		if (AssetDataBase::FilePath2Hash(name.c_str(), hash)){
 			mTextureHash = hash.GetString();
@@ -159,8 +162,8 @@ void TextureModelComponent::CreateInspector(){
 			mTextureHash = "";
 		}
 		mMaterial->SetTexture(name.c_str(), 0);
-	}), data);
-	Window::ViewInspector("TextureModel", this, data, this);
+	});
+	ins.Complete();
 }
 #endif
 

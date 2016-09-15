@@ -5,6 +5,8 @@
 #include "Game/Actor.h"
 #include "Game/Game.h"
 
+#include "Engine/Inspector.h"
+
 CharacterControllerComponent::CharacterControllerComponent()
 	:mController(NULL)
 	//, mGravity(XMVectorSet(0, -9.81, 0, 1))
@@ -127,17 +129,18 @@ void CharacterControllerComponent::Update(){
 #ifdef _ENGINE_MODE
 void CharacterControllerComponent::CreateInspector() {
 
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<float>("StepOffset", &mStepOffset, [&](float f){
+
+	Inspector ins("CharacterController",this);
+	ins.Add("StepOffset", &mStepOffset, [&](float f){
 		SetStepOffset(f);
-	}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("SlopeLimit", &mSlopeLimitDigree, [&](float f){
+	});
+	ins.Add("SlopeLimit", &mSlopeLimitDigree, [&](float f){
 		SetSlopeLimit(f);
-	}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Size", &mSize, [&](float f){
+	});
+	ins.Add("Size", &mSize, [&](float f){
 		SetSize(f);
-	}), data);
-	Window::ViewInspector("CharacterController", this, data, this);
+	});
+	ins.Complete();
 }
 #endif
 

@@ -21,6 +21,8 @@
 #include "AssetFile\Sound\SoundFileData.h"
 #include "AssetFile\Movie\MovieFileData.h"
 
+#include "Engine/Inspector.h"
+
 
 decltype(AssetFactory::m_Factory) AssetFactory::m_Factory;
 class __AssetFactory :public AssetFactory{
@@ -135,7 +137,7 @@ void AssetDataTemplate<BoneFileData>::CreateInspector(){
 void AssetDataTemplate<PrefabFileData>::CreateInspector(){
 	m_FileData->GetActor()->CreateInspector();
 
-	auto data = Window::CreateInspector();
+	
 	std::function<void()> collback = [&](){
 		auto before = m_FileData->Apply();
 
@@ -148,27 +150,29 @@ void AssetDataTemplate<PrefabFileData>::CreateInspector(){
 			}
 		});
 	};
-	Window::AddInspector(new InspectorButtonDataSet("Apply", collback), data);
-
-	Window::ViewInspector("Prefab", NULL, data);
+	Inspector ins("Prefab",NULL);
+	ins.AddButton("Apply",collback);
+	ins.Complete();
 }
 
 void AssetDataTemplate<ShaderFileData>::CreateInspector(){
 
-	auto data = Window::CreateInspector();
 	std::function<void()> collback = [&](){
 		m_FileData->FileUpdate();
 
 	};
-	Window::AddInspector(new InspectorButtonDataSet("Compile", collback), data);
 
-	Window::ViewInspector("Shader", NULL, data);
+	Inspector ins("Shader", NULL);
+	ins.AddButton("Compile", collback);
+	ins.Complete();
 }
 
 #include "Game/Component/PhysxColliderComponent.h"
 void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 
-	auto data = Window::CreateInspector();
+
+	Inspector ins("PhysxMaterial", NULL);
+
 	std::function<void()> collback = [&](){
 		m_FileData->FileUpdate();
 
@@ -210,14 +214,13 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 		m_FileData->m_Param_df = pmate->getDynamicFriction();
 		m_FileData->m_Param_r = pmate->getRestitution();
 
-		Window::AddInspector(new TemplateInspectorDataSet<float>("StaticFriction", &m_FileData->m_Param_sf, collbackf1), data);
-		Window::AddInspector(new TemplateInspectorDataSet<float>("DynamicFriction", &m_FileData->m_Param_df, collbackf2), data);
-		Window::AddInspector(new TemplateInspectorDataSet<float>("Restitution", &m_FileData->m_Param_r, collbackf3), data);
+		ins.Add("StaticFriction", &m_FileData->m_Param_sf, collbackf1);
+		ins.Add("DynamicFriction", &m_FileData->m_Param_df, collbackf2);
+		ins.Add("Restitution", &m_FileData->m_Param_r, collbackf3);
 	}
 
-	Window::AddInspector(new InspectorButtonDataSet("Compile", collback), data);
-
-	Window::ViewInspector("PhysxMaterial", NULL, data);
+	ins.AddButton("Compile", collback);
+	ins.Complete();
 }
 
 #endif

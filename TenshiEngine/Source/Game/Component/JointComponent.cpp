@@ -5,6 +5,8 @@
 #include <PxPhysics.h>
 #include <PxPhysicsAPI.h>
 
+#include "Engine/Inspector.h"
+
 JointComponent::JointComponent(){
 	mActorUID[0] = "";
 	mActorUID[1] = "";
@@ -57,11 +59,14 @@ void JointComponent::Update(){
 #ifdef _ENGINE_MODE
 void JointComponent::CreateInspector() {
 
-	auto data = Window::CreateInspector();
+	
 
+
+	Inspector ins("Joint",this);
+	ins.AddEnableButton(this);
 
 	static std::string actor0;
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("RigidActor_0", &actor0, [&](std::string f){
+	ins.Add("RigidActor_0", &actor0, [&](std::string f){
 		actor0 = f;
 		auto act = Game::FindNameActor(f.c_str());
 		mActorUID[0] = "";
@@ -70,9 +75,9 @@ void JointComponent::CreateInspector() {
 		}
 
 		SetRigidActor(RigitActorID::Actor_0, act);
-	}), data);
+	});
 	static std::string actor1;
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("RigidActor_1", &actor1, [&](std::string f){
+	ins.Add("RigidActor_1", &actor1, [&](std::string f){
 		actor1 = f;
 		auto act = Game::FindNameActor(f.c_str());
 		mActorUID[1] = "";
@@ -81,9 +86,9 @@ void JointComponent::CreateInspector() {
 		}
 
 		SetRigidActor(RigitActorID::Actor_1, act);
-	}), data);
+	});
 
-	Window::ViewInspector("Joint", this, data, this);
+	ins.Complete();
 }
 #endif
 

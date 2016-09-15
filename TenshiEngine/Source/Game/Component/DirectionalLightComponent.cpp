@@ -14,8 +14,10 @@
 
 #include "Game/RenderingSystem.h"
 
+#include "Engine/Inspector.h"
+
 DirectionalLightComponent::DirectionalLightComponent()
-	: m_Color(XMFLOAT3(1, 1, 1))
+	: m_Color(XMFLOAT4(1, 1, 1, 1))
 	, m_HDR(1.0f){
 
 	mCBChangeLgiht = ConstantBuffer<cbChangesLight>::create(3);
@@ -108,27 +110,21 @@ void DirectionalLightComponent::Update(){
 #ifdef _ENGINE_MODE
 void DirectionalLightComponent::CreateInspector(){
 
-
-	auto data = Window::CreateInspector();
-	std::function<void(float)> collbackx = [&](float f){
-		m_Color.x = f;
+	Inspector ins("DirectionalLight",this);
+	ins.AddEnableButton(this);
+	std::function<void(Color)> collback = [&](Color f){
+		m_Color.x = f.r;
+		m_Color.y = f.g;
+		m_Color.z = f.b;
+		m_Color.w = f.a;
 		SetColor(m_Color);
 	};
 
-	std::function<void(float)> collbacky = [&](float f){
-		m_Color.y = f;
-		SetColor(m_Color);
-	};
+	auto col = Color(m_Color);
 
-	std::function<void(float)> collbackz = [&](float f){
-		m_Color.z = f;
-		SetColor(m_Color);
-	};
-
-	Window::AddInspector(new InspectorColorDataSet("Color", &m_Color.x, collbackx, &m_Color.y, collbacky, &m_Color.z, collbackz, NULL, [](float){}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &m_HDR, [&](float f){m_HDR = f; }), data);
-
-	Window::ViewInspector("DirectionalLight", this, data, this);
+	ins.Add("Color", &col, collback);
+	ins.Add("HDR", &m_HDR, [&](float f){m_HDR = f; });
+	ins.Complete();
 }
 #endif
 
@@ -142,13 +138,13 @@ void DirectionalLightComponent::IO_Data(I_ioHelper* io){
 #undef _KEY
 }
 
-void DirectionalLightComponent::SetColor(XMFLOAT3 color){
+void DirectionalLightComponent::SetColor(XMFLOAT4 color){
 	m_Color = color;
 
 	mCBChangeLgiht.mParam.LightColor.x = m_Color.x*m_HDR;
 	mCBChangeLgiht.mParam.LightColor.y = m_Color.y*m_HDR;
 	mCBChangeLgiht.mParam.LightColor.z = m_Color.z*m_HDR;
-	mCBChangeLgiht.mParam.LightColor.w = 1;
+	mCBChangeLgiht.mParam.LightColor.w = m_Color.w;
 }
 
 

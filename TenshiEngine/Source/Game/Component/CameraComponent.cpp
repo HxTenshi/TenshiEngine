@@ -9,6 +9,8 @@
 
 #include "Game/RenderingSystem.h"
 
+#include "Engine/Inspector.h"
+
 CameraComponent::CameraComponent()
 {
 	mScreenClearType = ScreenClearType::Color;
@@ -119,9 +121,10 @@ void CameraComponent::Update(){
 }
 #ifdef _ENGINE_MODE
 void CameraComponent::CreateInspector(){
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("SkyTexture", &mSkyTextureFileName, [&](std::string s){SetSkyTexture(s); }), data);
-	Window::ViewInspector("Camera", this, data, this);
+	Inspector ins("Camera", this);
+	ins.AddEnableButton(this);
+	ins.Add("SkyTexture", &mSkyTextureFileName, [&](std::string s){SetSkyTexture(s); });
+	ins.Complete();
 }
 #endif
 

@@ -4,6 +4,8 @@
 #include "Library/Movie/MovieTexture.h"
 #include "Window/Window.h"
 
+#include "Engine/Inspector.h"
+
 MovieComponent::MovieComponent(){
 	mLoop = false;
 	mAutoPlay = false;
@@ -60,19 +62,21 @@ void MovieComponent::Finish() {
 
 #ifdef _ENGINE_MODE
 void MovieComponent::CreateInspector(){
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("File", &mFileName, [&](std::string f){LoadFile(f); }), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("AutoPlay", &mAutoPlay, [&](bool f){mAutoPlay = f; }), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("Loop", &mLoop, [&](bool f){SetLoop(f); }), data);
-	Window::AddInspector(new InspectorButtonDataSet("Play", [&](){
+	Inspector ins("Movie",this);
+	ins.AddEnableButton(this);
+	ins.Add("File", &mFileName, [&](std::string f){LoadFile(f); });
+	ins.Add("AutoPlay", &mAutoPlay, [&](bool f){mAutoPlay = f; });
+	ins.Add("Loop", &mLoop, [&](bool f){SetLoop(f); });
+	ins.AddButton("Play", [&](){
 		if (IsPlay()){
 			Stop();
 		}
 		else{
 			Play();
 		}
-	}), data);
-	Window::ViewInspector("Movie", this, data, this);
+	});
+
+	ins.Complete();
 
 }
 #endif

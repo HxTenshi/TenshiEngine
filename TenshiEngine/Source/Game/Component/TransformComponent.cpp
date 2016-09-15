@@ -6,6 +6,7 @@
 #include "Game/Actor.h"
 #include "Game/Game.h"
 
+#include "Engine/Inspector.h"
 
 TransformComponent::TransformComponent()
 	:mFixMatrixFlag(false)
@@ -561,74 +562,40 @@ void TransformComponent::FlagSetChangeMatrix(PhysXChangeTransformFlag flag){
 void TransformComponent::CreateInspector(){
 
 
-	std::function<void(float)> collbackpx = [&](float f){
+	std::function<void(Vector3)> collbackp = [&](Vector3 f){
 		auto pos = this->Position();
-		this->Position(XMVectorSet(f, pos.y, pos.z, pos.w));
+		this->Position(XMVectorSet(f.x, f.y, f.z, pos.w));
 		Game::SetUndo(gameObject.Get());
 	};
-	std::function<void(float)> collbackpy = [&](float f){
-		auto pos = this->Position();
-		this->Position(XMVectorSet(pos.x, f, pos.z, pos.w));
-		Game::SetUndo(gameObject.Get());
-	};
-	std::function<void(float)> collbackpz = [&](float f){
-		auto pos = this->Position();
-		this->Position(XMVectorSet(pos.x, pos.y, f, pos.w));
-		Game::SetUndo(gameObject.Get());
-	};
-	std::function<void(float)> collbackrx = [&](float f){
-		//auto pos = this->Rotate();
-		//this->Rotate(XMVectorSet(f*(180.0f / XM_PI), pos.y, pos.z, pos.w));
-
-		mRotate.x = f * (XM_PI / 180.0f);
+	std::function<void(Vector3)> collbackr = [&](Vector3 f){
+		mRotate.x = f.x * (XM_PI / 180.0f);
+		mRotate.y = f.y * (XM_PI / 180.0f);
+		mRotate.z = f.z * (XM_PI / 180.0f);
 		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
 
-		mInspectorRotateDegree.x = f;
+		mInspectorRotateDegree.x = f.x;
+		mInspectorRotateDegree.y = f.y;
+		mInspectorRotateDegree.z = f.z;
 		Game::SetUndo(gameObject.Get());
 	};
-	std::function<void(float)> collbackry = [&](float f){
-		mRotate.y = f * (XM_PI / 180.0f);
-		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
-
-		mInspectorRotateDegree.y = f;
-		Game::SetUndo(gameObject.Get());
-	};
-	std::function<void(float)> collbackrz = [&](float f){
-		mRotate.z = f * (XM_PI/180.0f);
-		FlagSetChangeMatrix(PhysXChangeTransformFlag::Rotate);
-
-		mInspectorRotateDegree.z = f;
-		Game::SetUndo(gameObject.Get());
-	};
-	std::function<void(float)> collbacksx = [&](float f){
+	std::function<void(Vector3)> collbacks = [&](Vector3 f){
 		auto pos = this->Scale();
-		this->Scale(XMVectorSet(f, pos.y, pos.z, pos.w));
-		Game::SetUndo(gameObject.Get());
-	};
-	std::function<void(float)> collbacksy = [&](float f){
-		auto pos = this->Scale();
-		this->Scale(XMVectorSet(pos.x, f, pos.z, pos.w));
-		Game::SetUndo(gameObject.Get());
-	};
-	std::function<void(float)> collbacksz = [&](float f){
-		auto pos = this->Scale();
-		this->Scale(XMVectorSet(pos.x, pos.y, f, pos.w));
+		this->Scale(XMVectorSet(f.x, f.y, f.z, pos.w));
 		Game::SetUndo(gameObject.Get());
 	};
 
 	mInspectorRotateDegree = mRotate * (180.0f / XM_PI);
 	mInspectorRotateDegree.w = 1;
 
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new InspectorVector3DataSet("Position", &mPosition.x, collbackpx, &mPosition.y, collbackpy, &mPosition.z, collbackpz), data);
-	Window::AddInspector(new InspectorVector3DataSet("Rotate", &mInspectorRotateDegree.x, collbackrx, &mInspectorRotateDegree.y, collbackry, &mInspectorRotateDegree.z, collbackrz), data);
-	Window::AddInspector(new InspectorVector3DataSet("Scale", &mScale.x, collbacksx, &mScale.y, collbacksy, &mScale.z, collbacksz), data);
-	Window::ViewInspector("Transform", NULL, data);
+	Inspector ins("Transform", this);
+	auto p = Vector3(mPosition);
+	auto r = Vector3(mInspectorRotateDegree);
+	auto s = Vector3(mScale);
+	ins.Add("Position", &p, collbackp);
+	ins.Add("Rotate", &r, collbackr);
+	ins.Add("Scale", &s, collbacks);
 
-	//Window::GetInspectorWindow()->AddLabel("Transform");
-	//Window::GetInspectorWindow()->AddParam(&mPosition.x, &mFixMatrixFlag);
-	//Window::GetInspectorWindow()->AddParam(&mPosition.y, &mFixMatrixFlag);
-	//Window::GetInspectorWindow()->AddParam(&mPosition.z, &mFixMatrixFlag);
+	ins.Complete();
 }
 #endif
 

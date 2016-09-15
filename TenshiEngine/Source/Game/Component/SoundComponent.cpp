@@ -2,6 +2,8 @@
 #include "Engine/AssetFile/Sound/SoundFileData.h"
 #include "Window/Window.h"
 
+#include "Engine/Inspector.h"
+
 SoundComponent::SoundComponent(){
 	mIsLoop = false;
 	mIsPlay = false;
@@ -32,20 +34,21 @@ void SoundComponent::Update(){
 }
 #ifdef _ENGINE_MODE
 void SoundComponent::CreateInspector(){
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("File", &mFileName, [&](std::string f){LoadFile(f); }), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("AutoPlay", &mAutoPlay, [&](bool f){mAutoPlay = f; }), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("Loop", &mIsLoop, [&](bool f){SetLoop(f); }), data);
-	Window::AddInspector(new InspectorSlideBarDataSet("Volume", 0.0f, 1.0f, &mVolume, [&](float f){SetVolume(f); }), data);
-	Window::AddInspector(new InspectorButtonDataSet("Play", [&](){
+	Inspector ins("Sound", this);
+	ins.AddEnableButton(this);
+	ins.Add("File", &mFileName, [&](std::string f){LoadFile(f); });
+	ins.Add("AutoPlay", &mAutoPlay, [&](bool f){mAutoPlay = f; });
+	ins.Add("Loop", &mIsLoop, [&](bool f){SetLoop(f); });
+	ins.AddSlideBar("Volume", 0.0f, 1.0f, &mVolume, [&](float f){SetVolume(f); });
+	ins.AddButton("Play", [&](){
 		if (mIsPlay){
 			Stop();
 		}
 		else{
 			Play();
 		}
-	}), data);
-	Window::ViewInspector("Sound", this, data, this);
+	});
+	ins.Complete();
 
 }
 #endif

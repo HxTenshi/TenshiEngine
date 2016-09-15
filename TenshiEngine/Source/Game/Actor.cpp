@@ -12,6 +12,8 @@
 
 #include "Engine/AssetFile/Prefab/PrefabFileData.h"
 
+#include "Engine/Inspector.h"
+
 Actor::Actor()
 	: mTreeViewPtr(NULL)
 	, mTransform(NULL)
@@ -108,17 +110,18 @@ void Actor::CreateInspector(){
 		mPrefab = name;
 		AssetDataBase::Instance(mPrefab.c_str(), mPrefabAsset);
 	};
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Name", &mName, collback), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Prefab", &mPrefab, collbackpre), data);
-	Window::AddInspector(new InspectorSelectDataSet("Layer", Game::GetLayerNames() , &mPhysxLayer, [&](int f){
+	Inspector ins("GameObject",NULL);
+	ins.AddEnableButton(this);
+	ins.Add("Name", &mName, collback);
+	ins.Add("Prefab", &mPrefab, collbackpre);
+	ins.AddSelect("Layer", &mPhysxLayer, Game::GetLayerNames(), [&](int f){
 		mPhysxLayer = f;
 		if (auto com = mComponents.GetComponent<PhysXColliderComponent>()){
 			com->SetPhysxLayer(mPhysxLayer);
 		}
-	}), data);
+	);
 
-	Window::ViewInspector("Actor",NULL,data,this);
+	ins.Complete();
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->CreateInspector();
 	}

@@ -9,6 +9,9 @@
 #include "Graphic/Model/Model.h"
 #include "Graphic/Model/BoneModel.h"
 
+
+#include "Engine/Inspector.h"
+
 AnimationComponent::AnimationComponent()
 	:mCurrentSet(0)
 	, mAnimetionCapacity(10)
@@ -53,25 +56,27 @@ void AnimationComponent::Update(){
 }
 #ifdef _ENGINE_MODE
 void AnimationComponent::CreateInspector(){
-	auto data = Window::CreateInspector();
+
+	Inspector ins("Animetion",this);
+	ins.AddEnableButton(this);
 
 	std::function<void(int)> collbackset = [&](int f){
 		ChangeAnimetion(f);
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<int>("ID", &mCurrentSet, collbackset), data);
+	ins.Add("ID", &mCurrentSet, collbackset);
 
 	std::function<void(float)> collback = [&](float f){
 		mView.Param.mTime = f;
 		mAnimationSets[mCurrentSet].Param.mTime = f;
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Time", &mView.Param.mTime, collback), data);
+	ins.Add("Time", &mView.Param.mTime, collback);
 
 
 	std::function<void(float)> collbackscale = [&](float f){
 		mView.Param.mTimeScale = f;
 		mAnimationSets[mCurrentSet].Param.mTimeScale = f;
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<float>("TimeScale", &mView.Param.mTimeScale, collbackscale), data);
+	ins.Add("TimeScale", &mView.Param.mTimeScale, collbackscale);
 
 	std::function<void(float)> collbackw = [&](float f){
 		mView.Param.mWeight = f;
@@ -80,7 +85,7 @@ void AnimationComponent::CreateInspector(){
 			mAnimationSets[mCurrentSet].mAnimationBind->SetWeight(f);
 		}
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<float>("Weight", &mView.Param.mWeight, collbackw), data);
+	ins.Add("Weight", &mView.Param.mWeight, collbackw);
 
 	std::function<void(bool)> collbackloop= [&](bool f){
 		mView.Param.mLoop = f;
@@ -89,7 +94,7 @@ void AnimationComponent::CreateInspector(){
 			 mAnimationSets[mCurrentSet].mAnimationBind->SetLoopFlag(f);
 		}
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("Loop", &mView.Param.mLoop, collbackloop), data);
+	ins.Add("Loop", &mView.Param.mLoop, collbackloop);
 
 	std::function<void(std::string)> collbackpath = [&](std::string name){
 		mView.Param.mFileName = name;
@@ -97,9 +102,9 @@ void AnimationComponent::CreateInspector(){
 		mAnimationSets[mCurrentSet].Create();
 
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("VMD", &mView.Param.mFileName, collbackpath), data);
+	ins.Add("VMD", &mView.Param.mFileName, collbackpath);
 
-	Window::ViewInspector("Animetion", this, data, this);
+	ins.Complete();
 }
 #endif
 

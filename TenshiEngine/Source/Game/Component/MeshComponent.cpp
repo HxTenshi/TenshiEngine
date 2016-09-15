@@ -8,6 +8,7 @@
 #include "Graphic/Model/Model.h"
 #include "ModelComponent.h"
 
+#include "Engine/Inspector.h"
 
 MeshComponent::MeshComponent()
 {
@@ -49,7 +50,6 @@ void MeshComponent::Update(){
 
 #ifdef _ENGINE_MODE
 void MeshComponent::CreateInspector(){
-	auto data = Window::CreateInspector();
 	std::function<void(std::string)> collbackpath = [&](std::string name){
 		m_FileName = name;
 		SetMesh(m_FileName, m_ID);
@@ -59,9 +59,11 @@ void MeshComponent::CreateInspector(){
 		m_ID = id;
 		SetMesh(m_FileName, m_ID);
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Mesh", &m_FileName, collbackpath), data);
-	Window::AddInspector(new TemplateInspectorDataSet<int>("ID", &m_ID, collbackid), data);
-	Window::ViewInspector("MeshComponent", this, data, this);
+	Inspector ins("Mesh",this);
+	ins.AddEnableButton(this);
+	ins.Add("Mesh", &m_FileName, collbackpath);
+	ins.Add("ID", &m_ID, collbackid);
+	ins.Complete();
 }
 #endif
 

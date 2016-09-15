@@ -9,7 +9,7 @@
 class IDirectionalLightComponent{
 public:
 	virtual ~IDirectionalLightComponent(){}
-	virtual void SetColor(XMFLOAT3 color) = 0;
+	virtual void SetColor(XMFLOAT4 color) = 0;
 };
 
 class DirectionalLightComponent :public IDirectionalLightComponent,public Component{
@@ -27,12 +27,12 @@ public:
 #endif
 	void IO_Data(I_ioHelper* io) override;
 
-	XMFLOAT3 GetColor(){ return m_Color; }
-	void SetColor(XMFLOAT3 color) override;
+	XMFLOAT4 GetColor(){ return m_Color; }
+	void SetColor(XMFLOAT4 color) override;
 
 private:
 	//ÉJÉâÅ[
-	XMFLOAT3 m_Color;
+	XMFLOAT4 m_Color;
 	float m_HDR;
 
 	ConstantBuffer<cbChangesLight>		mCBChangeLgiht;

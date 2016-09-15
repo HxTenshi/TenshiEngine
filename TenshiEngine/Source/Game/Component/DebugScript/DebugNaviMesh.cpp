@@ -4,6 +4,8 @@
 
 #include "Game/Game.h"
 
+#include "Engine/Inspector.h"
+
 DebugNaviMesh::DebugNaviMesh(){
 	mStart = NULL;
 	mEnd = NULL;
@@ -127,26 +129,26 @@ void DebugNaviMesh::Finish(){
 }
 
 #ifdef _ENGINE_MODE
-void DebugNaviMesh::CreateInspector(std::vector<InspectorDataSet>& data){
+void DebugNaviMesh::CreateInspector(Inspector* ins){
 
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Class", &mFileName, [&](std::string f){mFileName = f;
+	ins->Add("Class", &mFileName, [&](std::string f){mFileName = f;
 		mNaviMesh.Create(mFileName);
-	}), data);
+	});
 
-	Window::AddInspector(new TemplateInspectorDataSet<float>("speed", &mSpeed, [&](float f){mSpeed = f;
-	}), data);
-	Window::AddInspector(new InspectorButtonDataSet("Find", [&](){
+	ins->Add("speed", &mSpeed, [&](float f){mSpeed = f;
+	});
+	ins->AddButton("Find", [&](){
 		Find();
-	}), data);
-	Window::AddInspector(new InspectorButtonDataSet("n1", [&](){
+	});
+	ins->AddButton("n1", [&](){
 		mNaviMeshCreatorPtr->N1();
 		mNavigatePtr = mNaviMeshCreatorPtr->Result();
-	}), data);
-	Window::AddInspector(new InspectorButtonDataSet("n2", [&](){
+	});
+	ins->AddButton("n2", [&](){
 
 		mNaviMeshCreatorPtr->N2();
 		mNavigatePtr = mNaviMeshCreatorPtr->Result();
-	}), data);
+	});
 
 	
 }

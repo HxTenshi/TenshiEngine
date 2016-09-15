@@ -26,6 +26,8 @@
 
 #include <memory>
 
+#include "Application\Shutdown.h"
+
 
 //#pragma comment(lib,"lib/Debug/sqlite3.lib")
 //#include "Library\sqlite3.h"
@@ -207,7 +209,7 @@ public:
 	void Render()
 	{
 
-		for(;;){
+		while (!App::IsShutdown()){
 
 			{
 				auto tick = Profiling::Start("Draw:wait");

@@ -13,6 +13,9 @@
 #include "Engine/AssetFile/Mesh/MeshFileData.h"
 #include "Engine/AssetFile/Physx/PhysxMaterialFileData.h"
 
+
+#include "Engine/Inspector.h"
+
 PhysXColliderComponent::PhysXColliderComponent(){
 	mIsSphere = false;
 	mShape = NULL;
@@ -268,7 +271,6 @@ physx::PxShape* PhysXColliderComponent::GetShape(){
 }
 #ifdef _ENGINE_MODE
 void PhysXColliderComponent::CreateInspector() {
-	auto data = Window::CreateInspector();
 	BoolCollback collback = [&](bool value){
 		ChangeShape(value);
 	};
@@ -282,13 +284,20 @@ void PhysXColliderComponent::CreateInspector() {
 		ChangeMaterial(name);
 	};
 
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Mesh", &mMeshFile, collbackpath), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("IsSphere", &mIsSphere, collback), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("IsTrigger", &mIsTrigger, collbacktri), data);
-	Window::AddInspector(new InspectorVector3DataSet("Position", &mPosition.x, [&](float f){SetTransform(XMVectorSet(f, mPosition.y, mPosition.z, 1)); }, &mPosition.y, [&](float f){SetTransform(XMVectorSet(mPosition.x, f, mPosition.z, 1)); }, &mPosition.z, [&](float f){SetTransform(XMVectorSet(mPosition.x, mPosition.y, f, 1)); }), data);
-	Window::AddInspector(new InspectorVector3DataSet("Scale", &mScale.x, [&](float f){SetScale(XMVectorSet(f, mScale.y, mScale.z, 1)); }, &mScale.y, [&](float f){SetScale(XMVectorSet(mScale.x, f, mScale.z, 1)); }, &mScale.z, [&](float f){SetScale(XMVectorSet(mScale.x, mScale.y, f, 1)); }), data);
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("PhysxMaterial", &mPhysicsMaterialFile, collbackmatepath), data);
-	Window::ViewInspector("Collider", this, data, this);
+	Inspector ins("Collider",this);
+	ins.AddEnableButton(this);
+	ins.Add("Mesh", &mMeshFile, collbackpath);
+	ins.Add("IsSphere", &mIsSphere, collback);
+	ins.Add("IsTrigger", &mIsTrigger, collbacktri);
+	auto p = Vector3(mPosition);
+	auto s = Vector3(mScale);
+
+	ins.Add("Position", &p, [&](Vector3 f){SetTransform(XMVectorSet(f.x, f.y, f.z, 1)); }
+	);
+	ins.Add("Scale", &s, [&](Vector3 f){SetScale(XMVectorSet(f.x, f.y, f.z, 1)); });
+	ins.Add("PhysxMaterial", &mPhysicsMaterialFile, collbackmatepath);
+
+	ins.Complete();
 }
 #endif
 

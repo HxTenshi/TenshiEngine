@@ -13,11 +13,13 @@
 
 #include "Game/RenderingSystem.h"
 
+#include "Engine/Inspector.h"
+
 PointLightComponent::PointLightComponent()
 	: m_Radius(1)
 	, m_AttenuationStart(0)
 	, m_AttenuationParam(1)
-	, m_Color(XMFLOAT3(1, 1, 1))
+	, m_Color(XMFLOAT4(1, 1, 1,1))
 	, m_HDR(1.0f){
 
 	mPointLightBuffer = ConstantBuffer<cbChangesPointLight>::create(8);
@@ -108,19 +110,12 @@ void PointLightComponent::Update(){
 void PointLightComponent::CreateInspector(){
 
 
-	auto data = Window::CreateInspector();
-	std::function<void(float)> collbackx = [&](float f){
-		m_Color.x = f;
-	};
-
-	std::function<void(float)> collbacky = [&](float f){
-		m_Color.y = f;
-	};
-
-	std::function<void(float)> collbackz = [&](float f){
-		m_Color.z = f;
-	};
-
+	std::function<void(Color)> collback = [&](Color f){
+		m_Color.x = f.r;
+		m_Color.y = f.g;
+		m_Color.z = f.b;
+		m_Color.w = f.a;
+	
 	std::function<void(float)> collbackr = [&](float f){
 		m_Radius = f;
 	};
@@ -130,17 +125,17 @@ void PointLightComponent::CreateInspector(){
 	std::function<void(float)> collbackap = [&](float f){
 		m_AttenuationParam = f;
 	};
+	Inspector ins("PointLight", this);
+	ins.AddEnableButton(this);
 
-	Window::AddInspector(new TemplateInspectorDataSet<float>("radius", &m_Radius, collbackr), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("AttenuationStart", &m_AttenuationStart, collbackas), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("AttenuationParam", &m_AttenuationParam, collbackap), data);
-	Window::AddInspector(new InspectorColorDataSet("Color", &m_Color.x, collbackx, &m_Color.y, collbacky, &m_Color.z, collbackz, NULL, [](float){}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("HDR", &m_HDR, [&](float f){m_HDR = f; }), data);
+	ins.Add("radius", &m_Radius, collbackr);
+	ins.Add("AttenuationStart", &m_AttenuationStart, collbackas);
+	ins.Add("AttenuationParam", &m_AttenuationParam, collbackap);
+	auto c = Color(m_Color);
+	ins.Add("Color", &c, collback);
+	ins.Add("HDR", &m_HDR, [&](float f){m_HDR = f; });
 
-	//Window::AddInspector(new InspectorSlideBarDataSet("r", 0.0f, 1.0f, &m_Color.x, collbackx), data);
-	//Window::AddInspector(new InspectorSlideBarDataSet("g", 0.0f, 1.0f, &m_Color.y, collbacky), data);
-	//Window::AddInspector(new InspectorSlideBarDataSet("b", 0.0f, 1.0f, &m_Color.z, collbackz), data);
-	Window::ViewInspector("PointLight", this, data, this);
+	ins.Complete();
 }
 #endif
 
@@ -152,6 +147,7 @@ void PointLightComponent::IO_Data(I_ioHelper* io){
 	_KEY(m_Color.x);
 	_KEY(m_Color.y);
 	_KEY(m_Color.z);
+	_KEY(m_Color.w);
 	_KEY(m_HDR);
 
 #undef _KEY

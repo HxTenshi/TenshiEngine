@@ -8,6 +8,8 @@
 #include "MaterialComponent.h"
 #include "Game/Game.h"
 
+#include "Engine/Inspector.h"
+
 class TextComponentMember{
 public:
 	Model mModel;
@@ -159,15 +161,17 @@ void TextComponent::CreateInspector(){
 	std::function<void(std::string)> collback = [&](std::string name){
 		ChangeText(name);
 	};
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Text", &impl->mText, collback), data);
-	Window::AddInspector(new TemplateInspectorDataSet<float>("FontSize", &mFontSize, [&](float f){
+	Inspector ins("Text",this);
+	ins.AddEnableButton(this);
+	ins.Add("Text", &impl->mText, collback);
+	ins.Add("FontSize", &mFontSize, [&](float f){
 		ChangeFontSize(f);
-	}), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("Center", &mCenter, [&](bool f){
+	});
+	ins.Add("Center", &mCenter, [&](bool f){
 		ChangeCenter(f);
-	}), data);
-	Window::ViewInspector("Text", this, data, this);
+	});
+
+	ins.Complete();
 }
 #endif
 

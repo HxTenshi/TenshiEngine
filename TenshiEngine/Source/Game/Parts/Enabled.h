@@ -1,6 +1,6 @@
 #pragma once
 
-class Window;
+class Inspector;
 class Enabled{
 public:
 	Enabled()
@@ -54,5 +54,5 @@ private:
 	bool m_IsEnabled;
 	bool m_IsParentEnabled;
 
-	friend Window;
+	friend Inspector;
 };
