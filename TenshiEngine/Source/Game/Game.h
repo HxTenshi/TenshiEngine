@@ -64,6 +64,8 @@ public:
 	Game();
 	~Game();
 
+	static Game* Get();
+
 	static void AddObject(GameObjectPtr actor,bool undoFlag = false);
 	static void DestroyObject(GameObjectPtr actor, bool undoFlag = false);
 	static void ActorMoveStage();

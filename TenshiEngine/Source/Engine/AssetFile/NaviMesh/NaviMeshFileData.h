@@ -619,7 +619,7 @@ private:
 				return id2;
 			}
 		}
-		return id1;
+		//return id1;
 	}
 
 	//Mesh内を通るようにしながら無駄な道をスキップさせる
@@ -691,7 +691,7 @@ private:
 
 			XMVECTOR NextPos;
 			if (hit){
-				while (true){
+				for(;;){
 					auto p = FindShareVertex(target);
 					if (p){
 						auto v2 = (*p);

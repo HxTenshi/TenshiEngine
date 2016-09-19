@@ -30,7 +30,3 @@ bool MetaFileData::Create(const char* filename){
 	return true;
 
 }
-
-bool MetaFileData::FileUpdate(){
-	return Create(m_FileName.c_str());
-}

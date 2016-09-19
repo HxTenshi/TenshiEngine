@@ -25,7 +25,8 @@ void MeshComponent::Initialize(){
 	if (!m_ModelMesh){
 		m_ModelMesh = new ModelMesh();
 	}
-	SetMesh(m_FileName, m_ID);
+	mMesh.Load(mMesh.m_Hash);
+	SetMesh(mMesh, m_ID);
 
 }
 void MeshComponent::Start(){
@@ -50,18 +51,16 @@ void MeshComponent::Update(){
 
 #ifdef _ENGINE_MODE
 void MeshComponent::CreateInspector(){
-	std::function<void(std::string)> collbackpath = [&](std::string name){
-		m_FileName = name;
-		SetMesh(m_FileName, m_ID);
 
-	};
 	std::function<void(int)> collbackid = [&](int id){
 		m_ID = id;
-		SetMesh(m_FileName, m_ID);
+		SetMesh(mMesh, m_ID);
 	};
 	Inspector ins("Mesh",this);
 	ins.AddEnableButton(this);
-	ins.Add("Mesh", &m_FileName, collbackpath);
+	ins.Add("Mesh", &mMesh, [&](){
+		SetMesh(mMesh, m_ID);
+	});
 	ins.Add("ID", &m_ID, collbackid);
 	ins.Complete();
 }
@@ -69,14 +68,13 @@ void MeshComponent::CreateInspector(){
 
 void MeshComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
-	_KEY(m_FileName);
+	_KEY(mMesh);
 	_KEY(m_ID);
 #undef _KEY
 }
 
-
-void MeshComponent::SetMesh(std::string fileName, int id){
-	m_FileName = fileName;
+void MeshComponent::SetMesh(MeshAsset& asset, int id){
 	m_ID = id;
-	m_ModelMesh->Create(m_FileName, m_ID);
+	mMesh = asset;
+	m_ModelMesh->Create(mMesh, m_ID);
 }

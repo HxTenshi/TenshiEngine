@@ -16,37 +16,51 @@ public:
 	GameObject GetRootActor()override{
 		return Game::GetRootActor();
 	}
-	Game::GameObjectPtr CreateActor(const char* prefab)override{
+	GameObject Instance(GameObject base)override{
+	
+		if (base){
+			picojson::value val;
+			base->ExportData(val, true);
 
 
-		auto a = make_shared<Actor>();
+			auto a = make_shared<Actor>();
+			a->ImportDataAndNewID(val);
 
-		PrefabAssetDataPtr mPrefabAsset;
-		AssetDataBase::Instance(prefab, mPrefabAsset);
-		if (mPrefabAsset){
-			if (mPrefabAsset->GetFileData()){
-				auto val = mPrefabAsset->GetFileData()->GetParam();
+			Game::AddObject(a);
+			return a;
+
+		}
+
+		return NULL;
+	}
+
+	GameObject Instance(PrefabAssetDataPtr base) override{
+
+		if (base){
+			if (base->GetFileData()){
+				auto val = base->GetFileData()->GetParam();
+				auto a = make_shared<Actor>();
 				a->ImportDataAndNewID(*val);
+				Game::AddObject(a);
 				return a;
 			}
 
 		}
 
+		return NULL;
+	}
 
-		if (!a->ImportDataAndNewID(prefab)){
-			//delete a;
-			return NULL;
-		}
+	GameObject Instance() override{
+
+		auto a = make_shared<Actor>();
+		Game::AddObject(a);
 		return a;
 	}
 
 	GameObject FindActor(const char* name)override{
 		return Game::FindNameActor(name);
 	}
-	void AddObject(Actor* actor) override{
-		Game::AddObject(actor);
-	}
-	void DestroyObject(Actor* actor) override{
+	void DestroyObject(GameObject actor) override{
 		Game::DestroyObject(actor);
 
 	}
@@ -72,7 +86,7 @@ public:
 
 	void Shutdown(){
 #ifdef _ENGINE_MODE
-		//Game::ChangePlayGame(false);
+		Game::Get()->ChangePlayGame(false);
 #else
 		App::Shutdown();
 #endif

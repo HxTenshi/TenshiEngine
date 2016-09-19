@@ -30,7 +30,6 @@ TextureModelComponent::~TextureModelComponent(){
 	}
 }
 
-#include "../../Engine/AssetFile/Material/TextureFileData.h"
 void TextureModelComponent::Initialize(){
 	if (!mModel){
 		mModel = new Model();
@@ -42,19 +41,26 @@ void TextureModelComponent::Initialize(){
 	if (!mMaterial){
 		mMaterial = new Material();
 	}
+
+	m_TextureAsset.Load(m_TextureAsset.m_Hash);
+
 	if (!mMaterial->IsCreate()){
 		mMaterial->Create("EngineResource/Texture.fx");
-		mMaterial->SetTexture(mTextureName.c_str(), 0);
-
-		if (mTextureHash != ""){
-			MD5::MD5HashCoord hash(mTextureHash.c_str());
-			Texture tex;
-			if (tex.Create(hash) == S_OK){
-				mMaterial->SetTexture(tex, 0);
-			}
-				
-		}
+		mMaterial->SetTexture(m_TextureAsset, 0);
 	}
+	//if (!mMaterial->IsCreate()){
+	//	mMaterial->Create("EngineResource/Texture.fx");
+	//	mMaterial->SetTexture(mTextureName.c_str(), 0);
+	//
+	//	if (mTextureHash != ""){
+	//		MD5::MD5HashCoord hash(mTextureHash.c_str());
+	//		Texture tex;
+	//		if (tex.Create(hash) == S_OK){
+	//			mMaterial->SetTexture(tex, 0);
+	//		}
+	//			
+	//	}
+	//}
 }
 
 void TextureModelComponent::Start(){
@@ -71,7 +77,7 @@ void TextureModelComponent::Update(){
 
 	auto mate = gameObject->GetComponent<MaterialComponent>();
 	auto movie = gameObject->GetComponent<MovieComponent>();
-	if (mTextureName == "" && !mate && !movie)return;
+	if (!m_TextureAsset.IsLoad() && !mate && !movie)return;
 
 	Game::AddDrawList(DrawStage::Init, std::function<void()>([&](){
 		SetMatrix();
@@ -82,13 +88,13 @@ void TextureModelComponent::Update(){
 			auto material= mate->GetMaterial(0);
 			mMaterial->SetTexture(material.mTexture[0]);
 			mMaterial->mCBMaterial.mParam.Diffuse = material.mCBMaterial.mParam.Diffuse;
-			mTextureName = "";
+			//mTextureName = "";
 		}
 		if (movie){
 			auto tex = movie->GetTexture();
 			if (tex){
 				mMaterial->SetTexture(*tex);
-				mTextureName = "";
+				//mTextureName = "";
 			}
 		}
 		SetMatrix();
@@ -144,37 +150,43 @@ void TextureModelComponent::SetMatrix(){
 #ifdef _ENGINE_MODE
 void TextureModelComponent::CreateInspector(){
 
-	std::function<void(std::string)> collbacktex = [&](std::string name){
-		mTextureName = name;
-		mMaterial->SetTexture(mTextureName.c_str(),0);
-	};
+	//std::function<void(std::string)> collbacktex = [&](std::string name){
+	//	mTextureName = name;
+	//	mMaterial->SetTexture(mTextureName.c_str(),0);
+	//};
 
 	Inspector ins("TextureModel",this);
 	ins.AddEnableButton(this);
-	ins.Add("Texture", &mTextureName, collbacktex);
+	//ins.Add("Texture", &mTextureName, collbacktex);
+	//
+	//ins.Add("TextureHash", &mTextureHash, [&](std::string name){
+	//	MD5::MD5HashCoord hash;
+	//	if (AssetDataBase::FilePath2Hash(name.c_str(), hash)){
+	//		mTextureHash = hash.GetString();
+	//	}
+	//	else{
+	//		mTextureHash = "";
+	//	}
+	//	mMaterial->SetTexture(name.c_str(), 0);
+	//});
 
-	ins.Add("TextureHash", &mTextureHash, [&](std::string name){
-		MD5::MD5HashCoord hash;
-		if (AssetDataBase::FilePath2Hash(name.c_str(), hash)){
-			mTextureHash = hash.GetString();
-		}
-		else{
-			mTextureHash = "";
-		}
-		mMaterial->SetTexture(name.c_str(), 0);
+	ins.Add("Texture", &m_TextureAsset,[&](){
+		mMaterial->SetTexture(m_TextureAsset, 0);
 	});
 	ins.Complete();
+
 }
 #endif
 
 void TextureModelComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
-	_KEY(mTextureName);
-	_KEY(mTextureHash);
+	_KEY(m_TextureAsset);
+	//_KEY(mTextureHash);
 #undef _KEY
 }
 
-void TextureModelComponent::SetTexture(const std::string& filename){
-	mTextureName = filename;
-	mMaterial->SetTexture(filename.c_str(), 0);
+void TextureModelComponent::SetTexture(TextureAsset& asset){
+	//mTextureName = filename;
+	m_TextureAsset = asset;
+	mMaterial->SetTexture(asset, 0);
 }

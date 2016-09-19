@@ -6,7 +6,6 @@
 
 SoundComponent::SoundComponent(){
 	mIsLoop = false;
-	mIsPlay = false;
 	mAutoPlay = true;
 	mVolume = 1.0f;
 }
@@ -14,7 +13,9 @@ SoundComponent::~SoundComponent(){
 
 }
 void SoundComponent::Initialize(){
-	LoadFile(mFileName);
+	Stop();
+	mSoundFileSource.Load(mSoundFileSource.m_Hash);
+	LoadFile(mSoundFileSource);
 
 }
 void SoundComponent::Start(){
@@ -22,7 +23,7 @@ void SoundComponent::Start(){
 void SoundComponent::Finish(){
 	Stop();
 	mSoundFile = NULL;
-	mSoundFileSource = NULL;
+	mSoundFileSource.Free();
 }
 void SoundComponent::EngineUpdate(){
 }
@@ -36,12 +37,12 @@ void SoundComponent::Update(){
 void SoundComponent::CreateInspector(){
 	Inspector ins("Sound", this);
 	ins.AddEnableButton(this);
-	ins.Add("File", &mFileName, [&](std::string f){LoadFile(f); });
+	ins.Add("File", &mSoundFileSource, [&](){LoadFile(mSoundFileSource); });
 	ins.Add("AutoPlay", &mAutoPlay, [&](bool f){mAutoPlay = f; });
 	ins.Add("Loop", &mIsLoop, [&](bool f){SetLoop(f); });
 	ins.AddSlideBar("Volume", 0.0f, 1.0f, &mVolume, [&](float f){SetVolume(f); });
 	ins.AddButton("Play", [&](){
-		if (mIsPlay){
+		if (IsPlay()){
 			Stop();
 		}
 		else{
@@ -54,24 +55,19 @@ void SoundComponent::CreateInspector(){
 #endif
 void SoundComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
-	_KEY(mFileName);
+	_KEY(mSoundFileSource);
 	_KEY(mIsLoop);
 	_KEY(mVolume);
 	_KEY(mAutoPlay);
 #undef _KEY
 }
 
-void SoundComponent::LoadFile(const std::string& filename){
+void SoundComponent::LoadFile(SoundAsset& asset){
 	Stop();
 	mSoundFile = NULL;
-	mSoundFileSource = NULL;
-	mFileName = filename;
-	if (mFileName != ""){
-		AssetDataBase::Instance(mFileName.c_str(), mSoundFileSource);
-		if (!mSoundFileSource)return;
-		auto file = mSoundFileSource->GetFileData();
-		if (!file)return;
-		auto sound = file->GetSoundFile();
+	mSoundFileSource = asset;
+	if (mSoundFileSource.IsLoad()){
+		auto sound = mSoundFileSource.Get()->GetSoundFile();
 		if (!sound)return;
 
 
@@ -85,8 +81,9 @@ void SoundComponent::LoadFile(const std::string& filename){
 	}
 }
 void SoundComponent::Play(){
-	if (mIsPlay)return;
-	mIsPlay = true;
+	if (IsPlay()){
+		Stop();
+	}
 	if (!mSoundFile)return;
 	auto file = mSoundFile->GetFileData();
 	if (!file)return;
@@ -96,7 +93,6 @@ void SoundComponent::Play(){
 	sound->Play(mIsLoop);
 }
 void SoundComponent::Stop(){
-	mIsPlay = false;
 	if (!mSoundFile)return;
 	auto file = mSoundFile->GetFileData();
 	if (!file)return;
@@ -105,7 +101,12 @@ void SoundComponent::Stop(){
 	sound->Stop();
 }
 bool SoundComponent::IsPlay(){
-	return mIsPlay;
+	if (!mSoundFile)return false;
+	auto file = mSoundFile->GetFileData();
+	if (!file)return false;
+	auto sound = file->GetSoundFile();
+	if (!sound)return false;
+	return sound->IsPlay();
 }
 void SoundComponent::SetLoop(bool flag){
 	mIsLoop = flag;

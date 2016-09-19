@@ -4,13 +4,15 @@
 
 #include "Game/RenderingSystem.h"
 
+#include "Engine/Inspector.h"
+
 RenderTarget* PostEffectHelper::mCurrentRenderTarget = NULL;
 
 void PostEffectComponent::Initialize(){
 	mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
 	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
 
-	mMaterial.Create(mShaderName.c_str());
+	mMaterial.Create(mShader);
 
 }
 void PostEffectComponent::Finish(){
@@ -27,12 +29,12 @@ void PostEffectComponent::Update(){
 
 void PostEffectComponent::PostDraw(){
 
+	if (!mShader.IsLoad()){
+		return;
+	}
 	mModelTexture.Update();
 
 	Game::AddDrawList(DrawStage::PostEffect, [&](){
-		if (mShaderName == ""){
-			return;
-		}
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 
 		mRenderTarget.ClearView(render->m_Context);
@@ -66,17 +68,13 @@ void PostEffectComponent::PostDraw(){
 
 #ifdef _ENGINE_MODE
 void PostEffectComponent::CreateInspector(){
-	auto data = Window::CreateInspector();
 
-	std::function<void(std::string)> collback = [&](std::string name){
-		mShaderName = name;
-
-		mMaterial.Create(mShaderName.c_str());
-	};
-
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Shader", &mShaderName, collback), data);
-
-	Window::ViewInspector("PostEffect", this, data, this);
+	Inspector ins("PostEffect", this);
+	ins.AddEnableButton(this);
+	ins.Add("Shader", &mShader, [&](){
+		mMaterial.Create(mShader);
+	});
+	ins.Complete();
 }
 #endif
 
@@ -84,7 +82,7 @@ void PostEffectComponent::CreateInspector(){
 void PostEffectComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
 
-	_KEY(mShaderName);
+	_KEY(mShader);
 
 #undef _KEY
 }

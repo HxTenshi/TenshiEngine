@@ -434,6 +434,11 @@ Game::~Game(){
 	mMainViewRenderTarget.Release();
 
 }
+
+
+Game* Game::Get(){
+	return mGame;
+}
 //static
 void Game::AddObject(GameObjectPtr actor, bool undoFlag){
 	if (!actor->mTransform){

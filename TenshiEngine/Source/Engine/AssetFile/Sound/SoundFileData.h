@@ -16,8 +16,9 @@ public:
 	void Release();
 
 	void Volume(float vol)const;
-	void Play(bool loop)const;
+	void Play(bool loop,bool resetPlayPoint = true)const;
 	void Stop()const;
+	bool IsPlay()const;
 
 	void Duplicate(const SoundFile* out)const;
 
@@ -36,7 +37,6 @@ public:
 	~SoundFileData();
 
 	bool Create(const char* filename) override;
-	bool FileUpdate() override;
 
 	const SoundFile* GetSoundFile() const{
 		return &m_SoundData;

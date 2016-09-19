@@ -188,13 +188,13 @@ bool MeshFileData::Create(const char* filename){
 		data->Vertexs.resize(num);
 		for (unsigned int i = 0; i < num; i+=3){
 
-			int i0 = data->Indices[i + 0];
-			int i1 = data->Indices[i + 1];
-			int i2 = data->Indices[i + 2];
+			auto i0 = data->Indices[i + 0];
+			auto i1 = data->Indices[i + 1];
+			auto i2 = data->Indices[i + 2];
 
-			int o0 = data->Indices[i + 0] = i + 0;
-			int o1 = data->Indices[i + 1] = i + 1;
-			int o2 = data->Indices[i + 2] = i + 2;
+			auto o0 = data->Indices[i + 0] = i + 0;
+			auto o1 = data->Indices[i + 1] = i + 1;
+			auto o2 = data->Indices[i + 2] = i + 2;
 
 			data->Vertexs[o0].Pos = buf->Vertexs[i0].Pos;
 			data->Vertexs[o1].Pos = buf->Vertexs[i1].Pos;
@@ -234,15 +234,15 @@ bool MeshFileData::Create(const char* filename){
 
 		auto num = data->Indices.size();
 		data->Vertexs.resize(num);
-		for (int i = 0; i < num; i += 3){
+		for (UINT i = 0; i < num; i += 3){
 
-			int i0 = data->Indices[i + 0];
-			int i1 = data->Indices[i + 1];
-			int i2 = data->Indices[i + 2];
+			auto i0 = data->Indices[i + 0];
+			auto i1 = data->Indices[i + 1];
+			auto i2 = data->Indices[i + 2];
 
-			int o0 = data->Indices[i + 0] = i + 0;
-			int o1 = data->Indices[i + 1] = i + 1;
-			int o2 = data->Indices[i + 2] = i + 2;
+			auto o0 = data->Indices[i + 0] = i + 0;
+			auto o1 = data->Indices[i + 1] = i + 1;
+			auto o2 = data->Indices[i + 2] = i + 2;
 
 			data->Vertexs[o0].Pos = buf->Vertexs[i0].Pos;
 			data->Vertexs[o1].Pos = buf->Vertexs[i1].Pos;
@@ -293,10 +293,6 @@ bool MeshFileData::Create(const char* filename){
 	m_MeshBufferData.Create(this);
 
 	return true;
-}
-
-bool MeshFileData::FileUpdate(){
-	return Create(m_FileName.c_str());
 }
 
 const IPolygonsData* MeshFileData::GetPolygonsData() const{

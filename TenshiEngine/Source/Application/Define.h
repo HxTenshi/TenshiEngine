@@ -19,7 +19,8 @@ enum class MyWindowMessage{
 	AssetFileChanged,
 	AssetFileCreated,
 	AssetFileDeleted,
-	AssetFileRenamed,
+	AssetFileRenamed_OldName,
+	AssetFileRenamed_NewName,
 
 	PlayGame,
 	StopGame,

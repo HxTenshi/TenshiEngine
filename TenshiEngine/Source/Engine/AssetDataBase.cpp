@@ -31,6 +31,7 @@ public: __AssetFactory(){}
 
 decltype(AssetDataBase::m_AssetCache) AssetDataBase::m_AssetCache;
 decltype(AssetDataBase::m_AssetMetaCache) AssetDataBase::m_AssetMetaCache;
+decltype(AssetDataBase::m_DeleteCache) AssetDataBase::m_DeleteCache = std::make_pair("", AssetDataTemplatePtr(NULL));
 
 static __AssetFactory factory;
 
@@ -48,7 +49,7 @@ void AssetDataBase::InitializeMetaData(const char* filename){
 		data = AssetFactory::Create(s.c_str());
 		if (data && (AssetFileType::Meta == data->m_AssetFileType)){
 			MetaAssetDataPtr meta = data;
-			m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), filename));
+			m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), std::make_pair(filename, AssetDataTemplatePtr(NULL))));
 		
 			m_AssetCache.insert(std::make_pair(filename, std::make_pair(*meta->GetFileData()->GetHash(), AssetDataTemplatePtr(NULL))));
 		
@@ -58,7 +59,7 @@ void AssetDataBase::InitializeMetaData(const char* filename){
 			data = AssetFactory::Create(s.c_str());
 			if (data && (AssetFileType::Meta == data->m_AssetFileType)){
 				MetaAssetDataPtr meta = data;
-				m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), filename));
+				m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), std::make_pair(filename, AssetDataTemplatePtr(NULL))));
 		
 				m_AssetCache.insert(std::make_pair(filename, std::make_pair(*meta->GetFileData()->GetHash(), AssetDataTemplatePtr(NULL))));
 		
@@ -158,7 +159,7 @@ void AssetDataTemplate<PrefabFileData>::CreateInspector(){
 void AssetDataTemplate<ShaderFileData>::CreateInspector(){
 
 	std::function<void()> collback = [&](){
-		m_FileData->FileUpdate();
+		m_FileData->Create(m_FileData->GetFileName().c_str());
 
 	};
 
@@ -174,7 +175,7 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 	Inspector ins("PhysxMaterial", NULL);
 
 	std::function<void()> collback = [&](){
-		m_FileData->FileUpdate();
+		m_FileData->Create(m_FileData->GetFileName().c_str());
 
 		Game::GetAllObject([&](GameObject tar){
 			auto com = tar->GetComponent<PhysXColliderComponent>();

@@ -20,6 +20,7 @@ public:
 	BoneModel();
 	~BoneModel();
 	HRESULT Create(const char* FileName);
+	HRESULT Create(BoneAsset& asset);
 	//void CreateAnime(vmd& VMD);
 
 

@@ -29,7 +29,8 @@ public:
 	}
 	virtual ~IAssetDataTemplate(){}
 	virtual void CreateInspector() = 0;
-	virtual void FileUpdate() = 0;
+	virtual void FileUpdate(const char* filename) = 0;
+	virtual std::string GetFileName() = 0;
 
 	static const AssetFileType _AssetFileType = AssetFileType::None;
 	const AssetFileType m_AssetFileType;
@@ -50,7 +51,6 @@ protected:
 	AssetFactory();
 	~AssetFactory();
 };
-
 #include "Library/MD5.h"
 class AssetDataBase{
 public:
@@ -78,6 +78,10 @@ public:
 			data = AssetFactory::Create(filename);
 			if (data){
 				file->second.second = data;
+				auto temp = m_AssetMetaCache.find(file->second.first);
+				if (temp != m_AssetMetaCache.end()){
+					temp->second.second = data;
+				}
 			}
 		}
 		//ロード済み
@@ -104,7 +108,18 @@ public:
 
 		}
 		else{
-			Instance(file->second.c_str(), data);
+			if (file->second.second){
+				data = file->second.second;
+			}
+			else{
+				//未ロード
+				data = AssetFactory::Create(file->second.first.c_str());
+				file->second.second = data;
+				auto temp = m_AssetCache.find(file->second.first);
+				if (temp != m_AssetCache.end()){
+					temp->second.second = data;
+				}
+			}
 		}
 
 		if (data &&
@@ -122,6 +137,14 @@ public:
 		hash = file->second.first;
 		return true;
 	}
+	static bool Hash2FilePath(MD5::MD5HashCoord& hash, std::string& filename){
+
+		auto file = m_AssetMetaCache.find(hash);
+		if (file == m_AssetMetaCache.end())return false;
+
+		filename = file->second.first;
+		return true;
+	}
 
 	static void InitializeMetaData(const char* filename);
 
@@ -132,6 +155,7 @@ public:
 
 		auto hashfile = m_AssetMetaCache.find(file->second.first);
 		if (hashfile != m_AssetMetaCache.end()){
+			m_DeleteCache = hashfile->second;
 			m_AssetMetaCache.erase(hashfile);
 		}
 		
@@ -144,12 +168,12 @@ public:
 
 		auto file = m_AssetCache.find(filename);
 		if (file != m_AssetCache.end()){
-
-			file->second.second->FileUpdate();
+			if (file->second.second)
+				file->second.second->FileUpdate(filename);
 		}
 		else{
-			AssetDataTemplatePtr temp;
-			Instance(filename,temp);
+			//AssetDataTemplatePtr temp;
+			//Instance(filename,temp);
 		}
 	}
 
@@ -161,11 +185,41 @@ public:
 			temp->CreateInspector();
 		}
 	}
+	static AssetDataTemplatePtr GetAssetFile(const std::string& Filename){
+		auto cache = m_AssetCache.find(Filename);
+		if (cache == m_AssetCache.end())return NULL;
+		return cache->second.second;
+	}
+	static void MoveAssetFile(const std::string& NewFilename, AssetDataTemplatePtr file){
+		InitializeMetaData(NewFilename.c_str());
+		auto cache = m_AssetCache.find(NewFilename);
 
+		if (cache == m_AssetCache.end())return;
+		cache->second.second = file;
+		auto temp = m_AssetMetaCache.find(cache->second.first);
+		if (temp != m_AssetMetaCache.end()){
+			temp->second.second = file;
+		}
+	}
+	static void AssetFileRename(const std::string& OldName, const std::string& NewName){
+		if (OldName == NewName)return;
+		auto cache = m_AssetCache.find(OldName);
+		if (cache != m_AssetCache.end()){
+			auto meta = m_AssetMetaCache.find(cache->second.first);
+			if (meta != m_AssetMetaCache.end()){
+				meta->second.first = NewName;
+			}
+
+			m_AssetCache.insert(std::make_pair(NewName, cache->second));
+			m_AssetCache.erase(cache);
+		}
+
+	}
 
 private:
 	static std::unordered_map<std::string, std::pair<MD5::MD5HashCoord,AssetDataTemplatePtr>> m_AssetCache;
-	static std::map<MD5::MD5HashCoord, std::string> m_AssetMetaCache;
+	static std::map<MD5::MD5HashCoord, std::pair<std::string, AssetDataTemplatePtr>> m_AssetMetaCache;
+	static std::pair<std::string, AssetDataTemplatePtr> m_DeleteCache;
 };
 
 
@@ -180,9 +234,10 @@ public:
 	static AssetDataTemplatePtr Create(const char* filename);
 	static AssetDataTemplatePtr Create(T* fileData);
 
-	virtual ~AssetDataTemplate(){}
-	void CreateInspector(){}
-	void FileUpdate();
+	virtual ~AssetDataTemplate()override{}
+	void CreateInspector()override{}
+	void FileUpdate(const char* filename)override;
+	std::string GetFileName()override;
 
 	const T* GetFileData();
 
@@ -250,3 +305,17 @@ template <class T>
 const AssetFileType AssetDataTemplate<T>::_AssetFileType = AssetFileType::None;
 
 #include "details.h"
+
+
+#include "IAsset.h"
+
+
+using MetaAsset = Asset<MetaFileData>;
+using MeshAsset = Asset<MeshFileData>;
+using BoneAsset = Asset<BoneFileData>;
+using PrefabAsset = Asset<PrefabFileData>;
+using ShaderAsset = Asset<ShaderFileData>;
+using TextureAsset = Asset<TextureFileData>;
+using PhysxMaterialAsset = Asset<PhysxMaterialFileData>;
+using SoundAsset = Asset<SoundFileData>;
+using MovieAsset = Asset<MovieFileData>;

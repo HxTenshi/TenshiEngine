@@ -9,6 +9,7 @@
 #include "ScriptComponent.h"
 #include "MySTL/Reflection/Reflection.h"
 #include "Window/window.h"
+#include "Engine/Inspector.h"
 
 #include "../ScriptComponent/main.h"
 typedef IDllScriptComponent* (__cdecl *CreateInstance_)(const char*);
@@ -362,7 +363,7 @@ public:
 		std::string str(it, last);
 
 		unsigned int findpoint = 0;
-		while (1){
+		for(;;){
 			//シリアライズ検索
 			auto serialize = str.find("SERIALIZE", findpoint);
 
@@ -432,7 +433,7 @@ public:
 		//}
 		//代入しているか
 
-		while (1){
+		for(;;){
 			auto start = str.find('\"');
 			if (start == std::string::npos){
 				break;
@@ -447,7 +448,7 @@ public:
 		}
 
 		
-		while (1){
+		for (;;){
 			auto start = str.find("/*");
 			if (start == std::string::npos){
 				break;
@@ -460,7 +461,7 @@ public:
 				str.erase(start, end);
 			}
 		}
-		while (1){
+		for (;;){
 			auto start = str.find("//");
 			if (start == std::string::npos){
 				break;
@@ -474,21 +475,21 @@ public:
 			}
 		}
 
-		while (1){
+		for (;;){
 			auto temp = str.find('\n');
 			if (temp == std::string::npos){
 				break;
 			}
 			str.replace(temp, 1, " ");
 		}
-		while (1){
+		for (;;){
 			auto temp = str.find('\t');
 			if (temp == std::string::npos){
 				break;
 			}
 			str.replace(temp, 1, " ");
 		}
-		while (1){
+		for (;;){
 			auto start = str.find('\'');
 			if (start == std::string::npos){
 				break;
@@ -835,8 +836,8 @@ void ScriptComponent::LostCollide(Actor* target){
 }
 
 
-template<class T, class U>
-bool reflect(MemberInfo& info,U& data){
+template<class T>
+bool reflect(MemberInfo& info, Inspector& ins){
 
 	if (info.GetTypeName() != typeid(T).name()){
 		return false;
@@ -847,7 +848,7 @@ bool reflect(MemberInfo& info,U& data){
 	std::function<void(T)> collback = [paramdata](T f){
 		*(T*)paramdata = f;
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<T>(info.GetName(), (T*)paramdata, collback), data);
+	ins.Add(info.GetName(), (T*)paramdata, collback);
 
 	return true;
 }
@@ -887,30 +888,34 @@ bool reflect_io(MemberInfo& info,I_ioHelper* io){
 #ifdef _ENGINE_MODE
 void ScriptComponent::CreateInspector(){
 
-	auto data = Window::CreateInspector();
+
 	std::function<void(std::string)> collback = [&](std::string name){
+		Window::ClearInspector();
 		mClassName = name;
 		ReCompile();
 	};
-	Window::AddInspector(new TemplateInspectorDataSet<std::string>("Class", &mClassName, collback), data);
+
+	Inspector ins("Script",this);
+	ins.AddEnableButton(this);
+	ins.Add("Class", &mClassName, collback);
 
 	if (Reflection::map){
 		auto infos = Reflection::GetMemberInfos(pDllClass, mClassName);
 
 		for (auto i : infos){
 			auto info = Reflection::GetMemberInfo(infos,i);
-
+			bool fal = false;
 			do{
-				if (reflect<float>(info, data))break;
-				if (reflect<int>(info, data))break;
-				if (reflect<bool>(info, data))break;
-				if (reflect<std::string>(info, data))break;
-			} while (0);
+				if (reflect<float>(info, ins))break;
+				if (reflect<int>(info, ins))break;
+				if (reflect<bool>(info, ins))break;
+				if (reflect<std::string>(info, ins))break;
+			} while (fal);
 		}
 
 	}
 
-	Window::ViewInspector("Script", this, data, this);
+	ins.Complete();
 }
 #endif
 
@@ -925,13 +930,13 @@ void ScriptComponent::IO_Data(I_ioHelper* io){
 
 			for (auto i : infos){
 				auto info = Reflection::GetMemberInfo(infos, i);
-
+				bool fal = false;
 				do{
 					if (reflect_io<float>(info, io))break;
 					if (reflect_io<int>(info, io))break;
 					if (reflect_io<bool>(info, io))break;
 					if (reflect_io<std::string>(info, io))break;
-				} while (0);
+				} while (fal);
 			}
 		}
 	}

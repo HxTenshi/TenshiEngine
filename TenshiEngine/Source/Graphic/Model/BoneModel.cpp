@@ -134,6 +134,29 @@ HRESULT BoneModel::Create(const char* FileName){
 	}
 	return S_OK;
 }
+HRESULT BoneModel::Create(BoneAsset& asset){
+	mBoneAssetDataPtr = asset.m_Ptr;
+	if (!mBoneAssetDataPtr)return E_FAIL;
+
+	createBone();
+
+	auto& bones = mBoneAssetDataPtr->GetFileData()->GetBoneData().mBoneBuffer;
+
+	if (bones.size()){
+		mCBBoneMatrix = ConstantBufferArray<cbBoneMatrix>::create(7, bones.size());
+		if (!mCBBoneMatrix.mBuffer)
+			return E_FAIL;
+		DWORD mBoneNum = mBone.size();
+		for (DWORD mid = 0; mid < mBoneNum; mid++){
+			mCBBoneMatrix.mParam[mid].BoneMatrix[0] = XMFLOAT4(1, 0, 0, 0);
+			mCBBoneMatrix.mParam[mid].BoneMatrix[1] = XMFLOAT4(0, 1, 0, 0);
+			mCBBoneMatrix.mParam[mid].BoneMatrix[2] = XMFLOAT4(0, 0, 1, 0);
+		}
+
+		mIsChangeMatrix = true;
+	}
+	return S_OK;
+}
 
 
 shared_ptr<AnimationBind> BoneModel::BindAnimation(AnimeData* data){

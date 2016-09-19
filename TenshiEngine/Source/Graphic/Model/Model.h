@@ -22,6 +22,8 @@ public:
 	~Model();
 	HRESULT Create(const char* FileName);
 	HRESULT CreateBoneModel(const char* FileName);
+	HRESULT Create(MeshAsset& asset);
+	HRESULT CreateBoneModel(BoneAsset& asset);
 	void Release();
 	void SetConstantBuffer(ID3D11DeviceContext* context) const;
 	void Update();
@@ -68,7 +70,7 @@ public:
 		m_MaterialComponent = mate;
 	}
 
-	void Create(const std::string& name, int id);
+	void Create(MeshAsset& asset, int id);
 
 	void Draw(ID3D11DeviceContext* context, bool UseAnimetion) const;
 private:

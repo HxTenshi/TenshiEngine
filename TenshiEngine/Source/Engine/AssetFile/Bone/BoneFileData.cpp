@@ -50,10 +50,6 @@ bool BoneFileData::Create(const char* filename){
 	return true;
 }
 
-bool BoneFileData::FileUpdate(){
-	return Create(m_FileName.c_str());
-}
-
 const BoneData& BoneFileData::GetBoneData() const{
 	return m_BoneData;
 }

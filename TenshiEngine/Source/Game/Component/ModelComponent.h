@@ -1,10 +1,17 @@
 #pragma once
 
+#include "Engine/AssetDatabase.h"
 #include "IModelComponent.h"
 
 class Model;
+class _IModelComponent{
+public:
+	virtual ~_IModelComponent(){}
+	virtual void Load(MeshAsset& asset) = 0;
+	virtual void Load(BoneAsset& asset) = 0;
+};
 
-class ModelComponent :public IModelComponent{
+class ModelComponent :public IModelComponent, public _IModelComponent{
 public:
 	ModelComponent();
 	~ModelComponent();
@@ -22,8 +29,12 @@ public:
 
 	void IO_Data(I_ioHelper* io) override;
 
-	std::string mFileName;
-	std::string mBoneFileName;
+
+	void Load(MeshAsset& asset)override;
+	void Load(BoneAsset& asset)override;
+
+	MeshAsset mMesh;
+	BoneAsset mBone;
 
 	void AddMeshComponent(weak_ptr<MeshComponent> meshCom);
 private:

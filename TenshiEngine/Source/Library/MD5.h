@@ -23,7 +23,7 @@ namespace MD5{
 				this->key_i[3] == right.key_i[3];
 		}
 
-		std::string GetString(){
+		std::string GetString() const{
 			std::string temp;
 			for (int i = 0; i < 16;i++)
 				temp.push_back(key_c[i]);

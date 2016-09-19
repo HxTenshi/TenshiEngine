@@ -43,7 +43,6 @@ private:
 	Model mModelTexture;
 
 	Material mMaterial;
-
-	std::string mShaderName;
+	ShaderAsset mShader;
 
 };

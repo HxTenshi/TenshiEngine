@@ -105,12 +105,12 @@ ParticleComponent::ParticleComponent()
 	mParticleParam.Rot = XMFLOAT4(90, 360, 0, 0.99f);
 	mParticleParam.MinMaxScale = XMFLOAT4(0.05f, 0.05f, 0.5f, 1.0f);
 	mParticleParam.G = XMFLOAT4(0, -0.0098f, 0, 0);
-	mParticleParam.Time = XMFLOAT4(1, 3, 1.0f, 1);
-	mParticleParam.Param = XMFLOAT4(mParticleCapacity, 0, 0, 0);
+	mParticleParam.Time = XMFLOAT4(1.0f, 3.0f, 1.0f, 1.0f);
+	mParticleParam.Param = XMFLOAT4((float)mParticleCapacity, 0, 0, 0);
 	mParticleParam.Wind = XMFLOAT4(0, 0, 0, 0);
 	mParticleParam.SmoothAlpha = XMFLOAT4(0.2f, 0.5f, 0, 0);
 
-	mParticleParam.Param.w = rand();
+	mParticleParam.Param.w = (float)rand();
 
 	//ParticleCapacityChange((UINT)mParticleCapacity);
 
@@ -170,7 +170,7 @@ void ParticleComponent::Update(){
 		mTimer += Game::GetDeltaTime()->GetDeltaTime();
 		if (mAutoDestroy){
 			//maxtime * impact + maxtime * loop = ç≈ëÂéûä‘
-			float maxtime = mParticleParam.Time.y * (1 - mParticleParam.Param.y) + mParticleParam.Time.y * max(mParticleParam.Param.z, 1)*1.01;
+			float maxtime = (float)mParticleParam.Time.y * (1 - mParticleParam.Param.y) + mParticleParam.Time.y * max(mParticleParam.Param.z, 1)*1.01f;
 			if (maxtime <= mTimer){
 				Game::DestroyObject(gameObject);
 			}
@@ -326,7 +326,7 @@ void ParticleComponent::CreateInspector(){
 		mParticleParam.Point.w = f;
 	};
 
-	std::function<void(float)> collbackG = [&](float f){
+	std::function<void(Vector3)> collbackG = [&](Vector3 f){
 		mParticleParam.G.x = f.z;
 		mParticleParam.G.y = f.y;
 		mParticleParam.G.z = f.z;
@@ -367,7 +367,7 @@ void ParticleComponent::CreateInspector(){
 		mParticleParam.G.w = f;
 	};
 	std::function<void(float)> collbackNum = [&](float f){
-		mParticleParam.Param.x = max(min((int)f,mParticleCapacity),0);
+		mParticleParam.Param.x = (float)max(min((int)f,mParticleCapacity),0);
 	};
 	std::function<void(int)> collbackCap = [&](int f){
 		ParticleCapacityChange((UINT)f);

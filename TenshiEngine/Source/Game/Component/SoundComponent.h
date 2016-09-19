@@ -10,7 +10,7 @@ class ISoundComponent{
 public:
 	virtual ~ISoundComponent(){}
 
-	virtual void LoadFile(const std::string& filename) = 0;
+	virtual void LoadFile(SoundAsset& asset) = 0;
 	virtual void Play() = 0;
 	virtual void Stop() = 0;
 	virtual bool IsPlay() = 0;
@@ -38,7 +38,7 @@ public:
 
 	void IO_Data(I_ioHelper* io) override;
 
-	void LoadFile(const std::string& filename)override;
+	void LoadFile(SoundAsset& asset)override;
 	void Play()override;
 	void Stop()override;
 	bool IsPlay()override;
@@ -48,12 +48,11 @@ public:
 	bool GetAutoPlay()override;
 	float GetVolume()override;
 private:
-	std::string mFileName;
 	bool mIsLoop;
 	bool mAutoPlay;
 	bool mIsPlay;
 	float mVolume;
-	SoundAssetDataPtr mSoundFileSource;
+	SoundAsset mSoundFileSource;
 	SoundAssetDataPtr mSoundFile;
 	
 };

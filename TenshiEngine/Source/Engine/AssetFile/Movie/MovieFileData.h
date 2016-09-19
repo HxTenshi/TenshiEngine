@@ -34,7 +34,6 @@ public:
 	~MovieFileData();
 
 	bool Create(const char* filename) override;
-	bool FileUpdate() override;
 
 	CMovieToTexture* GetMovieData() const;
 

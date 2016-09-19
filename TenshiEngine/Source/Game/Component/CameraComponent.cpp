@@ -123,7 +123,8 @@ void CameraComponent::Update(){
 void CameraComponent::CreateInspector(){
 	Inspector ins("Camera", this);
 	ins.AddEnableButton(this);
-	ins.Add("SkyTexture", &mSkyTextureFileName, [&](std::string s){SetSkyTexture(s); });
+	auto func = [&](std::string s){SetSkyTexture(s); };
+	ins.Add("SkyTexture", &mSkyTextureFileName, func);
 	ins.Complete();
 }
 #endif

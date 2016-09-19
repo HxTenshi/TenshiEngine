@@ -548,6 +548,7 @@
     <ClCompile Include="Source\Engine\AssetFile\Prefab\PrefabFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Shader\ShaderFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Sound\SoundFileData.cpp" />
+    <ClCompile Include="Source\Engine\IAsset.cpp" />
     <ClCompile Include="Source\Engine\Inspector.cpp" />
     <ClCompile Include="Source\Engine\window\AssetsWindow.cpp" />
     <ClCompile Include="Source\Engine\Debug.cpp" />
@@ -667,6 +668,7 @@
     <ClInclude Include="Source\Engine\AssetFile\Shader\ShaderFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Sound\SoundFileData.h" />
     <ClInclude Include="Source\Engine\AssetLoader.h" />
+    <ClInclude Include="Source\Engine\IAsset.h" />
     <ClInclude Include="Source\Engine\Inspector.h" />
     <ClInclude Include="Source\Engine\window\AssetsWindow.h" />
     <ClInclude Include="Source\Engine\Debug.h" />

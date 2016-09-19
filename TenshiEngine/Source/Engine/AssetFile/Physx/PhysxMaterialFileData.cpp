@@ -36,25 +36,6 @@ bool PhysxMaterialFileData::Create(const char* filename){
 
 	return true;
 }
-
-bool PhysxMaterialFileData::FileUpdate(){
-
-	if (m_Material){
-		m_Material->release();
-		m_Material = NULL;
-	}
-
-	File f(m_FileName);
-	if (!f)return false;
-	float staticfric = 0, dinamicfric = 0, restiut = 0;
-	f.In(&staticfric);
-	f.In(&dinamicfric);
-	f.In(&restiut);
-
-	m_Material = Game::GetPhysX()->GetSDK()->createMaterial(staticfric, dinamicfric, restiut);
-
-	return true;
-}
 void PhysxMaterialFileData::SaveFile(){
 
 	File f(m_FileName);

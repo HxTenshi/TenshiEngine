@@ -354,8 +354,8 @@ inline XMVECTOR toEulerYXZ(const XMMATRIX &m)
 	const float &r11 = m._22;
 	const float &r12 = m._32;
 
-	const float &r20 = m._13;
-	const float &r21 = m._23;
+//	const float &r20 = m._13;
+//	const float &r21 = m._23;
 	const float &r22 = m._33;
 
 	if (r12 < +1)

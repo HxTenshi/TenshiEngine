@@ -83,6 +83,12 @@ HRESULT Texture::Create(const MD5::MD5HashCoord& hash){
 	mTextureAssetData = tex;
 	return ((bool)mTextureAssetData) ? S_OK : E_FAIL;
 }
+HRESULT Texture::Create(const TextureAsset& tex){
+	mFileName = "";// FileName;
+	mTextureAssetData = NULL;
+	mTextureAssetData = tex.m_Ptr;
+	return ((bool)mTextureAssetData) ? S_OK : E_FAIL;
+}
 
 void Texture::PSSetShaderResources(ID3D11DeviceContext* context,UINT Slot) const{
 	if (!mTextureAssetData ||

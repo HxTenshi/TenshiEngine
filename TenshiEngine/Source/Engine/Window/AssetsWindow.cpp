@@ -28,15 +28,30 @@ namespace MoveFileCheck{
 
 namespace AssetsWindow{
 
+	//  •¶Žš—ñ‚ð’uŠ·‚·‚é
+	void Replace(std::string& Source, std::string String2, std::string String3)
+	{
+		std::string::size_type  Pos(Source.find(String2));
+
+		while (Pos != std::string::npos)
+		{
+			Source.replace(Pos, String2.length(), String3);
+			Pos = Source.find(String2, Pos + String3.length());
+		}
+	}
 
 	void Initialize(){
 
-
+		static 	std::string m_RenameStack;
+		static AssetDataTemplatePtr m_Back;
 		Window::SetWPFCollBack(MyWindowMessage::AssetFileDeleted, [&](void* p)
 		{
 			if (!p)return;
 			std::string* s = (std::string*)p;
+			Replace(*s, "\\", "/");
+
 			MoveFileCheck::Set(*s);
+			m_Back = AssetDataBase::GetAssetFile(*s);
 			AssetDataBase::Remove(s->c_str());
 			Window::Deleter(s);
 		});
@@ -44,6 +59,7 @@ namespace AssetsWindow{
 		{
 			if (!p)return;
 			std::string* s = (std::string*)p;
+			Replace(*s, "\\", "/");
 			std::tr2::sys::path path(*s);
 			if (path.extension() == "" || path.extension() == ".meta"){
 				Window::Deleter(s);
@@ -54,30 +70,50 @@ namespace AssetsWindow{
 				auto old = MoveFileCheck::Get() + ".meta";
 				auto New = *s + ".meta";
 				MoveFile(old.c_str(), New.c_str());
+
+				AssetDataBase::MoveAssetFile(*s, m_Back);
 			}
 			else{
 				auto old = MoveFileCheck::Get() + ".meta";
 				DeleteFile(old.c_str());
+				AssetDataBase::InitializeMetaData(s->c_str());
 			}
 			MoveFileCheck::Set("");
-
-			AssetDataBase::InitializeMetaData(s->c_str());
 			Window::Deleter(s);
 		});
 		Window::SetWPFCollBack(MyWindowMessage::AssetFileChanged, [&](void* p)
 		{
 			if (!p)return;
 			std::string* s = (std::string*)p;
-			AssetDataTemplatePtr temp;
-			AssetDataBase::Instance(s->c_str(), temp);
-			if (temp)temp->FileUpdate();
+			Replace(*s, "\\", "/");
+			//AssetDataTemplatePtr temp;
+			//temp = AssetDataBase::GetAssetFile(*s);
+			AssetDataBase::FileUpdate(s->c_str());
+			//if (temp)temp->FileUpdate(*s);
 			Window::Deleter(s);
 		});
-		Window::SetWPFCollBack(MyWindowMessage::AssetFileRenamed, [&](void* p)
+		Window::SetWPFCollBack(MyWindowMessage::AssetFileRenamed_OldName, [&](void* p)
 		{
 			if (!p)return;
 			std::string* s = (std::string*)p;
+			Replace(*s, "\\", "/");
+			m_RenameStack = *s;
 			Window::Deleter(s);
+		});
+		Window::SetWPFCollBack(MyWindowMessage::AssetFileRenamed_NewName, [&](void* p)
+		{
+			if (!p)return;
+			std::string* s = (std::string*)p;
+			Replace(*s, "\\", "/");
+
+			AssetDataBase::AssetFileRename(m_RenameStack, *s);
+
+			auto old = m_RenameStack + ".meta";
+			auto New = *s + ".meta";
+			MoveFile(old.c_str(), New.c_str());
+
+			Window::Deleter(s);
+			m_RenameStack = "";
 		});
 }
 

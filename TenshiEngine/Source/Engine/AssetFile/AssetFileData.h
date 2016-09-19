@@ -11,7 +11,6 @@ public:
 	}
 
 	virtual bool Create(const char* filename) =0;
-	virtual bool FileUpdate() =0;
 
 private:
 	//ÉRÉsÅ[ã÷é~

@@ -115,12 +115,14 @@ void SoundFile::Volume(float vol)const{
 	//•ÏXŽž‚ÉActive‚¶‚á‚È‚¢‚Æ‚¢‚¯‚È‚¢H
 	mBuffer->SetVolume(v);
 }
-void SoundFile::Play(bool loop)const{
+void SoundFile::Play(bool loop,bool resetPlayPoint)const{
+	if (!mBuffer)return;
+	if (resetPlayPoint)mBuffer->SetCurrentPosition(0);
 	if (loop){
-		if (mBuffer)mBuffer->Play(0, 0, DSBPLAY_LOOPING);
+		mBuffer->Play(0, 0, DSBPLAY_LOOPING);
 	}
 	else{
-		if (mBuffer)mBuffer->Play(0, 0, NULL);
+		mBuffer->Play(0, 0, NULL);
 	}
 }
 
@@ -136,6 +138,13 @@ void SoundFile::Stop()const{
 	if (mBuffer)mBuffer->Stop();
 }
 
+bool SoundFile::IsPlay()const{
+	if (!mBuffer)return false;
+	DWORD status = 0;
+	mBuffer->GetStatus(&status);
+	return (status & DSBSTATUS_PLAYING) != 0;
+}
+
 SoundFileData::SoundFileData(){
 }
 SoundFileData::~SoundFileData(){
@@ -145,8 +154,4 @@ bool SoundFileData::Create(const char* filename){
 	m_FileName = filename;
 	m_SoundData.Release();
 	return m_SoundData.Create(filename);
-}
-bool SoundFileData::FileUpdate(){
-	m_SoundData.Release();
-	return m_SoundData.Create(m_FileName.c_str());
 }

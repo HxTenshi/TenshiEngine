@@ -1209,6 +1209,18 @@ private:
 		e->Handled = true;
 	}
 
+	void UpdateEmptyFolder(TestContent::Person^ item){
+		//フォルダなら
+		auto path = GetFilePath(item);
+		if (IsDirectory(path)){
+			//空のフォルダの場合　空のアイテムを追加
+			if (item->Children->Count == 0){
+				auto nullitem = CreateAssetItem("");
+				item->Add(nullitem);
+			}
+		}
+	}
+
 	delegate void fsChange(Object^ source, System::IO::FileSystemEventArgs^ e);
 	void OnFSEvent(Object^ source, System::IO::FileSystemEventArgs^ e){
 
@@ -1341,7 +1353,10 @@ private:
 	{
 		auto item = FullDirItemSearch(e->FullPath, m_TreeViewItemRoot);
 		if (item){
+			auto par = item->Parent;
 			item->RemoveSelf();
+
+			UpdateEmptyFolder(par);
 		}
 
 		std::string* str = string_cast(e->FullPath);
@@ -1360,8 +1375,10 @@ private:
 		}
 		
 
-		std::string* str = string_cast(e->OldFullPath + ";" + e->FullPath);
-		Data::MyPostMessage(MyWindowMessage::AssetFileRenamed, (void*)str);
+		std::string* str1 = string_cast(e->OldFullPath);
+		std::string* str2 = string_cast(e->FullPath);
+		Data::MyPostMessage(MyWindowMessage::AssetFileRenamed_OldName, (void*)str1);
+		Data::MyPostMessage(MyWindowMessage::AssetFileRenamed_NewName, (void*)str2);
 	}
 
 	void FileSystemEvent(String^ FolderPath)
@@ -1387,7 +1404,6 @@ private:
 			this, &AssetTreeView::OnFSEvent);
 		fsWatcher->Renamed += gcnew System::IO::RenamedEventHandler(
 			this, &AssetTreeView::OnRenamed);
-
 		fsWatcher->EnableRaisingEvents = true;
 
 	}
@@ -1415,6 +1431,8 @@ private:
 		parent->Add(folder);
 
 		CreateAssetTreeViewItem(folder, Path);
+
+		UpdateEmptyFolder(folder);
 
 		FileSystemEvent(Path);
 	}
@@ -1867,6 +1885,12 @@ public:
 			auto b = dynamic_cast<Border^>(m_ComponentPanel->Children[i]);
 			if (b == nullptr)continue;
 			auto e = dynamic_cast<Expander^>(b->Child);
+			{
+				auto d = dynamic_cast<Panel^>(e->Header);
+				if (d!= nullptr){
+					ForDockPanelChild(d);
+				}
+			}
 			if (e == nullptr)continue;
 			auto d = dynamic_cast<Panel^>(e->Content);
 			if (d == nullptr)continue;
@@ -1936,7 +1960,7 @@ public:
 			auto child = (DockPanel^)panel->Children[0];
 			auto tb = (TextBlock^)child->FindName("FloatName");
 			if (tb)
-				tb->Foreground = System::Windows::Media::Brushes::White;
+				tb->Foreground = System::Windows::Media::Brushes::Gray;
 
 			header->Header = panel;
 			auto dock = (DockPanel^)com->FindName("MainDock");

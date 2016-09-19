@@ -9,14 +9,14 @@
 MovieComponent::MovieComponent(){
 	mLoop = false;
 	mAutoPlay = false;
-	mMovieAssetFile = NULL;
 }
 MovieComponent::~MovieComponent(){
 
 }
 
 void MovieComponent::Initialize() {
-	LoadFile(mFileName);
+	mMovieAsset.Load(mMovieAsset.m_Hash);
+	LoadFile(mMovieAsset);
 }
 void MovieComponent::Start() {
 }
@@ -29,12 +29,8 @@ void MovieComponent::EngineUpdate() {
 	//}
 
 	if (IsPlay()){
-
-		if (!mMovieAssetFile)return;
-		if (!mMovieAssetFile->GetFileData())return;
-		if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
-
-		return mMovieAssetFile->GetFileData()->GetMovieData()->TextureRendering();
+		auto data = mMovieAsset.Get()->GetMovieData();
+		return data->TextureRendering();
 	}
 
 }
@@ -45,26 +41,22 @@ void MovieComponent::Update() {
 		Play();
 	}
 	if (IsPlay()){
-
-		if (!mMovieAssetFile)return;
-		if (!mMovieAssetFile->GetFileData())return;
-		if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
-
-		return mMovieAssetFile->GetFileData()->GetMovieData()->TextureRendering();
+		auto data = mMovieAsset.Get()->GetMovieData();
+		return data->TextureRendering();
 	}
 	
 }
 void MovieComponent::Finish() {
 
 	Stop();
-	mMovieAssetFile = NULL;
+	mMovieAsset.Free();
 }
 
 #ifdef _ENGINE_MODE
 void MovieComponent::CreateInspector(){
 	Inspector ins("Movie",this);
 	ins.AddEnableButton(this);
-	ins.Add("File", &mFileName, [&](std::string f){LoadFile(f); });
+	ins.Add("File", &mMovieAsset, [&](){LoadFile(mMovieAsset); });
 	ins.Add("AutoPlay", &mAutoPlay, [&](bool f){mAutoPlay = f; });
 	ins.Add("Loop", &mLoop, [&](bool f){SetLoop(f); });
 	ins.AddButton("Play", [&](){
@@ -82,57 +74,40 @@ void MovieComponent::CreateInspector(){
 #endif
 void MovieComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
-	_KEY(mFileName);
+	_KEY(mMovieAsset);
 	_KEY(mLoop);
 	_KEY(mAutoPlay);
 #undef _KEY
 }
 
-void MovieComponent::LoadFile(const std::string& fileName) {
-	mFileName = fileName;
+void MovieComponent::LoadFile(MovieAsset& asset) {
+	mMovieAsset = asset;
 	Stop();
-	AssetDataBase::Instance(mFileName.c_str(), mMovieAssetFile);
 
-
-	if (!mMovieAssetFile)return;
-	if (!mMovieAssetFile->GetFileData())return;
-	if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
-	auto end = mMovieAssetFile->GetFileData()->GetMovieData()->GetStopTime();
-	mMovieAssetFile->GetFileData()->GetMovieData()->SetTime(end);
+	if (!mMovieAsset.IsLoad())return;
+	auto data = mMovieAsset.Get()->GetMovieData();
+	auto end = data->GetStopTime();
+	data->SetTime(end);
 }
 void MovieComponent::Play() {
-	if (!mMovieAssetFile)return;
-	if (!mMovieAssetFile->GetFileData())return;
-	if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
+	if (!mMovieAsset.IsLoad())return;
+	auto data = mMovieAsset.Get()->GetMovieData();
 
-	//if (MoviePlayFlag::IsMoviePlay())return;
-
-	//mMovieAssetFile->GetFileData()->GetMovieData()->StopMovie();
-	//mMovieAssetFile->GetFileData()->GetMovieData()->PlayMovie(mLoop);
-
-	//mPlayFlag = (long long)this;
-
-
-	mMovieAssetFile->GetFileData()->GetMovieData()->SetTime(0.0);
-	mMovieAssetFile->GetFileData()->GetMovieData()->Play();
+	data->SetTime(0.0);
+	data->Play();
 
 }
 void MovieComponent::Stop() {
 
-	if (!mMovieAssetFile)return;
-	if (!mMovieAssetFile->GetFileData())return;
-	if (!mMovieAssetFile->GetFileData()->GetMovieData())return;
-
 	if (!IsPlay()){
 		return;
 	}
-	//mPlayFlag = NULL;
-	//mMovieAssetFile->GetFileData()->GetMovieData()->StopMovie();
+	auto data = mMovieAsset.Get()->GetMovieData();
 
-	auto end = mMovieAssetFile->GetFileData()->GetMovieData()->GetStopTime();
-	mMovieAssetFile->GetFileData()->GetMovieData()->SetTime(end);
+	auto end = data->GetStopTime();
+	data->SetTime(end);
 
-	mMovieAssetFile->GetFileData()->GetMovieData()->Stop();
+	data->Stop();
 }
 void MovieComponent::SetLoop(bool flag) {
 	mLoop = flag;
@@ -140,21 +115,18 @@ void MovieComponent::SetLoop(bool flag) {
 
 bool MovieComponent::IsPlay() const{
 
-	if (!mMovieAssetFile)return false;
-	if (!mMovieAssetFile->GetFileData())return false;
-	if (!mMovieAssetFile->GetFileData()->GetMovieData())return false;
-	//return (bool)mMovieAssetFile->GetFileData()->GetMovieData()->IsPlayMovie();
+	if (!mMovieAsset.IsLoad())return false;
+	auto data = mMovieAsset.Get()->GetMovieData();
 
-	auto end = mMovieAssetFile->GetFileData()->GetMovieData()->GetStopTime();
-	auto cur = mMovieAssetFile->GetFileData()->GetMovieData()->GetCurrentPosition();
+	auto end = data->GetStopTime();
+	auto cur = data->GetCurrentPosition();
 	return (bool)(end > cur);
 }
 
 
 Texture* MovieComponent::GetTexture() const{
-	if (!mMovieAssetFile)return NULL;
-	if (!mMovieAssetFile->GetFileData())return NULL;
-	if (!mMovieAssetFile->GetFileData()->GetMovieData())return NULL;
+	if (!mMovieAsset.IsLoad())return NULL;
+	auto data = mMovieAsset.Get()->GetMovieData();
 
-	return mMovieAssetFile->GetFileData()->GetMovieData()->GetTexture();
+	return data->GetTexture();
 }

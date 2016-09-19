@@ -82,10 +82,6 @@ bool MovieFileData::Create(const char* filename){
 	}
 	return true;
 }
-bool MovieFileData::FileUpdate(){
-
-	return Create(m_FileName.c_str());
-}
 
 CMovieToTexture* MovieFileData::GetMovieData() const{
 	return m_MovieData;

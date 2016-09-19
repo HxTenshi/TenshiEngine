@@ -361,7 +361,7 @@ void DownSample::Draw_DownSample(IRenderingEngine* render){
 	{
 		D3D11_RECT rect = CD3D11_RECT(0, 0,
 			(LONG)mWidth,
-			(LONG)mHeight *(WindowState::mHeight / (float)WindowState::mWidth));
+			(LONG)(mHeight *(WindowState::mHeight / (float)WindowState::mWidth)));
 		render->m_Context->RSSetScissorRects(1, &rect);
 
 		RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, &m_DownSampleRT, NULL);
@@ -530,7 +530,7 @@ void LoadImg(const std::string& filename, DirectX::ScratchImage& img){
 	DirectX::TexMetadata metadata;
 	DirectX::ScratchImage image;
 	HRESULT hr;
-	do{
+	for (;;){
 		hr = DirectX::LoadFromWICFile(f, 0, &metadata, img);
 		if (SUCCEEDED(hr)){
 			break;
@@ -543,7 +543,8 @@ void LoadImg(const std::string& filename, DirectX::ScratchImage& img){
 		if (SUCCEEDED(hr)){
 			break;
 		}
-	} while (false);
+		break;
+	}
 
 }
 void CreateCubeMap(const std::string& filename,Texture& out){
@@ -1052,7 +1053,7 @@ void DeferredRendering::Debug_AlbedoOnly_Rendering(IRenderingEngine* render,Rend
 
 void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 
-	for (int i = 0; i < mHDLDownSampleNum; i++){
+	for (UINT i = 0; i < mHDLDownSampleNum; i++){
 		mHDLDownSample[i].Draw_DownSample(render);
 	}
 
@@ -1061,13 +1062,14 @@ void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 	render->PushSet(BlendState::Preset::BS_Add, 0xFFFFFFFF);
 
 
-	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, &Game::GetMainViewRenderTarget(), NULL);
+	auto rt = Game::GetMainViewRenderTarget();
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, &rt, NULL);
 	
 	//float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	//render->m_Context->OMSetBlendState(pBlendState, blendFactor, 0xffffffff);
 	
 	float pow[] = { 0.5f,0.5f,0.5f,0.5f };
-	for (int i = 0; i < mHDLDownSampleNum; i++){
+	for (UINT i = 0; i < mHDLDownSampleNum; i++){
 
 		mCBBloomParam.mParam.free = XMFLOAT4(pow[i], pow[i], pow[i], pow[i]);
 		mCBBloomParam.UpdateSubresource(render->m_Context);

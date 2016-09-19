@@ -1,76 +1,94 @@
 #pragma once
 #include <functional>
 #include <vector>
-class InspectorDataSet;
+struct InspectorDataSet;
 class Enabled;
 class Component;
 
+#include "IAsset.h"
+
+struct Float{
+	Float(float* value)
+		:value(value)
+	{}
+
+	Float &operator=(const float &o){
+		*value = o;
+		return *this;
+	}
+	operator float(){
+		return *value;
+	}
+	float* value;
+};
+
 struct Vector2{
 	Vector2(XMVECTOR& v)
-		: x(v.x)
-		, y(v.y)
+		: x(&v.x)
+		, y(&v.y)
 	{}
 
 	Vector2(XMFLOAT2& v)
-		: x(v.x)
-		, y(v.y)
+		: x(&v.x)
+		, y(&v.y)
 	{}
 	Vector2(XMFLOAT4& v)
-		: x(v.x)
-		, y(v.y)
+		: x(&v.x)
+		, y(&v.y)
 	{}
-	Vector2(float& x, float& y)
+	Vector2(const Float& x, const  Float& y)
 		: x(x)
 		, y(y)
 	{}
-	float& x;
-	float& y;
+
+	Float x;
+	Float y;
 };
 struct Vector3{
 	Vector3(XMVECTOR& v)
-		: x(v.x)
-		, y(v.y)
-		, z(v.z)
+		: x(&v.x)
+		, y(&v.y)
+		, z(&v.z)
 	{}
 
 	Vector3(XMFLOAT4& v)
-		: x(v.x)
-		, y(v.y)
-		, z(v.z)
+		: x(&v.x)
+		, y(&v.y)
+		, z(&v.z)
 	{}
-	Vector3(float& x, float& y, float& z)
+	Vector3(const Float& x,const Float& y,const Float& z)
 		: x(x)
 		, y(y)
 		, z(z)
 	{}
-	float& x;
-	float& y;
-	float& z;
+	Float x;
+	Float y;
+	Float z;
 };
 struct Color{
 	Color(XMVECTOR& v)
-		: r(v.x)
-		, g(v.y)
-		, b(v.z)
-		, a(v.z)
+		: r(&v.x)
+		, g(&v.y)
+		, b(&v.z)
+		, a(&v.w)
 	{}
 
 	Color(XMFLOAT4& v)
-		: r(v.x)
-		, g(v.y)
-		, b(v.z)
-		, a(v.z)
+		: r(&v.x)
+		, g(&v.y)
+		, b(&v.z)
+		, a(&v.w)
 	{}
-	Color(float& r, float& g, float& b, float& a)
+	Color(const Float& r, const  Float& g, const  Float& b, const  Float& a)
 		: r(r)
 		, g(g)
 		, b(b)
 		, a(a)
 	{}
-	float& r;
-	float& g;
-	float& b;
-	float& a;
+	Float r;
+	Float g;
+	Float b;
+	Float a;
 };
 
 
@@ -81,8 +99,19 @@ public:
 
 	void AddEnableButton(Enabled* enable);
 
-	template<class T>
+	template<typename T, typename Func>
+	void Add(const std::string& text, T* data, Func collback){
+		Add(text, data, std::function<void(T)>(collback));
+	}
+
+	template<typename T>
 	void Add(const std::string& text, T* data, std::function<void(T)> collback);
+	template<typename T, typename Func>
+	void Add(const std::string& text, Asset<T>* data, Func collback){
+		Add(text, (IAsset*)data, std::function<void()>(collback));
+	}
+	void Add(const std::string& text, IAsset* data, std::function<void()> collback);
+
 	void AddLabel(const std::string& text);
 	void AddSlideBar(const std::string& text, float min, float max, float* data, std::function<void(float)> collback);
 	void AddButton(const std::string& text, std::function<void()> collback);
@@ -90,6 +119,8 @@ public:
 
 	void Complete();
 private:
+
+
 	std::string m_Name;
 	Component* m_Target;
 	std::vector<InspectorDataSet> m_DataSet;

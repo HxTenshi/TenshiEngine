@@ -44,6 +44,34 @@ HRESULT Material::Create(const char* shaderFileName){
 	return S_OK;
 
 }
+HRESULT Material::Create(ShaderAsset& asset){
+
+	mCBMaterial = ConstantBuffer<cbChangesMaterial>::create(4);
+	if (!mCBMaterial.mBuffer)
+		return S_FALSE;
+
+
+	mCBMaterial.mParam.Diffuse = mDiffuse;
+	mCBMaterial.mParam.Specular = mSpecular;
+	mCBMaterial.mParam.Ambient = mAmbient;
+	mCBMaterial.mParam.TexScale = mTexScale;
+	mCBMaterial.mParam.HeightPower = mHeightPower;
+	mCBMaterial.mParam.MNormaleScale = mNormalScale;
+	mCBMaterial.mParam.MOffset = mOffset;
+	mCBMaterial.mParam.EmissivePowor = 1.0f;
+	mCBMaterial.mParam.MNULL = 0.0f;
+
+	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
+	if (!mCBUseTexture.mBuffer)
+		return S_FALSE;
+	mCBUseTexture.mParam.UseTexture = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	mCBUseTexture.mParam.UseTexture2 = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	mShader.Create(asset);
+
+	return S_OK;
+
+}
 
 void Material::CreateShader(const char* shaderFileName){
 	mShader.Create(shaderFileName);
@@ -172,6 +200,28 @@ void Material::SetTexture(const char* FileName, UINT Slot){
 }
 void Material::SetTexture(const Texture& Tex, UINT Slot){
 	mTexture[Slot] = Tex;
+	mTexture[Slot].mFileName = "ref";
+	if (Slot == 0)
+		mCBUseTexture.mParam.UseTexture.x = 1.0f;
+	if (Slot == 1)
+		mCBUseTexture.mParam.UseTexture.y = 1.0f;
+	if (Slot == 2)
+		mCBUseTexture.mParam.UseTexture.z = 1.0f;
+	if (Slot == 3)
+		mCBUseTexture.mParam.UseTexture.w = 1.0f;
+
+	if (Slot == 4)
+		mCBUseTexture.mParam.UseTexture2.x = 1.0f;
+	if (Slot == 5)
+		mCBUseTexture.mParam.UseTexture2.y = 1.0f;
+	if (Slot == 6)
+		mCBUseTexture.mParam.UseTexture2.z = 1.0f;
+	if (Slot == 7)
+		mCBUseTexture.mParam.UseTexture2.w = 1.0f;
+	//mCBUseTexture->UpdateSubresource();
+}
+void Material::SetTexture(const TextureAsset& Tex, UINT Slot){
+	HRESULT hr = mTexture[Slot].Create(Tex);
 	mTexture[Slot].mFileName = "ref";
 	if (Slot == 0)
 		mCBUseTexture.mParam.UseTexture.x = 1.0f;

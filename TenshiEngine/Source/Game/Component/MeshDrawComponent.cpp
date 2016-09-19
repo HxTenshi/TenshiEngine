@@ -12,6 +12,7 @@
 #include "Game/Game.h"
 
 #include "Game/RenderingSystem.h"
+#include "Engine/Inspector.h"
 
 MeshDrawComponent::MeshDrawComponent(){
 }
@@ -62,9 +63,10 @@ void MeshDrawComponent::Update(){
 }
 #ifdef _ENGINE_MODE
 void MeshDrawComponent::CreateInspector(){
-	auto data = Window::CreateInspector();
-
-	Window::ViewInspector("MeshRender", this, data, this);
+	
+	Inspector ins("MeshRender", this);
+	ins.AddEnableButton(this);
+	ins.Complete();
 }
 #endif
 

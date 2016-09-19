@@ -18,17 +18,14 @@ ModelComponent::~ModelComponent(){
 			mModel->Release();
 			delete mModel;
 		}
+		mMesh.Free();
+		mBone.Free();
 	}
 void ModelComponent::Initialize(){
-	if (!mModel){
-		mModel = new Model();
-	}
-	if (!mModel->IsCreate()){
-		mModel->Create(mFileName.c_str());
-		if (!mModel->mBoneModel){
-			mModel->CreateBoneModel(mBoneFileName.c_str());
-		}
-	}
+	mMesh.Load(mMesh.m_Hash);
+	mBone.Load(mBone.m_Hash);
+	Load(mMesh);
+	Load(mBone);
 }
 void ModelComponent::Start(){
 
@@ -47,24 +44,12 @@ void ModelComponent::CreateInspector(){
 
 	Inspector ins("Model", this);
 	ins.AddEnableButton(this);
-	std::function<void(std::string)> collbackpath = [&](std::string name){
-		mFileName = name;
-		if (mModel){
-			mModel->Release();
-			delete mModel;
-		}
-		mModel = new Model();
-		mModel->Create(mFileName.c_str());
-		mModel->CreateBoneModel(mBoneFileName.c_str());
-
-	};
-	std::function<void(std::string)> collbackbonepath = [&](std::string name){
-		mBoneFileName = name;
-		mModel->CreateBoneModel(mBoneFileName.c_str());
-	};
-	ins.Add("Model", &mFileName, collbackpath);
-	ins.Add("Bone", &mBoneFileName, collbackbonepath);
-
+	ins.Add("Model", &mMesh, [&](){
+		Load(mMesh);
+	});
+	ins.Add("Bone", &mBone, [&](){
+		Load(mBone);
+	});
 	std::function<void(void)> collbackbutton = [&](){
 		ExpanderMesh();
 	};
@@ -81,8 +66,8 @@ void ModelComponent::SetMatrix(){
 
 void ModelComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
-		_KEY(mFileName);
-		_KEY(mBoneFileName);
+	_KEY(mMesh);
+	_KEY(mBone);
 #undef _KEY
 }
 
@@ -100,11 +85,30 @@ void ModelComponent::ExpanderMesh(){
 		obj->Name("Mesh:"+std::to_string(i));
 		obj->AddComponent<MaterialComponent>();
 		auto com = obj->AddComponent<MeshComponent>();
-		com->SetMesh(mFileName, i);
+		com->SetMesh(mMesh, i);
 	}
 }
 
 
 void ModelComponent::AddMeshComponent(weak_ptr<MeshComponent> meshCom){
 	m_MeshComVector.push_back(meshCom);
+}
+
+
+
+void ModelComponent::Load(MeshAsset& asset){
+	mMesh = asset;
+
+	if (mModel){
+		mModel->Release();
+		delete mModel;
+	}
+	mModel = new Model();
+	mModel->Create(mMesh);
+	if (mBone.IsLoad())
+		mModel->CreateBoneModel(mBone);
+}
+void ModelComponent::Load(BoneAsset& asset){
+	mBone = asset;
+	mModel->CreateBoneModel(mBone);
 }

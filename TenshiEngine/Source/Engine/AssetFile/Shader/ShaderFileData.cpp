@@ -29,8 +29,3 @@ bool ShaderFileData::Create(const char* filename){
 	return true;
 }
 
-bool ShaderFileData::FileUpdate(){
-	m_Shader->Create(m_FileName.c_str());
-
-	return true;
-}

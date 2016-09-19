@@ -5,6 +5,8 @@
 
 #include "Window/Window.h"
 
+#include "AssetDataBase.h"
+
 Inspector::Inspector(const std::string& name, Component* target)
 	:m_Name(name)
 	, m_Target(target)
@@ -13,62 +15,62 @@ Inspector::Inspector(const std::string& name, Component* target)
 }
 Inspector::~Inspector(){
 
-	if (m_EnableButton){
-		delete ((TemplateInspectorDataSet<bool>*)m_EnableButton);
-	}
-
-	for (auto& i : m_DataSet){
-		switch (i.format)
-		{
-		case InspectorDataFormat::Float:
-			delete ((TemplateInspectorDataSet<float>*)i.data);
-			break;
-
-		case InspectorDataFormat::Int:
-			delete ((TemplateInspectorDataSet<int>*)i.data);
-			break;
-
-		case InspectorDataFormat::Bool:
-			delete ((TemplateInspectorDataSet<bool>*)i.data);
-			break;
-
-		case InspectorDataFormat::String:
-			delete ((TemplateInspectorDataSet<std::string>*)i.data);
-			break;
-
-		case InspectorDataFormat::Vector2:
-			delete ((TemplateInspectorDataSet<Vector2>*)i.data);
-			break;
-
-		case InspectorDataFormat::Vector3:
-			delete ((TemplateInspectorDataSet<Vector3>*)i.data);
-			break;
-
-		case InspectorDataFormat::Color:
-			delete ((TemplateInspectorDataSet<Color>*)i.data);
-			break;
-
-		case InspectorDataFormat::Button:
-			delete ((InspectorButtonDataSet*)i.data);
-			break;
-
-		case InspectorDataFormat::Select:
-			delete ((InspectorSelectDataSet*)i.data);
-			break;
-
-		case InspectorDataFormat::SlideBar:
-			delete ((InspectorSlideBarDataSet*)i.data);
-			break;
-
-		case InspectorDataFormat::Label:
-			delete ((InspectorLabelDataSet*)i.data);
-			break;
-
-		default:
-			break;
-		}
-
-	}
+	//if (m_EnableButton){
+	//	delete ((TemplateInspectorDataSet<bool>*)m_EnableButton);
+	//}
+	//
+	//for (auto& i : m_DataSet){
+	//	switch (i.format)
+	//	{
+	//	case InspectorDataFormat::Float:
+	//		delete ((TemplateInspectorDataSet<float>*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::Int:
+	//		delete ((TemplateInspectorDataSet<int>*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::Bool:
+	//		delete ((TemplateInspectorDataSet<bool>*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::String:
+	//		delete ((TemplateInspectorDataSet<std::string>*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::Vector2:
+	//		delete ((TemplateInspectorDataSet<Vector2>*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::Vector3:
+	//		delete ((TemplateInspectorDataSet<Vector3>*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::Color:
+	//		delete ((TemplateInspectorDataSet<Color>*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::Button:
+	//		delete ((InspectorButtonDataSet*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::Select:
+	//		delete ((InspectorSelectDataSet*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::SlideBar:
+	//		delete ((InspectorSlideBarDataSet*)i.data);
+	//		break;
+	//
+	//	case InspectorDataFormat::Label:
+	//		delete ((InspectorLabelDataSet*)i.data);
+	//		break;
+	//
+	//	default:
+	//		break;
+	//	}
+	//
+	//}
 }
 void Inspector::AddEnableButton(Enabled* enable){
 	if (m_EnableButton)return;
@@ -100,70 +102,81 @@ void Inspector::Add(const std::string& text, std::string* data, std::function<vo
 	auto dataset = new TemplateInspectorDataSet<std::string>(text, data, collback);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
 }
+
+void Inspector::Add(const std::string& text, IAsset* data, std::function<void()> collback){
+
+	std::function<void(std::string)> loadcoll = [data, collback](std::string path){
+		MD5::MD5HashCoord hash;
+		if (AssetDataBase::FilePath2Hash(path.c_str(), hash)){
+			data->Load(hash);
+		}
+		else{
+			data->Free();
+		}
+		collback();
+	};
+	auto dataset = new TemplateInspectorDataSet<std::string>(text, &data->m_Name, loadcoll);
+	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
+}
 template<>
 void Inspector::Add(const std::string& text, Vector2* data, std::function<void(Vector2)> collback){
-
-	auto x = [data, collback](float _x){
-		float _y = data->y;
-		collback(Vector2(_x, _y));
+	Float _x = data->x;
+	Float _y = data->y;
+	auto x = [_x, _y, collback](float _x){
+		auto v = Vector2(Float(&_x), _y);
+		collback(v);
 	};
-	auto y = [data, collback](float _y){
-		float _x = data->x;
-		collback(Vector2(_x, _y));
+	auto y = [_x, _y, collback](float _y){
+		auto v = Vector2(_x, Float(&_y));
+		collback(v);
 	};
-	auto dataset = new InspectorVector2DataSet(text, &data->x, x, &data->y, y);
+	auto dataset = new InspectorVector2DataSet(text, data->x.value, x, data->y.value, y);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Vector2, dataset));
 }
 template<>
 void Inspector::Add(const std::string& text, Vector3* data, std::function<void(Vector3)> collback){
-
-	auto x = [data, collback](float _x){
-		float _y = data->y;
-		float _z = data->z;
-		collback(Vector3(_x, _y, _z));
+	Float _x = data->x;
+	Float _y = data->y;
+	Float _z = data->z;
+	auto x = [_x,_y,_z, collback](float _x){
+		auto v = Vector3(Float(&_x), _y, _z);
+		collback(v);
 	};
-	auto y = [data, collback](float _y){
-		float _x = data->x;
-		float _z = data->z;
-		collback(Vector3(_x, _y, _z));
+	auto y = [_x, _y, _z, collback](float _y){
+		auto v = Vector3(_x, Float(&_y), _z);
+		collback(v);
 	};
-	auto z = [data, collback](float _z){
-		float _x = data->x;
-		float _y = data->y;
-		collback(Vector3(_x, _y, _z));
+	auto z = [_x, _y, _z, collback](float _z){
+		auto v = Vector3(_x, _y, Float(&_z));
+		collback(v);
 	};
-	auto dataset = new InspectorVector3DataSet(text, &data->x, x, &data->y, y, &data->z, z);
+	auto dataset = new InspectorVector3DataSet(text, data->x.value, x, data->y.value, y, data->z.value, z);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Vector3, dataset));
 }
 
 template<>
 void Inspector::Add(const std::string& text, Color* data, std::function<void(Color)> collback){
-
-	auto r = [data, collback](float _r){
-		float _g = data->g;
-		float _b = data->b;
-		float _a = data->a;
-		collback(Color(_r, _g, _b, _a));
+	Float _r = data->r;
+	Float _g = data->g;
+	Float _b = data->b;
+	Float _a = data->a;
+	auto r = [_r,_g,_b,_a, collback](float _r){
+		auto v = Color(Float(&_r), _g, _b, _a);
+		collback(v);
 	};
-	auto g = [data, collback](float _g){
-		float _r = data->r;
-		float _b = data->b;
-		float _a = data->a;
-		collback(Color(_r, _g, _b, _a));
+	auto g = [_r, _g, _b, _a, collback](float _g){
+		auto v = Color(_r, Float(&_g), _b, _a);
+		collback(v);
 	};
-	auto b = [data, collback](float _b){
-		float _r = data->r;
-		float _g = data->g;
-		float _a = data->a;
-		collback(Color(_r, _g, _b, _a));
+	auto b = [_r, _g, _b, _a, collback](float _b){
+		auto v = Color(_r, _g, Float(&_b), _a);
+		collback(v);
 	};
-	auto a = [data, collback](float _a){
-		float _r = data->r;
-		float _g = data->g;
-		float _b = data->b;
-		collback(Color(_r, _g, _b, _a));
+	auto a = [_r, _g, _b, _a, collback](float _a){
+		auto v = Color(_r, _g, _b, Float(&_a));
+		collback(v);
 	};
-	auto dataset = new InspectorColorDataSet(text, &data->r, r, &data->g, g, &data->b, b, &data->a, a);
+	auto dataset = new InspectorColorDataSet(text, data->r.value, r, data->g.value, g, data->b.value, b, data->a.value, a);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Color, dataset));
 }
 

@@ -12,7 +12,6 @@ public:
 	~PhysxMaterialFileData();
 
 	bool Create(const char* filename) override;
-	bool FileUpdate() override;
 	void SaveFile();
 
 	physx::PxMaterial* GetMaterial() const;

@@ -44,7 +44,12 @@ public:
 		mComponents.AddComponent<TransformComponent>(mTransform);
 
 		auto model = make_shared<ModelComponent>();
-		model->mFileName = "EngineResource/Arrow.pmx.tesmesh";
+
+		MeshAsset asset;
+		MD5::MD5HashCoord hash;
+		AssetDataBase::FilePath2Hash("EngineResource/Arrow.pmx.tesmesh", hash);
+		asset.Load(hash);
+		model->Load(asset);
 		mComponents.AddComponent<ModelComponent>(model);
 		auto material = make_shared<MaterialComponent>();
 		mComponents.AddComponent<MaterialComponent>(material);

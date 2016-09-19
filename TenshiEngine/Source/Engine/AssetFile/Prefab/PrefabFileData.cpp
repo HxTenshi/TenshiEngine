@@ -25,29 +25,17 @@ PrefabFileData::~PrefabFileData(){
 bool PrefabFileData::Create(const char* filename){
 
 
-	if (m_PrefabActor){
-		delete m_PrefabActor;
-		m_PrefabActor = NULL;
+	if (!m_PrefabActor){
+		m_PrefabActor = new Actor();
 	}
-	if (mBeforeParam){
-		delete mBeforeParam;
-		mBeforeParam = NULL;
+	if (!mBeforeParam){
+		mBeforeParam = new picojson::value();
 	}
 
 	m_FileName = filename;
 
-
-	m_PrefabActor = new Actor();
 	m_PrefabActor->ImportData(m_FileName);
-
-	mBeforeParam = new picojson::value();
 	m_PrefabActor->ExportData(*mBeforeParam,true);
-	return true;
-
-}
-bool PrefabFileData::FileUpdate(){
-
-	m_PrefabActor->ImportData(m_FileName);
 	return true;
 
 }

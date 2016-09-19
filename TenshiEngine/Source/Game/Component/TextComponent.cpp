@@ -40,7 +40,7 @@ void TextComponent::Initialize(){
 	impl->mFont.CreateFont_("", mFontSize);
 	
 	auto mBackScale = gameObject->mTransform->Scale();
-	impl->mFont.CreateTexture_(mBackScale.x, mBackScale.y);
+	impl->mFont.CreateTexture_((UINT)mBackScale.x, (UINT)mBackScale.y);
 
 	impl->mModel.Create("EngineResource/TextureModel.tesmesh");
 	ChangeText(impl->mText);

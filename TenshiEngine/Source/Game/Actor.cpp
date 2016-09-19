@@ -55,11 +55,15 @@ void Actor::Start_Script(){
 	
 }
 void Actor::EngineUpdateComponent(float deltaTime){
+	if (!IsEnabled())return;
+
 	Update(deltaTime);
 
 	mTransform->EngineUpdate();
 	for (const auto& cmp : mComponents.mComponent){
 		if (cmp.second.Get() == mTransform.Get())continue;
+
+		if (!cmp.second->IsEnabled())continue;
 		cmp.second->EngineUpdate();
 	}
 
@@ -72,12 +76,15 @@ void Actor::EngineUpdateComponent(float deltaTime){
 
 void Actor::UpdateComponent(float deltaTime){
 	if (!mEndStart)return;
+	if (!IsEnabled())return;
 
 	Update(deltaTime);
+
 
 	mTransform->Update();
 	for (const auto& cmp : mComponents.mComponent){
 		if (cmp.second.Get() == mTransform.Get())continue;
+		if (!cmp.second->IsEnabled())continue;
 		cmp.second->Update();
 	}
 
@@ -119,7 +126,7 @@ void Actor::CreateInspector(){
 		if (auto com = mComponents.GetComponent<PhysXColliderComponent>()){
 			com->SetPhysxLayer(mPhysxLayer);
 		}
-	);
+	});
 
 	ins.Complete();
 	for (const auto& cmp : mComponents.mComponent){

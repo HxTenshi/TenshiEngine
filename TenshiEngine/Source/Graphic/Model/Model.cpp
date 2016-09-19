@@ -64,6 +64,36 @@ HRESULT Model::CreateBoneModel(const char* FileName){
 	}
 	return hr;
 }
+HRESULT Model::Create(MeshAsset& asset){
+
+	m_MeshAssetDataPtr = asset.m_Ptr;
+
+	mCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
+	if (!mCBuffer.mBuffer)
+		return E_FAIL;
+	mCBuffer.mParam.mWorld = XMMatrixTranspose(mWorld);
+	mCBuffer.mParam.mBeforeWorld = mCBuffer.mParam.mWorld;
+
+
+	return S_OK;
+}
+HRESULT Model::CreateBoneModel(BoneAsset& asset){
+	HRESULT hr = S_OK;
+
+
+	if (mBoneModel){
+		delete mBoneModel;
+		mBoneModel = NULL;
+	}
+	mBoneModel = new BoneModel();
+	if (FAILED(mBoneModel->Create(asset))){
+		if (mBoneModel){
+			delete mBoneModel;
+			mBoneModel = NULL;
+		}
+	}
+	return hr;
+}
 
 int Model::GetMeshNum(){
 	auto& buf = m_MeshAssetDataPtr->GetFileData()->GetBufferData();
@@ -246,8 +276,8 @@ void Model::Draw(ID3D11DeviceContext* context, const std::vector<weak_ptr<MeshCo
 }
 
 
-void ModelMesh::Create(const std::string& name, int id){
-	AssetDataBase::Instance(name.c_str(), m_MeshAssetDataPtr);
+void ModelMesh::Create(MeshAsset& asset, int id){
+	m_MeshAssetDataPtr = asset.m_Ptr;
 	m_ID = id;
 }
 

@@ -31,7 +31,6 @@ public:
 	~TextureFileData();
 
 	bool Create(const char* filename) override;
-	bool FileUpdate() override;
 
 	void SetTexture(ID3D11ShaderResourceView* TextureRV, ID3D11SamplerState* SamplerLinear){
 

@@ -3,6 +3,8 @@
 #include "Physx/Physx3.h"
 #include "Game/Game.h"
 
+#include "Engine/Inspector.h"
+
 PhysxLayer::PhysxLayer(){
 	mSelects.push_back("None");
 	mSelects.push_back("Layer1");
@@ -43,12 +45,13 @@ PhysxLayer::~PhysxLayer(){
 
 #ifdef _ENGINE_MODE
 void PhysxLayer::CreateInspector(){
-	auto data = Window::CreateInspector();
+
+	Inspector ins("PhysxLayer", NULL);
 
 	for (int i = 0; i < 13; i++){
-		Window::AddInspector(new TemplateInspectorDataSet<std::string>(std::to_string(i), &mSelects[i], [&,i](std::string f){
+		ins.Add(std::to_string(i), &mSelects[i], [&, i](std::string f){
 			mSelects[i] = f;
-		}), data);
+		});
 	}
 
 	for (int I = 0; I < 13; I++){
@@ -57,14 +60,14 @@ void PhysxLayer::CreateInspector(){
 			int j = 1 << J;
 			std::string text = std::to_string(I) + "x" + std::to_string(J);
 
-			Window::AddInspector(new TemplateInspectorDataSet<bool>(text, &mCollideFiler[i | j], [&, I, J](bool f){
+			ins.Add(text, &mCollideFiler[i | j], [&, I, J](bool f){
 				
 				SetLayerFlag(I, J, f);
-			}), data);
+			});
 		}
 	}
 
-	Window::ViewInspector("PhysxLayer", NULL, data, this);
+	ins.Complete();
 
 
 }
@@ -80,7 +83,7 @@ void PhysxLayer::SetLayerFlag(int l1, int l2, bool f){
 }
 
 void PhysxLayer::_ExportData(I_ioHelper* io, bool childExport){
-
+	(void)childExport;
 
 #define _KEY_COMPEL(x) io->func( x , #x,true)
 #define _KEY_COMPEL_ARR(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str(),true)
@@ -101,8 +104,8 @@ void PhysxLayer::_ExportData(I_ioHelper* io, bool childExport){
 		}
 	}
 
-#undef _KEY
 #undef _KEY_COMPEL
+#undef _KEY_COMPEL_ARR
 }
 
 void PhysxLayer::_ImportData(I_ioHelper* io){
@@ -130,7 +133,6 @@ void PhysxLayer::_ImportData(I_ioHelper* io){
 		}
 	}
 
-
-#undef _KEY
 #undef _KEY_COMPEL
+#undef _KEY_COMPEL_ARR
 }

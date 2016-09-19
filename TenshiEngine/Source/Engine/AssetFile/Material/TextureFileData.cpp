@@ -55,11 +55,6 @@ bool TextureFileData::Create(const char* filename){
 
 }
 
-bool TextureFileData::FileUpdate(){
-	return Create(m_FileName.c_str());
-}
-
-
 #include "../DirectXTex/DirectXTex.h"
 #ifndef _DEBUG
 #pragma comment(lib, "DirectXTex/DirectXTex.lib")

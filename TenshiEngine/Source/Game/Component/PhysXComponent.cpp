@@ -4,6 +4,9 @@
 #include "physx/physx3.h"
 
 #include "Game/Game.h"
+
+#include "Engine/Inspector.h"
+
 PhysXComponent::PhysXComponent(){
 	mIsEngineMode = false;
 	mIsKinematic = false;
@@ -88,7 +91,7 @@ void PhysXComponent::Finish(){
 		}
 
 		//シェイプのアタッチを解放
-		auto num = mRigidActor->getNbShapes();
+		auto num = (int)mRigidActor->getNbShapes();
 		for (int i = 0; i < num; i++){
 			PxShape* temp = NULL;
 			mRigidActor->getShapes(&temp,1);
@@ -198,12 +201,13 @@ void PhysXComponent::CreateInspector() {
 		SetKinematic(value);
 	};
 
-	auto data = Window::CreateInspector();
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("Kinematic", &mIsKinematic, collback), data);
-	Window::AddInspector(new TemplateInspectorDataSet<bool>("UseGravity", &mIsGravity, [&](bool value){
+	Inspector ins("PhysX",this);
+	ins.AddEnableButton(this);
+	ins.Add("Kinematic", &mIsKinematic, collback);
+	ins.Add("UseGravity", &mIsGravity, [&](bool value){
 		SetGravity(value);
-	}), data);
-	Window::ViewInspector("PhysX", this, data, this);
+	});
+	ins.Complete();
 }
 #endif
 

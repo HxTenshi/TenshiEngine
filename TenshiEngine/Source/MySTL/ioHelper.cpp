@@ -1,10 +1,12 @@
 #include "ioHelper.h"
+#include "Library/MD5.h"
+#include "Engine/AssetDataBase.h"
 
 //テンプレートの特殊化
 #define _DOUBLE(x) \
 template<> \
-x I_InputHelper::get(const picojson::value& value){ \
-	return (x)value.get<double>(); \
+void I_InputHelper::get(const picojson::value& value, x* out){ \
+	*out = (x)value.get<double>(); \
 }
 
 _DOUBLE(unsigned int)
@@ -17,30 +19,37 @@ _DOUBLE(double)
 
 
 template<>
-std::string I_InputHelper::get(const picojson::value& value){
-	return (std::string)value.get<std::string>();
+void I_InputHelper::get(const picojson::value& value, std::string* out){
+	*out = (std::string)value.get<std::string>();
 }
 
 template<>
-bool I_InputHelper::get(const picojson::value& value){
-	return (bool)value.get<bool>();
+void I_InputHelper::get(const picojson::value& value, bool* out){
+	*out = (bool)value.get<bool>();
 }
 template<>
-picojson::object I_InputHelper::get(const picojson::value& value){
-	return (picojson::object)value.get<picojson::object>();
+void I_InputHelper::get(const picojson::value& value, picojson::object* out){
+	*out = (picojson::object)value.get<picojson::object>();
 }
 template<>
-picojson::value I_InputHelper::get(const picojson::value& value){
-	return picojson::value();
+void I_InputHelper::get(const picojson::value& value, picojson::value* out){
+	(void)value;
+	*out = picojson::value();
 }
+template<>
+void I_InputHelper::get(const picojson::value& value, MD5::MD5HashCoord* out){
+	auto c = (std::string)value.get<std::string>();
+	*out = MD5::MD5HashCoord(c.c_str());
+}
+
 
 
 
 //テンプレートの特殊化
 #define _DOUBLE(x) \
 template<> \
-void I_OutputHelper::_func_out(const x& value, const char* name){ \
-	o->insert(std::make_pair(name, picojson::value((double)value))); \
+void I_OutputHelper::_func_out(const x* value, const char* name){ \
+	o->insert(std::make_pair(name, picojson::value((double)*value))); \
 }
 
 _DOUBLE(unsigned int)
@@ -51,19 +60,29 @@ _DOUBLE(double)
 #undef _DOUBLE
 
 template<>
-void I_OutputHelper::_func_out(const std::string& value, const char* name){
-	o->insert(std::make_pair(name, picojson::value((std::string)value)));
+void I_OutputHelper::_func_out(const std::string* value, const char* name){
+	o->insert(std::make_pair(name, picojson::value((std::string)*value)));
 }
 template<>
-void I_OutputHelper::_func_out(const bool& value, const char* name){
-	o->insert(std::make_pair(name, picojson::value((bool)value)));
+void I_OutputHelper::_func_out(const bool* value, const char* name){
+	o->insert(std::make_pair(name, picojson::value((bool)*value)));
 }
 template<>
-void I_OutputHelper::_func_out(const picojson::object& value, const char* name){
-	o->insert(std::make_pair(name, picojson::value((picojson::object)value)));
+void I_OutputHelper::_func_out(const picojson::object* value, const char* name){
+	o->insert(std::make_pair(name, picojson::value((picojson::object)*value)));
 }
 
 template<>
-void I_OutputHelper::_func_out(const picojson::value& value, const char* name){
-	o->insert(std::make_pair(name, (picojson::value)value));
+void I_OutputHelper::_func_out(const picojson::value* value, const char* name){
+	o->insert(std::make_pair(name, (picojson::value)*value));
+}
+
+template<>
+void I_OutputHelper::_func_out(const MD5::MD5HashCoord* value, const char* name){
+	o->insert(std::make_pair(name, picojson::value((std::string)value->GetString())));
+}
+
+template<>
+void I_OutputHelper::_func_out(const IAsset* value, const char* name){
+	o->insert(std::make_pair(name, picojson::value((std::string)value->m_Hash.GetString())));
 }

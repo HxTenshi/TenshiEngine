@@ -23,7 +23,8 @@ void PostEffectRendering::Rendering(IRenderingEngine* render, const std::functio
 	//デファードで解除済み
 	//RenderTarget::NullSetRendererTarget(render->m_Context);
 
-	PostEffectHelper::SetCurrentTarget(&Game::GetMainViewRenderTarget());
+	auto rt = Game::GetMainViewRenderTarget();
+	PostEffectHelper::SetCurrentTarget(&rt);
 
 	func();
 

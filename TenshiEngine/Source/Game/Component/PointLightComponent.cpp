@@ -115,7 +115,7 @@ void PointLightComponent::CreateInspector(){
 		m_Color.y = f.g;
 		m_Color.z = f.b;
 		m_Color.w = f.a;
-	
+	};
 	std::function<void(float)> collbackr = [&](float f){
 		m_Radius = f;
 	};
