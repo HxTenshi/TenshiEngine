@@ -24,6 +24,14 @@ void PhysXComponent::Initialize(){
 	else{
 		mRigidActor = Game::CreateRigitBody();
 	}
+	if (IsEnabled()){
+		if (mIsEngineMode){
+			Game::GetPhysX()->AddActorEngine(mRigidActor);
+		}
+		else{
+			Game::GetPhysX()->AddActor(mRigidActor);
+		}
+	}
 
 	SetKinematic(mIsKinematic);
 	SetGravity(mIsGravity);
@@ -105,13 +113,15 @@ void PhysXComponent::Finish(){
 		}
 
 		mRigidActor->userData = NULL;
-		if (mIsEngineMode){
-			Game::RemovePhysXActorEngine(mRigidActor);
+		if (IsEnabled()){
+			if (mIsEngineMode){
+				Game::RemovePhysXActorEngine(mRigidActor);
+			}
+			else{
+				Game::RemovePhysXActor(mRigidActor);
+			}
 		}
-		else{
-			Game::RemovePhysXActor(mRigidActor);
-		}
-
+		mRigidActor->release();
 	}
 	mRigidActor = NULL;
 }
@@ -149,12 +159,12 @@ void PhysXComponent::SetTransform(bool RebirthSet){
 	}
 
 	if (mChengeTransformFlag&(char)PhysXChangeTransformFlag::Rotate){
-		auto qua = gameObject->mTransform->Quaternion();
+		auto qua = gameObject->mTransform->WorldQuaternion();
 		t.q = physx::PxQuat(qua.x, qua.y, qua.z, qua.w);
 	}
 	else if (RebirthSet){
 		auto q = XMVectorSet(t.q.x, t.q.y, t.q.z, t.q.w);
-		gameObject->mTransform->Quaternion(q);
+		gameObject->mTransform->WorldQuaternion(q);
 		
 	}
 	if (mChengeTransformFlag){
@@ -212,6 +222,9 @@ void PhysXComponent::CreateInspector() {
 #endif
 
 void PhysXComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(mIsKinematic);
 	_KEY(mIsGravity);
@@ -255,4 +268,22 @@ void PhysXComponent::AddForce(const XMVECTOR& force, ForceMode::Enum forceMode){
 void PhysXComponent::AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode){
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	a->addTorque(PxVec3(force.x, force.y, force.z), (physx::PxForceMode::Enum)forceMode);
+}
+
+
+void PhysXComponent::OnEnabled(){
+	if (mIsEngineMode){
+		Game::GetPhysX()->AddActorEngine(mRigidActor);
+	}
+	else{
+		Game::GetPhysX()->AddActor(mRigidActor);
+	}
+}
+void PhysXComponent::OnDisabled(){
+	if (mIsEngineMode){
+		Game::GetPhysX()->RemoveActorEngine(mRigidActor);
+	}
+	else{
+		Game::GetPhysX()->RemoveActor(mRigidActor);
+	}
 }

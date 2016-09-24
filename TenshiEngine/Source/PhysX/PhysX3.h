@@ -77,6 +77,8 @@ public:
 
 	void ShutdownPhysX();
 
+	void AddActor(PxActor* act);
+	void AddActorEngine(PxActor* act);
 	void RemoveActor(PxActor* act);
 	void RemoveActorEngine(PxActor* act);
 

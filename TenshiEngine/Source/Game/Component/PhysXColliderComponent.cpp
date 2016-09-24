@@ -25,6 +25,13 @@ PhysXColliderComponent::PhysXColliderComponent(){
 	mScale = XMVectorSet(1, 1, 1, 1);
 	mPhysicsMaterial = NULL;
 	mIsParentPhysX = false;
+
+
+	mGameObjectPosition = XMVectorSet(1, 1, 1, 1);
+	mGameObjectRotate = XMVectorSet(1, 1, 1, 1);
+	mGameObjectScale = XMVectorSet(1, 1, 1, 1);
+
+	mShapeMatrix = XMMatrixIdentity();
 }
 
 PhysXColliderComponent::~PhysXColliderComponent(){
@@ -133,7 +140,7 @@ void PhysXColliderComponent::AttachRigidStatic(bool attach){
 		mAttachTarget = NULL;
 		return;
 	}
-	if (attach){
+	if (attach && IsEnabled()){
 		mAttachTarget = -1;
 		Game::GetPhysX()->AddStaticShape(mShape);
 	}
@@ -151,13 +158,13 @@ void PhysXColliderComponent::AttachRigidDynamic(bool attach){
 	if (!mAttachPhysXComponent){
 		return;
 	}
-	if (attach){
+	if (attach && IsEnabled()){
 		if (mAttachPhysXComponent->AddShape(*mShape)){
-			mAttachTarget = (int)mAttachPhysXComponent->gameObject;
+			mAttachTarget = (int)mAttachPhysXComponent->gameObject.Get();
 		}
 	}
 	else if (mAttachTarget > 0){
-		if (mAttachTarget == (int)mAttachPhysXComponent->gameObject){
+		if (mAttachTarget == (int)mAttachPhysXComponent->gameObject.Get()){
 			mAttachPhysXComponent->RemoveShape(*mShape);
 		}
 		mAttachTarget = NULL;
@@ -302,6 +309,9 @@ void PhysXColliderComponent::CreateInspector() {
 #endif
 
 void PhysXColliderComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(mMeshFile);
 	_KEY(mIsSphere);
@@ -321,6 +331,9 @@ void PhysXColliderComponent::IO_Data(I_ioHelper* io){
 
 void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Material& material){
 	auto g = mShape->getGeometry();
+
+
+	auto scale = mScale;
 	if (g.getType() == PxGeometryType::eBOX){
 		if (mDebugStr != "box"){
 			mDebugStr = "box";
@@ -331,6 +344,8 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 		if (mDebugStr != "sphere"){
 			mDebugStr = "sphere";
 			mDebugDraw.Create("EngineResource/ball.tesmesh");
+			scale.y = scale.x;
+			scale.z = scale.x;
 		}
 	}
 	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
@@ -351,30 +366,56 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 		par = mAttachPhysXComponent->gameObject;
 	}
 
-	auto quat = par->mTransform->WorldQuaternion();
-	if (par.Get() == gameObject.Get()){
-		quat = XMQuaternionIdentity();
-	}
+	//auto quat = par->mTransform->WorldQuaternion();
+	//if (par.Get() == gameObject.Get()){
+	//	quat = XMQuaternionIdentity();
+	//}
 
-	XMMATRIX shmat;
-	if (mAttachTarget == -1){
-		shmat = XMMatrixIdentity();
+	//XMMATRIX shmat;
+	//if (mAttachTarget == -1){
+	//	shmat = XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w));
+	//}
+	//else
+	//{
+	//	shmat = XMMatrixMultiply(
+	//		XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w)),
+	//		XMMatrixTranslationFromVector(XMVectorSet(transform.p.x, transform.p.y, transform.p.z, 1.0f)));
+	//}
+
+	//auto wpos = par->mTransform->WorldPosition();
+	//wpos += XMVector3Rotate(mPosition * mGameObjectScale, mGameObjectRotate);
+	//auto Matrix = XMMatrixMultiply(
+	//	XMMatrixMultiply(
+	//	XMMatrixMultiply(
+	//	XMMatrixScalingFromVector(scale),
+	//	shmat),
+	//	XMMatrixRotationQuaternion(quat)),
+	//	XMMatrixTranslationFromVector(wpos));
+
+
+	XMMATRIX ParentMatrix;
+
+	if (mAttachPhysXComponent){
+		ParentMatrix = par->mTransform->GetMatrix();
+		ParentMatrix.r[0] = XMVector3Normalize(ParentMatrix.r[0]);
+		ParentMatrix.r[1] = XMVector3Normalize(ParentMatrix.r[1]);
+		ParentMatrix.r[2] = XMVector3Normalize(ParentMatrix.r[2]);
 	}
 	else{
-		shmat = XMMatrixMultiply(
-			XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w)),
-			XMMatrixTranslationFromVector(XMVectorSet(transform.p.x, transform.p.y, transform.p.z, 1.0f)));
+		ParentMatrix = XMMatrixIdentity();
 	}
+		scale *= mGameObjectScale;
 
-	auto wpos = par->mTransform->WorldPosition();
+	auto LocalMatrix = XMMatrixMultiply(
+		XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w)),
+		XMMatrixTranslationFromVector(XMVectorSet(transform.p.x, transform.p.y, transform.p.z, 1.0f)));
+	auto ScaleMatrix = XMMatrixScalingFromVector(scale);
 
 	auto Matrix = XMMatrixMultiply(
 		XMMatrixMultiply(
-		XMMatrixMultiply(
-		XMMatrixScalingFromVector(mScale),
-		shmat),
-		XMMatrixRotationQuaternion(quat)),
-		XMMatrixTranslationFromVector(wpos));
+		ScaleMatrix,
+		mShapeMatrix),
+		ParentMatrix);
 
 	//auto p = gameObject->mTransform->GetMatrix().r[3];
 	mDebugDraw.mWorld = Matrix;
@@ -384,51 +425,143 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 
 void PhysXColliderComponent::SetTransform(const XMVECTOR& pos){
 	mPosition = pos;
-
 	if (mAttachTarget == -1){
-		auto pos_ = gameObject->mTransform->WorldPosition();
+
+		auto scale = gameObject->mTransform->WorldScale();
+		if (scale.x != mGameObjectScale.x ||
+			scale.y != mGameObjectScale.y ||
+			scale.z != mGameObjectScale.z){
+			mGameObjectScale = scale;
+			SetScale(mScale);
+		}
+	
+		bool change = false;
 		auto quat = gameObject->mTransform->WorldQuaternion();
-		PxTransform transform;
-		transform.p = PxVec3(pos_.x, pos_.y, pos_.z);
-		transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
-		mShape->setLocalPose(transform);
-		return;
+		if (quat.x != mGameObjectRotate.x ||
+			quat.y != mGameObjectRotate.y ||
+			quat.z != mGameObjectRotate.z ||
+			quat.w != mGameObjectRotate.w){
+			mGameObjectRotate = quat;
+			change = true;
+		}
+	
+	
+		auto pos_ = gameObject->mTransform->WorldPosition();
+		pos_ += XMVector3Rotate(mPosition * mGameObjectScale, mGameObjectRotate);
+		if (pos_.x != mGameObjectPosition.x ||
+			pos_.y != mGameObjectPosition.y ||
+			pos_.z != mGameObjectPosition.z){
+			mGameObjectPosition = pos_;
+			change = true;
+		}
+	
+		if (!mAttachPhysXComponent){
+			if (!change)return;
+	
+			PxTransform transform;
+			transform.p = PxVec3(pos_.x, pos_.y, pos_.z);
+			transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
+			mShape->setLocalPose(transform);
+			mShapeMatrix = XMMatrixMultiply(
+				XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w)),
+				XMMatrixTranslationFromVector(XMVectorSet(transform.p.x, transform.p.y, transform.p.z, 1.0f)));
+			return;
+		}
 	}
 
-
-	XMVECTOR scale = XMVectorSet(1, 1, 1, 1);
-	if (mIsParentPhysX){
-		scale = gameObject->mTransform->GetParent()->mTransform->WorldScale();
+	auto par = gameObject;
+	if (mAttachPhysXComponent){
+		par = mAttachPhysXComponent->gameObject;
 	}
 
-	auto pos_ = gameObject->mTransform->Position();
-	auto transform = mShape->getLocalPose();
-	if (!mIsParentPhysX){
-		transform.p = PxVec3(mPosition.x, mPosition.y, mPosition.z);
-	}
-	else{
-		scale = gameObject->mTransform->GetParent()->mTransform->LossyScale();
-		transform.p = PxVec3(pos_.x*scale.x, pos_.y*scale.y, pos_.z*scale.z) + PxVec3(mPosition.x, mPosition.y, mPosition.z);
-	}
+	XMVECTOR null_v;
+	auto mat = par->mTransform->GetMatrix();
+	auto parLossyScale = par->mTransform->LossyScale();
+	auto inv = XMMatrixInverse(&null_v, mat);
+
+	auto WorldScale = gameObject->mTransform->WorldScale();
+	auto addMatrix = XMMatrixMultiply(XMMatrixScalingFromVector(mScale * WorldScale * parLossyScale), XMMatrixTranslationFromVector(mPosition * WorldScale * parLossyScale));
+	auto Matrix = gameObject->mTransform->GetMatrix();
+	Matrix = XMMatrixMultiply(addMatrix, Matrix);
+	Matrix = XMMatrixMultiply(Matrix, inv);
+
+	Matrix.r[3] /= parLossyScale;
+	auto pxPos = PxVec3(Matrix.r[3].x, Matrix.r[3].y, Matrix.r[3].z);
+	//XMVECTOR scale;
+	//scale.x = XMVector3Length(Matrix.r[0]).x;
+	//scale.y = XMVector3Length(Matrix.r[1]).x;
+	//scale.z = XMVector3Length(Matrix.r[2]).x;
+	//mGameObjectScale = scale;
+	mGameObjectScale = gameObject->mTransform->WorldScale();
+
+	Matrix.r[0] = XMVector3Normalize(Matrix.r[0]);
+	Matrix.r[1] = XMVector3Normalize(Matrix.r[1]);
+	Matrix.r[2] = XMVector3Normalize(Matrix.r[2]);
+	auto rotQuat = XMQuaternionRotationMatrix(Matrix);
 
 
-	if (mIsParentPhysX){
+	//auto posMatrix = XMMatrixTranslationFromVector(mGameObjectPosition);
+	//auto rotMatrix = XMMatrixRotationQuaternion(mGameObjectRotate);
+	//auto sclMatrix = XMMatrixScalingFromVector(mGameObjectScale);
+	//posMatrix = XMMatrixMultiply(posMatrix, inv);
+	//rotMatrix = XMMatrixMultiply(rotMatrix, inv);
+	//sclMatrix = XMMatrixMultiply(sclMatrix, mat);
+	//sclMatrix = XMMatrixMultiply(sclMatrix, inv);
+	//
+	//rotMatrix.r[3] = XMVectorSet(0, 0, 0, 1);
+	//auto rotQuat = XMQuaternionRotationMatrix(rotMatrix);
 
-		auto quat = gameObject->mTransform->Quaternion();
-		//f (mAttachPhysXComponent){
-		//	Actor* par = mAttachPhysXComponent->gameObject;
-		//	auto pq = par->mTransform->WorldQuaternion();
-		//	pq = XMQuaternionInverse(pq);
-		//	quat = XMQuaternionMultiply(pq, quat);
-		//
+	physx::PxTransform transform;
+	transform.p = pxPos;
+	transform.q = PxQuat(rotQuat.x, rotQuat.y, rotQuat.z, rotQuat.w);
 
-		transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
-	}
-	else{
-		auto quat = XMQuaternionIdentity();
-		transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
-	}
+	//XMVECTOR scale;
+	//mGameObjectScale.x = XMVector3Length(sclMatrix.r[0]).x;
+	//mGameObjectScale.y = XMVector3Length(sclMatrix.r[1]).x;
+	//mGameObjectScale.z = XMVector3Length(sclMatrix.r[2]).x;
+	//scale.w = 1.0f;
+	//mGameObjectScale *= scale;
+	SetScale(mScale);
+
+	//XMVECTOR scale = XMVectorSet(1, 1, 1, 1);
+	//if (mIsParentPhysX){
+	//	scale = gameObject->mTransform->GetParent()->mTransform->WorldScale();
+	//}
+	//
+	//auto pos_ = gameObject->mTransform->Position();
+	//auto transform = mShape->getLocalPose();
+	//if (!mIsParentPhysX){
+	//	transform.p = PxVec3(mPosition.x, mPosition.y, mPosition.z);
+	//}
+	//else{
+	//	scale = gameObject->mTransform->GetParent()->mTransform->LossyScale();
+	//	transform.p = PxVec3(pos_.x*scale.x, pos_.y*scale.y, pos_.z*scale.z) + PxVec3(mPosition.x, mPosition.y, mPosition.z);
+	//}
+	//
+	//
+	//if (mIsParentPhysX){
+	//
+	//	auto quat = gameObject->mTransform->Quaternion();
+	//	//f (mAttachPhysXComponent){
+	//	//	Actor* par = mAttachPhysXComponent->gameObject;
+	//	//	auto pq = par->mTransform->WorldQuaternion();
+	//	//	pq = XMQuaternionInverse(pq);
+	//	//	quat = XMQuaternionMultiply(pq, quat);
+	//	//
+	//
+	//	transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
+	//}
+	//else{
+	//	auto quat = XMQuaternionIdentity();
+	//	transform.q = PxQuat(quat.x, quat.y, quat.z, quat.w);
+	//}
 	mShape->setLocalPose(transform);
+	
+
+
+	mShapeMatrix = XMMatrixMultiply(
+		XMMatrixRotationQuaternion(XMVectorSet(transform.q.x, transform.q.y, transform.q.z, transform.q.w)),
+		XMMatrixTranslationFromVector(XMVectorSet(transform.p.x, transform.p.y, transform.p.z, 1.0f)));
 
 
 }
@@ -438,15 +571,16 @@ const XMVECTOR& PhysXColliderComponent::GetTransform() const{
 
 void PhysXColliderComponent::SetScale(const XMVECTOR& scale){
 	mScale = scale;
+	auto s = mScale * mGameObjectScale;
 
 	//PxBoxGeometry box(PxVec3(1.0f*scale.x, 1.0f*scale.y, 1.0f*scale.z));
 	auto g = mShape->getGeometry();
 	if (g.getType() == PxGeometryType::eBOX){
-		g.box().halfExtents = PxVec3(PxVec3(abs(0.5f*scale.x), abs(0.5f*scale.y), abs(0.5f*scale.z)));
+		g.box().halfExtents = PxVec3(PxVec3(abs(0.5f*s.x), abs(0.5f*s.y), abs(0.5f*s.z)));
 		mShape->setGeometry(g.box());
 	}
 	else if (g.getType() == PxGeometryType::eSPHERE){
-		g.sphere().radius = abs(0.5f*scale.x);
+		g.sphere().radius = abs(0.5f*s.x);
 		mShape->setGeometry(g.sphere());
 	}
 	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
@@ -456,7 +590,7 @@ void PhysXColliderComponent::SetScale(const XMVECTOR& scale){
 			q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
 		}
 
-		g.triangleMesh().scale = PxMeshScale(PxVec3(scale.x, scale.y, scale.z), q);
+		g.triangleMesh().scale = PxMeshScale(PxVec3(s.x, s.y, s.z), q);
 		mShape->setGeometry(g.triangleMesh());
 	}
 
@@ -473,4 +607,14 @@ void PhysXColliderComponent::SetPhysxLayer(int layer){
 	filterData.word0 = l;  //ƒ[ƒh0 =Ž©•ª‚ÌID 
 	mShape->setSimulationFilterData(filterData);
 	mShape->setQueryFilterData(filterData);
+}
+
+
+void PhysXColliderComponent::OnEnabled(){
+
+	ShapeAttach(mShape);
+}
+void PhysXColliderComponent::OnDisabled(){
+
+	ReleaseAttach();
 }

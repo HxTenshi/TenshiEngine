@@ -73,6 +73,9 @@ void MovieComponent::CreateInspector(){
 }
 #endif
 void MovieComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(mMovieAsset);
 	_KEY(mLoop);

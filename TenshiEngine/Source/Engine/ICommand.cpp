@@ -3,9 +3,9 @@
 #include "Library/picojson.h"
 #include "Game/Game.h"
 
-ActorUndoCommand::ActorUndoCommand(Actor* actor)
+ActorUndoCommand::ActorUndoCommand(Actor* actor,bool childExport)
 {
-	actor->ExportData(mPrev, true);
+	actor->ExportData(mPrev, childExport);
 }
 
 void ActorUndoCommand::Undo(){
@@ -13,7 +13,7 @@ void ActorUndoCommand::Undo(){
 	act->ImportData(mPrev);
 	auto id = act->GetUniqueID();
 	if (auto tar = Game::FindUID(id)){
-		Game::DestroyObject(tar);
+		Game::DestroyObject(tar.lock());
 	}
 	Game::AddObject(act);
 }
@@ -25,7 +25,7 @@ ActorDestroyUndoCommand::ActorDestroyUndoCommand(Actor* actor)
 
 void ActorDestroyUndoCommand::Undo(){
 	if (auto tar = Game::FindUID(mPrev)){
-		Game::DestroyObject(tar.Get());
+		Game::DestroyObject(tar.lock());
 	}
 }
 

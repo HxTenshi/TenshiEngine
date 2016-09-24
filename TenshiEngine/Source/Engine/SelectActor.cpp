@@ -66,7 +66,6 @@ public:
 			phy->SetKinematic(true);
 			auto col = mComponents.GetComponent<PhysXColliderComponent>();
 			col->CreateMesh(std::string("EngineResource/Arrow.pmx.tesmesh"));
-			col->SetScale(XMVectorSet(0.1, 0.1, 0.1, 1));
 		});
 
 	}
@@ -77,6 +76,299 @@ public:
 	//}
 private:
 };
+
+
+
+void EditGuide::SetGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat){
+	mGuidePosition = pos;
+	mGuideRotate = quat;
+	UpdateGuideTransform(mGuidePosition, mGuideRotate);
+}
+void EditGuide::UpdateGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat){
+	const XMVECTOR v[] = {
+		XMVectorSet(0, 0, -90 * (XM_PI / 180.0f), 1),
+		XMVectorSet(0, 0, 0, 1),
+		XMVectorSet(90 * (XM_PI / 180.0f), 0, 0, 1)
+	};
+
+	for (int i = 0; i < 3; i++){
+		mGuide[i]->mTransform->Position(pos);
+
+		auto q = XMQuaternionRotationRollPitchYawFromVector(v[i]);
+		q = XMQuaternionMultiply(q, quat);
+		mGuide[i]->mTransform->Quaternion(q);
+	}
+
+	
+	auto cam = Game::GetMainCamera();
+	if (cam){
+		auto wp = cam->gameObject->mTransform->WorldPosition();
+		auto l = XMVector3Length(pos - wp).x / 100.0f;
+		for (int i = 0; i < 3; i++){
+			mGuide[i]->mTransform->Scale(XMVectorSet(l, l, l, 1));
+		}
+	}
+}
+
+int EditGuide::SetGuideHit(Actor* act){
+	mSelectGuide = -1;
+	for (int i = 0; i < 3; i++){
+		if (mGuide[i].Get() != act)continue;
+		mSelectGuide = i;
+	}
+	return mSelectGuide;
+}
+
+void EditGuide::Update(){
+
+	for (int _i = 0; _i < 3; _i++){
+		mGuide[_i]->UpdateComponent(Game::GetDeltaTime()->GetDeltaTime());
+	}
+	//ÉAÉçÅ[ï`âÊ
+	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
+
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+		render->PushSet(DepthStencil::Preset::DS_All_Alawys);
+		render->PushSet(Rasterizer::Preset::RS_Back_Solid);
+
+
+		auto f = Game::GetMainCamera()->gameObject->mTransform->Forward();
+
+		auto func = [](const std::pair<float, std::function<void()>>& p1, const std::pair<float, std::function<void()>>& p2)
+		{
+			return p1.first > p2.first;
+		};
+		std::set<std::pair<float, std::function<void()>>, std::function<bool(const std::pair<float, std::function<void()>>&, const std::pair<float, std::function<void()>>&)> > draws(func);
+
+
+		for (int _i = 0; _i < 3; _i++){
+			int i = _i;
+
+			auto mModel = mGuide[i]->GetComponent<ModelComponent>();
+			Model& model = *mModel->mModel;
+
+			auto au = mGuide[i]->mTransform->Up();
+			auto dot = XMVector3Dot(au, f);
+
+			auto result = draws.insert(std::pair<float, std::function<void()>>((float)dot.x, [=](){
+				mModel->SetMatrix();
+				model.Draw(render->m_Context, mGuide[i]->GetComponent<MaterialComponent>());
+			}));
+			if (!result.second){
+				dot.x -= 0.01f;
+				draws.insert(std::pair<float, std::function<void()>>((float)dot.x, [=](){
+					mModel->SetMatrix();
+					model.Draw(render->m_Context, mGuide[i]->GetComponent<MaterialComponent>());
+				}));
+			}
+		}
+		//Game::GetMainCamera()->SetOrthographic();
+
+		for (auto & d : draws){
+			d.second();
+		}
+
+		render->PopRS();
+		render->PopDS();
+	}));
+}
+
+
+void EditGuide::Enable(){
+	for (int i = 0; i < 3; i++){
+		mGuide[i]->Enable();
+	}
+}
+void EditGuide::Disable(){
+	for (int i = 0; i < 3; i++){
+		mGuide[i]->Disable();
+	}
+}
+
+class MoveEditGuide :public EditGuide{
+public:
+	MoveEditGuide(){
+
+		mMove = XMVectorSet(0, 0, 0, 1);
+
+		float s = 0.1f;
+
+		XMFLOAT4 color[] = {
+			XMFLOAT4(1, 0, 0, 1),
+			XMFLOAT4(0, 1, 0, 1),
+			XMFLOAT4(0, 0, 1, 1)
+		};
+		XMVECTOR v[] = {
+			XMVectorSet(0, 0, -90, 1),
+			XMVectorSet(0, 0, 0, 1),
+			XMVectorSet(90, 0, 0, 1)
+		};
+
+		for (int i = 0; i < 3; i++){
+
+			mGuide[i] = make_shared<Arrow>();
+			Game::AddEngineObject(mGuide[i]);
+
+			mGuide[i]->mTransform->Scale(XMVectorSet(s, s, s, 1));
+			mGuide[i]->mTransform->DegreeRotate(v[i]);
+			auto mate = mGuide[i]->GetComponent<MaterialComponent>();
+			if (mate){
+				auto m = mate->GetMaterial(0);
+				m.Create("EngineResource/NoLighting.fx");
+				m.mCBMaterial.mParam.Diffuse = color[i];
+				mate->SetMaterial(0, m);
+			}
+
+		}
+		
+	}
+	~MoveEditGuide(){}
+
+	void GuideDrag(float pow)override{
+		mMove = mGuide[mSelectGuide]->mTransform->Up();
+		mMove = XMVector3Normalize(mMove);
+		mMove *= pow;
+		mMove.w = 0.0f;
+	}
+
+	void UpdateTransform(std::list<Actor*>& actors)override{
+
+		SetGuideTransform(mGuidePosition + mMove, mGuideRotate);
+
+		for (auto& act : actors){
+			auto move = mMove * act->mTransform->GetParent()->mTransform->LossyScale();
+			auto pos = act->mTransform->Position();
+			act->mTransform->Position(pos + move);
+		}
+	}
+private:
+	XMVECTOR mMove;
+};
+
+class ScaleEditGuide :public EditGuide{
+public:
+	ScaleEditGuide(){
+
+		mScale = XMVectorSet(0, 0, 0, 1);
+
+		float s = 0.1f;
+
+		XMFLOAT4 color[] = {
+			XMFLOAT4(1, 0, 0, 1),
+			XMFLOAT4(0, 1, 0, 1),
+			XMFLOAT4(0, 0, 1, 1)
+		};
+		XMVECTOR v[] = {
+			XMVectorSet(0, 0, -90, 1),
+			XMVectorSet(0, 0, 0, 1),
+			XMVectorSet(90, 0, 0, 1)
+		};
+
+		for (int i = 0; i < 3; i++){
+
+			mGuide[i] = make_shared<Arrow>();
+			Game::AddEngineObject(mGuide[i]);
+
+			mGuide[i]->mTransform->Scale(XMVectorSet(s, s, s, 1));
+			mGuide[i]->mTransform->DegreeRotate(v[i]);
+			auto mate = mGuide[i]->GetComponent<MaterialComponent>();
+			if (mate){
+				auto m = mate->GetMaterial(0);
+				m.Create("EngineResource/NoLighting.fx");
+				m.mCBMaterial.mParam.Diffuse = color[i];
+				mate->SetMaterial(0, m);
+			}
+
+		}
+
+	}
+	~ScaleEditGuide(){}
+
+	void GuideDrag(float pow)override{
+		mScale = mGuide[mSelectGuide]->mTransform->Up();
+		mScale = XMVector3Normalize(mScale);
+		mScale *= pow;
+		mScale.w = 0.0f;
+	}
+
+	void UpdateTransform(std::list<Actor*>& actors)override{
+
+		for (auto& act : actors){
+			auto s = act->mTransform->Scale();
+			act->mTransform->Scale(s + mScale);
+		}
+	}
+private:
+	XMVECTOR mScale;
+};
+
+class RotateEditGuide :public EditGuide{
+public:
+	RotateEditGuide(){
+
+		mQuat = XMVectorSet(0, 0, 0, 1);
+
+		float s = 0.1f;
+
+		XMFLOAT4 color[] = {
+			XMFLOAT4(1, 0, 0, 1),
+			XMFLOAT4(0, 1, 0, 1),
+			XMFLOAT4(0, 0, 1, 1)
+		};
+		XMVECTOR v[] = {
+			XMVectorSet(0, 0, -90, 1),
+			XMVectorSet(0, 0, 0, 1),
+			XMVectorSet(90, 0, 0, 1)
+		};
+
+		for (int i = 0; i < 3; i++){
+
+			mGuide[i] = make_shared<Arrow>();
+			Game::AddEngineObject(mGuide[i]);
+
+			mGuide[i]->mTransform->Scale(XMVectorSet(s, s, s, 1));
+			mGuide[i]->mTransform->DegreeRotate(v[i]);
+			auto mate = mGuide[i]->GetComponent<MaterialComponent>();
+			if (mate){
+				auto m = mate->GetMaterial(0);
+				m.Create("EngineResource/NoLighting.fx");
+				m.mCBMaterial.mParam.Diffuse = color[i];
+				mate->SetMaterial(0, m);
+			}
+
+		}
+
+	}
+	~RotateEditGuide(){}
+
+	void GuideDrag(float pow)override{
+		mQuat = mGuide[mSelectGuide]->mTransform->Up();
+		mQuat = XMVector3Normalize(mQuat);
+		mQuat *= pow;
+		mQuat.w = 0.0f;
+		mQuat *= (XM_PI / 180.0f);
+	}
+
+	void UpdateTransform(std::list<Actor*>& actors)override{
+
+		for (auto& act : actors){
+			auto quat = act->mTransform->Quaternion();
+			auto q = XMQuaternionRotationRollPitchYawFromVector(mQuat);
+			q = XMQuaternionMultiply(q, quat);
+			act->mTransform->Quaternion(q);
+		}
+	}
+private:
+	XMVECTOR mQuat;
+};
+
+
+
+
+
+
+
 
 Selects::Selects(){
 	mLastVect = XMVectorZero();
@@ -103,31 +395,6 @@ bool Selects::TriggerSelect(Actor* act){
 	mSelects.push_back(act);
 	return true;
 }
-void Selects::MoveStart(XMVECTOR& vect){
-	mLastVect = vect;
-}
-void Selects::MovePos(XMVECTOR& vect){
-
-	auto move = vect - mLastVect;
-	mLastVect = vect;
-
-	for (auto& act : mSelects){
-		auto pos = act->mTransform->Position();
-		act->mTransform->Position(pos + move);
-	}
-
-}
-void Selects::MoveEnd(XMVECTOR& vect){
-	auto move = vect - mLastVect;
-	mLastVect = vect;
-	for (auto& act : mSelects){
-		auto pos = act->mTransform->Position();
-		act->mTransform->Position(pos + move);
-		Game::SetUndo(act);
-	}
-
-}
-
 void Selects::Copy(){
 	CopyDelete();
 	for (auto& act : mSelects){
@@ -146,10 +413,16 @@ void Selects::CopyDelete(){
 void Selects::Paste(){
 	mSelects.clear();
 	for (auto& act : mCopy){
-		auto postactor = new Actor();
+		auto postactor = make_shared<Actor>();
 		postactor->ImportDataAndNewID(*act);
-		Game::AddObject(postactor);
-		TriggerSelect(postactor);
+		Game::AddObject(postactor,true);
+		TriggerSelect(postactor.Get());
+	}
+}
+
+void Selects::SetUndo(){
+	for (auto& act : mSelects){
+		Game::SetUndo(act);
 	}
 }
 
@@ -229,90 +502,34 @@ SelectActor::SelectActor()
 	, mDontTreeViewSelect(false)
 {
 	mSelectAsset = false;
-	mDragBox = -1;
+	mCurrentGuide = 0;
+	//mDragBox = -1;
 
-	mVectorBox[0] = NULL;
-	mVectorBox[1] = NULL;
-	mVectorBox[2] = NULL;
-
-	mSelectWireMaterial.mDiffuse.x = 0.95f;
-	mSelectWireMaterial.mDiffuse.y = 0.6f;
-	mSelectWireMaterial.mDiffuse.z = 0.1f;
+	for (int i = 0; i < 3; i++){
+		mEditGuide[i] = NULL;
+	}
+	mSelectWireMaterial.mAmbient.x = 0.95f;
+	mSelectWireMaterial.mAmbient.y = 0.6f;
+	mSelectWireMaterial.mAmbient.z = 0.1f;
 	mSelectWireMaterial.Create();
 	
-	mSelectPhysxWireMaterial.mDiffuse.x = 0.1f;
-	mSelectPhysxWireMaterial.mDiffuse.y = 0.95f;
-	mSelectPhysxWireMaterial.mDiffuse.z = 0.6f;
+	mSelectPhysxWireMaterial.mAmbient.x = 0.1f;
+	mSelectPhysxWireMaterial.mAmbient.y = 0.95f;
+	mSelectPhysxWireMaterial.mAmbient.z = 0.6f;
 	mSelectPhysxWireMaterial.Create();
 }
 
 void SelectActor::Finish(){
-	if (mVectorBox){
-		for (int i = 0; i < 3; i++){
-
-			mVectorBox[i]->Finish();
-		}
-		//delete[] mVectorBox;
-		mVectorBox[0] = NULL;
-		mVectorBox[1] = NULL;
-		mVectorBox[2] = NULL;
+	for (int i = 0; i < 3; i++){
+		if (mEditGuide[i])
+			delete mEditGuide[i];
 	}
 }
 
 void SelectActor::Initialize(){
-	if (mVectorBox[0] == NULL){
-
-		float s = 0.1f;
-
-		for (int i = 0; i < 3; i++){
-
-			mVectorBox[i] = make_shared<Arrow>();
-			Game::AddEngineObject(mVectorBox[i]);
-
-			mVectorBox[i]->mTransform->Scale(XMVectorSet(s,s,s, 1));
-
-		}
-
-		mVectorBox[0]->mTransform->DegreeRotate(XMVectorSet(0, 0, -90, 1));
-		mVectorBox[1]->mTransform->DegreeRotate(XMVectorSet(0, 0, 0, 1));
-		mVectorBox[2]->mTransform->DegreeRotate(XMVectorSet(90, 0, 0, 1));
-
-		auto mate = mVectorBox[0]->GetComponent<MaterialComponent>();
-		if (mate){
-			auto m = mate->GetMaterial(0);
-
-			m.Create("EngineResource/NoLighting.fx");
-			auto& d = m.mCBMaterial.mParam.Diffuse;
-			d.x = 1;
-			d.y = 0;
-			d.z = 0;
-			d.w = 1;
-
-			mate->SetMaterial(0, m);
-		}
-		mate = mVectorBox[1]->GetComponent<MaterialComponent>();
-		if (mate){
-			auto m = mate->GetMaterial(0);
-			m.Create("EngineResource/NoLighting.fx");
-			auto& d = m.mCBMaterial.mParam.Diffuse;
-			d.x = 0;
-			d.y = 1;
-			d.z = 0;
-			d.w = 1;
-			mate->SetMaterial(0, m);
-		}
-		mate = mVectorBox[2]->GetComponent<MaterialComponent>();
-		if (mate){
-			auto m = mate->GetMaterial(0);
-			m.Create("EngineResource/NoLighting.fx");
-			auto& d = m.mCBMaterial.mParam.Diffuse;
-			d.x = 0;
-			d.y = 0;
-			d.z = 1;
-			d.w = 1;
-			mate->SetMaterial(0, m);
-		}
-	}
+	mEditGuide[0] = new MoveEditGuide();
+	mEditGuide[1] = new ScaleEditGuide();
+	mEditGuide[2] = new RotateEditGuide();
 }
 
 Actor* SelectActor::GetSelectOne(){
@@ -374,66 +591,79 @@ void SelectActor::Update(float deltaTime){
 		mSelects.Paste();
 	}
 
+	int g = mCurrentGuide;
+	if (Input::Trigger(KeyCoord::Key_R)){
+		mCurrentGuide = 0;
+		mIsDragMode = false;
+	}
+	if (Input::Trigger(KeyCoord::Key_T)){
+		mCurrentGuide = 1;
+		mIsDragMode = false;
+	}
+	if (Input::Trigger(KeyCoord::Key_Y)){
+		mCurrentGuide = 2;
+		mIsDragMode = false;
+	}
+	if (g != mCurrentGuide){
+		for (int i = 0; i < 3; i++){
+			if (mCurrentGuide == i){
+				mEditGuide[i]->Enable();
+			}
+			else{
+				mEditGuide[i]->Disable();
+			}
+		}
+	}
 
 	auto tar = mSelects.GetPosition();
-	mVectorBox[0]->mTransform->Position(tar);
-	mVectorBox[1]->mTransform->Position(tar);
-	mVectorBox[2]->mTransform->Position(tar);
+	//mVectorBox[0]->mTransform->Position(tar);
+	//mVectorBox[1]->mTransform->Position(tar);
+	//mVectorBox[2]->mTransform->Position(tar);
+	//
+	//auto cam = Game::GetMainCamera();
+	//if (cam){
+	//	auto pos = cam->gameObject->mTransform->WorldPosition();
+	//	auto l = XMVector3Length(tar - pos).x/100.0f;
+	//	mVectorBox[0]->mTransform->Scale(XMVectorSet(l, l, l, 1));
+	//	mVectorBox[1]->mTransform->Scale(XMVectorSet(l, l, l, 1));
+	//	mVectorBox[2]->mTransform->Scale(XMVectorSet(l, l, l, 1));
+	//
+	//
+	//	auto col = mVectorBox[0]->GetComponent<PhysXColliderComponent>();
+	//	col->SetScale(XMVectorSet(l, l, l, 1));
+	//	col = mVectorBox[1]->GetComponent<PhysXColliderComponent>();
+	//	col->SetScale(XMVectorSet(l, l, l, 1));
+	//	col = mVectorBox[2]->GetComponent<PhysXColliderComponent>();
+	//	col->SetScale(XMVectorSet(l, l, l, 1));
+	//
+	//}
 
-	auto cam = Game::GetMainCamera();
-	if (cam){
-		auto pos = cam->gameObject->mTransform->WorldPosition();
-		auto l = XMVector3Length(tar - pos).x/100.0f;
-		mVectorBox[0]->mTransform->Scale(XMVectorSet(l, l, l, 1));
-		mVectorBox[1]->mTransform->Scale(XMVectorSet(l, l, l, 1));
-		mVectorBox[2]->mTransform->Scale(XMVectorSet(l, l, l, 1));
+	mEditGuide[mCurrentGuide]->Update();
+	mEditGuide[mCurrentGuide]->UpdateGuideTransform(tar, XMQuaternionIdentity());
 
-
-		auto col = mVectorBox[0]->GetComponent<PhysXColliderComponent>();
-		col->SetScale(XMVectorSet(l, l, l, 1));
-		col = mVectorBox[1]->GetComponent<PhysXColliderComponent>();
-		col->SetScale(XMVectorSet(l, l, l, 1));
-		col = mVectorBox[2]->GetComponent<PhysXColliderComponent>();
-		col->SetScale(XMVectorSet(l, l, l, 1));
-
-	}
-
-	mVectorBox[0]->UpdateComponent(deltaTime);
-	mVectorBox[1]->UpdateComponent(deltaTime);
-	mVectorBox[2]->UpdateComponent(deltaTime);
-
-	static XMVECTOR vect = XMVectorZero();
-	if (Input::Down(MouseCoord::Left)){
-		int x, y;
-		Input::MouseLeftDragVector(&x, &y);
-		//float l = XMVector2Length(XMVectorSet(x,-y,0,1)).x;
-		float p = -y *0.05f;
-		vect = mDragPos;
-		if (Input::Down(KeyCoord::Key_LSHIFT)){
-			p += 0.5f;
-			p = (float)(int)p;
+	static float mBeforePow = 0.0f;
+	float pow = 0.0f;
+	if (mIsDragMode){
+		if (Input::Down(MouseCoord::Left)){
+			int x, y;
+			Input::MouseLeftDragVector(&x, &y);
+			//float l = XMVector2Length(XMVectorSet(x,-y,0,1)).x;
+			pow = y *0.05f;
+			if (Input::Down(KeyCoord::Key_LSHIFT)){
+				pow += 0.5f;
+				pow = (float)(int)pow;
+			}
+			mEditGuide[mCurrentGuide]->GuideDrag(mBeforePow-pow);
+			mEditGuide[mCurrentGuide]->UpdateTransform(mSelects.GetSelects());
 		}
 
-		if (mDragBox == 0){
-			vect += XMVectorSet(p, 0.0f, 0.0f, 0.0f);
-		}
-		if (mDragBox == 1){
-			vect += XMVectorSet(0.0f, p, 0.0f, 0.0f);
-		}
-		if (mDragBox == 2){
-			vect += XMVectorSet(0.0f, 0.0f, p, 0.0f);
+		if (Input::Up(MouseCoord::Left)){
+			mSelects.SetUndo();
+			mIsDragMode = false;
 		}
 	}
+	mBeforePow = pow;
 
-	if (Input::Up(MouseCoord::Left)){
-		if (mDragBox != -1){
-			mSelects.MoveEnd(vect);
-		}
-		mDragBox = -1;
-	}
-	if (mDragBox != -1){
-		mSelects.MovePos(vect);
-	}
 	SelectActorDraw();
 }
 void SelectActor::SelectActorDraw(){
@@ -481,55 +711,6 @@ void SelectActor::SelectActorDraw(){
 			render->PopDS();
 		}));
 	}
-
-	//ÉAÉçÅ[ï`âÊ
-	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
-	
-		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-
-		render->PushSet(DepthStencil::Preset::DS_All_Alawys);
-		render->PushSet(Rasterizer::Preset::RS_Back_Solid);
-	
-
-		auto f = Game::GetMainCamera()->gameObject->mTransform->Forward();
-
-		auto func = [](const std::pair<float, std::function<void()>>& p1, const std::pair<float, std::function<void()>>& p2)
-		{
-			return p1.first > p2.first;
-		};
-		std::set<std::pair<float, std::function<void()>>, std::function<bool(const std::pair<float, std::function<void()>>&, const std::pair<float, std::function<void()>>&)> > draws(func);
-
-
-		for (int _i = 0; _i < 3; _i++){
-			int i = _i;
-
-			auto mModel = mVectorBox[i]->GetComponent<ModelComponent>();
-			Model& model = *mModel->mModel;
-
-			auto au = mVectorBox[i]->mTransform->Up();
-			auto dot = XMVector3Dot(au, f);
-
-			auto result = draws.insert(std::pair<float, std::function<void()>>((float)dot.x, [=](){
-				mModel->SetMatrix();
-				model.Draw(render->m_Context, mVectorBox[i]->GetComponent<MaterialComponent>());
-			}));
-			if (!result.second){
-				dot.x -= 0.01f;
-				draws.insert(std::pair<float, std::function<void()>>((float)dot.x, [=](){
-					mModel->SetMatrix();
-					model.Draw(render->m_Context, mVectorBox[i]->GetComponent<MaterialComponent>());
-				}));
-			}
-		}
-		//Game::GetMainCamera()->SetOrthographic();
-
-		for (auto & d : draws){
-			d.second();
-		}
-
-		render->PopRS();
-		render->PopDS();
-	}));
 }
 
 void SelectActor::ReleaseSelect(Actor* actor){
@@ -538,7 +719,7 @@ void SelectActor::ReleaseSelect(Actor* actor){
 }
 
 void SelectActor::SetSelect(Actor* select, bool dontTreeViewSelect){
-	mDragBox = -1;
+	mIsDragMode = false;
 
 	if (mSelectAsset){
 		mSelects.OneSelect(NULL);
@@ -569,7 +750,7 @@ void SelectActor::SetSelect(Actor* select, bool dontTreeViewSelect){
 	mDontTreeViewSelect = dontTreeViewSelect;
 }
 void SelectActor::SetSelectAsset(Actor* select,const char* filename){
-	mDragBox = -1;
+	mIsDragMode = false;
 	if (!mSelectAsset){
 		mSelects.OneSelect(NULL);
 	}
@@ -608,27 +789,14 @@ bool SelectActor::ChackHitRay(PhysX3Main* physx, EditorCamera* camera){
 	XMVECTOR pos = camera->GetPosition();
 
 	auto act = physx->EngineSceneRaycast(pos, vect);
-	if (act){
-		if (mVectorBox[0].Get() == act){
-			mDragPos = mSelects.GetPosition();
-			mSelects.MoveStart(mDragPos);
-			mDragBox = 0;
-			return true;
-		}
-		if (mVectorBox[1].Get() == act){
-			mDragPos = mSelects.GetPosition();
-			mSelects.MoveStart(mDragPos);
-			mDragBox = 1;
-			return true;
-		}
-		if (mVectorBox[2].Get() == act){
-			mDragPos = mSelects.GetPosition();
-			mSelects.MoveStart(mDragPos);
-			mDragBox = 2;
-			return true;
-		}
-	}
-	return false;
+	if (!act)return false;
+
+	if (mEditGuide[mCurrentGuide]->SetGuideHit(act) == -1) return false;
+	auto p = mSelects.GetPosition();
+	mEditGuide[mCurrentGuide]->SetGuideTransform(p, XMQuaternionIdentity());
+	mIsDragMode = true;
+	return true;
+	
 }
 
 void SelectActor::PushUndo(){

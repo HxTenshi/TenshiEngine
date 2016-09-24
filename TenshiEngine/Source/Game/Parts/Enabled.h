@@ -1,6 +1,7 @@
 #pragma once
 
 class Inspector;
+class I_ioHelper;
 class Enabled{
 public:
 	Enabled()
@@ -20,6 +21,10 @@ public:
 	}
 	//有効か？
 	bool IsEnabled(){
+		return m_IsEnabled && m_IsParentEnabled;
+	}
+	//有効か？
+	bool IsLocalEnabled(){
 		return m_IsEnabled;
 	}
 
@@ -27,9 +32,10 @@ protected:
 	//コールバック用
 	void ChildEnableChanged(Enabled* child){
 		bool current = m_IsEnabled && m_IsParentEnabled;
-		child->_TryChange(child->IsEnabled(), current);
+		child->_TryChange(child->IsLocalEnabled(), current);
 	}
 
+	void IO_Data(I_ioHelper* io);
 private:
 	virtual void OnEnabled(){}
 	virtual void OnDisabled(){}

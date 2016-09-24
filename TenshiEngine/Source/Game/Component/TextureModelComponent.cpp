@@ -179,6 +179,9 @@ void TextureModelComponent::CreateInspector(){
 #endif
 
 void TextureModelComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(m_TextureAsset);
 	//_KEY(mTextureHash);

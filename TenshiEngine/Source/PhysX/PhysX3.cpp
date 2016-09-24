@@ -407,7 +407,10 @@ void PhysX3Main::InitializePhysX() {
 
 	mRigidDynamic = (PxRigidDynamic*)createBody();
 	mRigidDynamic->setRigidDynamicFlag(PxRigidBodyFlag::eKINEMATIC, true);
+	AddActor(mRigidDynamic);
 	mRigidStatic = createRigidStatic();
+	AddActor(mRigidStatic);
+
 	//createPlane();
 
 
@@ -447,7 +450,6 @@ PxRigidActor* PhysX3Main::createBody(){
 		_SYSTEM_LOG_ERROR("PhysX Actor�̍쐬");
 		std::cerr << "create actor failed!" << std::endl;
 	}
-	gScene->addActor(*actor);
 
 	PxRigidActor* act = actor;
 	auto flag = act->getActorFlags();
@@ -466,7 +468,6 @@ PxRigidStatic* PhysX3Main::createRigidStatic(){
 		_SYSTEM_LOG_ERROR("PhysX Actor�̍쐬");
 		std::cerr << "create actor failed!" << std::endl;
 	}
-	gScene->addActor(*actor);
 
 	auto flag = actor->getActorFlags();
 	//flag |= PxActorFlag::eSEND_SLEEP_NOTIFIES;
@@ -486,7 +487,6 @@ PxRigidActor* PhysX3Main::createBodyEngine(){
 		_SYSTEM_LOG_ERROR("PhysX Shape Plane�̍쐬");
 		std::cerr << "create actor failed!" << std::endl;
 	}
-	mEngineScene->addActor(*actor);
 
 	PxRigidActor* act = actor;
 	auto flag = act->getActorFlags();
@@ -651,6 +651,7 @@ void PhysX3Main::EngineDisplay() {
 		mEngineScene->fetchResults(true);
 
 	}
+
 }
 
 void PhysX3Main::Display() {
@@ -732,14 +733,17 @@ bool PhysX3Main::GetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2){
 void PhysX3Main::SetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2, bool flag){
 	mCollideFiler[l1 | l2] = flag;
 }
-
+void PhysX3Main::AddActor(PxActor* act){
+	gScene->addActor(*act);
+}
+void PhysX3Main::AddActorEngine(PxActor* act){
+	mEngineScene->addActor(*act);
+}
 void PhysX3Main::RemoveActor(PxActor* act){
 	gScene->removeActor(*act);
-	act->release();
 }
 void PhysX3Main::RemoveActorEngine(PxActor* act){
 	mEngineScene->removeActor(*act);
-	act->release();
 }
 
 void PhysX3Main::AddStaticShape(PxShape* shape){

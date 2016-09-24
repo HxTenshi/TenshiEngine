@@ -67,6 +67,9 @@ void MeshComponent::CreateInspector(){
 #endif
 
 void MeshComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(mMesh);
 	_KEY(m_ID);

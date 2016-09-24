@@ -89,7 +89,11 @@ private:
 	//アタッチの解放
 	void ReleaseAttach();
 
+	void OnEnabled()override;
+	void OnDisabled()override;
+
 	physx::PxShape* mShape;
+	XMMATRIX mShapeMatrix;
 	//-1 = static, 0 = none, 1~ = dynamic
 	int mAttachTarget;
 	weak_ptr<PhysXComponent> mAttachPhysXComponent;
@@ -103,6 +107,10 @@ private:
 
 	XMVECTOR mPosition;
 	XMVECTOR mScale;
+
+	XMVECTOR mGameObjectPosition;
+	XMVECTOR mGameObjectRotate;
+	XMVECTOR mGameObjectScale;
 
 	bool mIsTrigger;
 

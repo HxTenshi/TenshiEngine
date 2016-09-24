@@ -43,7 +43,6 @@ void ModelComponent::Update(){
 void ModelComponent::CreateInspector(){
 
 	Inspector ins("Model", this);
-	ins.AddEnableButton(this);
 	ins.Add("Model", &mMesh, [&](){
 		Load(mMesh);
 	});

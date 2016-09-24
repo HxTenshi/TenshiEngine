@@ -425,7 +425,9 @@ void ParticleComponent::CreateInspector(){
 #endif
 
 void ParticleComponent::IO_Data(I_ioHelper* io){
-	(void)io;
+	
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 
 	_KEY(mParticleCapacity);

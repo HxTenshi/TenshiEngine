@@ -305,7 +305,14 @@ public:
 	bool operator==(sp<T> smartptr) {
 		return this->Get() == smartptr.Get();
 	}
-
+	template <typename T>
+	bool operator!=(wp<T> smartptr) {
+		return this->Get() != smartptr.Get();
+	}
+	template <typename T>
+	bool operator!=(sp<T> smartptr) {
+		return this->Get() != smartptr.Get();
+	}
 private:
 	// make_shared‚Åg‚¤‰Šú‰»
 	void Resetp(T* p,sp_counter_base* counter){
@@ -416,6 +423,15 @@ public:
 	bool operator==(sp<T> smartptr) {
 		return this->Get() == smartptr.Get();
 	}
+	template <typename T>
+	bool operator!=(wp<T> smartptr) {
+		return this->Get() != smartptr.Get();
+	}
+	template <typename T>
+	bool operator!=(sp<T> smartptr) {
+		return this->Get() != smartptr.Get();
+	}
+
 
 private:
 	T* ptr;

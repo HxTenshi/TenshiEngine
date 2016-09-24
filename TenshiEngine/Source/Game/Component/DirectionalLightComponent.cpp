@@ -129,6 +129,9 @@ void DirectionalLightComponent::CreateInspector(){
 #endif
 
 void DirectionalLightComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(m_Color.x);
 	_KEY(m_Color.y);

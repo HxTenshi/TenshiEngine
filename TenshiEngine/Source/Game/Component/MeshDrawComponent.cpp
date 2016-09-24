@@ -71,7 +71,9 @@ void MeshDrawComponent::CreateInspector(){
 #endif
 
 void MeshDrawComponent::IO_Data(I_ioHelper* io){
-	(void)io;
+	
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 
 #undef _KEY

@@ -55,9 +55,15 @@ void Actor::Start_Script(){
 	
 }
 void Actor::EngineUpdateComponent(float deltaTime){
-	if (!IsEnabled())return;
-
 	Update(deltaTime);
+	
+	//ツリービュー作成のため
+	if (!IsEnabled()){
+		for (auto child : mTransform->Children()){
+			child->EngineUpdateComponent(deltaTime);
+		}
+		return;
+	}
 
 	mTransform->EngineUpdate();
 	for (const auto& cmp : mComponents.mComponent){
@@ -76,10 +82,9 @@ void Actor::EngineUpdateComponent(float deltaTime){
 
 void Actor::UpdateComponent(float deltaTime){
 	if (!mEndStart)return;
-	if (!IsEnabled())return;
+	if (!IsEnabled()){return;}
 
 	Update(deltaTime);
-
 
 	mTransform->Update();
 	for (const auto& cmp : mComponents.mComponent){
@@ -159,7 +164,7 @@ void Actor::ExportData(const std::string& path, const std::string& fileName, boo
 		//}
 	}
 
-	I_ioHelper* io = new FileOutputHelper(path + "/" + fileName + ".json", prefab_io.Get());
+	I_ioHelper* io = new FileOutputHelper(path + "/" + fileName + ".prefab", prefab_io.Get());
 	if (io->error){
 		delete io;
 		return;
@@ -199,6 +204,8 @@ void Actor::_ExportData(I_ioHelper* io, bool childExport){
 	if (mUniqueHash == ""){
 		CreateNewID();
 	}
+
+	Enabled::IO_Data(io);
 
 #define _KEY(x) io->func( x , #x)
 #define _KEY_COMPEL(x) io->func( x , #x,true)
@@ -340,7 +347,7 @@ void Actor::ImportData(const std::string& fileName){
 	I_ioHelper* io = new FileInputHelper(fileName, NULL);
 	if (io->error){
 		delete io;
-		io = new FileInputHelper(fileName + ".json", NULL);
+		io = new FileInputHelper(fileName + ".prefab", NULL);
 		if (io->error){
 			delete io;
 			return;
@@ -386,6 +393,8 @@ void Actor::_ImportData(I_ioHelper* io){
 	mComponents.mComponent.clear();
 
 #define _KEY(x) io->func( x , #x)
+
+	Enabled::IO_Data(io);
 
 	_KEY(mUniqueHash);
 	_KEY(mName);
@@ -462,13 +471,11 @@ void Actor::_ImportData(I_ioHelper* io){
 	
 		io->pushObject("child");
 	
-		auto a = new Actor();
+		auto a = make_shared<Actor>();
 		auto value = (picojson::value)childobj;
 		a->ImportDataAndNewID(value);
-		if (!a->mTransform){
-			delete a;
-		}
-		else{
+		Game::AddObject(a);
+		if (a->mTransform){
 			a->mTransform->SetParent(this->shared_from_this());
 		}
 	

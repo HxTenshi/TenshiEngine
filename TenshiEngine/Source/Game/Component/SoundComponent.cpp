@@ -54,6 +54,9 @@ void SoundComponent::CreateInspector(){
 }
 #endif
 void SoundComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(mSoundFileSource);
 	_KEY(mIsLoop);

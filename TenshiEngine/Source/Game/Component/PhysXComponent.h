@@ -78,6 +78,8 @@ public:
 private:
 
 	void ChildrenAttachShape(Actor* actor);
+	void OnEnabled() override;
+	void OnDisabled() override;
 
 	physx::PxRigidActor* mRigidActor;
 	bool mIsKinematic;

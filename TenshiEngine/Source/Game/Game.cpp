@@ -93,6 +93,34 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 #include "Engine/AssetFile/MetaFileData.h"
 #include "Engine/AssetFile/Material/TextureFileData.h"
 
+
+void InitContextMenu(){
+
+	_SYSTEM_LOG_H("コンテキストメニューの初期化");
+	auto coms = ComponentFactory::GetComponents();
+	for (auto& com : coms){
+		auto name = com.first;
+		auto str = name.substr(6);
+		Window::CreateContextMenu_AddComponent(str);
+	}
+
+	namespace sys = std::tr2::sys;
+	sys::path p("EngineResource/prefab/"); // 列挙の起点
+	//std::for_each(sys::directory_iterator(p), sys::directory_iterator(),
+	//  再帰的に走査するならコチラ↓
+	std::for_each(sys::recursive_directory_iterator(p), sys::recursive_directory_iterator(),
+		[&](const sys::path& p) {
+		if (sys::is_regular_file(p)) { // ファイルなら...
+			if (p.extension() == ".prefab"){
+				Window::CreateContextMenu_CreateObject(p.basename(), p.string());
+			}
+		}
+		else if (sys::is_directory(p)) { // ディレクトリなら...
+			//std::cout << "dir.: " << p.string() << std::endl;
+		}
+	});
+}
+
 Game::Game(){
 
 	LoadMetaFiles();
@@ -115,18 +143,7 @@ Game::Game(){
 #ifdef _ENGINE_MODE
 	ScriptManager::ReCompile();
 
-	{
-		_SYSTEM_LOG_H("コンテキストメニューの初期化");
-		auto coms = ComponentFactory::GetComponents();
-		for (auto& com : coms){
-			auto name = com.first;
-			auto str = name.substr(6);
-			Window::CreateContextMenu_AddComponent(str);
-		}
-
-		Window::CreateContextMenu_CreateObject("Box", "EngineResource/box.prefab");
-		Window::CreateContextMenu_CreateObject("Texture", "EngineResource/new Texture");
-	}
+	InitContextMenu();
 #endif
 
 	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
@@ -245,8 +262,11 @@ Game::Game(){
 			parent = mRootObject.Get();
 		}
 		auto act = ((Actor*)p);
+
 		act->mTransform->SetParentWorld(parent->shared_from_this());
+
 		SetUndo(act);
+
 	});
 	Window::SetWPFCollBack(MyWindowMessage::ActorDestroy, [&](void* p)
 	{
@@ -316,7 +336,7 @@ Game::Game(){
 		std::string *s = (std::string*)p;
 		obj->ExportData("Assets", *s,true);
 
-		AssetDataBase::FileUpdate(("Assets/"+*s+".json").c_str());
+		AssetDataBase::FileUpdate(("Assets/"+*s+".prefab").c_str());
 
 		Window::Deleter(s);
 	});
@@ -454,13 +474,13 @@ void Game::AddObject(GameObjectPtr actor, bool undoFlag){
 
 	mGame->mActorMoveList.push(std::make_pair(ActorMove::Create, actor));
 
-	for (auto child : actor->mTransform->Children()){
-		AddObject(child);
-	}
+	//for (auto child : actor->mTransform->Children()){
+	//	AddObject(child);
+	//}
 #ifdef _ENGINE_MODE
 	if (undoFlag){
 		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor.Get()));
-		gCommandManager->SetUndo(actor.Get());
+		gCommandManager->SetUndo(new ActorUndoCommand(actor.Get()));
 	}
 #endif
 }
@@ -488,7 +508,7 @@ void Game::DestroyObject(GameObjectPtr actor, bool undoFlag){
 	mGame->mActorMoveList.push(std::make_pair(ActorMove::Delete, actor));
 #ifdef _ENGINE_MODE
 	if (undoFlag){
-		gCommandManager->SetUndo(actor.Get());
+		gCommandManager->SetUndo(new ActorUndoCommand(actor.Get()));
 		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor.Get()));
 	}
 #endif
@@ -919,8 +939,7 @@ void Game::GameStop(){
 	if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Z)){
 		mCommandManager.Undo();
 	}
-
-	if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Y)){
+	else if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Y)){
 		mCommandManager.Redo();
 	}
 

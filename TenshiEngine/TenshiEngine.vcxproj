@@ -587,6 +587,7 @@
     <ClCompile Include="Source\Game\Game.cpp" />
     <ClCompile Include="Source\Game\Component\PhysXColliderComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PhysXComponent.cpp" />
+    <ClCompile Include="Source\Game\Parts\Enebled.cpp" />
     <ClCompile Include="Source\Game\PostEffectRendering.cpp" />
     <ClCompile Include="Source\Game\RenderingSystem.cpp" />
     <ClCompile Include="Source\Game\Scene.cpp" />

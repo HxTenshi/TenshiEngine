@@ -109,6 +109,9 @@ void AnimationComponent::CreateInspector(){
 #endif
 
 void AnimationComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str() )
 
 	for (int i = 0; i < mAnimetionCapacity; i++){

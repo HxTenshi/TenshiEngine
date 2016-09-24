@@ -89,6 +89,9 @@ void DebugEngineScriptComponent::CreateInspector(){
 #endif
 
 void DebugEngineScriptComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 
 	auto back = mClassName;

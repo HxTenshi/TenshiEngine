@@ -65,7 +65,7 @@ public:
 class Actor;
 class ActorUndoCommand : public ICommand{
 public:
-	ActorUndoCommand(Actor* actor);
+	ActorUndoCommand(Actor* actor, bool childExport = true);
 	void Undo() override;
 private:
 	picojson::value mPrev;

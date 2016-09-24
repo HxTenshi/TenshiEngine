@@ -80,6 +80,9 @@ void PostEffectComponent::CreateInspector(){
 
 
 void PostEffectComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 
 	_KEY(mShader);

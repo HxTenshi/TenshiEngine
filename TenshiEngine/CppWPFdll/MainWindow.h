@@ -1068,7 +1068,7 @@ private:
 	void OtherDrop(Object ^s, TestContent::Person^ dragitem){
 
 		auto name = GetFilePath(dragitem);
-		if (!name->Contains(".json"))return;
+		if (!name->Contains(".prefab"))return;
 		std::string* str = string_cast(name);
 		Data::MyPostMessage(MyWindowMessage::CreatePrefabToActor, (void*)str);
 	}

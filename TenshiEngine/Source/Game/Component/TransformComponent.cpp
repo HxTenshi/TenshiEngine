@@ -451,7 +451,7 @@ void TransformComponent::WorldPosition(const XMVECTOR& position){
 void TransformComponent::WorldQuaternion(const XMVECTOR& quaternion){
 
 	auto wq = mParent->mTransform->WorldQuaternion();
-	auto q = XMQuaternionMultiply(XMQuaternionInverse(wq), quaternion);
+	auto q = XMQuaternionMultiply(quaternion, XMQuaternionInverse(wq));
 	Quaternion(q);
 }
 void TransformComponent::WorldScale(const XMVECTOR& scale){
@@ -600,6 +600,9 @@ void TransformComponent::CreateInspector(){
 #endif
 
 void TransformComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(mParentUniqueHashID);
 	_KEY(mScale.x);

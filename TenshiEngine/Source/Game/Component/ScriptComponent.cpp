@@ -920,6 +920,9 @@ void ScriptComponent::CreateInspector(){
 #endif
 
 void ScriptComponent::IO_Data(I_ioHelper* io){
+
+	Enabled::IO_Data(io);
+
 #define _KEY(x) io->func( x , #x)
 	_KEY(mClassName);
 	Load();
