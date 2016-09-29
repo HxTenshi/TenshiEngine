@@ -106,6 +106,11 @@ int Window::Init(){
 
 void Window::Update(){
 	mInputManagerRapper.Update();
+
+	RECT rect;
+	GetClientRect(Window::GetGameScreenHWND(), &rect);
+	WindowState::mWidth = rect.right;
+	WindowState::mHeight = rect.bottom;
 }
 
 void Window::Release(){

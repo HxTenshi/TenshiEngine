@@ -146,7 +146,7 @@ Game::Game(){
 	InitContextMenu();
 #endif
 
-	hr = mMainViewRenderTarget.Create(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
+	hr = mMainViewRenderTarget.CreateRTandDepth(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
 	if (FAILED(hr)){
 		//MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
 	}
@@ -718,6 +718,25 @@ bool g_DebugRender = true;
 #endif
 #include "../Engine/AssetFile/Material/TextureFileData.h"
 void Game::Draw(){
+
+	static bool f = true;
+	if (Input::Trigger(KeyCoord::Key_F2)){
+		UINT w,h;
+		if (f){
+			w = (FLOAT)WindowState::mWidth;
+			h = (FLOAT)WindowState::mHeight;
+		}
+		else{
+			w = 1920;
+			h = 1080;
+		}
+		Device::Resize(w, h);
+		m_DeferredRendering.Resize(w, h);
+		mMainViewRenderTarget.Resize(w, h);
+		f = !f;
+	}
+
+
 	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 
 	// Setup the viewport
@@ -754,14 +773,15 @@ void Game::Draw(){
 
 	//Device::mRenderTargetBack->ClearView(Device::mpImmediateContext);
 	Device::mRenderTargetBack->ClearDepth(render->m_Context);
-	//mMainViewRenderTarget.ClearView();
+	mMainViewRenderTarget.ClearDepth(render->m_Context);
 	
 
 	render->PushSet(DepthStencil::Preset::DS_All_Less);
 	render->PushSet(Rasterizer::Preset::RS_Back_Solid);
 
-	const RenderTarget* r[1] = { &mMainViewRenderTarget };
-	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
+	//const RenderTarget* r[1] = { &mMainViewRenderTarget };
+	//RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], &mMainViewRenderTarget);
+	mMainViewRenderTarget.SetRendererTarget(render->m_Context);
 
 	//mMainCamera->ScreenClear();
 
@@ -833,6 +853,7 @@ void Game::Draw(){
 		});
 
 		m_DeferredRendering.HDR_Rendering(render);
+
 #ifdef _ENGINE_MODE
 	}
 	else{
@@ -865,6 +886,9 @@ void Game::Draw(){
 #ifdef _ENGINE_MODE
 	PlayDrawList(DrawStage::Engine);
 #endif
+
+
+	mPostEffectRendering.Flip(render);
 
 	render->PopDS();
 
@@ -944,7 +968,7 @@ void Game::GameStop(){
 	}
 
 
-	mSelectActor.Update(deltaTime);
+	mSelectActor.Update();
 	if (Input::Trigger(MouseCoord::Left)){
 
 		if (!mSelectActor.ChackHitRay(mPhysX3Main, &mCamera)){

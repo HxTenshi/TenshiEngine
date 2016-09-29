@@ -90,7 +90,7 @@ public:
 	Actor* GetSelectOne();
 
 	void UpdateInspector();
-	void Update(float deltaTime);
+	void Update();
 
 	void ReCreateInspector();
 

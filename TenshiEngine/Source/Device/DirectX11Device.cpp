@@ -92,7 +92,6 @@ HRESULT Device::Init(const Window& window)
 		_SYSTEM_LOG_H_ERROR();
 		return hr;
 	}
-
 	
 	
 	IDXGIFactory* pfac = nullptr;
@@ -158,6 +157,16 @@ HRESULT Device::Init(const Window& window)
 	//CreateBackBuffer();
 }
 
+//static
+void Device::Resize(UINT width, UINT height){
+	mRenderTargetBack->Release();
+	mpSwapChain->ResizeBuffers(2,
+		//0, 0,	// ClientRect ‚ðŽQÆ‚·‚é
+		width, height,
+		DXGI_FORMAT_R8G8B8A8_UNORM,	// Format ‚Í DESC ‚©‚ç
+		0);
+	mRenderTargetBack->CreateBackBuffer(width, height);
+}
 
 //static
 void Device::CleanupDevice()

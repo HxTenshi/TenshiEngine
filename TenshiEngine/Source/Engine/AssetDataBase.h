@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <map>
 #include <string>
+#include <cctype>
+#include <algorithm>
 
 enum class AssetFileType{
 	None,
@@ -58,7 +60,11 @@ public:
 	template <class T>
 	static void Instance(const char* filename, shared_ptr<T>& out){
 
-		auto file = m_AssetCache.find(filename);
+		std::string x(filename);
+		std::transform(x.begin(), x.end(), x.begin(), std::tolower);
+		auto _filename = x.c_str();
+		auto file = m_AssetCache.find(_filename);
+
 
 
 		AssetDataTemplatePtr data;
@@ -66,16 +72,16 @@ public:
 		//メタファイルが存在しない
 		if (file == m_AssetCache.end()){
 
-			data = AssetFactory::Create(filename);
+			data = AssetFactory::Create(_filename);
 			if (data){
 				MD5::MD5HashCoord hash;
 				memset(hash.key_c, NULL, sizeof(MD5::MD5HashCoord));
-				m_AssetCache.insert(std::make_pair(filename, std::make_pair(hash, data)));
+				m_AssetCache.insert(std::make_pair(_filename, std::make_pair(hash, data)));
 			}
 		}
 		//未ロード
 		else if (file->second.second == NULL){
-			data = AssetFactory::Create(filename);
+			data = AssetFactory::Create(_filename);
 			if (data){
 				file->second.second = data;
 				auto temp = m_AssetMetaCache.find(file->second.first);
@@ -240,6 +246,7 @@ public:
 	std::string GetFileName()override;
 
 	const T* GetFileData();
+	T* _GetFileData();
 
 	static const AssetFileType _AssetFileType;
 

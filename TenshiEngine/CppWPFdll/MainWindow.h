@@ -59,6 +59,8 @@ public:
 	//virtual void OnPaint(System::Windows::Forms::PaintEventArgs pevent) override
 	//{
 	//}
+
+
 public:
 	void UpdateStyle(){
 		SetStyle(System::Windows::Forms::ControlStyles::SupportsTransparentBackColor, true);
@@ -98,10 +100,13 @@ public:
 		,m_WX(NULL)
 		,m_WY(NULL)
 	{
-
 		auto panel = gcnew GameScreenPanel();
 		m_wfh->Child = panel;
 		auto par = panel->Parent;
+
+		m_wfh->VerticalAlignment = System::Windows::VerticalAlignment::Stretch;
+		m_wfh->HorizontalAlignment = System::Windows::HorizontalAlignment::Stretch;
+		m_wfh->SizeChanged += gcnew System::Windows::SizeChangedEventHandler(this, &GameScreen::OnSizeChanged);
 
 		//m_wfh->Child->AllowDrop = true;
 		//m_wfh->Child->DragDrop += gcnew System::Windows::Forms::DragEventHandler(this, &GameScreen::OnDrop);
@@ -113,6 +118,25 @@ public:
 
 		m_wfh->IsKeyboardFocusedChanged += gcnew System::Windows::DependencyPropertyChangedEventHandler(this, &GameScreen::focusChanged);
 		
+	}
+
+	void OnSizeChanged(Object^ sender, System::Windows::SizeChangedEventArgs^ e)
+	{
+		LockAspect(e->NewSize);
+		e->Handled = true;
+	}
+	void LockAspect(System::Windows::Size^ size){
+		auto w = size->Width;
+		auto h = size->Height;
+		auto as = w / h;
+		if (as < 16.0 / 9.0){
+			h = w * (9.0 / 16.0);
+		}
+		else if (as > 16.0 / 9.0){
+			w = h * (16.0 / 9.0);
+		}
+		m_wfh->Child->Height = (int)h;
+		m_wfh->Child->Width = (int)w;
 	}
 
 	//void ml(Object^ sender, MouseButtonEventArgs ^e){

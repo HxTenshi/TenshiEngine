@@ -35,7 +35,7 @@ PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
 	output.Pos = input.Pos;
-	output.Tex = input.Tex * World._11_12;
+	output.Tex = input.Tex;
 	
 	return output;
 }

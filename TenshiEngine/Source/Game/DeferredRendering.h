@@ -131,6 +131,8 @@ public:
 	void Debug_AlbedoOnly_Rendering(IRenderingEngine* render,RenderTarget* rt);
 
 
+	void Resize(UINT Wide, UINT Height);
+
 private:
 	RenderTarget m_AlbedoRT;
 	RenderTarget m_SpecularRT;

@@ -72,5 +72,10 @@ private:
 	std::string mSkyTextureFileName;
 	Texture mSkyTexture;
 
+	bool m_IsPerspective;
+	float m_Fov;
+	float m_Near;
+	float m_Far;
+
 	friend EditorCamera;
 };

@@ -6,7 +6,7 @@
 
 #include "Engine/Inspector.h"
 
-RenderTarget* PostEffectHelper::mCurrentRenderTarget = NULL;
+RenderTarget PostEffectHelper::mCurrentRenderTarget;
 
 void PostEffectComponent::Initialize(){
 	mRenderTarget.Create(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
@@ -44,7 +44,7 @@ void PostEffectComponent::PostDraw(){
 		render->PushSet(Rasterizer::Preset::RS_None_Solid);
 
 		auto target = PostEffectHelper::CurrentTarget();
-		mMaterial.SetTexture(target->GetTexture(), 1);
+		mMaterial.SetTexture(target.GetTexture(), 1);
 
 
 		mModelTexture.Draw(render->m_Context, mMaterial);
@@ -57,7 +57,7 @@ void PostEffectComponent::PostDraw(){
 		//render->m_Context->CopySubresourceRegion(Game::GetMainViewRenderTarget().GetTexture2D(), NULL, 0, 0, 0, mRenderTarget.GetTexture2D(), NULL, NULL);
 		//render->m_Context->CopyResource(Game::GetMainViewRenderTarget().GetTexture2D(), mRenderTarget.GetTexture2D());
 
-		PostEffectHelper::SetCurrentTarget(&mRenderTarget);
+		PostEffectHelper::SetCurrentTarget(mRenderTarget);
 
 		render->PopRS();
 		render->PopDS();

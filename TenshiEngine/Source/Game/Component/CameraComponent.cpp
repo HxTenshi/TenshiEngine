@@ -14,6 +14,10 @@
 CameraComponent::CameraComponent()
 {
 	mScreenClearType = ScreenClearType::Color;
+	m_IsPerspective = true;
+	m_Fov = XM_PIDIV4;
+	m_Near = 0.01f;
+	m_Far = 1000.0f;
 	//mSkyMaterial.mMaterialPath = "EngineResource/Sky/Sky.pmx.txt";
 	//mSkyMaterial.Initialize();
 
@@ -56,45 +60,10 @@ void CameraComponent::Initialize()
 }
 
 void CameraComponent::SetPerspective(){
-	UINT width = WindowState::mWidth;
-	UINT height = WindowState::mHeight;
-	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-
-	mCBNearFar.mParam.Near = 0.01f;
-	mCBNearFar.mParam.Far = 1000.0f;
-	mCBNearFar.UpdateSubresource(render->m_Context);
-
-	// Initialize the projection matrix
-	mProjection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, mCBNearFar.mParam.Near, mCBNearFar.mParam.Far);
-
-
-	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
-	XMVECTOR null;
-	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
-
-	mCBChangeOnResize.UpdateSubresource(render->m_Context);
-
+	m_IsPerspective = true;
 }
 void CameraComponent::SetOrthographic(){
-	UINT width = WindowState::mWidth;
-	UINT height = WindowState::mHeight;
-
-	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-
-	mCBNearFar.mParam.Near = 0.01f;
-	mCBNearFar.mParam.Far = 4000.0f;
-	mCBNearFar.UpdateSubresource(render->m_Context);
-
-	mProjection = XMMatrixOrthographicLH((FLOAT)width, (FLOAT)height, mCBNearFar.mParam.Near, mCBNearFar.mParam.Far);
-
-
-	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
-	XMVECTOR null;
-	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
-
-
-	mCBChangeOnResize.UpdateSubresource(render->m_Context);
-
+	m_IsPerspective = false;
 }
 void CameraComponent::EngineUpdate(){
 
@@ -116,6 +85,26 @@ void CameraComponent::Update(){
 	Eye = gameObject->mTransform->WorldPosition();
 	At = Eye + gameObject->mTransform->Forward();
 	UpdateView();
+
+
+	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	mCBNearFar.mParam.Near = m_Near;
+	mCBNearFar.mParam.Far = m_Far;
+	mCBNearFar.UpdateSubresource(render->m_Context);
+
+	FLOAT width = (FLOAT)WindowState::mWidth;
+	FLOAT height = (FLOAT)WindowState::mHeight;
+	if (m_IsPerspective){
+		mProjection = XMMatrixPerspectiveFovLH(m_Fov, width / height, m_Near, m_Far);
+	}
+	else{
+		mProjection = XMMatrixOrthographicLH(width, height, m_Near, m_Far);
+	}
+	mCBChangeOnResize.mParam.mProjection = XMMatrixTranspose(mProjection);
+	XMVECTOR null;
+	mCBChangeOnResize.mParam.mProjectionInv = XMMatrixTranspose(XMMatrixInverse(&null, mProjection));
+
+	mCBChangeOnResize.UpdateSubresource(render->m_Context);
 
 	Game::SetMainCamera(this);
 }

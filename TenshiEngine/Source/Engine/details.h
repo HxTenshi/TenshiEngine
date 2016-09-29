@@ -53,6 +53,10 @@ template <class T>
 const T* AssetDataTemplate<T>::GetFileData(){
 	return m_FileData;
 }
+template <class T>
+T* AssetDataTemplate<T>::_GetFileData(){
+	return m_FileData;
+}
 
 
 template <class T>

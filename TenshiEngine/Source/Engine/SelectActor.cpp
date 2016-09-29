@@ -508,15 +508,15 @@ SelectActor::SelectActor()
 	for (int i = 0; i < 3; i++){
 		mEditGuide[i] = NULL;
 	}
-	mSelectWireMaterial.mAmbient.x = 0.95f;
-	mSelectWireMaterial.mAmbient.y = 0.6f;
-	mSelectWireMaterial.mAmbient.z = 0.1f;
-	mSelectWireMaterial.Create();
+	mSelectWireMaterial.mDiffuse.x = 0.95f;
+	mSelectWireMaterial.mDiffuse.y = 0.6f;
+	mSelectWireMaterial.mDiffuse.z = 0.1f;
+	mSelectWireMaterial.Create("EngineResource/NoLighting.fx");
 	
-	mSelectPhysxWireMaterial.mAmbient.x = 0.1f;
-	mSelectPhysxWireMaterial.mAmbient.y = 0.95f;
-	mSelectPhysxWireMaterial.mAmbient.z = 0.6f;
-	mSelectPhysxWireMaterial.Create();
+	mSelectPhysxWireMaterial.mDiffuse.x = 0.1f;
+	mSelectPhysxWireMaterial.mDiffuse.y = 0.95f;
+	mSelectPhysxWireMaterial.mDiffuse.z = 0.6f;
+	mSelectPhysxWireMaterial.Create("EngineResource/NoLighting.fx");
 }
 
 void SelectActor::Finish(){
@@ -569,7 +569,7 @@ void SelectActor::UpdateInspector(){
 		}
 	}
 }
-void SelectActor::Update(float deltaTime){
+void SelectActor::Update(){
 	//(void)deltaTime;
 	//if (Window::GetTreeViewWindow()->IsActive()){
 	//	void* s = (Actor*)Window::GetTreeViewWindow()->GetSelectItem();

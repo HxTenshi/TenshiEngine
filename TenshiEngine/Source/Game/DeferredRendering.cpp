@@ -9,10 +9,10 @@ XMVECTOR CascadeShadow::mLightVect = XMVectorSet(0,-1,0,1);
 
 CascadeShadow::CascadeShadow(){
 
-	mWidth = WindowState::mWidth;
-	mHeight = WindowState::mHeight;
-	//mWidth = 1024;
-	//mHeight = 1024;
+	//mWidth = WindowState::mWidth;
+	//mHeight = WindowState::mHeight;
+	mWidth = 1024;
+	mHeight = 1024;
 	for (int i = 0; i < MAX_CASCADE; i++){
 		m_ShadowDepthRT[i].Create(mWidth, mHeight, DXGI_FORMAT_R32_FLOAT);
 	}
@@ -332,11 +332,11 @@ void DownSample::Create(Texture& texture, UINT x, UINT y){
 	mHeight = y;
 
 	mModelTexture.Create("EngineResource/TextureModel.tesmesh");
-	mModelTexture.mWorld._11 = WindowState::mWidth / (float)x;
-	mModelTexture.mWorld._12 = WindowState::mHeight / (float)y;
-	if (mHDRFilter){
-		mModelTexture.mWorld._12 /= (WindowState::mHeight / (float)WindowState::mWidth);
-	}
+	//mModelTexture.mWorld._11 = WindowState::mWidth / (float)x;
+	//mModelTexture.mWorld._12 = WindowState::mHeight / (float)y;
+	//if (mHDRFilter){
+	//	mModelTexture.mWorld._12 /= (WindowState::mHeight / (float)WindowState::mWidth);
+	//}
 	mModelTexture.Update();
 
 
@@ -357,12 +357,18 @@ Texture& DownSample::GetRTTexture(){
 void DownSample::Draw_DownSample(IRenderingEngine* render){
 
 	render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
-	render->PushSet(Rasterizer::Preset::RS_None_Solid_Rect);
+	render->PushSet(Rasterizer::Preset::RS_None_Solid);
 	{
-		D3D11_RECT rect = CD3D11_RECT(0, 0,
-			(LONG)mWidth,
-			(LONG)(mHeight *(WindowState::mHeight / (float)WindowState::mWidth)));
-		render->m_Context->RSSetScissorRects(1, &rect);
+
+		// Setup the viewport
+		D3D11_VIEWPORT vp;
+		vp.Width = (FLOAT)mWidth;
+		vp.Height = (FLOAT)mHeight;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		render->m_Context->RSSetViewports(1, &vp);
 
 		RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, &m_DownSampleRT, NULL);
 		mModelTexture.Draw(render->m_Context, mMaterialDownSample);
@@ -896,7 +902,7 @@ void DeferredRendering::SetSkyTexture(const Texture& texture){
 void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 
 	const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
-	RenderTarget::SetRendererTarget(render->m_Context ,(UINT)5, r[0], Device::mRenderTargetBack);
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)5, r[0], &Game::GetMainViewRenderTarget());
 
 
 	mMaterialPrePassEnv.PSSetShaderResources(render->m_Context);
@@ -941,7 +947,7 @@ void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::fun
 	m_LightSpecularRT.ClearView(render->m_Context);
 
 	const RenderTarget* r[2] = { &m_LightRT, &m_LightSpecularRT };
-	RenderTarget::SetRendererTarget(render->m_Context,(UINT)2, r[0], Device::mRenderTargetBack);
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)2, r[0], &Game::GetMainViewRenderTarget());
 
 
 	render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
@@ -964,7 +970,7 @@ void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::fun
 void DeferredRendering::Deferred_Rendering(IRenderingEngine* render, RenderTarget* rt){
 
 	RenderTarget* r[1] = { rt };
-	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], &Game::GetMainViewRenderTarget());
 
 	mModelTexture.Update();
 
@@ -981,7 +987,7 @@ void DeferredRendering::Deferred_Rendering(IRenderingEngine* render, RenderTarge
 void DeferredRendering::Particle_Rendering(IRenderingEngine* render, RenderTarget* rt, const std::function<void(void)>& func){
 
 	RenderTarget* r[1] = { rt };
-	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], &Game::GetMainViewRenderTarget());
 
 	mMaterialParticle.GSSetShaderResources(render->m_Context);
 	mMaterialParticle.PSSetShaderResources(render->m_Context);
@@ -996,7 +1002,7 @@ void DeferredRendering::Particle_Rendering(IRenderingEngine* render, RenderTarge
 void DeferredRendering::Forward_Rendering(IRenderingEngine* render, RenderTarget* rt, const std::function<void(void)>& func){
 
 	RenderTarget* r[1] = { rt };
-	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], &Game::GetMainViewRenderTarget());
 
 	render->PushSet(BlendState::Preset::BS_Alpha, 0xFFFFFFFF);
 	render->PushSet(DepthStencil::Preset::DS_Zero_Less);
@@ -1011,7 +1017,7 @@ void DeferredRendering::Forward_Rendering(IRenderingEngine* render, RenderTarget
 
 void DeferredRendering::Debug_G_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 	const RenderTarget* r[1] = { &m_AlbedoRT};
-	RenderTarget::SetRendererTarget(render->m_Context,(UINT)1, r[0], Device::mRenderTargetBack);
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], &Game::GetMainViewRenderTarget());
 
 	Model::mForcedMaterial = &mMaterialDebugDrawPrePass;
 	Model::mForcedMaterialFilter = (ForcedMaterialFilter::Enum)(ForcedMaterialFilter::Shader_PS | ForcedMaterialFilter::Shader_VS);
@@ -1022,7 +1028,7 @@ void DeferredRendering::Debug_G_Buffer_Rendering(IRenderingEngine* render, const
 	Model::mForcedMaterialFilter = ForcedMaterialFilter::None;
 	{
 		const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
-		RenderTarget::SetRendererTarget(render->m_Context, (UINT)5, r[0], Device::mRenderTargetBack);
+		RenderTarget::SetRendererTarget(render->m_Context, (UINT)5, r[0], &Game::GetMainViewRenderTarget());
 
 		render->PushSet(DepthStencil::Preset::DS_Zero_Less);
 		render->PushSet(Rasterizer::Preset::RS_None_Solid);
@@ -1036,7 +1042,7 @@ void DeferredRendering::Debug_G_Buffer_Rendering(IRenderingEngine* render, const
 void DeferredRendering::Debug_AlbedoOnly_Rendering(IRenderingEngine* render,RenderTarget* rt){
 	RenderTarget::NullSetRendererTarget(render->m_Context);
 	RenderTarget* r[1] = { rt };
-	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], Device::mRenderTargetBack);
+	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, r[0], &Game::GetMainViewRenderTarget());
 
 	mModelTexture.Update();
 
@@ -1061,6 +1067,15 @@ void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 	render->PushSet(Rasterizer::Preset::RS_None_Solid);
 	render->PushSet(BlendState::Preset::BS_Add, 0xFFFFFFFF);
 
+	// Setup the viewport
+	//D3D11_VIEWPORT vp;
+	//vp.Width = (FLOAT)WindowState::mWidth;
+	//vp.Height = (FLOAT)WindowState::mHeight;
+	//vp.MinDepth = 0.0f;
+	//vp.MaxDepth = 1.0f;
+	//vp.TopLeftX = 0;
+	//vp.TopLeftY = 0;
+	//render->m_Context->RSSetViewports(1, &vp);
 
 	auto rt = Game::GetMainViewRenderTarget();
 	RenderTarget::SetRendererTarget(render->m_Context, (UINT)1, &rt, NULL);
@@ -1101,4 +1116,15 @@ void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 	//	rend->PopDS();
 	//});
 	
+}
+
+
+void DeferredRendering::Resize(UINT Wide, UINT Height){
+	m_AlbedoRT.Resize(Wide, Height);
+	m_SpecularRT.Resize(Wide, Height);
+	m_NormalRT.Resize(Wide, Height);
+	m_DepthRT.Resize(Wide, Height);
+	m_VelocityRT.Resize(Wide, Height);
+	m_LightRT.Resize(Wide, Height);
+	m_LightSpecularRT.Resize(Wide, Height);
 }

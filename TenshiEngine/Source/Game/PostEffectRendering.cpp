@@ -24,12 +24,19 @@ void PostEffectRendering::Rendering(IRenderingEngine* render, const std::functio
 	//RenderTarget::NullSetRendererTarget(render->m_Context);
 
 	auto rt = Game::GetMainViewRenderTarget();
-	PostEffectHelper::SetCurrentTarget(&rt);
+	PostEffectHelper::SetCurrentTarget(rt);
 
 	func();
+	
+	auto target = PostEffectHelper::CurrentTarget();
+
+	RenderTarget::SetRendererTarget(render->m_Context,1,&rt,&Game::GetMainViewRenderTarget());
+}
+
+void PostEffectRendering::Flip(IRenderingEngine* render){
 
 	auto target = PostEffectHelper::CurrentTarget();
-	mMaterial.SetTexture(target->GetTexture(), 0);
+	mMaterial.SetTexture(target.GetTexture(), 0);
 
 
 	Device::mRenderTargetBack->SetRendererTarget(render->m_Context);

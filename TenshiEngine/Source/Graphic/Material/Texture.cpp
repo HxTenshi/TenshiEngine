@@ -48,11 +48,16 @@ HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 		return hr;
 	}
 
-	auto file = new TextureFileData();
-	file->SetTexture(pTexture, smpler);
+	if (mTextureAssetData){
+		mTextureAssetData->_GetFileData()->SetTexture(pTexture, smpler);
+	}
+	else{
 
-	mTextureAssetData = AssetDataTemplate<TextureFileData>::Create(file);
+		auto file = new TextureFileData();
+		file->SetTexture(pTexture, smpler);
 
+		mTextureAssetData = AssetDataTemplate<TextureFileData>::Create(file);
+	}
 	return S_OK;
 }
 

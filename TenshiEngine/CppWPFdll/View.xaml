@@ -148,7 +148,7 @@
                 <Border Grid.Row="0" Name="LogPanel">
                 </Border>
                 <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch"/>
-                <Border Grid.Row="2" x:Name="GameScreenBorder" Margin="2">
+                <Border Grid.Row="2" x:Name="GameScreenBorder" Margin="2" Background="Black">
                     <WindowsFormsHost x:Name="GameScreenWFH" Background="Black">
                     </WindowsFormsHost>
                 </Border>
