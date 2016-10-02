@@ -12,6 +12,7 @@
 
 #include "Engine/SystemLog.h"
 #include "Input/InputManagerRapper.h"
+#include "Game/Parts/enabled.h"
 
 class WindowState{
 public:
@@ -114,45 +115,12 @@ public:
 	static void ClearInspector(){
 		mMainWindow_WPF.ClearAllComponentWindow();
 	}
-	static std::vector<InspectorDataSet> CreateInspector(){
-		std::vector<InspectorDataSet> data;
-		return data;
-	}
-	static void AddInspector(InspectorLabelDataSet* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Label, dataset));
-	}
-	static void AddInspector(TemplateInspectorDataSet<float>* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Float, dataset));
-	}
-	static void AddInspector(TemplateInspectorDataSet<bool>* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Bool, dataset));
-	}
-	static void AddInspector(TemplateInspectorDataSet<int>* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Int, dataset));
-	}
-	static void AddInspector(InspectorVector3DataSet* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Vector3, dataset));
-	}
-	static void AddInspector(InspectorVector2DataSet* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Vector2, dataset));
-	}
-	static void AddInspector(InspectorSlideBarDataSet* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::SlideBar, dataset));
-	}
-	static void AddInspector(TemplateInspectorDataSet<std::string>* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
-	}
-	static void AddInspector(InspectorColorDataSet* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Color, dataset));
-	}
-	static void AddInspector(InspectorButtonDataSet* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Button, dataset));
-	}static void AddInspector(InspectorSelectDataSet* dataset, std::vector<InspectorDataSet>& data){
-		data.push_back(InspectorDataSet(InspectorDataFormat::Select, dataset));
-	}
-
 	static void ViewInspector(const std::string& ComponentName,Component* comptr, std::vector<InspectorDataSet>& data){
 		mMainWindow_WPF.CreateComponentWindow(ComponentName, (void*)comptr, data);
+	}
+	static void ViewInspector(const std::string& ComponentName, Component* comptr, std::vector<InspectorDataSet>& data, TemplateInspectorDataSet<bool>* enable){
+
+		mMainWindow_WPF.CreateComponentWindowUseEnable(ComponentName, (void*)comptr, data, enable);
 	}
 	static void UpdateInspector(){
 		mMainWindow_WPF.UpdateComponentWindow();
@@ -167,6 +135,9 @@ public:
 
 	static void SetMouseEvents(bool* focus,bool* l, bool* r, int* x, int* y, int *wx, int *wy){
 		mMainWindow_WPF.SetMouseEvents(focus,l, r, x, y, wx, wy);
+	}
+	static void SetEngineFocusEvent(bool* focus) {
+		mMainWindow_WPF.SetEngineFocusEvent(focus);
 	}
 
 	static void SetWPFCollBack(MyWindowMessage massage, const std::function<void(void*)>& collback){
@@ -187,7 +158,7 @@ public:
 
 #ifdef _ENGINE_MODE
 	HWND mDummyhWnd;
-	static std::vector<const std::function<void(void*)>> mWPFCollBacks;
+	static std::vector<std::function<void(void*)>> mWPFCollBacks;
 #endif
 };
 

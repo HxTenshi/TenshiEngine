@@ -45,5 +45,6 @@ private:
 	physx::PxDistanceJoint* mJoint;
 	physx::PxRigidActor* mRigidActor[2];
 	UniqueID mActorUID[2];
+	GameObject mGameObject;
 };
 

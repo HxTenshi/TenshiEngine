@@ -5,6 +5,7 @@ struct InspectorDataSet;
 #include "IComponent.h"
 #include <unordered_map>
 
+class Inspector;
 
 class IDebugEngineScript{
 public:
@@ -14,7 +15,7 @@ public:
 	virtual void Update(){}
 	virtual void Finish(){}
 #ifdef _ENGINE_MODE
-	virtual void CreateInspector(std::vector<InspectorDataSet>& data){
+	virtual void CreateInspector(Inspector* data){
 		(void)data;
 	}
 #endif
@@ -31,7 +32,9 @@ public:
 	void Initialize() override;
 	void Start() override;
 
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 	void Finish() override;
 

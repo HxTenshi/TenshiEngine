@@ -17,7 +17,9 @@ public:
 	~CameraComponent();
 
 	void Initialize() override;
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 
 #ifdef _ENGINE_MODE
@@ -46,8 +48,8 @@ public:
 
 	void SetPerspective();
 	void SetOrthographic();
-	void SetSkyTexture(const std::string fileName);
-	Texture GetSkyTexture(){
+	void SetSkyTexture(TextureAsset asset);
+	TextureAsset GetSkyTexture(){
 		return mSkyTexture;
 	}
 private:
@@ -69,8 +71,12 @@ private:
 	//Material mSkyMaterial;
 	//Model mSkyModel;
 
-	std::string mSkyTextureFileName;
-	Texture mSkyTexture;
+	TextureAsset mSkyTexture;
+
+	bool m_IsPerspective;
+	float m_Fov;
+	float m_Near;
+	float m_Far;
 
 	friend EditorCamera;
 };

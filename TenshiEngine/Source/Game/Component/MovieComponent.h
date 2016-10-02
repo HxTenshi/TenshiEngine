@@ -14,7 +14,7 @@
 class Texture;
 class IMovieComponent{
 public:
-	virtual void LoadFile(const std::string& fileName) = 0;
+	virtual void LoadFile(MovieAsset& asset) = 0;
 	virtual void Play() = 0;
 	virtual void Stop() = 0;
 	virtual void SetLoop(bool flag) = 0;
@@ -33,7 +33,9 @@ public:
 
 	void Initialize() override;
 	void Start() override;
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 	void Finish() override;
 
@@ -42,7 +44,7 @@ public:
 #endif
 	void IO_Data(I_ioHelper* io)override;
 
-	void LoadFile(const std::string& fileName) override;
+	void LoadFile(MovieAsset& asset) override;
 	void Play() override;
 	void Stop() override;
 	void SetLoop(bool flag) override;
@@ -51,9 +53,7 @@ public:
 
 	Texture *GetTexture() const override;
 private:
-
-	std::string mFileName;
 	bool mAutoPlay;
 	bool mLoop;
-	MovieAssetDataPtr mMovieAssetFile;
+	MovieAsset mMovieAsset;
 };

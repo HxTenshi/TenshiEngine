@@ -14,7 +14,6 @@ public:
 	~PrefabFileData();
 
 	bool Create(const char* filename) override;
-	bool FileUpdate() override;
 	picojson::value Apply();
 
 	shared_ptr<I_InputHelper> GetData() const;

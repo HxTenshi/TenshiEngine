@@ -15,7 +15,7 @@ public:
 	void Finish() override;
 
 #ifdef _ENGINE_MODE
-	void CreateInspector(std::vector<InspectorDataSet>& data) override;
+	void CreateInspector(Inspector* ins) override;
 #endif
 	void IO_Data(I_ioHelper* io) override;
 

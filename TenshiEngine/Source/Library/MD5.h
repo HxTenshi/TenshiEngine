@@ -23,7 +23,7 @@ namespace MD5{
 				this->key_i[3] == right.key_i[3];
 		}
 
-		std::string GetString(){
+		std::string GetString() const{
 			std::string temp;
 			for (int i = 0; i < 16;i++)
 				temp.push_back(key_c[i]);
@@ -32,7 +32,7 @@ namespace MD5{
 
 		MD5HashCoord(const char* hash){
 			memset(key_c, 0, sizeof(char)* 16);
-			memccpy(key_c, hash, '\0', sizeof(char) * 16);
+			memcpy_s(key_c, sizeof(key_c), hash, sizeof(char) * 16);
 		}
 		MD5HashCoord(){}
 	};

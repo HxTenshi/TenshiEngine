@@ -12,6 +12,10 @@ public:
 	static
 	HRESULT Init(const Window& window);
 
+
+	static
+	void Resize(UINT width,UINT height);
+
 	static
 	void CleanupDevice();
 

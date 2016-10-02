@@ -16,52 +16,16 @@
 
 #include "MySTL/Ptr.h"
 class Actor;
-#include "TransformComponent.h"
 #include "IComponent.h"
 
 #include <memory>
 class ComponentList{
 public:
-	ComponentList()
-	{
-		gameObject = NULL;
-		mInitializeEnd = false;
-		mStartEnd = false;
-	}
-	void Initialize(GameObject obj){
-
-		gameObject = obj;
-	}
-	void RunInitialize(){
-		auto t = GetComponent<TransformComponent>();
-		t->_Initialize(gameObject);
-		t->Initialize();
-		for (auto& p : mComponent){
-			if (p.second.Get() == t.Get())continue;
-			p.second->_Initialize(gameObject);
-			p.second->Initialize();
-		}
-		mInitializeEnd = true;
-	}
-	void RunStart(){
-		auto t = GetComponent<TransformComponent>();
-		t->Start();
-		for (auto& p : mComponent){
-			if (p.second.Get() == t.Get())continue;
-			p.second->Start();
-		}
-		mStartEnd = true;
-	}
-	void RunFinish(){
-		auto t = GetComponent<TransformComponent>();
-		for (auto& p : mComponent){
-			if (p.second.Get() == t.Get())continue;
-			p.second->Finish();
-		}
-		t->Finish();
-		mInitializeEnd = false;
-		mStartEnd = false;
-	}
+	ComponentList();
+	void Initialize(GameObject obj);
+	void RunInitialize();
+	void RunStart();
+	void RunFinish();
 
 
 	template<class T>

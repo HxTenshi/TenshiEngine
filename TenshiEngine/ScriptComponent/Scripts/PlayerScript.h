@@ -6,7 +6,7 @@ class PlayerScript :public IDllScriptComponent{
 public:
 	PlayerScript();
 	void Update()override;
-	void OnCollideBegin(Actor* target) override;
+	void OnCollideBegin(GameObject target) override;
 	float mRotateY;
 
 };

@@ -25,6 +25,12 @@ ExeCompile/
 *.suo
 ipch/
 *.vcxproj.user
+*.ipdb
+*.iobj
+*.db
+*.opendb
+.vs/
+
 
 ����/
 Assets/

@@ -111,7 +111,7 @@ public:
 	DeferredRendering();
 	~DeferredRendering();
 	void Initialize();
-	void SetSkyTexture(const Texture& texture);
+	void SetSkyTexture(const TextureAsset& texture);
 	void G_Buffer_Rendering(IRenderingEngine* render,const std::function<void(void)>& func);
 	void ShadowDepth_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func);
 	//void End_ShadowDepth_Buffer_Rendering();
@@ -131,6 +131,8 @@ public:
 	void Debug_AlbedoOnly_Rendering(IRenderingEngine* render,RenderTarget* rt);
 
 
+	void Resize(UINT Width, UINT Height);
+
 private:
 	RenderTarget m_AlbedoRT;
 	RenderTarget m_SpecularRT;
@@ -140,8 +142,7 @@ private:
 	RenderTarget m_LightRT;
 	RenderTarget m_LightSpecularRT;
 
-	Texture mEnvironmentMap;
-	Texture mEnvironmentRMap;
+	TextureAsset mEnvironmentMap;
 	Model mModelTexture;
 	Material mMaterialDebugDraw;
 	Material mMaterialDebugDrawPrePass;

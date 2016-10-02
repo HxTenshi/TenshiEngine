@@ -16,6 +16,10 @@ public:
 
 private:
 	bool mScreenFocus;
+
+#ifdef _ENGINE_MODE
+	bool mEngineFocus;
+#endif
 	bool mr, ml;
 	int mx, my;
 	int wx, wy;

@@ -11,6 +11,7 @@ public:
 	void Initialize();
 
 	void Rendering(IRenderingEngine* render, const std::function<void(void)>& func);
+	void Flip(IRenderingEngine* render);
 
 private:
 	Model mModelTexture;

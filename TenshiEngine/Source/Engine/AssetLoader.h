@@ -401,8 +401,8 @@ private:
 		fopen_s(&hFP, savePath.c_str(), "wb");
 		if (hFP != 0){
 			vecfwrite_array(buffer, hFP);
-			for (auto& name : bonename){
-				vecfwrite(name, hFP);
+			for (auto& _name : bonename){
+				vecfwrite(_name, hFP);
 			}
 
 			fclose(hFP);
@@ -489,8 +489,8 @@ private:
 			for (auto& ik : IK_Links){
 				vecfwrite_array(ik, hFP);
 			}
-			for (auto& name : bonename){
-				vecfwrite(name, hFP);
+			for (auto& _name : bonename){
+				vecfwrite(_name, hFP);
 			}
 
 			fclose(hFP);

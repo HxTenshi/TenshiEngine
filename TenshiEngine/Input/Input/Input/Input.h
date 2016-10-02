@@ -69,7 +69,7 @@ public:
 	CLASS_DECLSPEC static void InitDirectInput(HWND hWnd, HINSTANCE hInst);
 	CLASS_DECLSPEC static void Release();
 
-	CLASS_DECLSPEC static void Update(bool TargetFocus);
+	CLASS_DECLSPEC static void Update(int TargetFocus);
 
 	CLASS_DECLSPEC static void SetMouseP(const LPARAM& lParam);
 	CLASS_DECLSPEC static void SetMouseXY(int x, int y);

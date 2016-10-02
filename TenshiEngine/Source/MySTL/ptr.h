@@ -296,6 +296,23 @@ public:
 	T* operator-> ()const{
 		return (T*)ptr;
 	}
+
+	template <typename T>
+	bool operator==(wp<T> smartptr) {
+		return this->Get() == smartptr.Get();
+	}
+	template <typename T>
+	bool operator==(sp<T> smartptr) {
+		return this->Get() == smartptr.Get();
+	}
+	template <typename T>
+	bool operator!=(wp<T> smartptr) {
+		return this->Get() != smartptr.Get();
+	}
+	template <typename T>
+	bool operator!=(sp<T> smartptr) {
+		return this->Get() != smartptr.Get();
+	}
 private:
 	// make_shared‚Åg‚¤‰Šú‰»
 	void Resetp(T* p,sp_counter_base* counter){
@@ -341,13 +358,13 @@ public:
 
 	template<typename U>
 	wp(wp<U> const& p)
-		: ptr(p.lock().Get())
+		: ptr((T*)p.lock().Get())
 		, count(p.count)
 	{ }
 
 	template<typename U>
 	wp(sp<U> const& p)
-		: ptr(p.ptr)
+		: ptr((T*)p.ptr)
 		, count(p.count)
 	{ }
 
@@ -396,6 +413,23 @@ public:
 	T* operator->()const
 	{
 		return ptr;
+	}
+
+	template <typename T>
+	bool operator==(wp<T> smartptr) {
+		return this->Get() == smartptr.Get();
+	}
+	template <typename T>
+	bool operator==(sp<T> smartptr) {
+		return this->Get() == smartptr.Get();
+	}
+	template <typename T>
+	bool operator!=(wp<T> smartptr) {
+		return this->Get() != smartptr.Get();
+	}
+	template <typename T>
+	bool operator!=(sp<T> smartptr) {
+		return this->Get() != smartptr.Get();
 	}
 
 
@@ -484,3 +518,5 @@ inline void sp_enable_shared_from_this(...)
 {
 }
 #pragma endregion
+
+

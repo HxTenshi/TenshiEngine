@@ -6,3 +6,4 @@ EXPORTS
   GetReflectionData @3
   Function0 @4
   Function1 @5
+  InitializeIGame @6

@@ -43,14 +43,23 @@ AssetDataTemplatePtr AssetDataTemplate<T>::Create(T* fileData){
 	auto temp = make_shared<PrivateFactory>(fileData);
 	return temp;
 }
-
-
 template <class T>
-void AssetDataTemplate<T>::FileUpdate(){
-	((AssetFileData*)m_FileData)->FileUpdate();
+void AssetDataTemplate<T>::FileUpdate(const char* filename){
+	((AssetFileData*)m_FileData)->Create(filename);
 }
+
 
 template <class T>
 const T* AssetDataTemplate<T>::GetFileData(){
 	return m_FileData;
+}
+template <class T>
+T* AssetDataTemplate<T>::_GetFileData(){
+	return m_FileData;
+}
+
+
+template <class T>
+std::string AssetDataTemplate<T>::GetFileName(){
+	return ((AssetFileData*)m_FileData)->GetFileName();
 }

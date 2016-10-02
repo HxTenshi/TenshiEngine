@@ -6,8 +6,16 @@
 #include "Library/picojson.h"
 #include "MySTL/Utility.h"
 
+#include "Engine/IAsset.h"
+
 class I_InputHelper;
 class I_OutputHelper;
+
+class I_ioHelper;
+class Actor;
+namespace ioGameObjectHelper {
+	void func(wp<Actor>* target, const char* name, I_ioHelper* io, wp<Actor>* This);
+};
 
 //jsonì«Ç›èëÇ´
 class I_ioHelper{
@@ -72,7 +80,7 @@ protected:
 
 public:
 	template<class T>
-	bool _func(T& out, const char* name){
+	bool _func(T* out, const char* name){
 		auto v = o->find(name);
 		if (v == o->end())return false;
 
@@ -83,12 +91,33 @@ public:
 			}
 		}
 
-		out = get<T>(v->second);
+		get<T>(v->second, out);
+		return true;
+	}
+	template<class T>
+	bool _func(Asset<T>* out, const char* name){
+		auto v = o->find(name);
+		if (v == o->end())return false;
+
+		IAsset temp;
+		if (prefab){
+			if (!prefab->func((IAsset)temp, name)){
+				return false;
+			}
+		}
+
+		get<T>(v->second, (IAsset*)out);
 		return true;
 	}
 private:
 	template<class T>
-	T get(const picojson::value& value);
+	void get(const picojson::value& value, T* out);
+
+	template<class T>
+	void get(const picojson::value& value, IAsset* out){
+		auto c = (std::string)value.get<std::string>();
+		out->m_Hash = MD5::MD5HashCoord(c.c_str());
+	}
 
 private:
 
@@ -162,24 +191,61 @@ protected:
 	}
 public:
 	template<class T>
-	void _func(const T& out, const char* name, bool compel){
+	void _func(const T* out, const char* name, bool compel){
 
 		T temp;
 		if (mOutputFilterRebirth){
 			if (compel)return;
 			if (prefab && prefab->func(temp, name)){
-				if (temp != out)return;
+				if (temp != *out)return;
 			}
 		}
 		else{
 			if (!compel && prefab && prefab->func(temp, name)){
-				if (temp == out)return;
+				if (temp == *out)return;
 			}
 		}
 		_func_out(out,name);
 	}
+	template<>
+	void _func(const IAsset* out, const char* name, bool compel){
+
+		IAsset temp;
+		if (mOutputFilterRebirth){
+			if (compel)return;
+			if (prefab && prefab->func(temp, name)){
+				if (!(temp.m_Hash == out->m_Hash))return;
+			}
+		}
+		else{
+			if (!compel && prefab && prefab->func(temp, name)){
+				if (temp.m_Hash == out->m_Hash)return;
+			}
+		}
+		//_func_out((IAsset*)out, name);
+
+		o->insert(std::make_pair(name, picojson::value((std::string)out->m_Hash.GetString())));
+	}
 	template<class T>
-	void _func_out(const T& out, const char* name);
+	void _func(const Asset<T>* out, const char* name, bool compel){
+
+		IAsset temp;
+		if (mOutputFilterRebirth){
+			if (compel)return;
+			if (prefab && prefab->func(temp, name)){
+				if (!(temp.m_Hash == out->m_Hash))return;
+			}
+		}
+		else{
+			if (!compel && prefab && prefab->func(temp, name)){
+				if (temp.m_Hash == out->m_Hash)return;
+			}
+		}
+		//_func_out((IAsset*)out, name);
+		o->insert(std::make_pair(name, picojson::value((std::string)out->m_Hash.GetString())));
+	}
+	template<class T>
+	void _func_out(const T* out, const char* name);
 private:
 
 	I_InputHelper* prefab;
@@ -248,10 +314,10 @@ private:
 template<class T>
 bool I_ioHelper::func(T&& value, const char* name, bool compel){
 	if (Ic){
-		return Ic->_func(value, name);
+		return Ic->_func(&value, name);
 	}
 	if (Oc){
-		Oc->_func(value, name, compel);
+		Oc->_func(&value, name, compel);
 		return true;
 	}
 	return false;

@@ -96,7 +96,9 @@ public:
 	void Initialize() override;
 	void Start() override;
 	void Finish() override;
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 
 	void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) override;

@@ -13,6 +13,10 @@ public:
 		: mpRenderTargetView(NULL)
 		, mpTexture2D(NULL)
 		, mpDepthStencilView(NULL)
+		, mpDepthTexture2D(NULL)
+		, m_Width(0)
+		, m_Height(0)
+		, m_Format(DXGI_FORMAT::DXGI_FORMAT_UNKNOWN)
 	{
 	}
 	~RenderTarget()
@@ -20,17 +24,18 @@ public:
 	}
 	HRESULT Create(UINT Width, UINT Height,DXGI_FORMAT format)
 	{
-		HRESULT hr = S_OK;
-
+		m_Width = Width;
+		m_Height = Height;
+		m_Format = format;
 		// Create depth stencil texture
 		D3D11_TEXTURE2D_DESC tex_desc;
 		ZeroMemory(&tex_desc, sizeof(tex_desc));
-		tex_desc.Width = Width;
-		tex_desc.Height = Height;
+		tex_desc.Width = m_Width;
+		tex_desc.Height = m_Height;
 		tex_desc.MipLevels = 1;
 		tex_desc.ArraySize = 1;
 		//tex_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		tex_desc.Format = format;
+		tex_desc.Format = m_Format;
 		tex_desc.SampleDesc.Count = 1;
 		tex_desc.SampleDesc.Quality = 0;
 		tex_desc.Usage = D3D11_USAGE_DEFAULT;
@@ -39,58 +44,43 @@ public:
 		tex_desc.CPUAccessFlags = 0;
 		tex_desc.MiscFlags = 0;
 
-
 		//デプステクスチャの場合
 		//tex_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		//他のメンバは省略
-		hr = Device::mpd3dDevice->CreateTexture2D(&tex_desc, nullptr, &mpTexture2D);
-		if (FAILED(hr)){
-			_SYSTEM_LOG_ERROR("Texture2Dの作成");
-			return hr;
-		}
 
-		//Width、Heightは全レンダーターゲットとデプスバッファすべて同じにする
+		if (!_CreateTexture2D(&tex_desc))return E_FAIL;
 
-		// RenderTargetView作成　MRTに必要な個数
-		hr = Device::mpd3dDevice->CreateRenderTargetView(mpTexture2D, nullptr, &mpRenderTargetView);
-		if (FAILED(hr)){
-			_SYSTEM_LOG_ERROR("RenderTargetViewの作成");
-			return hr;
-		}
-		// デプスバッファ
-		//Device::mpd3dDevice->CreateDepthStencilView(texture, nullptr, &dsview);
+		if (!_CreateRenderTargetView())return E_FAIL;
 
-
-		ID3D11ShaderResourceView* pShaderResourceView;
-		hr = Device::mpd3dDevice->CreateShaderResourceView(mpTexture2D, nullptr, &pShaderResourceView);
-		if (FAILED(hr)){
-			_SYSTEM_LOG_ERROR("ShaderResourceViewの作成");
-			return hr;
-		}
-
-		hr = mTexture.Create(pShaderResourceView);
-		if (FAILED(hr)){
-			return hr;
-		}
+		if (!_CreateTexture())return E_FAIL;
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 		ClearView(render->m_Context);
 
 		return S_OK;
 	}
+
+	HRESULT CreateRTandDepth(UINT Width, UINT Height, DXGI_FORMAT format)
+	{
+
+		Create(Width, Height, format);
+		CreateDepth(Width, Height);
+
+		return S_OK;
+	}
 	HRESULT CreateCUBE(UINT Width, UINT Height, DXGI_FORMAT format)
 	{
-		HRESULT hr = S_OK;
-
+		m_Width = Width;
+		m_Height = Height;
+		m_Format = format;
 		// Create depth stencil texture
 		D3D11_TEXTURE2D_DESC tex_desc;
 		ZeroMemory(&tex_desc, sizeof(tex_desc));
-		tex_desc.Width = Width;
-		tex_desc.Height = Height;
+		tex_desc.Width = m_Width;
+		tex_desc.Height = m_Height;
 		tex_desc.MipLevels = 1;
 		tex_desc.ArraySize = 6;
 		//tex_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		tex_desc.Format = format;
+		tex_desc.Format = m_Format;
 		tex_desc.SampleDesc.Count = 1;
 		tex_desc.SampleDesc.Quality = 0;
 		tex_desc.Usage = D3D11_USAGE_DEFAULT;
@@ -100,37 +90,11 @@ public:
 		tex_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 
-		//デプステクスチャの場合
-		//tex_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		//他のメンバは省略
-		hr = Device::mpd3dDevice->CreateTexture2D(&tex_desc, nullptr, &mpTexture2D);
-		if (FAILED(hr)){
-			_SYSTEM_LOG_ERROR("Texture2Dの作成");
-			return hr;
-		}
+		if (!_CreateTexture2D(&tex_desc))return E_FAIL;
 
-		//Width、Heightは全レンダーターゲットとデプスバッファすべて同じにする
+		if (!_CreateRenderTargetView())return E_FAIL;
 
-		// RenderTargetView作成　MRTに必要な個数
-		hr = Device::mpd3dDevice->CreateRenderTargetView(mpTexture2D, nullptr, &mpRenderTargetView);
-		if (FAILED(hr)){
-			_SYSTEM_LOG_ERROR("RenderTargetViewの作成");
-			return hr;
-		}
-		// デプスバッファ
-		//Device::mpd3dDevice->CreateDepthStencilView(texture, nullptr, &dsview);
-
-		ID3D11ShaderResourceView* pShaderResourceView;
-		hr = Device::mpd3dDevice->CreateShaderResourceView(mpTexture2D, nullptr, &pShaderResourceView);
-		if (FAILED(hr)){
-			_SYSTEM_LOG_ERROR("ShaderResourceViewの作成");
-			return hr;
-		}
-
-		hr = mTexture.Create(pShaderResourceView);
-		if (FAILED(hr)){
-			return hr;
-		}
+		if (!_CreateTexture())return E_FAIL;
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 		ClearView(render->m_Context);
@@ -140,8 +104,8 @@ public:
 
 	HRESULT CreateDepth(UINT Width, UINT Height)
 	{
-		HRESULT hr = S_OK;
-
+		m_Width = Width;
+		m_Height = Height;
 		//デプスバッファ
 		//◆DXGI_FORMAT_D24_UNORM_S8_UINT
 		//精度に問題なければこれを採用
@@ -158,8 +122,8 @@ public:
 		// Create depth stencil texture
 		D3D11_TEXTURE2D_DESC tex_desc;
 		ZeroMemory(&tex_desc, sizeof(tex_desc));
-		tex_desc.Width = Width;
-		tex_desc.Height = Height;
+		tex_desc.Width = m_Width;
+		tex_desc.Height = m_Height;
 		tex_desc.MipLevels = 1;
 		tex_desc.ArraySize = 1;
 		//tex_desc.Format = DXGI_FORMAT_R24G8_TYPELESS;
@@ -172,13 +136,7 @@ public:
 		tex_desc.MiscFlags = 0;
 
 
-		//他のメンバは省略
-		hr = Device::mpd3dDevice->CreateTexture2D(&tex_desc, nullptr, &mpTexture2D);
-		if (FAILED(hr)){
-			_SYSTEM_LOG("レンダーターゲット...Texture2Dの作成失敗[" + std::to_string(Width) + "," + std::to_string(Height) + "]");
-			return hr;
-		}
-
+		if (!_CreateDepthTexture2D(&tex_desc))return E_FAIL;
 
 		//Width、Heightは全レンダーターゲットとデプスバッファすべて同じにする
 		// Create the depth stencil view
@@ -189,14 +147,10 @@ public:
 		descDSV.Texture2D.MipSlice = 0;
 
 		// デプスバッファ
-		hr = Device::mpd3dDevice->CreateDepthStencilView(mpTexture2D, &descDSV, &mpDepthStencilView);
-		if (FAILED(hr)){
-			_SYSTEM_LOG("レンダーターゲット...DepthStencilViewの作成失敗[" + std::to_string(Width) + "," + std::to_string(Height) + "]");
-			return hr;
-		}
+		if (!_CreateDepthStencilView(&descDSV))return E_FAIL;
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-		ClearView(render->m_Context);
+		ClearDepth(render->m_Context);
 
 		//ID3D11ShaderResourceView* pShaderResourceView;
 		//hr = Device::mpd3dDevice->CreateShaderResourceView(mpTexture2D, nullptr, &pShaderResourceView);
@@ -213,66 +167,97 @@ public:
 	{
 		HRESULT hr = S_OK;
 
+		m_Width = Width;
+		m_Height = Height;
+
 		// Create a render target view
-		ID3D11Texture2D* pBackBuffer = NULL;
-		hr = Device::mpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+		hr = Device::mpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&mpTexture2D);
 		if (FAILED(hr))
 			return hr;
 
 		//レンダーターゲットの作成
-		hr = Device::mpd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &mpRenderTargetView);
-		pBackBuffer->Release();
-		if (FAILED(hr))
-			return hr;
-
-
-		// Create depth stencil texture
-		D3D11_TEXTURE2D_DESC descDepth;
-		ZeroMemory(&descDepth, sizeof(descDepth));
-		descDepth.Width = Width;
-		descDepth.Height = Height;
-		descDepth.MipLevels = 1;
-		descDepth.ArraySize = 1;
-		//descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		descDepth.Format = DXGI_FORMAT_D32_FLOAT;
-		descDepth.SampleDesc.Count = 1;
-		descDepth.SampleDesc.Quality = 0;
-		descDepth.Usage = D3D11_USAGE_DEFAULT;
-		descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		//descDepth.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		descDepth.CPUAccessFlags = 0;
-		descDepth.MiscFlags = 0;
-		//descDepth.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
-
-
-		hr = Device::mpd3dDevice->CreateTexture2D(&descDepth, NULL, &mpTexture2D);
-		if (FAILED(hr))
-			return hr;
-
-
-		// Create the depth stencil view
-		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-		ZeroMemory(&descDSV, sizeof(descDSV));
-		descDSV.Format = DXGI_FORMAT_D32_FLOAT;//descDepth.Format;
-		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		descDSV.Texture2D.MipSlice = 0;
-		hr = Device::mpd3dDevice->CreateDepthStencilView(mpTexture2D, &descDSV, &mpDepthStencilView);
-		if (FAILED(hr))
-			return hr;
-
-
-
-		//ID3D11ShaderResourceView* pShaderResourceView;
-		//hr = Device::mpd3dDevice->CreateShaderResourceView(mpTexture2D, nullptr, &pShaderResourceView);
-		//if (FAILED(hr))
-		//	return hr;
-
-		//hr = mTexture.Create(pShaderResourceView);
-		//if (FAILED(hr))
-		//	return hr;
-
+		if (!_CreateRenderTargetView())return E_FAIL;
 
 		return S_OK;
+	}
+
+	bool Resize(UINT Width, UINT Height){
+		if (mpTexture2D){
+			mpTexture2D->Release();
+			mpTexture2D = NULL;
+
+
+			m_Width = Width;
+			m_Height = Height;
+			// Create depth stencil texture
+			D3D11_TEXTURE2D_DESC tex_desc;
+			ZeroMemory(&tex_desc, sizeof(tex_desc));
+			tex_desc.Width = m_Width;
+			tex_desc.Height = m_Height;
+			tex_desc.MipLevels = 1;
+			tex_desc.ArraySize = 1;
+			tex_desc.Format = m_Format;
+			tex_desc.SampleDesc.Count = 1;
+			tex_desc.SampleDesc.Quality = 0;
+			tex_desc.Usage = D3D11_USAGE_DEFAULT;
+			tex_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+			tex_desc.CPUAccessFlags = 0;
+			tex_desc.MiscFlags = 0;
+
+			if (!_CreateTexture2D(&tex_desc))return false;
+		}
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		if (mpRenderTargetView){
+			mpRenderTargetView->Release();
+			mpRenderTargetView = NULL;
+
+			if (!_CreateRenderTargetView())return false;
+			ClearView(render->m_Context);
+		}
+
+
+		if (mpDepthTexture2D){
+			mpDepthTexture2D->Release();
+			mpDepthTexture2D = NULL;
+
+
+			m_Width = Width;
+			m_Height = Height;
+			// Create depth stencil texture
+			D3D11_TEXTURE2D_DESC tex_desc;
+			ZeroMemory(&tex_desc, sizeof(tex_desc));
+			tex_desc.Width = m_Width;
+			tex_desc.Height = m_Height;
+			tex_desc.MipLevels = 1;
+			tex_desc.ArraySize = 1;
+			tex_desc.Format = DXGI_FORMAT_D32_FLOAT;
+			tex_desc.SampleDesc.Count = 1;
+			tex_desc.SampleDesc.Quality = 0;
+			tex_desc.Usage = D3D11_USAGE_DEFAULT;
+			tex_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+			tex_desc.CPUAccessFlags = 0;
+			tex_desc.MiscFlags = 0;
+
+			if (!_CreateDepthTexture2D(&tex_desc))return false;
+		}
+		if (mpDepthStencilView){
+			mpDepthStencilView->Release();
+			mpDepthStencilView = NULL;
+
+			D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+			ZeroMemory(&descDSV, sizeof(descDSV));
+			descDSV.Format = DXGI_FORMAT_D32_FLOAT;
+			descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+			descDSV.Texture2D.MipSlice = 0;
+
+			if (!_CreateDepthStencilView(&descDSV))return false;
+			ClearDepth(render->m_Context);
+
+		}
+		if (!_CreateTexture())return false;
+
+
+		return true;
 	}
 
 	void ClearView(ID3D11DeviceContext* context) const{
@@ -297,12 +282,15 @@ public:
 	void SetRendererTarget(ID3D11DeviceContext* context) const{
 		//レンダーターゲットと深度ステンシルの関連付け
 		
-		if (mpRenderTargetView)
-		context->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
+		if (mpRenderTargetView){
+			_SetViewport(context, *this);
+			context->OMSetRenderTargets(1, &mpRenderTargetView, mpDepthStencilView);
+		}
 	}
 	static void SetRendererTarget(ID3D11DeviceContext* context,UINT num, const RenderTarget* render, const RenderTarget* depth){
 
 		_ASSERT(num<9);
+		_SetViewport(context, render[0]);
 
 		ID3D11RenderTargetView* r[8];
 		for (UINT i = 0; i < num; i++){
@@ -327,6 +315,10 @@ public:
 		if (mpTexture2D){
 			mpTexture2D->Release();
 			mpTexture2D = NULL;
+		}
+		if (mpDepthTexture2D){
+			mpDepthTexture2D->Release();
+			mpDepthTexture2D = NULL;
 		}
 		//ID3D11RenderTargetView* rt[8];
 		//ID3D11DepthStencilView* ds;
@@ -354,12 +346,79 @@ public:
 
 	ID3D11RenderTargetView*	GetRT(){ return mpRenderTargetView; };
 	ID3D11Texture2D* GetTexture2D(){ return mpTexture2D; };
-
 private:
-	ID3D11RenderTargetView*	mpRenderTargetView;
+
+	static void _SetViewport(ID3D11DeviceContext* context,const RenderTarget& rt){
+		// Setup the viewport
+		D3D11_VIEWPORT vp;
+		vp.Width = (FLOAT)rt.m_Width;
+		vp.Height = (FLOAT)rt.m_Height;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		context->RSSetViewports(1, &vp);
+	}
+
+	bool _CreateTexture2D(const D3D11_TEXTURE2D_DESC* tex_desc){
+		auto hr = Device::mpd3dDevice->CreateTexture2D(tex_desc, nullptr, &mpTexture2D);
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("Texture2Dの作成");
+			return false;
+		}
+		return true;
+	}
+	bool _CreateDepthTexture2D(const D3D11_TEXTURE2D_DESC* tex_desc){
+		auto hr = Device::mpd3dDevice->CreateTexture2D(tex_desc, nullptr, &mpDepthTexture2D);
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("DepthTexture2Dの作成");
+			return false;
+		}
+		return true;
+	}
+
+	bool _CreateRenderTargetView(){
+		// RenderTargetView作成　MRTに必要な個数
+		auto hr = Device::mpd3dDevice->CreateRenderTargetView(mpTexture2D, nullptr, &mpRenderTargetView);
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("RenderTargetViewの作成");
+			return false;
+		}
+		return true;
+	}
+	bool _CreateTexture(){
+		ID3D11ShaderResourceView* pShaderResourceView;
+		auto hr = Device::mpd3dDevice->CreateShaderResourceView(mpTexture2D, nullptr, &pShaderResourceView);
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("ShaderResourceViewの作成");
+			return false;
+		}
+
+		hr = mTexture.Create(pShaderResourceView);
+		if (FAILED(hr)){
+			return false;
+		}
+		return true;
+	}
+
+	bool _CreateDepthStencilView(const D3D11_DEPTH_STENCIL_VIEW_DESC* desc){
+		auto hr = Device::mpd3dDevice->CreateDepthStencilView(mpDepthTexture2D, desc, &mpDepthStencilView);
+		if (FAILED(hr)){
+			_SYSTEM_LOG_ERROR("DepthStencilViewの作成");
+			return false;
+		}
+		return true;
+	}
+
 	ID3D11Texture2D*		mpTexture2D;
+	ID3D11RenderTargetView*	mpRenderTargetView;
+	ID3D11Texture2D*		mpDepthTexture2D;
 	ID3D11DepthStencilView*	mpDepthStencilView;
 	Texture					mTexture;
+
+	UINT m_Width;
+	UINT m_Height;
+	DXGI_FORMAT m_Format;
 };
 
 class UAVRenderTarget{

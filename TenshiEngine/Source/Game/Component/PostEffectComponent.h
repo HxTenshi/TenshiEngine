@@ -8,14 +8,14 @@
 
 class PostEffectHelper{
 public:
-	static void SetCurrentTarget(RenderTarget* target){
+	static void SetCurrentTarget(RenderTarget target){
 		mCurrentRenderTarget = target;
 	}
-	static RenderTarget* CurrentTarget(){
+	static RenderTarget CurrentTarget(){
 		return mCurrentRenderTarget;
 	}
 private:
-	static RenderTarget* mCurrentRenderTarget;
+	static RenderTarget mCurrentRenderTarget;
 };
 
 
@@ -24,7 +24,9 @@ public:
 
 
 	void Initialize() override;
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 
 	void Finish() override;
@@ -43,7 +45,6 @@ private:
 	Model mModelTexture;
 
 	Material mMaterial;
-
-	std::string mShaderName;
+	ShaderAsset mShader;
 
 };

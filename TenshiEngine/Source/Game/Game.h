@@ -64,7 +64,9 @@ public:
 	Game();
 	~Game();
 
-	static void AddObject(GameObjectPtr actor,bool undoFlag = false);
+	static Game* Get();
+
+	static void AddObject(GameObjectPtr actor, bool undoFlag = false, bool DelayInitialize = false);
 	static void DestroyObject(GameObjectPtr actor, bool undoFlag = false);
 	static void ActorMoveStage();
 	static PxRigidActor* CreateRigitBody();
@@ -77,7 +79,9 @@ public:
 	static void GetAllObject(const std::function<void(GameObject)>& collbak);
 	static GameObject GetRootActor();
 	static GameObject FindActor(Actor* actor);
+#ifdef _ENGINE_MODE
 	static GameObject FindEngineActor(Actor* actor);
+#endif
 	static GameObject FindNameActor(const char* name);
 	static GameObject FindUID(UniqueID uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
@@ -116,6 +120,7 @@ private:
 
 	enum class ActorMove{
 		Create,
+		Create_DelayInitialize,
 		Delete,
 		Count,
 	};

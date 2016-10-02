@@ -8,7 +8,6 @@ public:
 	~MetaFileData();
 
 	bool Create(const char* filename) override;
-	bool FileUpdate() override;
 
 
 	const MD5::MD5HashCoord* GetHash() const{

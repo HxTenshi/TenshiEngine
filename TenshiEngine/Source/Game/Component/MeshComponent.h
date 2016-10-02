@@ -2,6 +2,7 @@
 
 #include "IComponent.h"
 #include "MySTL/ptr.h"
+#include "Engine/AssetDataBase.h"
 
 class ModelMesh;
 
@@ -20,12 +21,12 @@ public:
 
 	void IO_Data(I_ioHelper* io) override;
 
-	void SetMesh(std::string fileName,int id);
+	void SetMesh(MeshAsset& asset, int id);
 	ModelMesh* GetModelMesh(){
 		return m_ModelMesh;
 	}
 private:
 	ModelMesh* m_ModelMesh;
-	std::string m_FileName;
+	MeshAsset mMesh;
 	int m_ID;
 };

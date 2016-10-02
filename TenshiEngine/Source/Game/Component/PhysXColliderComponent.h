@@ -40,7 +40,9 @@ public:
 	void Initialize() override;
 	void Start() override;
 	void Finish() override;
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 	void ChangeParentCallback() override;
 #ifdef _ENGINE_MODE
@@ -89,7 +91,11 @@ private:
 	//アタッチの解放
 	void ReleaseAttach();
 
+	void OnEnabled()override;
+	void OnDisabled()override;
+
 	physx::PxShape* mShape;
+	XMMATRIX mShapeMatrix;
 	//-1 = static, 0 = none, 1~ = dynamic
 	int mAttachTarget;
 	weak_ptr<PhysXComponent> mAttachPhysXComponent;
@@ -103,6 +109,10 @@ private:
 
 	XMVECTOR mPosition;
 	XMVECTOR mScale;
+
+	XMVECTOR mGameObjectPosition;
+	XMVECTOR mGameObjectRotate;
+	XMVECTOR mGameObjectScale;
 
 	bool mIsTrigger;
 

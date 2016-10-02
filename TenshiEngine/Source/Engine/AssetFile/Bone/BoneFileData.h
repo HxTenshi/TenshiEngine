@@ -13,7 +13,6 @@ public:
 	~BoneFileData();
 
 	bool Create(const char* filename) override;
-	bool FileUpdate() override;
 
 	const BoneData& GetBoneData() const;
 

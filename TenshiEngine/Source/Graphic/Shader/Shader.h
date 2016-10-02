@@ -21,6 +21,7 @@ public:
 	}
 
 	void Create(const char* fileName);
+	void Create(ShaderAsset& asset);
 
 	void SetShader(bool UseAnime, ID3D11DeviceContext* context) const;
 	void SetShader_VS(bool UseAnime, ID3D11DeviceContext* context) const;

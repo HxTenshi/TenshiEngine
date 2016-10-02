@@ -10,8 +10,9 @@ class MaterialComponent;
 class MeshDrawComponent :public Component{
 public:
 	MeshDrawComponent();
-
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 
 #ifdef _ENGINE_MODE

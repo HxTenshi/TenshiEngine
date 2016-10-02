@@ -38,10 +38,12 @@ cbuffer cbChangesEveryFrame : register(b2)
 PS_INPUT VS( VS_INPUT input )
 {
 	PS_INPUT output = (PS_INPUT)0;
-	output.Pos = mul(input.Pos, World);
-	output.Pos.z = 0;
-	float y = ScreenSize.y / ScreenSize.x;
-	output.Tex = input.Tex *float2(1, y);
+	//output.Pos = mul(input.Pos, World);
+	//output.Pos.z = 0;
+	//float y = ScreenSize.y / ScreenSize.x;
+	//output.Tex = input.Tex *float2(1, y);
+	output.Pos = input.Pos;
+	output.Tex = input.Tex;
 	
 	return output;
 }
@@ -52,6 +54,6 @@ PS_INPUT VS( VS_INPUT input )
 //--------------------------------------------------------------------------------------
 float4 PS(PS_INPUT input) : SV_Target
 {
-	float4 col = txDiffuse.Sample(samLinear, input.Tex) * AddPow;
+	float4 col = txDiffuse.Sample(samLinear, input.Tex) *AddPow;
 	return col;
 }

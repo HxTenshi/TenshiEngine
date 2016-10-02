@@ -11,6 +11,32 @@ class EditorCamera;
 #include "Library/picojson.h"
 #include <list>
 
+class EditGuide{
+public:
+	EditGuide()
+		:mSelectGuide(-1)
+	{}
+	virtual ~EditGuide(){}
+
+
+	void SetGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat);
+	void UpdateGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat);
+	int SetGuideHit(Actor* act);
+	void Update();
+
+	void Enable();
+	void Disable();
+
+	virtual void GuideDrag(float pow) = 0;
+	virtual void UpdateTransform(std::list<Actor*>& actors) = 0;
+protected:
+	shared_ptr<Actor> mGuide[3];
+	int mSelectGuide;
+
+	XMVECTOR mGuidePosition;
+	XMVECTOR mGuideRotate;
+};
+
 class Selects{
 public:
 	Selects();
@@ -20,14 +46,11 @@ public:
 	//í«â¡Ç∆çÌèúÇÃêÿÇËë÷Ç¶
 	bool TriggerSelect(Actor* act);
 
-	void MoveStart(XMVECTOR& vect);
-	void MovePos(XMVECTOR& vect);
-	void MoveEnd(XMVECTOR& vect);
-
-
 	void Copy();
 	void CopyDelete();
 	void Paste();
+
+	void SetUndo();
 
 	int SelectNum();
 	XMVECTOR GetPosition();
@@ -67,7 +90,7 @@ public:
 	Actor* GetSelectOne();
 
 	void UpdateInspector();
-	void Update(float deltaTime);
+	void Update();
 
 	void ReCreateInspector();
 
@@ -80,10 +103,13 @@ private:
 	Selects mSelects;
 	bool mSelectAsset;
 	bool mDontTreeViewSelect;
-	shared_ptr<Actor> mVectorBox[3];
 
-	int mDragBox;
-	XMVECTOR mDragPos;
+	int mCurrentGuide;
+	EditGuide* mEditGuide[3];
+	//shared_ptr<Actor> mVectorBox[3];
+	bool mIsDragMode;
+	//int mDragBox;
+	//XMVECTOR mDragPos;
 
 	Material mSelectWireMaterial;
 	Material mSelectPhysxWireMaterial;

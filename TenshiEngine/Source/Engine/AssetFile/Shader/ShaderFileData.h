@@ -77,7 +77,6 @@ public:
 	~ShaderFileData();
 
 	bool Create(const char* filename) override;
-	bool FileUpdate() override;
 
 	void Compile();
 

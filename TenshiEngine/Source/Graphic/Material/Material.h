@@ -38,6 +38,7 @@ public:
 	~Material();
 
 	HRESULT Create(const char* shaderFileName = "EngineResource/DeferredPrePass.fx");
+	HRESULT Create(ShaderAsset& asset);
 	//HRESULT Create(ConstantBuffer<cbChangesMaterial> const& cbMaterial, ConstantBuffer<cbChangesUseTexture> const& cbUseTexture);
 	void SetShader(bool UseAnime, ID3D11DeviceContext* context) const;
 	void SetShader_VS(bool UseAnime, ID3D11DeviceContext* context) const;
@@ -47,6 +48,7 @@ public:
 	void GSSetShaderResources(ID3D11DeviceContext* context , ForcedMaterialFilter::Enum filter = ForcedMaterialFilter::ALL) const;
 	void SetTexture(const char* FileName, UINT Slot = 0);
 	void SetTexture(const Texture& Tex, UINT Slot = 0);
+	void SetTexture(const TextureAsset& Tex, UINT Slot = 0);
 
 
 	void ExportData(File& f);
