@@ -1,8 +1,6 @@
 #include "TPSCamera.h"
-#include "../h_standard.h"
 
 TPSCamera::TPSCamera(){
-	mTargetName = "";
 	mDistance = 5.0f;
 	mUp = 1.0f;
 	mTarget = NULL;
@@ -15,8 +13,6 @@ void TPSCamera::Initialize(){
 
 //initializeとupdateの前に呼ばれます（エディター中も呼ばれます）
 void TPSCamera::Start(){
-	auto act = game->FindActor(mTargetName.c_str());
-	mTarget = act;
 }
 
 //毎フレーム呼ばれます
@@ -50,16 +46,16 @@ void TPSCamera::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void TPSCamera::OnCollideBegin(Actor* target){
+void TPSCamera::OnCollideBegin(GameObject target){
 	(void)target;
 }
 
 //コライダーとのヒット中に呼ばれます
-void TPSCamera::OnCollideEnter(Actor* target){
+void TPSCamera::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void TPSCamera::OnCollideExit(Actor* target){
+void TPSCamera::OnCollideExit(GameObject target){
 	(void)target;
 }

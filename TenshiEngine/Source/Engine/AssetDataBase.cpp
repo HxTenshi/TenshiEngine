@@ -39,9 +39,12 @@ static __AssetFactory factory;
 //static
 void AssetDataBase::InitializeMetaData(const char* filename){
 
+	std::string x(filename);
+	std::transform(x.begin(), x.end(), x.begin(), [](int x) { return (char)std::tolower(x); });
+	auto _filename = x.c_str();
 
-	auto s = (std::string(filename) + (".meta"));
-	auto file = m_AssetCache.find(filename);
+	auto s = (std::string(_filename) + (".meta"));
+	auto file = m_AssetCache.find(_filename);
 
 	if (file == m_AssetCache.end()){
 
@@ -49,22 +52,25 @@ void AssetDataBase::InitializeMetaData(const char* filename){
 		data = AssetFactory::Create(s.c_str());
 		if (data && (AssetFileType::Meta == data->m_AssetFileType)){
 			MetaAssetDataPtr meta = data;
-			m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), std::make_pair(filename, AssetDataTemplatePtr(NULL))));
+			m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), std::make_pair(_filename, AssetDataTemplatePtr(NULL))));
 		
-			m_AssetCache.insert(std::make_pair(filename, std::make_pair(*meta->GetFileData()->GetHash(), AssetDataTemplatePtr(NULL))));
+			m_AssetCache.insert(std::make_pair(_filename, std::make_pair(*meta->GetFileData()->GetHash(), AssetDataTemplatePtr(NULL))));
 		
 		}
 		else{
-			MakeMetaFile(filename);
+			MakeMetaFile(_filename);
 			data = AssetFactory::Create(s.c_str());
 			if (data && (AssetFileType::Meta == data->m_AssetFileType)){
 				MetaAssetDataPtr meta = data;
-				m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), std::make_pair(filename, AssetDataTemplatePtr(NULL))));
+				m_AssetMetaCache.insert(std::make_pair(*meta->GetFileData()->GetHash(), std::make_pair(_filename, AssetDataTemplatePtr(NULL))));
 		
-				m_AssetCache.insert(std::make_pair(filename, std::make_pair(*meta->GetFileData()->GetHash(), AssetDataTemplatePtr(NULL))));
+				m_AssetCache.insert(std::make_pair(_filename, std::make_pair(*meta->GetFileData()->GetHash(), AssetDataTemplatePtr(NULL))));
 		
 			}
 		}
+	}
+	else {
+		return;
 	}
 
 }
@@ -139,21 +145,21 @@ void AssetDataTemplate<PrefabFileData>::CreateInspector(){
 	m_FileData->GetActor()->CreateInspector();
 
 	
-	std::function<void()> collback = [&](){
-		auto before = m_FileData->Apply();
+	//std::function<void()> collback = [&](){
+	//	auto before = m_FileData->Apply();
 
-		Game::GetAllObject([&](GameObject tar){
-			auto str = tar->Prefab();
-			if (m_FileData->GetFileName() == str){
+	//	Game::GetAllObject([&](GameObject tar){
+	//		auto str = tar->Prefab();
+	//		if (m_FileData->GetFileName() == str){
 
-				tar->PastePrefabParam(before);
+	//			tar->PastePrefabParam(before);
 
-			}
-		});
-	};
-	Inspector ins("Prefab",NULL);
-	ins.AddButton("Apply",collback);
-	ins.Complete();
+	//		}
+	//	});
+	//};
+	//Inspector ins("Prefab",NULL);
+	//ins.AddButton("Apply",collback);
+	//ins.Complete();
 }
 
 void AssetDataTemplate<ShaderFileData>::CreateInspector(){

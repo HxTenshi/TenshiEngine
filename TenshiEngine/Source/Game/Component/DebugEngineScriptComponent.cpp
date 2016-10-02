@@ -45,12 +45,14 @@ void DebugEngineScriptComponent::Initialize(){
 void DebugEngineScriptComponent::Start(){
 }
 
+#ifdef _ENGINE_MODE
 void DebugEngineScriptComponent::EngineUpdate(){
 
 	if (pClass){
 		pClass->EngineUpdate();
 	}
 }
+#endif
 void DebugEngineScriptComponent::Update(){
 
 	if (pClass){

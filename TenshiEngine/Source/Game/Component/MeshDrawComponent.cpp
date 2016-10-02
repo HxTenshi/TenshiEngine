@@ -17,10 +17,11 @@
 MeshDrawComponent::MeshDrawComponent(){
 }
 
+#ifdef _ENGINE_MODE
 void MeshDrawComponent::EngineUpdate(){
 	Update();
 }
-
+#endif
 void MeshDrawComponent::Update(){
 
 	if (!mModel){

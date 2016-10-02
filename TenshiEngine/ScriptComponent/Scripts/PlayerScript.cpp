@@ -15,7 +15,7 @@ PlayerScript::PlayerScript(){
 void PlayerScript::Update(){
 	
 	auto& list = gameObject->mTransform->Children();
-	Actor* camera = NULL;
+	GameObject camera = NULL;
 	for (auto act : list){
 		if (act->Name() == "MainCamera"){
 			camera = act;
@@ -46,6 +46,6 @@ void PlayerScript::Update(){
 
 }
 
-void PlayerScript::OnCollideBegin(Actor* target){
+void PlayerScript::OnCollideBegin(GameObject target){
 
 }

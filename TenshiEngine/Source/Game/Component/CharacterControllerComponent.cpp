@@ -55,6 +55,7 @@ void CharacterControllerComponent::Finish(){
 		mController = NULL;
 	}
 }
+#ifdef _ENGINE_MODE
 void CharacterControllerComponent::EngineUpdate(){
 
 	if (!mController)return;
@@ -62,7 +63,7 @@ void CharacterControllerComponent::EngineUpdate(){
 	PxExtendedVec3 setpos(wp.x, wp.y, wp.z);
 	mController->setPosition(setpos);
 }
-
+#endif
 void CharacterControllerComponent::Update(){
 
 	//if (!mController)return;

@@ -505,7 +505,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	UNREFERENCED_PARAMETER( lpCmdLine );
 
 	//メモリーリークにブレークポイント
-	//_CrtSetBreakAlloc(8359);
+	//_CrtSetBreakAlloc(669);
 
 	SystemLog::Create();
 

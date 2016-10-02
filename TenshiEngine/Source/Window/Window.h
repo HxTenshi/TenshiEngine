@@ -136,6 +136,9 @@ public:
 	static void SetMouseEvents(bool* focus,bool* l, bool* r, int* x, int* y, int *wx, int *wy){
 		mMainWindow_WPF.SetMouseEvents(focus,l, r, x, y, wx, wy);
 	}
+	static void SetEngineFocusEvent(bool* focus) {
+		mMainWindow_WPF.SetEngineFocusEvent(focus);
+	}
 
 	static void SetWPFCollBack(MyWindowMessage massage, const std::function<void(void*)>& collback){
 		mWPFCollBacks[(int)massage] = collback;
@@ -155,7 +158,7 @@ public:
 
 #ifdef _ENGINE_MODE
 	HWND mDummyhWnd;
-	static std::vector<const std::function<void(void*)>> mWPFCollBacks;
+	static std::vector<std::function<void(void*)>> mWPFCollBacks;
 #endif
 };
 

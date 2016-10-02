@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IComponent.h"
+#include "Engine/Assets.h"
 
 class Material;
 
@@ -43,12 +44,12 @@ public:
 		return mForwardRendering;
 	};
 
-	std::string mAlbedoTextureName;
-	std::string mNormalTextureName;
-	std::string mHeightTextureName;
-	std::string mSpecularTextureName;
-	std::string mRoughnessTextureName;
-	std::string mEmissiveTextureName;
+	TextureAsset mAlbedoTexture;
+	TextureAsset mNormalTexture;
+	TextureAsset mHeightTexture;
+	TextureAsset mSpecularTexture;
+	TextureAsset mRoughnessTexture;
+	TextureAsset mEmissiveTexture;
 	std::vector<Material> mMaterials;
 	std::string mMaterialPath;
 	std::string mShaderName;

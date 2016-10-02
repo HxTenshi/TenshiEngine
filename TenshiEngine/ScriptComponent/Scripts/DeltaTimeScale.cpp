@@ -19,7 +19,7 @@ void DeltaTimeScale::Start(){
 
 //毎フレーム呼ばれます
 void DeltaTimeScale::Update(){
-	game->DeltaTime()->SetTimeScale(mDeltaTimeScale);
+	Hx::DeltaTime()->SetTimeScale(mDeltaTimeScale);
 }
 
 //開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）（エディター中も呼ばれます）
@@ -28,16 +28,16 @@ void DeltaTimeScale::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void DeltaTimeScale::OnCollideBegin(Actor* target){
+void DeltaTimeScale::OnCollideBegin(GameObject target){
 	(void)target;
 }
 
 //コライダーとのヒット中に呼ばれます
-void DeltaTimeScale::OnCollideEnter(Actor* target){
+void DeltaTimeScale::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void DeltaTimeScale::OnCollideExit(Actor* target){
+void DeltaTimeScale::OnCollideExit(GameObject target){
 	(void)target;
 }

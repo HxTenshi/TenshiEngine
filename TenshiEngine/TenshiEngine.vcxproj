@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -44,53 +44,53 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CLRSupport>false</CLRSupport>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|X64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|X64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -124,7 +124,7 @@
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>..\..\Physx\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc14win32;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
@@ -139,7 +139,7 @@
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\dll;$(ExecutablePath)</ExecutablePath>
     <IncludePath>..\..\Physx\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc14win32;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExeCompile|Win32'">
@@ -147,7 +147,7 @@
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>C:\Users\tenshi\Desktop\Programming\NOW\DirectXlib\TenshiEngine\TenshiEngine\dll;$(ExecutablePath)</ExecutablePath>
     <IncludePath>..\..\Physx\PhysXSDK\Include;.\lib\DirectShow\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\Physx\PhysXSDK\Lib\vc14win32;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)Exe</TargetName>
     <OutDir>$(SolutionDir)\</OutDir>
   </PropertyGroup>
@@ -217,6 +217,7 @@
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -295,7 +296,7 @@
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>No</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -305,6 +306,8 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <ProgramDatabaseFile>$(Configuration)$(TargetName).pdb</ProgramDatabaseFile>
+      <ProfileGuidedDatabase>$(Configuration)$(TargetName).pgd</ProfileGuidedDatabase>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -352,6 +355,8 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <ProgramDatabaseFile>$(Configuration)$(TargetName).pdb</ProgramDatabaseFile>
+      <ProfileGuidedDatabase>$(Configuration)$(TargetName).pgd</ProfileGuidedDatabase>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -548,6 +553,7 @@
     <ClCompile Include="Source\Engine\AssetFile\Prefab\PrefabFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Shader\ShaderFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Sound\SoundFileData.cpp" />
+    <ClCompile Include="Source\Engine\AssetTypes.cpp" />
     <ClCompile Include="Source\Engine\IAsset.cpp" />
     <ClCompile Include="Source\Engine\Inspector.cpp" />
     <ClCompile Include="Source\Engine\window\AssetsWindow.cpp" />
@@ -565,6 +571,7 @@
     <ClCompile Include="Source\Game\Component\CharacterControllerComponent.cpp" />
     <ClCompile Include="Source\Game\Component\Component.cpp" />
     <ClCompile Include="Source\Game\Component\ComponentFactory.cpp" />
+    <ClCompile Include="Source\Game\Component\ComponentList.cpp" />
     <ClCompile Include="Source\Game\Component\DebugEngineScriptComponent.cpp" />
     <ClCompile Include="Source\Game\Component\DebugScript\DebugNaviMesh.cpp" />
     <ClCompile Include="Source\Game\Component\DirectionalLightComponent.cpp" />
@@ -594,6 +601,7 @@
     <ClCompile Include="Source\Game\Component\ScriptComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TextComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TransformComponent.cpp" />
+    <ClCompile Include="Source\Game\SettingObject\Canvas.cpp" />
     <ClCompile Include="Source\Game\SettingObject\PhysxLayer.cpp" />
     <ClCompile Include="Source\Game\System.cpp" />
     <ClCompile Include="Source\Graphic\Font\Font.cpp" />
@@ -656,6 +664,7 @@
     <ClInclude Include="Source\Device\DirectX11Device.h" />
     <CLInclude Include="Resource\resource.h" />
     <ClInclude Include="Source\Engine\AssetDataBase.h" />
+    <ClInclude Include="Source\Engine\AssetFileTypes.h" />
     <ClInclude Include="Source\Engine\AssetFile\AssetFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Bone\BoneFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Material\TextureFileData.h" />
@@ -669,6 +678,8 @@
     <ClInclude Include="Source\Engine\AssetFile\Shader\ShaderFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Sound\SoundFileData.h" />
     <ClInclude Include="Source\Engine\AssetLoader.h" />
+    <ClInclude Include="Source\Engine\Assets.h" />
+    <ClInclude Include="Source\Engine\AssetTypes.h" />
     <ClInclude Include="Source\Engine\IAsset.h" />
     <ClInclude Include="Source\Engine\Inspector.h" />
     <ClInclude Include="Source\Engine\window\AssetsWindow.h" />
@@ -682,6 +693,7 @@
     <ClInclude Include="Source\Game\Component\CharacterControllerComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugEngineScriptComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugScript\DebugNaviMesh.h" />
+    <ClInclude Include="Source\Game\IActor.h" />
     <ClInclude Include="Source\Game\Component\JointComponent.h" />
     <ClInclude Include="Source\Game\Component\MovieComponent.h" />
     <ClInclude Include="Source\Game\Component\SoundComponent.h" />
@@ -726,6 +738,7 @@
     <ClInclude Include="Source\Game\Component\TextComponent.h" />
     <ClInclude Include="Source\Game\Component\TransformComponent.h" />
     <ClInclude Include="Source\Game\Script\SGame.h" />
+    <ClInclude Include="Source\Game\SettingObject\Canvas.h" />
     <ClInclude Include="Source\Game\SettingObject\PhysxLayer.h" />
     <ClInclude Include="Source\Game\System.h" />
     <ClInclude Include="Source\Game\Types.h" />

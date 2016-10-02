@@ -7,6 +7,7 @@
 #include "TextureModelComponent.h"
 #include "MaterialComponent.h"
 #include "Game/Game.h"
+#include "Game/SettingObject/Canvas.h"
 
 #include "Engine/Inspector.h"
 
@@ -18,6 +19,7 @@ public:
 	std::string mText;
 
 	Material mTexMaterial;
+
 };
 
 TextComponent::TextComponent()
@@ -28,6 +30,7 @@ TextComponent::TextComponent()
 
 	mFontSize = 48.0f;
 	mCenter = false;
+	m_Center = XMFLOAT2(0.5f, 0.5f);
 }
 TextComponent::~TextComponent()
 {
@@ -47,6 +50,7 @@ void TextComponent::Initialize(){
 }
 void TextComponent::Finish(){
 }
+#ifdef _ENGINE_MODE
 void TextComponent::EngineUpdate(){
 
 	auto s = gameObject->mTransform->Scale();
@@ -58,7 +62,7 @@ void TextComponent::EngineUpdate(){
 
 	DrawTextUI();
 }
-
+#endif
 void TextComponent::Update(){
 	DrawTextUI();
 }
@@ -67,38 +71,32 @@ void TextComponent::DrawTextUI(){
 
 	Game::AddDrawList(DrawStage::Init, [&](){
 
-		//auto h = (float)WindowState::mHeight;
-		//auto w = (float)WindowState::mWidth;
-
-		auto h = (float)800.0f;
-		auto w = (float)1200.0f;
-
-		float hh = h / 2.0f;
-		float wh = w / 2.0f;
-
 		auto s = gameObject->mTransform->Scale();
-		float sx = s.x / w;
-		float sy = s.y / h;
 		auto p = gameObject->mTransform->Position();
-		float px = (p.x - wh) / wh;
-		float py = (-p.y + hh) / hh;
+		auto r = gameObject->mTransform->Rotate();
 
-		//‚‚³‚ð‡‚í‚¹‚Ä•‚Ì”ä—¦‚ð‚ ‚í‚¹‚é
-		{
-			auto asx = 1200.0f / (float)WindowState::mWidth;
-			//px -= asx/2.0f;
-			sx *= asx;
-		}
+		XMFLOAT2 center = m_Center;
+		center.x = (center.x * -2.0f + 1.0f);
+		center.y = (center.y * 2.0f - 1.0f);
+		auto centerMatrix = XMMatrixTranslation(center.x, center.y, 0.0f);
 
-		auto pos = XMVectorSet(px, py, 0, 1);
-		auto rot = gameObject->mTransform->Rotate();
-		auto scl = XMVectorSet(sx, sy, 0, 1);
 
-		auto mat = XMMatrixMultiply(
-			XMMatrixMultiply(
-			XMMatrixRotationRollPitchYawFromVector(rot),
-			XMMatrixScalingFromVector(scl)),
-			XMMatrixTranslationFromVector(pos));
+		s.x /= Canvas::GetWidth();
+		s.y /= Canvas::GetHeight();
+		auto scaleMatrix = XMMatrixScaling(s.x, s.y, 0.0f);
+
+
+		auto rotateMatrix = XMMatrixRotationRollPitchYawFromVector(r);
+
+
+		p.x = p.x * 2 / Canvas::GetWidth() - 1.0f;
+		p.y = p.y * 2 / Canvas::GetHeight() - 1.0f;
+		auto transMatrix = XMMatrixTranslation(p.x, p.y, 0.0f);
+
+
+		auto mat = XMMatrixMultiply(centerMatrix, scaleMatrix);
+		mat = XMMatrixMultiply(mat, rotateMatrix);
+		mat = XMMatrixMultiply(mat, transMatrix);
 
 		impl->mModel.mWorld = mat;
 		impl->mModel.Update();
@@ -170,6 +168,10 @@ void TextComponent::CreateInspector(){
 	ins.Add("Center", &mCenter, [&](bool f){
 		ChangeCenter(f);
 	});
+	Vector2 vec(m_Center);
+	ins.Add("TextureCenter", &vec, [&](Vector2 v) {
+		SetTextureCenter(XMFLOAT2(v.x, v.y));
+	});
 
 	ins.Complete();
 }
@@ -181,6 +183,8 @@ void TextComponent::IO_Data(I_ioHelper* io){
 
 #define _KEY(x) io->func( x , #x)
 	_KEY(impl->mText);
+	_KEY(m_Center.x);
+	_KEY(m_Center.y);
 #undef _KEY
 }
 
@@ -196,4 +200,8 @@ void TextComponent::ChangeFontSize(float size){
 void TextComponent::ChangeCenter(bool center){
 	mCenter = center;
 	ChangeText(impl->mText);
+}
+
+void TextComponent::SetTextureCenter(const XMFLOAT2& center) {
+	m_Center = center;
 }

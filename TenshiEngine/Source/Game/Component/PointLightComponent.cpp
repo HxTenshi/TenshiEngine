@@ -37,9 +37,12 @@ void PointLightComponent::Initialize(){
 void PointLightComponent::Finish(){
 
 }
+
+#ifdef _ENGINE_MODE
 void PointLightComponent::EngineUpdate(){
 	Update();
 }
+#endif
 void PointLightComponent::Update(){
 
 	Game::AddDrawList(DrawStage::Light, [&](){

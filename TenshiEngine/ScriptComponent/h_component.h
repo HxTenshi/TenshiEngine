@@ -2,6 +2,10 @@
 
 #include "main.h"
 
+
+#pragma warning( push )
+#pragma warning ( disable : 4838 )
+
 #include "Game/Component/TransformComponent.h"
 #include "Game/Component/PhysXComponent.h"
 #include "Game/Component/PhysXColliderComponent.h"
@@ -18,3 +22,5 @@
 #include "Game/Component/PostEffectComponent.h"
 #include "Game/Component/ParticleComponent.h"
 #include "Game/Component/SoundComponent.h"
+
+#pragma warning( pop )

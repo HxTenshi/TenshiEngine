@@ -15,7 +15,7 @@ void Scene::MemoryLoadScene(){
 	for (auto& act : m_MemorySave){
 		auto postactor = make_shared<Actor>();
 		postactor->ImportData(act);
-		Game::AddObject(postactor);
+		Game::AddObject(postactor, false, true);
 	}
 
 }
@@ -43,7 +43,7 @@ void Scene::LoadScene(const std::string& fileName){
 	for (auto& val : arr){
 		auto postactor = make_shared<Actor>();
 		postactor->ImportData(val);
-		Game::AddObject(postactor);
+		Game::AddObject(postactor,false,true);
 	}
 
 }

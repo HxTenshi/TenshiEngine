@@ -211,6 +211,9 @@ PS_OUTPUT_1 main(PS_INPUT input,float normalVec){
 	// åıåπÇÃï˚å¸(viewç¿ïWån)
 	dir = dir / r;
 
+	if (r / PtLPrm.z > 1)discard;
+
+
 	// å∏êä  A*r^n + B
 	//float atte = saturate(PtLPrm.x*pow(r, PtLPrm.w) + PtLPrm.y);
 	float atte = saturate(pow(1 - pow(r / PtLPrm.z, 4), 2)) / (pow(r, 2) + 1);
@@ -261,9 +264,12 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 		Out.Diffuse.rgb = ((1 - rebirth) * Out.Diffuse.rgb) + reb.Diffuse.rgb * rebirth;
 		Out.Specular.rgb = ((1 - rebirth) * Out.Specular.rgb) + reb.Specular.rgb * rebirth;
 	}
-	else{
+	//else{
+	//
+	//}
 
-	}
+	//Out.Diffuse = float4(1,1,1, 1);
+	//Out.Specular = float4(1,1,1, 1);
 
 	return Out;
 }

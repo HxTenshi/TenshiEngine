@@ -1,12 +1,13 @@
 #pragma once
 
 #include <String>
-#include "MySTL/File.h"
-#include "MySTL/ioHelper.h"
 #include "Game/Script/GameObject.h"
 #include "Game/Parts/Enabled.h"
+#include "MySTL/ioHelper.h"
+
 
 class Actor;
+class I_ioHelper;
 
 class Component
 	:public Enabled
@@ -47,11 +48,6 @@ public:
 	virtual void EngineUpdate(){}
 	virtual void CreateInspector(){}
 #endif
-
-	void ExportClassName(File& f){
-		std::string name = ClassName();
-		f.Out(name);
-	}
 	std::string ClassName(){
 		std::string name = typeid(*this).name();
 		name.erase(0, 6);//"class "ÇçÌèú

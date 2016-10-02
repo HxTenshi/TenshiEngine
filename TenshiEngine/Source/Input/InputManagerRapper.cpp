@@ -14,6 +14,8 @@ void InputManagerRapper::Initialize(HWND hWnd, HINSTANCE hInstance){
 #ifdef _ENGINE_MODE
 		mScreenFocus = false;
 		Window::SetMouseEvents(&mScreenFocus, &ml, &mr, &mx, &my, &wx, &wy);
+		mEngineFocus = true;
+		Window::SetEngineFocusEvent(&mEngineFocus);
 #else
 		mScreenFocus = true;
 #endif
@@ -28,10 +30,19 @@ void InputManagerRapper::Update(){
 		int x = (int)((mx / (float)wx) * (float)WindowState::mWidth + 1.5f);
 		int y = (int)((my / (float)wy) * (float)WindowState::mHeight + 1.5f);
 		InputManager::SetMouseXY(x, y);
+
+		int f = 0;
+		if(mEngineFocus) {
+			f = 2;
+		}
+		if (mScreenFocus) {
+			f = 1;
+		}
+		InputManager::Update(f);
 #else
+		InputManager::Update(mScreenFocus?1:0);
 #endif
 
-		InputManager::Update(mScreenFocus);
 	}
 
 void InputManagerRapper::Release(){

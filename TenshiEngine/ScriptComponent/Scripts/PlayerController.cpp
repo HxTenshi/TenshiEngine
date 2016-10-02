@@ -14,7 +14,7 @@ void PlayerController::Initialize(){
 //initializeとupdateの前に呼ばれます（エディター中も呼ばれます）
 void PlayerController::Start(){
 
-	game->System()->LockCursorPositionToWindowCenter(true);
+	Hx::System()->LockCursorPositionToWindowCenter(true);
 
 }
 
@@ -24,7 +24,7 @@ void PlayerController::Update(){
 	auto cc = gameObject->GetComponent<CharacterControllerComponent>();
 	if (!cc)return;
 	
-	float time = game->DeltaTime()->GetDeltaTime();
+	float time = Hx::DeltaTime()->GetDeltaTime();
 	
 	float speed = 10.0f;
 	float x = 0, y = 0;
@@ -48,7 +48,7 @@ void PlayerController::Update(){
 	if (isGround){
 		auto d = XMVectorSet(0, -1, 0, 1);
 		RaycastHit hit;
-		if (game->PhysX()->RaycastHit(pos, d, 100.0f, &hit)){
+		if (Hx::PhysX()->RaycastHit(pos, d, 100.0f, &hit)){
 			auto dot = XMVector3Dot(hit.normal,XMVectorSet(0,1,0,1)).x;
 			auto angle = dot;
 
@@ -119,14 +119,14 @@ void PlayerController::Update(){
 		if (Input::Down(KeyCoord::Key_E)){
 			rotY = 1.0f;
 		}
-		rotY *= game->DeltaTime()->GetDeltaTime();
+		rotY *= Hx::DeltaTime()->GetDeltaTime();
 
 		XMVECTOR normal = XMVectorSet(0, 1, 0, 1);
 		if (isGround){
 			//auto pos = gameObject->mTransform->WorldPosition();
 			auto d = XMVectorSet(0, -1, 0, 1);
 			RaycastHit hit;
-			if (game->PhysX()->RaycastHit(pos, d, 5.0f, &hit)){
+			if (Hx::PhysX()->RaycastHit(pos, d, 5.0f, &hit)){
 				normal = hit.normal;
 				normal = XMVector3Normalize(normal);
 			}
@@ -160,7 +160,7 @@ void PlayerController::Update(){
 			{
 				int mx, my;
 				Input::MousePosition(&mx, &my);
-				auto p = game->System()->GetLockCursorPosition();
+				auto p = Hx::System()->GetLockCursorPosition();
 				float _mx = mx - p.x;
 				float _my = my - p.y;
 				mRotate.y += _mx / 200.0f;
@@ -191,16 +191,16 @@ void PlayerController::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void PlayerController::OnCollideBegin(Actor* target){
+void PlayerController::OnCollideBegin(GameObject target){
 	(void)target;
 }
 
 //コライダーとのヒット中に呼ばれます
-void PlayerController::OnCollideEnter(Actor* target){
+void PlayerController::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void PlayerController::OnCollideExit(Actor* target){
+void PlayerController::OnCollideExit(GameObject target){
 	(void)target;
 }

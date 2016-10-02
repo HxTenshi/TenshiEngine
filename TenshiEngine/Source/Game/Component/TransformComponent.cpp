@@ -42,12 +42,14 @@ void TransformComponent::Finish(){
 	SetParent(NULL);
 }
 
+#ifdef _ENGINE_MODE
 void TransformComponent::EngineUpdate(){
 	auto physx = gameObject->GetComponent<PhysXComponent>();
 	if (physx){
 		physx->SetTransform(false);
 	}
 }
+#endif
 void TransformComponent::Update(){
 	auto physx = gameObject->GetComponent<PhysXComponent>();
 	if (physx){

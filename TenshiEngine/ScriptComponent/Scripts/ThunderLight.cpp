@@ -30,7 +30,7 @@ void ThunderLight::Update(){
 	}
 	mThounderPow -= 0.1;
 	mThounderPow = max(mThounderPow, 0);
-	XMFLOAT3 col = mColor;
+	XMFLOAT4 col = mColor;
 	col.x += mThounderPow + noize;
 	col.y += mThounderPow + noize;
 	col.z += mThounderPow + noize;
@@ -44,16 +44,16 @@ void ThunderLight::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void ThunderLight::OnCollideBegin(Actor* target){
+void ThunderLight::OnCollideBegin(GameObject target){
 	(void)target;
 }
 
 //コライダーとのヒット中に呼ばれます
-void ThunderLight::OnCollideEnter(Actor* target){
+void ThunderLight::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void ThunderLight::OnCollideExit(Actor* target){
+void ThunderLight::OnCollideExit(GameObject target){
 	(void)target;
 }

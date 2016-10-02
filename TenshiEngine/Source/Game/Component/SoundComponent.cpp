@@ -25,8 +25,11 @@ void SoundComponent::Finish(){
 	mSoundFile = NULL;
 	mSoundFileSource.Free();
 }
+
+#ifdef _ENGINE_MODE
 void SoundComponent::EngineUpdate(){
 }
+#endif
 void SoundComponent::Update(){
 	if (mAutoPlay){
 		mAutoPlay = false;

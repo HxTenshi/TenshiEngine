@@ -14,13 +14,23 @@ void OnKeyDownHandler(Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 		//t->MoveFocus(gcnew System::Windows::Input::TraversalRequest(System::Windows::Input::FocusNavigationDirection::Previous));
 	}
 }
+
 void TextBoxFocused(Object^ sender, System::Windows::DependencyPropertyChangedEventArgs e){
 	if ((*(bool^)e.NewValue)){
 		((IViewModel^)((TextBox^)sender)->DataContext)->UpdateView();
 		((IViewModel^)((TextBox^)sender)->DataContext)->UpdateViewFlag = false;
+		if (Data::mTextBoxFocus)
+			*Data::mTextBoxFocus = false;
+		auto act = gcnew System::Action((TextBox^)sender, &TextBox::SelectAll);
+		((TextBox^)sender)->Dispatcher->BeginInvoke(act);
 	}
-	else
+	if ((*(bool^)e.OldValue)) {
 		((IViewModel^)((TextBox^)sender)->DataContext)->UpdateViewFlag = true;
+		((TextBox^)sender)->SelectAll();
+		if (Data::mTextBoxFocus)
+			*Data::mTextBoxFocus = true;
+
+	}
 
 }
 

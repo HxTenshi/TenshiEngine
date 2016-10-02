@@ -1,11 +1,16 @@
 #include "Inspector.h"
 
+#ifdef _ENGINE_MODE
+
 #include"Game/Parts/Enabled.h"
 #include "../../CppWPFdll/InspectorDataSet.h"
 
 #include "Window/Window.h"
 
 #include "AssetDataBase.h"
+
+#pragma push_macro("new")
+#undef new
 
 Inspector::Inspector(const std::string& name, Component* target)
 	:m_Name(name)
@@ -79,31 +84,31 @@ void Inspector::AddEnableButton(Enabled* enable){
 }
 
 template<>
-void Inspector::Add(const std::string& text, float* data, std::function<void(float)> collback){
+void Inspector::Add(const std::string& text, float* data,const std::function<void(float)>& collback){
 
 	auto dataset = new TemplateInspectorDataSet<float>(text, data, collback);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Float, dataset));
 }
 template<>
-void Inspector::Add(const std::string& text, int* data, std::function<void(int)> collback){
+void Inspector::Add(const std::string& text, int* data, const std::function<void(int)>& collback){
 
 	auto dataset = new TemplateInspectorDataSet<int>(text, data, collback);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Int, dataset));
 }
 template<>
-void Inspector::Add(const std::string& text, bool* data, std::function<void(bool)> collback){
+void Inspector::Add(const std::string& text, bool* data, const std::function<void(bool)>& collback){
 
 	auto dataset = new TemplateInspectorDataSet<bool>(text, data, collback);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Bool, dataset));
 }
 template<>
-void Inspector::Add(const std::string& text, std::string* data, std::function<void(std::string)> collback){
+void Inspector::Add(const std::string& text, std::string* data, const std::function<void(std::string)>& collback){
 
 	auto dataset = new TemplateInspectorDataSet<std::string>(text, data, collback);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
 }
 
-void Inspector::Add(const std::string& text, IAsset* data, std::function<void()> collback){
+void Inspector::Add(const std::string& text, IAsset* data, const std::function<void()>& collback){
 
 	std::function<void(std::string)> loadcoll = [data, collback](std::string path){
 		MD5::MD5HashCoord hash;
@@ -118,8 +123,23 @@ void Inspector::Add(const std::string& text, IAsset* data, std::function<void()>
 	auto dataset = new TemplateInspectorDataSet<std::string>(text, &data->m_Name, loadcoll);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
 }
+
+//#include "Game/Script/GameObject.h"
+#include "Game/Actor.h"
+void Inspector::Add(const std::string& text, wp<IActor>* data, const std::function<void()>& collback) {
+
+	std::function<void(wp<IActor>)> loadcoll = [data, collback](wp<IActor> act) {
+		if (!act)return;
+		*data = act;
+		collback();
+	};
+
+	auto dataset = new InspectorGameObjectDataSet(text, data, loadcoll);
+	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::GameObject, dataset));
+}
+
 template<>
-void Inspector::Add(const std::string& text, Vector2* data, std::function<void(Vector2)> collback){
+void Inspector::Add(const std::string& text, Vector2* data, const std::function<void(Vector2)>& collback){
 	Float _x = data->x;
 	Float _y = data->y;
 	auto x = [_x, _y, collback](float _x){
@@ -134,7 +154,7 @@ void Inspector::Add(const std::string& text, Vector2* data, std::function<void(V
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Vector2, dataset));
 }
 template<>
-void Inspector::Add(const std::string& text, Vector3* data, std::function<void(Vector3)> collback){
+void Inspector::Add(const std::string& text, Vector3* data, const std::function<void(Vector3)>& collback){
 	Float _x = data->x;
 	Float _y = data->y;
 	Float _z = data->z;
@@ -155,7 +175,7 @@ void Inspector::Add(const std::string& text, Vector3* data, std::function<void(V
 }
 
 template<>
-void Inspector::Add(const std::string& text, Color* data, std::function<void(Color)> collback){
+void Inspector::Add(const std::string& text, Color* data, const std::function<void(Color)>& collback){
 	Float _r = data->r;
 	Float _g = data->g;
 	Float _b = data->b;
@@ -184,18 +204,18 @@ void Inspector::AddLabel(const std::string& text){
 	auto dataset = new InspectorLabelDataSet(text);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Label, dataset));
 }
-void Inspector::AddSlideBar(const std::string& text, float min, float max, float* data, std::function<void(float)> collback){
+void Inspector::AddSlideBar(const std::string& text, float min, float max, float* data, const std::function<void(float)>& collback){
 
 	auto dataset = new InspectorSlideBarDataSet(text,min,max,data,collback);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::SlideBar, dataset));
 }
-void Inspector::AddButton(const std::string& text, std::function<void()> collback){
+void Inspector::AddButton(const std::string& text,const std::function<void()>& collback){
 
 	auto dataset = new InspectorButtonDataSet(text,collback);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Button, dataset));
 }
 
-void Inspector::AddSelect(const std::string& text, int* data, std::vector<std::string> selects, std::function<void(int)> collback){
+void Inspector::AddSelect(const std::string& text, int* data, std::vector<std::string> selects, const std::function<void(int)>& collback){
 
 	auto dataset = new InspectorSelectDataSet(text, selects, data, collback);
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::Select , dataset));
@@ -212,3 +232,7 @@ void Inspector::Complete(){
 	}
 
 }
+
+
+#endif
+#pragma pop_macro("new")

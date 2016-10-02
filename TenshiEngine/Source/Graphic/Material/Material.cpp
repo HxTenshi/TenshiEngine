@@ -175,6 +175,7 @@ void Material::GSSetShaderResources(ID3D11DeviceContext* context, ForcedMaterial
 
 void Material::SetTexture(const char* FileName, UINT Slot){
 	HRESULT hr = mTexture[Slot].Create(FileName);
+	mTexture[Slot].mFileName = "";
 	float flag = 1.0f;
 	if (FAILED(hr))
 		flag = 0.0f;
@@ -222,24 +223,33 @@ void Material::SetTexture(const Texture& Tex, UINT Slot){
 }
 void Material::SetTexture(const TextureAsset& Tex, UINT Slot){
 	HRESULT hr = mTexture[Slot].Create(Tex);
-	mTexture[Slot].mFileName = "ref";
+
+	float flag = 1.0f;
+	if (FAILED(hr)) {
+		flag = 0.0f;
+		mTexture[Slot].mFileName = "";
+	}
+	else {
+		mTexture[Slot].mFileName = "ref";
+	}
+
 	if (Slot == 0)
-		mCBUseTexture.mParam.UseTexture.x = 1.0f;
+		mCBUseTexture.mParam.UseTexture.x = flag;
 	if (Slot == 1)
-		mCBUseTexture.mParam.UseTexture.y = 1.0f;
+		mCBUseTexture.mParam.UseTexture.y = flag;
 	if (Slot == 2)
-		mCBUseTexture.mParam.UseTexture.z = 1.0f;
+		mCBUseTexture.mParam.UseTexture.z = flag;
 	if (Slot == 3)
-		mCBUseTexture.mParam.UseTexture.w = 1.0f;
+		mCBUseTexture.mParam.UseTexture.w = flag;
 
 	if (Slot == 4)
-		mCBUseTexture.mParam.UseTexture2.x = 1.0f;
+		mCBUseTexture.mParam.UseTexture2.x = flag;
 	if (Slot == 5)
-		mCBUseTexture.mParam.UseTexture2.y = 1.0f;
+		mCBUseTexture.mParam.UseTexture2.y = flag;
 	if (Slot == 6)
-		mCBUseTexture.mParam.UseTexture2.z = 1.0f;
+		mCBUseTexture.mParam.UseTexture2.z = flag;
 	if (Slot == 7)
-		mCBUseTexture.mParam.UseTexture2.w = 1.0f;
+		mCBUseTexture.mParam.UseTexture2.w = flag;
 	//mCBUseTexture->UpdateSubresource();
 }
 

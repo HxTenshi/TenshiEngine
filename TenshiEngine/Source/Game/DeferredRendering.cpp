@@ -555,7 +555,7 @@ void LoadImg(const std::string& filename, DirectX::ScratchImage& img){
 }
 void CreateCubeMap(const std::string& filename,Texture& out){
 		HRESULT hr;
-		DirectX::TexMetadata metadata;
+		//DirectX::TexMetadata metadata;
 		DirectX::ScratchImage image[6];
 		//LoadImg(filename + "_ft.tga", image[0]);
 		//LoadImg(filename + "_bk.tga", image[1]);
@@ -609,7 +609,7 @@ void CreateCubeMap(const std::string& filename,Texture& out){
 }
 void CreateCubeMapDDS(const std::string& filename, Texture& out){
 	HRESULT hr;
-	DirectX::TexMetadata metadata;
+	//DirectX::TexMetadata metadata;
 	DirectX::ScratchImage image;
 	LoadImg(filename, image);
 
@@ -830,7 +830,6 @@ void DeferredRendering::Initialize(){
 
 	mMaterialPrePassEnv.Create("");
 	mMaterialPrePassEnv.SetTexture(mEnvironmentMap, 6);
-	mMaterialPrePassEnv.SetTexture(mEnvironmentRMap, 7);
 
 	mMaterialSkyBox.Create("EngineResource/ScreenClearSkyBox.fx");
 	mMaterialSkyBox.SetTexture(mEnvironmentMap, 6);
@@ -892,7 +891,7 @@ void DeferredRendering::Initialize(){
 }
 
 
-void DeferredRendering::SetSkyTexture(const Texture& texture){
+void DeferredRendering::SetSkyTexture(const TextureAsset& texture){
 	mEnvironmentMap = texture;
 	mMaterialPrePassEnv.SetTexture(mEnvironmentMap, 6);
 	mMaterialSkyBox.SetTexture(mEnvironmentMap, 6);
@@ -1119,12 +1118,12 @@ void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 }
 
 
-void DeferredRendering::Resize(UINT Wide, UINT Height){
-	m_AlbedoRT.Resize(Wide, Height);
-	m_SpecularRT.Resize(Wide, Height);
-	m_NormalRT.Resize(Wide, Height);
-	m_DepthRT.Resize(Wide, Height);
-	m_VelocityRT.Resize(Wide, Height);
-	m_LightRT.Resize(Wide, Height);
-	m_LightSpecularRT.Resize(Wide, Height);
+void DeferredRendering::Resize(UINT Width, UINT Height){
+	m_AlbedoRT.Resize(Width, Height);
+	m_SpecularRT.Resize(Width, Height);
+	m_NormalRT.Resize(Width, Height);
+	m_DepthRT.Resize(Width, Height);
+	m_VelocityRT.Resize(Width, Height);
+	m_LightRT.Resize(Width, Height);
+	m_LightSpecularRT.Resize(Width, Height);
 }

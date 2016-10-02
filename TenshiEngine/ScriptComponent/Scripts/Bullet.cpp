@@ -18,7 +18,7 @@ void Bullet::Update(){
 
 	mDeadTime -= 0.016f;
 	if (mDeadTime < 0){
-		game->DestroyObject(gameObject);
+		Hx::DestroyObject(gameObject);
 	}
 	auto pos = gameObject->mTransform->Position();
 	auto s = gameObject->mTransform->LossyScale();
@@ -36,17 +36,17 @@ void Bullet::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void Bullet::OnCollideBegin(Actor* target){
+void Bullet::OnCollideBegin(GameObject target){
 
-	game->DestroyObject(gameObject);
+	Hx::DestroyObject(gameObject);
 }
 
 //コライダーとのヒット中に呼ばれます
-void Bullet::OnCollideEnter(Actor* target){
+void Bullet::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void Bullet::OnCollideExit(Actor* target){
+void Bullet::OnCollideExit(GameObject target){
 	(void)target;
 }

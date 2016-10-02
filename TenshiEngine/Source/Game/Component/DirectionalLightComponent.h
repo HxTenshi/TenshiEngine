@@ -20,7 +20,9 @@ public:
 
 	void Initialize() override;
 	void Finish() override;
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 #ifdef _ENGINE_MODE
 	void CreateInspector() override;

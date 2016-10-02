@@ -149,12 +149,14 @@ void ParticleComponent::Initialize(){
 	ParticleCapacityChange((UINT)mParticleCapacity);
 }
 
+#ifdef _ENGINE_MODE
 void ParticleComponent::EngineUpdate(){
 	mTimer = -1.0f;
 	mEngineUpdate = true;
 	Update();
 	mEngineUpdate = false;
 }
+#endif
 void ParticleComponent::Update(){
 	if (!mInitialize)return;
 	if (!mMaterial){

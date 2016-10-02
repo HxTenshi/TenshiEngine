@@ -16,6 +16,7 @@ public:
 	}
 	static void MyPostMessage(MyWindowMessage wm, void* p = NULL);
 	static void _SendMessage(UINT wm, WPARAM p1 = NULL, LPARAM p2 = NULL);
+	static bool* mTextBoxFocus;
 
 private:
 	static HWND mhWnd;

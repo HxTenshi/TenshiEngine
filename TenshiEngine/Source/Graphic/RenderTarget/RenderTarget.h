@@ -64,7 +64,6 @@ public:
 
 		Create(Width, Height, format);
 		CreateDepth(Width, Height);
-		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 
 		return S_OK;
 	}

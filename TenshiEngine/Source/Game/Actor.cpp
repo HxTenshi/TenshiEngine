@@ -28,7 +28,16 @@ Actor::~Actor()
 }
 
 void Actor::Initialize(){
+
+	std::queue<std::function<void()>> temp;
+	mInitializeStageCollQueue.swap(temp);
+	while (!temp.empty()) {
+		temp.front()();
+		temp.pop();
+	}
+
 	mComponents.Initialize(this->shared_from_this());
+
 	for (const auto& cmp : mComponents.mComponent){
 		cmp.second->_Initialize(this->shared_from_this());
 	}
@@ -108,7 +117,12 @@ void Actor::Update(float deltaTime){
 	}
 }
 
-void Actor::SetUpdateStageCollQueue(const std::function<void()> coll){
+void Actor::SetInitializeStageCollQueue(const std::function<void()>& coll)
+{
+	mInitializeStageCollQueue.push(coll);
+}
+
+void Actor::SetUpdateStageCollQueue(const std::function<void()>& coll){
 	mUpdateStageCollQueue.push(coll);
 }
 #ifdef _ENGINE_MODE
@@ -132,6 +146,7 @@ void Actor::CreateInspector(){
 			com->SetPhysxLayer(mPhysxLayer);
 		}
 	});
+	
 
 	ins.Complete();
 	for (const auto& cmp : mComponents.mComponent){
@@ -252,71 +267,72 @@ void Actor::_ExportData(I_ioHelper* io, bool childExport){
 #undef _KEY_COMPEL
 }
 
-
-void Actor::PastePrefabParam(picojson::value& json){
-
-	mComponents.RunFinish();
-
-	picojson::value param;
-	auto filter = new MemoryInputHelper(json,NULL);
-	auto io_out = new MemoryOutputHelper(param, filter, true);
-
-	_ExportData(io_out);
-
-	delete io_out;
-	delete filter;
-
-
-
-	MemoryInputHelper* io_in = NULL;
-	MemoryInputHelper* filter_in = NULL;
-	if (mPrefabAsset){
-		auto val = *mPrefabAsset->GetFileData()->GetParam();
-
-		filter_in = new MemoryInputHelper(param, NULL);
-		io_in = new MemoryInputHelper(val, filter_in);
-	}
-
-
-	if (io_in){
-		picojson::object components;
-		io_in->func(components, "components");
-
-		io_in->pushObject("components");
-
-		for (auto com : components){
-			io_in->pushObject(com.first);
-
-			auto component = mComponents.GetComponent(com.first);
-			bool create = false;
-			if (!component){
-				component = ComponentFactory::Create(com.first);
-				create = true;
-			}
-
-			if (component){
-				component->IO_Data(io_in);
-				if (create){
-					mComponents.AddComponent_NotInitialize(component);
-
-				}
-			}
-
-			io_in->popObject();
-		}
-
-		//_ImportData(io_in);
-
-
-		delete filter_in;
-		delete io_in;
-	}
-	mComponents.RunInitialize();
-	mComponents.RunStart();
-}
+//イニシャライズ周りが危ない？？？
+//void Actor::PastePrefabParam(picojson::value& json){
+//
+//	mComponents.RunFinish();
+//
+//	picojson::value param;
+//	auto filter = new MemoryInputHelper(json,NULL);
+//	auto io_out = new MemoryOutputHelper(param, filter, true);
+//
+//	_ExportData(io_out);
+//
+//	delete io_out;
+//	delete filter;
+//
+//
+//
+//	MemoryInputHelper* io_in = NULL;
+//	MemoryInputHelper* filter_in = NULL;
+//	if (mPrefabAsset){
+//		auto val = *mPrefabAsset->GetFileData()->GetParam();
+//
+//		filter_in = new MemoryInputHelper(param, NULL);
+//		io_in = new MemoryInputHelper(val, filter_in);
+//	}
+//
+//
+//	if (io_in){
+//		picojson::object components;
+//		io_in->func(components, "components");
+//
+//		io_in->pushObject("components");
+//
+//		for (auto com : components){
+//			io_in->pushObject(com.first);
+//
+//			auto component = mComponents.GetComponent(com.first);
+//			bool create = false;
+//			if (!component){
+//				component = ComponentFactory::Create(com.first);
+//				create = true;
+//			}
+//
+//			if (component){
+//				component->IO_Data(io_in);
+//				if (create){
+//					mComponents.AddComponent_NotInitialize(component);
+//
+//				}
+//			}
+//
+//			io_in->popObject();
+//		}
+//
+//		//_ImportData(io_in);
+//
+//
+//		delete filter_in;
+//		delete io_in;
+//	}
+//	mComponents.RunInitialize();
+//	mComponents.RunStart();
+//}
 
 
 bool Actor::ImportDataAndNewID(const std::string& fileName){
+
 	ImportData(fileName);
 
 	if (!mTransform){
@@ -390,6 +406,8 @@ void Actor::ImportDataAndNewID(picojson::value& json){
 
 void Actor::_ImportData(I_ioHelper* io){
 
+	mComponents.Initialize(this->shared_from_this());
+
 	mComponents.mComponent.clear();
 
 #define _KEY(x) io->func( x , #x)
@@ -416,8 +434,8 @@ void Actor::_ImportData(I_ioHelper* io){
 					prefab_io->pushObject(com.first);
 
 					if (auto component = ComponentFactory::Create(com.first)){
-						component->IO_Data(prefab_io.Get());
 						mComponents.AddComponent_NotInitialize(component);
+						component->IO_Data(prefab_io.Get());
 					}
 
 					prefab_io->popObject();
@@ -444,11 +462,10 @@ void Actor::_ImportData(I_ioHelper* io){
 		}
 
 		if (component){
-			component->IO_Data(io);
 			if (create){
 				mComponents.AddComponent_NotInitialize(component);
-
 			}
+			component->IO_Data(io);
 		}
 
 		io->popObject();

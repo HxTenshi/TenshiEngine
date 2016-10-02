@@ -1,9 +1,11 @@
 #pragma once
-
+#include "stdafxwpf.h"
 #include "Using.h"
 #include <string>
 #include < vcclr.h >
 #include <functional>
+
+#include "../Source/Game/IActor.h"
 
 ref class NofityPropertyChanged : public INotifyPropertyChanged
 {

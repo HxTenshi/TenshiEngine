@@ -18,6 +18,7 @@ enum class InspectorDataFormat{
 	Color,
 	Button,
 	Select,
+	GameObject,
 	Count,
 };
 struct InspectorDataSet{
@@ -137,4 +138,16 @@ struct InspectorButtonDataSet{
 	std::function<void()> collBack;
 private:
 	InspectorButtonDataSet& operator =(const InspectorButtonDataSet&);
+};
+
+template<class T>
+class wp;
+class IActor;
+struct InspectorGameObjectDataSet {
+	InspectorGameObjectDataSet(std::string t, wp<IActor>* d, std::function<void(wp<IActor>)> collback) :Text(t), data(d), collBack(collback) {}
+	const std::string Text;
+	wp<IActor>* data;
+	std::function<void(wp<IActor>)> collBack;
+private:
+	InspectorGameObjectDataSet& operator =(const InspectorGameObjectDataSet&);
 };

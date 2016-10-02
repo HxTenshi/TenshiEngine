@@ -6,23 +6,11 @@ class IAssetDataTemplate;
 
 class IAsset{
 public:
-	IAsset(){
-		m_Ptr = NULL;
-		memset(&m_Hash, 0, sizeof(m_Hash));
-		m_Name = "";
-	}
-	virtual ~IAsset(){}
-	virtual void Load(MD5::MD5HashCoord hash){
-		(void)hash;
-	}
-	void Free(){
-		m_Ptr = NULL;
-		memset(&m_Hash, 0, sizeof(m_Hash));
-		m_Name = "";
-	}
-	bool IsLoad()const{
-		return m_Ptr != NULL;
-	}
+	IAsset();
+	virtual ~IAsset();
+	virtual void Load(MD5::MD5HashCoord hash);
+	void Free();
+	bool IsLoad()const;
 	shared_ptr <IAssetDataTemplate> m_Ptr;
 	MD5::MD5HashCoord m_Hash;
 	std::string m_Name;

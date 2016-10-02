@@ -14,7 +14,8 @@
 #include "Game/RenderingSystem.h"
 
 #include "Engine/ModelConverter.h"
-#include "SettingObject\PhysxLayer.h"
+#include "SettingObject/PhysxLayer.h"
+#include "SettingObject/Canvas.h"
 #include "Engine/Asset/GenerateMetaFile.h"
 
 #include <algorithm>
@@ -29,11 +30,11 @@ void _LoadMetaFiles(const char* path){
 		if (sys::is_regular_file(p)) { // ファイルなら...
 			if (p.extension() == ".meta")return;
 			//メタファイルが存在していなければ
-			if (GetFileAttributes((p.string() + ".meta").c_str()) == -1){
-				MakeMetaFile(p.string());
+			if (GetFileAttributes((p.generic_string() + ".meta").c_str()) == -1){
+				MakeMetaFile(p.generic_string());
 			}
 			//メタファイル読み込み
-			AssetDataBase::InitializeMetaData(p.string().c_str());
+			AssetDataBase::InitializeMetaData(p.generic_string().c_str());
 		}
 		else if (sys::is_directory(p)) { // ディレクトリなら...
 
@@ -66,7 +67,44 @@ Scene Game::m_Scene;
 DeltaTime* gpDeltaTime;
 SystemHelper Game::mSystemHelper;
 
-weak_ptr<PhysxLayer> gPhysxLayer;
+template <class T>
+struct SettingObjectData {
+	weak_ptr<T> object = NULL;
+	const std::string name;
+	const std::string folder;
+	SettingObjectData(const char* name, const char* folder)
+		:name(name),folder(folder)
+	{}
+
+	void Create() {
+		auto o = make_shared<T>();
+		object = o;
+		o->mTransform = o->AddComponent<TransformComponent>();
+		o->ImportData(folder+"/"+name);
+
+#ifdef _ENGINE_MODE
+		Game::AddEngineObject(o);
+		Window::AddEngineTreeViewItem(name, (void*)o.Get());
+#endif
+	}
+	void Save() {
+		object->ExportData(folder,name);
+	}
+};
+struct SettingObject {
+	SettingObjectData<PhysxLayer> PhysxLayer = {"PhysxLayer","Settings" };
+	SettingObjectData<Canvas> Canvas = { "Canvas","Settings" };
+
+	void Create() {
+		PhysxLayer.Create();
+		Canvas.Create();
+	}
+	void Save() {
+		PhysxLayer.Save();
+		Canvas.Save();
+	}
+}g_SettingObject;
+
 
 #ifdef _ENGINE_MODE
 static bool gIsPlay;
@@ -96,6 +134,7 @@ std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 
 void InitContextMenu(){
 
+#ifdef _ENGINE_MODE
 	_SYSTEM_LOG_H("コンテキストメニューの初期化");
 	auto coms = ComponentFactory::GetComponents();
 	for (auto& com : coms){
@@ -112,13 +151,14 @@ void InitContextMenu(){
 		[&](const sys::path& p) {
 		if (sys::is_regular_file(p)) { // ファイルなら...
 			if (p.extension() == ".prefab"){
-				Window::CreateContextMenu_CreateObject(p.basename(), p.string());
+				Window::CreateContextMenu_CreateObject(p.stem().string() , p.string());
 			}
 		}
 		else if (sys::is_directory(p)) { // ディレクトリなら...
 			//std::cout << "dir.: " << p.string() << std::endl;
 		}
 	});
+#endif
 }
 
 Game::Game(){
@@ -181,13 +221,7 @@ Game::Game(){
 	mEngineRootObject->Initialize();
 	mEngineRootObject->Start();
 
-
-	auto o = make_shared<PhysxLayer>();
-	gPhysxLayer = o;
-	o->mTransform = o->AddComponent<TransformComponent>();
-	gPhysxLayer->ImportData("Settings/PhysxLayer");
-	AddEngineObject(o);
-	Window::AddEngineTreeViewItem("PhysxLayer", (void*)o.Get());
+	g_SettingObject.Create();
 
 
 	mCamera.Initialize();
@@ -460,7 +494,7 @@ Game* Game::Get(){
 	return mGame;
 }
 //static
-void Game::AddObject(GameObjectPtr actor, bool undoFlag){
+void Game::AddObject(GameObjectPtr actor, bool undoFlag, bool DelayInitialize){
 	if (!actor->mTransform){
 		//delete actor;
 		return;
@@ -470,9 +504,13 @@ void Game::AddObject(GameObjectPtr actor, bool undoFlag){
 	}
 
 	gpList->insert(std::make_pair(actor->GetUniqueID(), actor));
-	actor->Initialize();
-
-	mGame->mActorMoveList.push(std::make_pair(ActorMove::Create, actor));
+	if (DelayInitialize) {
+		mGame->mActorMoveList.push(std::make_pair(ActorMove::Create_DelayInitialize, actor));
+	}
+	else {
+		actor->Initialize();
+		mGame->mActorMoveList.push(std::make_pair(ActorMove::Create, actor));
+	}
 
 	//for (auto child : actor->mTransform->Children()){
 	//	AddObject(child);
@@ -545,7 +583,7 @@ void Game::ActorMoveStage(){
 			//delete actor;
 
 		}
-		else{
+		else if(tar.first == ActorMove::Create){
 
 #ifdef _ENGINE_MODE
 			Window::AddTreeViewItem(actor->Name(), actor);
@@ -554,6 +592,18 @@ void Game::ActorMoveStage(){
 			actor->Start();
 
 			if (!actor->mTransform->GetParent()){
+				actor->mTransform->SetParent(mRootObject);
+			}
+		}
+		else if (tar.first == ActorMove::Create_DelayInitialize) {
+#ifdef _ENGINE_MODE
+			Window::AddTreeViewItem(actor->Name(), actor);
+#endif
+
+			actor->Initialize();
+			actor->Start();
+
+			if (!actor->mTransform->GetParent()) {
 				actor->mTransform->SetParent(mRootObject);
 			}
 		}
@@ -580,7 +630,7 @@ System* Game::System(){
 	return &mSystemHelper;
 }
 std::vector<std::string>& Game::GetLayerNames(){
-	return gPhysxLayer->GetSelects();
+	return g_SettingObject.PhysxLayer.object->GetSelects();
 }
 void Game::RemovePhysXActor(PxActor* act){
 	return gpPhysX3Main->RemoveActor(act);
@@ -600,6 +650,7 @@ GameObject Game::FindActor(Actor* actor){
 	}
 	return NULL;
 }
+#ifdef _ENGINE_MODE
 GameObject Game::FindEngineActor(Actor* actor){
 
 	
@@ -610,6 +661,7 @@ GameObject Game::FindEngineActor(Actor* actor){
 	}
 	return NULL;
 }
+#endif
 
 
 GameObject Game::FindNameActor(const char* name){
@@ -713,27 +765,16 @@ void Game::ChangePlayGame(bool isPlay){
 #endif
 }
 
-#ifdef _ENGINE_MODE
-bool g_DebugRender = true;
-#endif
 #include "../Engine/AssetFile/Material/TextureFileData.h"
 void Game::Draw(){
-
-	static bool f = true;
-	if (Input::Trigger(KeyCoord::Key_F2)){
-		UINT w,h;
-		if (f){
-			w = (FLOAT)WindowState::mWidth;
-			h = (FLOAT)WindowState::mHeight;
-		}
-		else{
-			w = 1920;
-			h = 1080;
-		}
+	static UINT w = 1;
+	static UINT h = 1;
+	if (w != WindowState::mWidth || h != WindowState::mHeight){
+		w = WindowState::mWidth;
+		h = WindowState::mHeight;
 		Device::Resize(w, h);
 		m_DeferredRendering.Resize(w, h);
 		mMainViewRenderTarget.Resize(w, h);
-		f = !f;
 	}
 
 
@@ -763,7 +804,7 @@ void Game::Draw(){
 	mMainCamera->VSSetConstantBuffers(render->m_Context);
 	mMainCamera->PSSetConstantBuffers(render->m_Context);
 	mMainCamera->GSSetConstantBuffers(render->m_Context);
-	Texture skyTex = mMainCamera->GetSkyTexture();
+	TextureAsset skyTex = mMainCamera->GetSkyTexture();
 #ifdef _ENGINE_MODE
 	if(mMainCameraEngineUpdate){
 		skyTex = mMainCameraEngineUpdate->GetSkyTexture();
@@ -794,6 +835,8 @@ void Game::Draw(){
 	mCBGameParameter.GSSetConstantBuffers(render->m_Context);
 	mCBGameParameter.CSSetConstantBuffers(render->m_Context);
 
+
+	mCBScreen.mParam.ScreenSize = XMFLOAT2((float)WindowState::mWidth, (float)WindowState::mHeight);
 	mCBScreen.UpdateSubresource(render->m_Context);
 	mCBScreen.CSSetConstantBuffers(render->m_Context);
 	mCBScreen.GSSetConstantBuffers(render->m_Context);
@@ -816,7 +859,7 @@ void Game::Draw(){
 	PlayDrawList(DrawStage::Init);
 
 #ifdef _ENGINE_MODE
-
+	static bool g_DebugRender = false;
 	if( Input::Trigger(KeyCoord::Key_F1)){
 		g_DebugRender = !g_DebugRender;
 	}
@@ -930,7 +973,7 @@ void Game::Draw(){
 
 void Game::SaveScene(){
 	m_Scene.SaveScene();
-	gPhysxLayer->ExportData("Settings","PhysxLayer");
+	g_SettingObject.Save();
 }
 
 void Game::Update(){
@@ -960,13 +1003,15 @@ void Game::GameStop(){
 
 	mCamera.Update(deltaTime);
 
-	if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Z)){
+	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_S)) {
+		SaveScene();
+	}
+	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_Z)){
 		mCommandManager.Undo();
 	}
-	else if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_Y)){
+	else if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_Y)){
 		mCommandManager.Redo();
 	}
-
 
 	mSelectActor.Update();
 	if (Input::Trigger(MouseCoord::Left)){

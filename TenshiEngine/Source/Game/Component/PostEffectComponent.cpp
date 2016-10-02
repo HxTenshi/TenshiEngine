@@ -20,9 +20,11 @@ void PostEffectComponent::Finish(){
 	mModelTexture.Release();
 }
 
+#ifdef _ENGINE_MODE
 void PostEffectComponent::EngineUpdate(){
 	PostDraw();
 }
+#endif
 void PostEffectComponent::Update(){
 	PostDraw();
 }

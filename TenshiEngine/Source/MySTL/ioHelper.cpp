@@ -2,6 +2,20 @@
 #include "Library/MD5.h"
 #include "Engine/AssetDataBase.h"
 
+#include "Game/Game.h"
+void ioGameObjectHelper::func(GameObject* target, const char* name, I_ioHelper* io, GameObject* This) {
+	if (io->isInput()) {
+		UniqueID id;
+		io->func(id, name);
+		(*This)->SetInitializeStageCollQueue([id, target]() {
+			*target = Game::FindUID(id);
+		});
+	}
+	else {
+		io->func(((bool)*target)?(*target)->GetUniqueID():"", name);
+	}
+}
+
 //テンプレートの特殊化
 #define _DOUBLE(x) \
 template<> \

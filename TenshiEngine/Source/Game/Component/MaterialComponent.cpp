@@ -9,53 +9,53 @@
 
 void MaterialComponent::LoadAssetResource(const std::string& path){
 
-	File f(path);
-	if (!f)return;
+	//File f(path);
+	//if (!f)return;
 
-	mMaterials.clear();
+	//mMaterials.clear();
 
-	std::string name;
-	f.In(&name);
-	int materialnum;
-	f.In(&materialnum);
-	mMaterials.resize(materialnum);
-	for (int i = 0; i < materialnum; i++){
-		auto& material = mMaterials[i];
-		auto hr = material.Create();
-		if (FAILED(hr))return;
+	//std::string name;
+	//f.In(&name);
+	//int materialnum;
+	//f.In(&materialnum);
+	//mMaterials.resize(materialnum);
+	//for (int i = 0; i < materialnum; i++){
+	//	auto& material = mMaterials[i];
+	//	auto hr = material.Create();
+	//	if (FAILED(hr))return;
 
-		int texnum;
-		f.In(&texnum);
-		for (int i = 0; i < texnum; i++){
-			int slot;
-			f.In(&slot);
-			std::string filename;
-			f.In(&filename);
-			auto ioc = filename.find("$");
-			while (std::string::npos != ioc){
-				filename.replace(ioc, 1, " ");
-				ioc = filename.find("$");
-			}
+	//	int texnum;
+	//	f.In(&texnum);
+	//	for (int i = 0; i < texnum; i++){
+	//		int slot;
+	//		f.In(&slot);
+	//		std::string filename;
+	//		f.In(&filename);
+	//		auto ioc = filename.find("$");
+	//		while (std::string::npos != ioc){
+	//			filename.replace(ioc, 1, " ");
+	//			ioc = filename.find("$");
+	//		}
 
-			material.SetTexture(filename.c_str(), slot);
-		}
-	}
+	//		material.SetTexture(filename.c_str(), slot);
+	//	}
+	//}
 }
 void MaterialComponent::SaveAssetResource(const std::string& path){
 
-	File f;
-	if (!f.Open(path))
-		f.FileCreate();
-	f.Clear();
-	if (!f)return;
-	std::string name = "Material";
-	f.Out(name);
-	int num = mMaterials.size();
-	f.Out(num);
-	for (int i = 0; i < num; i++){
-		Material &mate = mMaterials[i];
-		mate.ExportData(f);
-	}
+	//File f;
+	//if (!f.Open(path))
+	//	f.FileCreate();
+	//f.Clear();
+	//if (!f)return;
+	//std::string name = "Material";
+	//f.Out(name);
+	//int num = mMaterials.size();
+	//f.Out(num);
+	//for (int i = 0; i < num; i++){
+	//	Material &mate = mMaterials[i];
+	//	mate.ExportData(f);
+	//}
 }
 
 MaterialComponent::MaterialComponent(){
@@ -110,12 +110,18 @@ void MaterialComponent::Initialize(){
 	mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
 	mMaterials[0].mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
 
-	if (mAlbedoTextureName != "")mMaterials[0].SetTexture(mAlbedoTextureName.c_str(), 0);
-	if (mNormalTextureName != "")mMaterials[0].SetTexture(mNormalTextureName.c_str(), 1);
-	if (mHeightTextureName != "")mMaterials[0].SetTexture(mHeightTextureName.c_str(), 2);
-	if (mSpecularTextureName != "")mMaterials[0].SetTexture(mSpecularTextureName.c_str(), 3);
-	if (mRoughnessTextureName != "")mMaterials[0].SetTexture(mRoughnessTextureName.c_str(), 4);
-	if (mEmissiveTextureName != "")mMaterials[0].SetTexture(mEmissiveTextureName.c_str(), 5);
+	mAlbedoTexture.Load(mAlbedoTexture.m_Hash);
+	mNormalTexture.Load(mNormalTexture.m_Hash);
+	mHeightTexture.Load(mHeightTexture.m_Hash);
+	mSpecularTexture.Load(mSpecularTexture.m_Hash);
+	mRoughnessTexture.Load(mRoughnessTexture.m_Hash);
+	mEmissiveTexture.Load(mEmissiveTexture.m_Hash);
+	mMaterials[0].SetTexture(mAlbedoTexture, 0);
+	mMaterials[0].SetTexture(mNormalTexture, 1);
+	mMaterials[0].SetTexture(mHeightTexture, 2);
+	mMaterials[0].SetTexture(mSpecularTexture, 3);
+	mMaterials[0].SetTexture(mRoughnessTexture, 4);
+	mMaterials[0].SetTexture(mEmissiveTexture, 5);
 	
 }
 
@@ -152,7 +158,7 @@ void MaterialComponent::CreateInspector(){
 		mSpecular.x = f.r;
 		mSpecular.y = f.g;
 		mSpecular.z = f.b;
-		mSpecular.w = f.a;
+		//mSpecular.w = f.a;
 		SetSpecularColor(mSpecular);
 	};
 
@@ -161,30 +167,6 @@ void MaterialComponent::CreateInspector(){
 		SetSpecularColor(mSpecular);
 	};
 
-	std::function<void(std::string)> collbacktex = [&](std::string name){
-		mMaterials[0].SetTexture(name.c_str(), 0);
-		mAlbedoTextureName = name;
-	};
-	std::function<void(std::string)> collbackntex = [&](std::string name){
-		mMaterials[0].SetTexture(name.c_str(), 1);
-		mNormalTextureName = name;
-	};
-	std::function<void(std::string)> collbackhtex = [&](std::string name){
-		mMaterials[0].SetTexture(name.c_str(), 2);
-		mHeightTextureName = name;
-	};
-	std::function<void(std::string)> collbackstex = [&](std::string name){
-		mMaterials[0].SetTexture(name.c_str(), 3);
-		mSpecularTextureName = name;
-	};
-	std::function<void(std::string)> collbackrtex = [&](std::string name){
-		mMaterials[0].SetTexture(name.c_str(), 4);
-		mRoughnessTextureName = name;
-	};
-	std::function<void(std::string)> collbacketex = [&](std::string name){
-		mMaterials[0].SetTexture(name.c_str(), 5);
-		mEmissiveTextureName = name;
-	};
 	std::function<void(std::string)> collbackpath = [&](std::string name){
 		mMaterialPath = name;
 		LoadAssetResource(mMaterialPath);
@@ -248,12 +230,12 @@ void MaterialComponent::CreateInspector(){
 	auto spec = Color(mSpecular);
 	ins.Add("Specular", &spec, collbackSpec);
 	ins.AddSlideBar("Roughness", 0, 1, &mSpecular.w, collbackas);
-	ins.Add("AlbedoTextre", &mAlbedoTextureName, collbacktex);
-	ins.Add("NormalTextre", &mNormalTextureName, collbackntex);
-	ins.Add("HeightTextre", &mHeightTextureName, collbackhtex);
-	ins.Add("SpecularTextre", &mSpecularTextureName, collbackstex);
-	ins.Add("RoughnessTextre", &mRoughnessTextureName, collbackrtex);
-	ins.Add("EmissiveTextre", &mEmissiveTextureName, collbacketex);
+	ins.Add("AlbedoTextre", &mAlbedoTexture, [&]() {mMaterials[0].SetTexture(mAlbedoTexture, 0); });
+	ins.Add("NormalTextre", &mNormalTexture, [&]() {mMaterials[0].SetTexture(mNormalTexture, 1); });
+	ins.Add("HeightTextre", &mHeightTexture, [&]() {mMaterials[0].SetTexture(mHeightTexture, 2); });
+	ins.Add("SpecularTextre", &mSpecularTexture, [&]() {mMaterials[0].SetTexture(mSpecularTexture, 3); });
+	ins.Add("RoughnessTextre", &mRoughnessTexture, [&]() {mMaterials[0].SetTexture(mRoughnessTexture, 4); });
+	ins.Add("EmissiveTextre", &mEmissiveTexture, [&]() {mMaterials[0].SetTexture(mEmissiveTexture, 5); });
 	ins.Add("EmissivePowor", &mEmissivePowor, [&](float f){ mEmissivePowor = f; mMaterials[0].mCBMaterial.mParam.EmissivePowor = f; });
 
 	auto tex = Vector2(mTexScale);
@@ -296,12 +278,12 @@ void MaterialComponent::IO_Data(I_ioHelper* io){
 	_KEY(mSpecular.y);
 	_KEY(mSpecular.z);
 	_KEY(mSpecular.w);
-	_KEY(mAlbedoTextureName);
-	_KEY(mNormalTextureName);
-	_KEY(mHeightTextureName);
-	_KEY(mSpecularTextureName);
-	_KEY(mRoughnessTextureName);
-	_KEY(mEmissiveTextureName);
+	_KEY(mAlbedoTexture);
+	_KEY(mNormalTexture);
+	_KEY(mHeightTexture);
+	_KEY(mSpecularTexture);
+	_KEY(mRoughnessTexture);
+	_KEY(mEmissiveTexture);
 	_KEY(mTexScale.x);
 	_KEY(mTexScale.y);
 	_KEY(mEmissivePowor);

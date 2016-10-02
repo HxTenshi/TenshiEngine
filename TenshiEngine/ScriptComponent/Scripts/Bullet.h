@@ -8,14 +8,14 @@ public:
 	void Start()override;
 	void Update()override;
 	void Finish()override;
-	void OnCollideBegin(Actor* target)override;
-	void OnCollideEnter(Actor* target)override;
-	void OnCollideExit(Actor* target)override;
+	void OnCollideBegin(GameObject target)override;
+	void OnCollideEnter(GameObject target)override;
+	void OnCollideExit(GameObject target)override;
 
 private:
 	//ƒƒ“ƒo•Ï”
-	SERIALIZE()
+	SERIALIZE
 	float mDeadTime;
-	SERIALIZE()
+	SERIALIZE
 	float mSpeed;
 };

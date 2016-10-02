@@ -36,16 +36,16 @@ void MoveSmoke::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void MoveSmoke::OnCollideBegin(Actor* target){
+void MoveSmoke::OnCollideBegin(GameObject target){
 	(void)target;
 }
 
 //コライダーとのヒット中に呼ばれます
-void MoveSmoke::OnCollideEnter(Actor* target){
+void MoveSmoke::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void MoveSmoke::OnCollideExit(Actor* target){
+void MoveSmoke::OnCollideExit(GameObject target){
 	(void)target;
 }

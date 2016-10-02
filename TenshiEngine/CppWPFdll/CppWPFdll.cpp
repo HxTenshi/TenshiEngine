@@ -1,7 +1,4 @@
 // これは メイン DLL ファイルです。
-
-#include "stdafx.h"
-
 #define _EXPORTING
 #include "CppWPFdll.h"
 
@@ -140,6 +137,30 @@ void CreateInspectorSelect(DockPanel^ dockPanel,std::vector<std::string>& select
 	}
 
 	BindingInspector<int>(ccbox, p, collback);
+}
+
+template <class T>
+class wp;
+class IActor;
+void CreateInspectorGameObject(DockPanel^ dockPanel, String^ text, wp<IActor>* p, std::function<void(wp<IActor>)> collback) {
+	FrameworkElement ^com = LoadContentsFromResource(IDR_INS_FLOAT);
+	dockPanel->Children->Add(com);
+	DockPanel::SetDock(com, System::Windows::Controls::Dock::Top);
+	auto tb = (TextBlock^)com->FindName("FloatName");
+	if (tb)tb->Text = text;
+
+	auto textbox = (TextBox^)com->FindName("Value");
+	BindingInspector<wp<IActor>>(textbox, p, collback);
+
+	textbox->AllowDrop = true;
+
+	textbox->AddHandler(TextBox::PreviewDragEnterEvent, gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDragOver_GameObject), true);
+	textbox->AddHandler(TextBox::PreviewDragOverEvent, gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDragOver_GameObject), true);
+	textbox->AddHandler(TextBox::DragEnterEvent, gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDragOver_GameObject), true);
+	textbox->AddHandler(TextBox::DragOverEvent, gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDragOver_GameObject), true);
+
+	textbox->PreviewDrop += gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDrop_GameObject);
+	textbox->Drop += gcnew DragEventHandler(ViewData::window, &View::Commponent_ViewModel_OnDrop_GameObject);
 }
 
 void OnClick(System::Object ^sender, System::Windows::RoutedEventArgs ^e)
@@ -308,6 +329,23 @@ private:
 	InspectorSelectDataSet *m_data;
 };
 
+ref class InspectorGameObject : public InspectorData {
+public:
+	InspectorGameObject(InspectorGameObjectDataSet* data)
+		: m_data(data) {
+	}
+	~InspectorGameObject() {
+		this->!InspectorGameObject();
+	}
+	!InspectorGameObject() {
+		delete m_data;
+	}
+
+	void CreateInspector(DockPanel^ dockPanel) override;
+private:
+	InspectorGameObjectDataSet *m_data;
+};
+
 void InspectorLabel::CreateInspector(DockPanel^ dockPanel){
 	CreateInspectorTextBlock(dockPanel, Text);
 }
@@ -331,8 +369,12 @@ void InspectorButton::CreateInspector(DockPanel^ dockPanel){
 void InspectorSelect::CreateInspector(DockPanel^ dockPanel){
 	CreateInspectorSelect(dockPanel, m_data->select ,gcnew String(m_data->Text.c_str()),m_data->data, m_data->collBack);
 }
+void InspectorGameObject::CreateInspector(DockPanel^ dockPanel) {
+	CreateInspectorGameObject(dockPanel, gcnew String(m_data->Text.c_str()), m_data->data, m_data->collBack);
+}
 
 HWND Data::mhWnd = NULL;
+bool* Data::mTextBoxFocus = NULL;
 void Data::MyPostMessage(MyWindowMessage wm, void* p){
 	auto hWnd = GetHWND();
 	if (hWnd!=NULL)
@@ -390,16 +432,14 @@ namespace Test {
 	//	delete ptr;
 	//}
 
-	delegate void MyDelegate();
 	delegate IntPtr MyDelegateR();
 	//delegate void MyDelegateI(IntViewModel ^);
 	delegate void MyDelegateF(Object^, IntPtr, array<InspectorData^>^);
 	delegate void MyDelegateF2(InspectorData^, IntPtr, array<InspectorData^>^);
-	delegate void MyDelegateITEM(String^, IntPtr);
-	delegate void MyDelegateCOM(String^);
 	delegate void MyDelegateOBJ(String^, String^);
+	delegate void MyDelegateSI(String^, IntPtr);
 	delegate void MyDelegateI2(IntPtr, IntPtr);
-	delegate void MyDelegateI1(IntPtr);
+
 	array<InspectorData^>^ _CreateComponents(std::vector<InspectorDataSet>& data){
 		int num = data.size();
 		array<InspectorData^> ^a = gcnew array<InspectorData^>(num);
@@ -438,6 +478,9 @@ namespace Test {
 			if (d.format == InspectorDataFormat::Select){
 				a[i] = gcnew InspectorSelect((InspectorSelectDataSet*)d.data);
 			}
+			if (d.format == InspectorDataFormat::GameObject) {
+				a[i] = gcnew InspectorGameObject((InspectorGameObjectDataSet*)d.data);
+			}
 			i++;
 		}
 		return a;
@@ -466,21 +509,21 @@ namespace Test {
 
 	void NativeFraction::ChangeTreeViewName(void* ptr, std::string& name){
 		if (ViewData::window != nullptr){
-			auto del = gcnew MyDelegateITEM(ViewData::window, &View::ChangeTreeViewName);
+			auto del = gcnew MyDelegateSI(ViewData::window, &View::ChangeTreeViewName);
 			ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(name.c_str()), (IntPtr)ptr);
 		}
 	}
 
 	void NativeFraction::ClearAllComponentWindow(){
 		if (ViewData::window != nullptr){
-			ViewData::window->Dispatcher->BeginInvoke(gcnew MyDelegate(ViewData::window, &View::ClearAllComponent));
+			ViewData::window->Dispatcher->BeginInvoke(gcnew System::Action(ViewData::window, &View::ClearAllComponent));
 
 		}
 	}
 
 	void NativeFraction::ClearTreeViewItem(void* ptr){
 		if (ViewData::window != nullptr){
-			auto del = gcnew MyDelegateI1(ViewData::window, &View::ClearTreeViewItem);
+			auto del = gcnew System::Action<IntPtr>(ViewData::window, &View::ClearTreeViewItem);
 			ViewData::window->Dispatcher->BeginInvoke(del, (IntPtr)ptr);
 		}
 	}
@@ -488,14 +531,14 @@ namespace Test {
 	void NativeFraction::UpdateComponentWindow(){
 		if (ViewData::window == nullptr)return;
 		
-		auto del = gcnew MyDelegate(ViewData::window, &View::UpdateView);
+		auto del = gcnew System::Action(ViewData::window, &View::UpdateView);
 		ViewData::window->Dispatcher->BeginInvoke(del);
 	}
 
 	void NativeFraction::CreateContextMenu_AddComponent(const std::string& ComponentName){
 		if (ViewData::window == nullptr)return;
 
-		auto del = gcnew MyDelegateCOM(ViewData::window, &View::CreateContextMenu_AddComponent);
+		auto del = gcnew System::Action<String^>(ViewData::window, &View::CreateContextMenu_AddComponent);
 		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(ComponentName.c_str()));
 	}
 
@@ -509,13 +552,13 @@ namespace Test {
 	void NativeFraction::AddTreeViewItem(const std::string& Name, void* ptr){
 		if (ViewData::window == nullptr)return;
 
-		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddItem);
+		auto del = gcnew MyDelegateSI(ViewData::window, &View::AddItem);
 		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
 	}
 	void NativeFraction::AddEngineTreeViewItem(const std::string& Name, void* ptr){
 		if (ViewData::window == nullptr)return;
 
-		auto del = gcnew MyDelegateITEM(ViewData::window, &View::AddEngineItem);
+		auto del = gcnew MyDelegateSI(ViewData::window, &View::AddEngineItem);
 		ViewData::window->Dispatcher->BeginInvoke(del, gcnew String(Name.c_str()), (IntPtr)ptr);
 	}
 	void NativeFraction::SetParentTreeViewItem(void* parent, void* child){
@@ -528,7 +571,7 @@ namespace Test {
 	void NativeFraction::SelectTreeViewItem(void* ptr){
 		if (ViewData::window == nullptr)return;
 
-		auto del = gcnew MyDelegateI1(ViewData::window, &View::SelectTreeViewItem);
+		auto del = gcnew System::Action<IntPtr>(ViewData::window, &View::SelectTreeViewItem);
 		ViewData::window->Dispatcher->BeginInvoke(del, (IntPtr)ptr);
 	}
 
@@ -536,10 +579,12 @@ namespace Test {
 		if (ViewData::window == nullptr)return;
 		ViewData::window->GameScreenData->SetMouseEvents(focus, l, r, x, y, wx, wy);
 	}
-
+	void NativeFraction::SetEngineFocusEvent(bool* focus) {
+		Data::mTextBoxFocus = focus;
+	}
 	void NativeFraction::AddLog(const std::string& log){
 		if (ViewData::window == nullptr)return;
-		auto del = gcnew MyDelegateCOM(ViewData::window, &View::AddLog);
+		auto del = gcnew System::Action<String^>(ViewData::window, &View::AddLog);
 		ViewData::window->Dispatcher->BeginInvoke(System::Windows::Threading::DispatcherPriority::Render, del, gcnew String(log.c_str()));
 	}
 

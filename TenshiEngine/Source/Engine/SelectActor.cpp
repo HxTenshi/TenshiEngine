@@ -584,23 +584,29 @@ void SelectActor::Update(){
 
 	if (!mSelects.SelectNum() || mSelectAsset)return;
 
-	if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_C)){
+	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_C)){
 		mSelects.Copy();
 	}
-	if (Input::Down(KeyCoord::Key_LCONTROL) && Input::Trigger(KeyCoord::Key_V)){
+	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_V)){
 		mSelects.Paste();
+		SelectActor::ReCreateInspector();
+	}
+	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_D)) {
+		mSelects.Copy();
+		mSelects.Paste();
+		SelectActor::ReCreateInspector();
 	}
 
 	int g = mCurrentGuide;
-	if (Input::Trigger(KeyCoord::Key_R)){
+	if (EngineInput::Trigger(KeyCoord::Key_W)){
 		mCurrentGuide = 0;
 		mIsDragMode = false;
 	}
-	if (Input::Trigger(KeyCoord::Key_T)){
+	if (EngineInput::Trigger(KeyCoord::Key_E)){
 		mCurrentGuide = 1;
 		mIsDragMode = false;
 	}
-	if (Input::Trigger(KeyCoord::Key_Y)){
+	if (EngineInput::Trigger(KeyCoord::Key_R)){
 		mCurrentGuide = 2;
 		mIsDragMode = false;
 	}

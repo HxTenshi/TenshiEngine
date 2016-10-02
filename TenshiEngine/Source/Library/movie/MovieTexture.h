@@ -7,7 +7,7 @@
 #ifndef MOVIETEX_H
 #define MOVIETEX_H
 
-#define _MOVETEX_ENABLE 1
+#define _MOVETEX_ENABLE 0
 #if _MOVETEX_ENABLE
 
 #include <d3d11.h>
@@ -202,6 +202,10 @@ public:
 
 
 #else
+
+#pragma warning(push)
+//参照なしを消す
+#pragma warning(disable:4100)
 class Texture;
 class CMediaType;
 class IMediaSample;
@@ -327,6 +331,8 @@ public:
 	//! @param msTimeout (in) タイムアウト時間 (ミリ秒単位)。イベントが到着するまで動作を停止するには、INFINITE を使う。
 	VOID GetEvent(long* lEventCode, long* lParam1, long* lParam2, long msTimeout){}
 };
+
+#pragma warning(pop)
 #endif
 
 

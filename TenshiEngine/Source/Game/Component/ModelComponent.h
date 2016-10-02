@@ -18,7 +18,9 @@ public:
 	void Initialize() override;
 	void Start() override;
 	void Finish() override;
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 
 	void SetMatrix() override;

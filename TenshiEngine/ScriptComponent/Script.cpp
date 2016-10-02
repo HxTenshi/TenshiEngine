@@ -48,10 +48,8 @@ void ReleseInstance(IDllScriptComponent* p){
 
 #include <bitset>
 #include <sstream>
-DebugEngine* debug = NULL;
 int filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 
-	if (!debug)return EXCEPTION_EXECUTE_HANDLER;
 
 	auto address = (unsigned long)ep->ExceptionRecord->ExceptionAddress;
 	auto ecode = ep->ExceptionRecord->ExceptionCode;
@@ -59,35 +57,27 @@ int filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 	{
 		std::ostringstream os;
 		os << std::hex << address;
-		debug->Log(" ExceptÉGÉâÅ[ Address[" + os.str() + "]");
+		Hx::Debug()->Log(" ExceptÉGÉâÅ[ Address[" + os.str() + "]");
 	}
 {
 	std::ostringstream os;
 	os << std::hex << code;
-	debug->Log(" +-- Code[" + os.str() + "]");
+	Hx::Debug()->Log(" +-- Code[" + os.str() + "]");
 }
 	if (code == EXCEPTION_FLT_DIVIDE_BY_ZERO) {
-		debug->Log(" +-- : É[ÉçèúéZ");
+		Hx::Debug()->Log(" +-- : É[ÉçèúéZ");
 	}
 	else if (code == EXCEPTION_INT_DIVIDE_BY_ZERO) {
-		debug->Log(" +-- : É[ÉçèúéZ");
+		Hx::Debug()->Log(" +-- : É[ÉçèúéZ");
 	}
 	else if (code == EXCEPTION_ACCESS_VIOLATION) {
-		debug->Log(" +-- : ÉAÉNÉZÉXà·îΩ");
+		Hx::Debug()->Log(" +-- : ÉAÉNÉZÉXà·îΩ");
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
 void Function0(IDllScriptComponent* com, IDllScriptComponent::Func0 func){
-	if (com){
-		if (com->game){
-			debug = com->game->Debug();
-		}
-		else{
-			return;
-		}
-	}
-	else{
+	if (!com){
 		return;
 	}
 	__try{
@@ -102,28 +92,28 @@ void Function0(IDllScriptComponent* com, IDllScriptComponent::Func0 func){
 
 	}
 }
-void Function1(IDllScriptComponent* com, IDllScriptComponent::Func1 func, Actor* tar){
-	if (com){
-		if (com->game){
-			debug = com->game->Debug();
-		}
-		else{
-			return;
-		}
+GameObject g_Target = NULL;
+
+void _Func1_2(IDllScriptComponent* com, IDllScriptComponent::Func1 func) {
+
+	(com->*func)(g_Target);
+
+}
+void _Func1_1(IDllScriptComponent* com, IDllScriptComponent::Func1 func) {
+
+	__try {
+		_Func1_2(com, func);
 	}
-	else{
+	__except (filter(GetExceptionCode(), GetExceptionInformation())) {
+
+	}
+
+}
+void Function1(IDllScriptComponent* com, IDllScriptComponent::Func1 func, GameObject tar){
+	if (!com) {
 		return;
 	}
-	__try{
-		//try{
-		(com->*func)(tar);
-		//}
-		//catch (char* text){
-		//	debug->Log(text);
-		//}
-
-	}
-	__except (filter(GetExceptionCode(), GetExceptionInformation())){
-
-	}
+	g_Target = tar;
+	_Func1_1(com, func);
+	g_Target = NULL;
 }

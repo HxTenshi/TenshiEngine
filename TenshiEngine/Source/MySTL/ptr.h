@@ -358,13 +358,13 @@ public:
 
 	template<typename U>
 	wp(wp<U> const& p)
-		: ptr(p.lock().Get())
+		: ptr((T*)p.lock().Get())
 		, count(p.count)
 	{ }
 
 	template<typename U>
 	wp(sp<U> const& p)
-		: ptr(p.ptr)
+		: ptr((T*)p.ptr)
 		, count(p.count)
 	{ }
 

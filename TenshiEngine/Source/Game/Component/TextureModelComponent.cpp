@@ -13,10 +13,13 @@
 
 #include "Engine/Inspector.h"
 
+#include "Game/SettingObject/Canvas.h"
+
 TextureModelComponent::TextureModelComponent()
 {
 	mModel= NULL;
 	mMaterial = NULL;
+	m_Center = XMFLOAT2(0.5f,0.5f);
 }
 TextureModelComponent::~TextureModelComponent(){
 	if (mModel){
@@ -66,10 +69,12 @@ void TextureModelComponent::Initialize(){
 void TextureModelComponent::Start(){
 }
 
+#ifdef _ENGINE_MODE
 void TextureModelComponent::EngineUpdate(){
 	Update();
 
 }
+#endif
 void TextureModelComponent::Update(){
 
 
@@ -111,37 +116,62 @@ void TextureModelComponent::SetMatrix(){
 	
 	//auto h = (float)WindowState::mHeight;
 	//auto w = (float)WindowState::mWidth;
-
-	auto h = (float)800.0f;
-	auto w = (float)1200.0f;
-	
-	float hh = h / 2.0f;
-	float wh = w / 2.0f;
-
 	auto s = gameObject->mTransform->Scale();
-	float sx = s.x / w;
-	float sy = s.y / h;
 	auto p = gameObject->mTransform->Position();
-	float px = (p.x - wh) / wh;
-	float py = (-p.y + hh) / hh;
+	auto r = gameObject->mTransform->Rotate();
 
-	//‚‚³‚ð‡‚í‚¹‚Ä•‚Ì”ä—¦‚ð‚ ‚í‚¹‚é
-	{
-		auto asx = 1200.0f / (float)WindowState::mWidth;
-		//px -= asx/2.0f;
-		sx *= asx;
-	}
+	XMFLOAT2 center = m_Center;
+	center.x = (center.x * -2.0f + 1.0f);
+	center.y = (center.y * 2.0f - 1.0f);
+	auto centerMatrix = XMMatrixTranslation(center.x, center.y, 0.0f);
 
 
-	auto pos = XMVectorSet(px, py, 0, 1);
-	auto rot = gameObject->mTransform->Rotate();
-	auto scl = XMVectorSet(sx, sy, 0, 1);
+	s.x /= Canvas::GetWidth();
+	s.y /= Canvas::GetHeight();
+	auto scaleMatrix = XMMatrixScaling(s.x, s.y, 0.0f);
 
-	auto mat = XMMatrixMultiply(
-		XMMatrixMultiply(
-		XMMatrixRotationRollPitchYawFromVector(rot),
-		XMMatrixScalingFromVector(scl)),
-		XMMatrixTranslationFromVector(pos));
+
+	auto rotateMatrix = XMMatrixRotationRollPitchYawFromVector(r);
+
+
+	p.x = p.x * 2 / Canvas::GetWidth() - 1.0f;
+	p.y = p.y * 2 / Canvas::GetHeight() - 1.0f;
+	auto transMatrix = XMMatrixTranslation(p.x, p.y, 0.0f);
+
+
+	auto mat = XMMatrixMultiply(centerMatrix, scaleMatrix);
+	mat = XMMatrixMultiply(mat, rotateMatrix);
+	mat = XMMatrixMultiply(mat, transMatrix);
+
+
+	//auto h = (float)800.0f;
+	//auto w = (float)1200.0f;
+	//
+	//float hh = h / 2.0f;
+	//float wh = w / 2.0f;
+
+	//float sx = s.x / w;
+	//float sy = s.y / h;
+	//float px = (p.x - wh) / wh;
+	//float py = (-p.y + hh) / hh;
+
+	////‚‚³‚ð‡‚í‚¹‚Ä•‚Ì”ä—¦‚ð‚ ‚í‚¹‚é
+	//{
+	//	auto asx = 1200.0f / (float)WindowState::mWidth;
+	//	//px -= asx/2.0f;
+	//	sx *= asx;
+	//}
+
+
+	//auto pos = XMVectorSet(px, py, 0, 1);
+	//auto rot = gameObject->mTransform->Rotate();
+	//auto scl = XMVectorSet(sx, sy, 0, 1);
+
+	//auto mat = XMMatrixMultiply(
+	//	XMMatrixMultiply(
+	//	XMMatrixRotationRollPitchYawFromVector(rot),
+	//	XMMatrixScalingFromVector(scl)),
+	//	XMMatrixTranslationFromVector(pos));
 
 	mModel->mWorld = mat;
 	mModel->Update();
@@ -173,6 +203,10 @@ void TextureModelComponent::CreateInspector(){
 	ins.Add("Texture", &m_TextureAsset,[&](){
 		mMaterial->SetTexture(m_TextureAsset, 0);
 	});
+	Vector2 vec(m_Center);
+	ins.Add("Center", &vec, [&](Vector2 v) {
+		SetCenter(XMFLOAT2(v.x, v.y));
+	});
 	ins.Complete();
 
 }
@@ -184,7 +218,8 @@ void TextureModelComponent::IO_Data(I_ioHelper* io){
 
 #define _KEY(x) io->func( x , #x)
 	_KEY(m_TextureAsset);
-	//_KEY(mTextureHash);
+	_KEY(m_Center.x);
+	_KEY(m_Center.y);
 #undef _KEY
 }
 
@@ -192,4 +227,8 @@ void TextureModelComponent::SetTexture(TextureAsset& asset){
 	//mTextureName = filename;
 	m_TextureAsset = asset;
 	mMaterial->SetTexture(asset, 0);
+}
+
+void TextureModelComponent::SetCenter(const XMFLOAT2& center) {
+	m_Center = center;
 }

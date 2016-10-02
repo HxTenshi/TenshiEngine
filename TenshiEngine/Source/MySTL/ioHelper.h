@@ -11,6 +11,12 @@
 class I_InputHelper;
 class I_OutputHelper;
 
+class I_ioHelper;
+class Actor;
+namespace ioGameObjectHelper {
+	void func(wp<Actor>* target, const char* name, I_ioHelper* io, wp<Actor>* This);
+};
+
 //json“Ç‚İ‘‚«
 class I_ioHelper{
 protected:

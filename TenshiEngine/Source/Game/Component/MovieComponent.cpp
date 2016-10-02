@@ -20,6 +20,8 @@ void MovieComponent::Initialize() {
 }
 void MovieComponent::Start() {
 }
+
+#ifdef _ENGINE_MODE
 void MovieComponent::EngineUpdate() {
 
 	//if (mPlayFlag == (long long)this){
@@ -34,6 +36,7 @@ void MovieComponent::EngineUpdate() {
 	}
 
 }
+#endif
 void MovieComponent::Update() {
 
 	if (mAutoPlay){

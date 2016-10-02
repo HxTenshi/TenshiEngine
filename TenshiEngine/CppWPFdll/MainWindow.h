@@ -99,6 +99,7 @@ public:
 		,m_MY(NULL)
 		,m_WX(NULL)
 		,m_WY(NULL)
+		,m_Focus(NULL)
 	{
 		auto panel = gcnew GameScreenPanel();
 		m_wfh->Child = panel;
@@ -147,7 +148,8 @@ public:
 	//}
 
 	void focusChanged(Object^ sender, System::Windows::DependencyPropertyChangedEventArgs e){
-		*m_Focus = (bool)e.NewValue;
+		if(m_Focus)
+			*m_Focus = (bool)e.NewValue;
 	}
 
 	//十字キーやTABでフォーカスをロックする
@@ -2043,6 +2045,34 @@ public:
 		e->Handled = true;
 	}
 
+	//ドラッグ中の判定
+	void Commponent_ViewModel_OnDragOver_GameObject(Object ^sender, DragEventArgs ^e)
+	{
+		// ドラッグされたいるデータがTreeVireItemか？
+		if (e->Data->GetDataPresent(TreeViewItem::typeid))
+		{
+			e->Effects = DragDropEffects::Copy;
+			return;
+		}
+
+		e->Effects = DragDropEffects::None;
+	}
+
+	//コンポーネントのViewMdeolにドロップ処理
+	void Commponent_ViewModel_OnDrop_GameObject(Object ^s, DragEventArgs ^e)
+	{
+
+		auto dragtreeitem = (TreeViewItem^)e->Data->GetData(TreeViewItem::typeid);
+		auto dragitem = dynamic_cast<TestContent::Person^>(dragtreeitem->DataContext);
+		//アクターをD&Dしているか
+		if (dragitem->DataPtr != (IntPtr)NULL) {
+			Commponent_ViewModel_GameObjectDrop(s, dragitem);
+		}
+		else {
+		}
+		e->Handled = true;
+	}
+
 	void CreateColorPickerWindow(Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e){
 		auto r = (System::Windows::Shapes::Rectangle^)sender;
 		auto scb = (SolidColorBrush^)r->Fill;
@@ -2089,6 +2119,17 @@ private:
 		if (targettextbox){
 			auto viewmodel = (ViewModel<std::string>^)targettextbox->DataContext;
 			viewmodel->Value = name;
+		}
+	}
+
+	//ゲームオブジェクトをドロップした処理
+	void Commponent_ViewModel_GameObjectDrop(Object ^s, TestContent::Person^ dragitem) {
+
+		auto targettextbox = dynamic_cast<TextBox^>(s);
+		//TextBoxに対してDropしたか
+		if (targettextbox) {
+			auto viewmodel = (ViewModel<wp<IActor>>^)targettextbox->DataContext;
+			viewmodel->Value = System::Convert::ToString(dragitem->DataPtr);
 		}
 	}
 

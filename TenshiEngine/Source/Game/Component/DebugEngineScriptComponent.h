@@ -32,7 +32,9 @@ public:
 	void Initialize() override;
 	void Start() override;
 
+#ifdef _ENGINE_MODE
 	void EngineUpdate() override;
+#endif
 	void Update() override;
 	void Finish() override;
 

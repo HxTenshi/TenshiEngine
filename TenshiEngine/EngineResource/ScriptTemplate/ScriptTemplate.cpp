@@ -22,16 +22,16 @@ void $temp$::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void $temp$::OnCollideBegin(Actor* target){
+void $temp$::OnCollideBegin(GameObject target){
 	(void)target;
 }
 
 //コライダーとのヒット中に呼ばれます
-void $temp$::OnCollideEnter(Actor* target){
+void $temp$::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void $temp$::OnCollideExit(Actor* target){
+void $temp$::OnCollideExit(GameObject target){
 	(void)target;
 }

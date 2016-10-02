@@ -180,7 +180,7 @@ bool MeshFileData::Create(const char* filename){
 		data->Indices = std::move(buf->Indices);
 		data->Meshs = std::move(buf->Meshs);
 
-		auto vnum = buf->Vertexs.size();
+		//auto vnum = buf->Vertexs.size();
 		//data->Vertexs.resize(vnum);
 
 
@@ -188,13 +188,13 @@ bool MeshFileData::Create(const char* filename){
 		data->Vertexs.resize(num);
 		for (unsigned int i = 0; i < num; i+=3){
 
-			auto i0 = data->Indices[i + 0];
-			auto i1 = data->Indices[i + 1];
-			auto i2 = data->Indices[i + 2];
+			auto i0 = (unsigned short)data->Indices[i + 0];
+			auto i1 = (unsigned short)data->Indices[i + 1];
+			auto i2 = (unsigned short)data->Indices[i + 2];
 
-			auto o0 = data->Indices[i + 0] = i + 0;
-			auto o1 = data->Indices[i + 1] = i + 1;
-			auto o2 = data->Indices[i + 2] = i + 2;
+			auto o0 = data->Indices[i + 0] = (unsigned short)i + 0;
+			auto o1 = data->Indices[i + 1] = (unsigned short)i + 1;
+			auto o2 = data->Indices[i + 2] = (unsigned short)i + 2;
 
 			data->Vertexs[o0].Pos = buf->Vertexs[i0].Pos;
 			data->Vertexs[o1].Pos = buf->Vertexs[i1].Pos;
@@ -236,13 +236,13 @@ bool MeshFileData::Create(const char* filename){
 		data->Vertexs.resize(num);
 		for (UINT i = 0; i < num; i += 3){
 
-			auto i0 = data->Indices[i + 0];
-			auto i1 = data->Indices[i + 1];
-			auto i2 = data->Indices[i + 2];
+			auto i0 = (unsigned short)data->Indices[i + 0];
+			auto i1 = (unsigned short)data->Indices[i + 1];
+			auto i2 = (unsigned short)data->Indices[i + 2];
 
-			auto o0 = data->Indices[i + 0] = i + 0;
-			auto o1 = data->Indices[i + 1] = i + 1;
-			auto o2 = data->Indices[i + 2] = i + 2;
+			auto o0 = data->Indices[i + 0] = (unsigned short)i + 0;
+			auto o1 = data->Indices[i + 1] = (unsigned short)i + 1;
+			auto o2 = data->Indices[i + 2] = (unsigned short)i + 2;
 
 			data->Vertexs[o0].Pos = buf->Vertexs[i0].Pos;
 			data->Vertexs[o1].Pos = buf->Vertexs[i1].Pos;
@@ -256,9 +256,9 @@ bool MeshFileData::Create(const char* filename){
 
 
 			for (int j = 0; j < 4; j++){
-				data->Vertexs[o0].BoneWeight[j] = buf->Vertexs[i0].BoneWeight[j];
-				data->Vertexs[o1].BoneWeight[j] = buf->Vertexs[i1].BoneWeight[j];
-				data->Vertexs[o2].BoneWeight[j] = buf->Vertexs[i2].BoneWeight[j];
+				data->Vertexs[o0].BoneWeight[j] = (float)buf->Vertexs[i0].BoneWeight[j];
+				data->Vertexs[o1].BoneWeight[j] = (float)buf->Vertexs[i1].BoneWeight[j];
+				data->Vertexs[o2].BoneWeight[j] = (float)buf->Vertexs[i2].BoneWeight[j];
 				data->Vertexs[o0].BoneIndex[j] = buf->Vertexs[i0].BoneIndex[j];
 				data->Vertexs[o1].BoneIndex[j] = buf->Vertexs[i1].BoneIndex[j];
 				data->Vertexs[o2].BoneIndex[j] = buf->Vertexs[i2].BoneIndex[j];

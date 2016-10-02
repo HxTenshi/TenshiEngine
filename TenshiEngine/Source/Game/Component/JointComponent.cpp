@@ -31,13 +31,17 @@ void JointComponent::Initialize(){
 
 void JointComponent::Start(){
 
-	if (mActorUID[0] == ""){
+	if (mActorUID[0] != ""){
 		auto act = Game::FindUID(mActorUID[0]);
 		SetRigidActor(RigitActorID::Actor_0, act);
 	}
-	if (mActorUID[1] == ""){
+	if (mActorUID[1] != ""){
 		auto act = Game::FindUID(mActorUID[1]);
 		SetRigidActor(RigitActorID::Actor_1, act);
+	}
+	if(mGameObject){
+
+		SetRigidActor(RigitActorID::Actor_1, mGameObject);
 	}
 }
 
@@ -88,6 +92,10 @@ void JointComponent::CreateInspector() {
 		SetRigidActor(RigitActorID::Actor_1, act);
 	});
 
+	ins.Add("GameObject", &mGameObject, [&]() {
+		SetRigidActor(RigitActorID::Actor_1, mGameObject);
+	});
+
 	ins.Complete();
 }
 #endif
@@ -97,9 +105,12 @@ void JointComponent::IO_Data(I_ioHelper* io){
 	Enabled::IO_Data(io);
 
 #define _KEY(x) io->func( x , #x)
+#define _KEY_GO(x) ioGameObjectHelper::func(&x, #x,io,&gameObject)
 
 	_KEY(mActorUID[0]);
 	_KEY(mActorUID[1]);
+	_KEY_GO(mGameObject);
+
 #undef _KEY
 }
 

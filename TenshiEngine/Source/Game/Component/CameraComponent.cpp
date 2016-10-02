@@ -52,7 +52,8 @@ void CameraComponent::Initialize()
 
 	SetPerspective();
 
-	SetSkyTexture(mSkyTextureFileName);
+	mSkyTexture.Load(mSkyTexture.m_Hash);
+	SetSkyTexture(mSkyTexture);
 
 	//static RenderTarget mRenderTarget;
 	//mRenderTarget.CreateCUBE(256, 256, DXGI_FORMAT_R32G32B32A32_FLOAT);
@@ -65,12 +66,12 @@ void CameraComponent::SetPerspective(){
 void CameraComponent::SetOrthographic(){
 	m_IsPerspective = false;
 }
+#ifdef _ENGINE_MODE
 void CameraComponent::EngineUpdate(){
 
-#ifdef _ENGINE_MODE
 	Game::SetMainCameraEngineUpdate(this);
-#endif
 }
+#endif
 void CameraComponent::Update(){
 
 	//XMVECTOR null;
@@ -112,22 +113,21 @@ void CameraComponent::Update(){
 void CameraComponent::CreateInspector(){
 	Inspector ins("Camera", this);
 	ins.AddEnableButton(this);
-	auto func = [&](std::string s){SetSkyTexture(s); };
-	ins.Add("SkyTexture", &mSkyTextureFileName, func);
+	auto func = [&](){SetSkyTexture(mSkyTexture); };
+	ins.Add("SkyTexture", &mSkyTexture, func);
 	ins.Complete();
 }
 #endif
 
 void CameraComponent::IO_Data(I_ioHelper* io){
 #define _KEY(x) io->func( x , #x)
-	_KEY(mSkyTextureFileName);
+	_KEY(mSkyTexture);
 #undef _KEY
 }
 
 
-void CameraComponent::SetSkyTexture(const std::string fileName){
-	mSkyTextureFileName = fileName;
-	mSkyTexture.Create(mSkyTextureFileName.c_str());
+void CameraComponent::SetSkyTexture(TextureAsset asset){
+	mSkyTexture = asset;
 }
 
 void CameraComponent::VSSetConstantBuffers(ID3D11DeviceContext* context) const

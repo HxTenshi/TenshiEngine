@@ -18,7 +18,8 @@ typedef void(__cdecl *DeleteInstance_)(IDllScriptComponent*);
 typedef decltype(Reflection::map) (__cdecl *GetReflectionData_)();
 
 typedef void(__cdecl *IDllFunction0)(IDllScriptComponent*,IDllScriptComponent::Func0);
-typedef void(__cdecl *IDllFunction1)(IDllScriptComponent*,IDllScriptComponent::Func1, Actor*);
+typedef void(__cdecl *IDllFunction1)(IDllScriptComponent*,IDllScriptComponent::Func1, GameObject);
+typedef void(__cdecl *InitIGame)(IGame*);
 
 #include "Game/Script/SGame.h"
 SGame gSGame;
@@ -333,13 +334,13 @@ public:
 			[&](const sys::path& p) {
 			if (sys::is_regular_file(p)) { // ファイルなら...
 				if (p.extension() == ".h"){
-					auto out = "\n#include\"../" + p.directory_string() + "\"";
+					auto out = "\n#include\"../" + p.generic_string() + "\"";
 					includesFile.Out(out);
 
-					auto outf = "\n_ADD(" + p.stem() + ");";
+					auto outf = "\n_ADD(" + p.stem().string() + ");";
 					factorysFile.Out(outf);
 
-					findSerialize(&reflectionsFile, p.stem());
+					findSerialize(&reflectionsFile, p.stem().string());
 				}
 			}
 			else if (sys::is_directory(p)) { // ディレクトリなら...
@@ -595,6 +596,13 @@ public:
 			UnLoad();
 			return;
 		}
+		InitIGame initIGame = (InitIGame)GetProcAddress(hModule, "InitializeIGame");
+		if (initIGame == NULL)
+		{
+			UnLoad();
+			return;
+		}
+		initIGame(&gSGame);
 		Reflection::map = ((GetReflectionData_)mGetReflect)();
 	}
 	IDllScriptComponent* Create(const std::string& ClassName){
@@ -612,7 +620,7 @@ public:
 	void Function(IDllScriptComponent* com,IDllScriptComponent::Func0 func){
 		((IDllFunction0)mFunction0)(com,func);
 	}
-	void Function(IDllScriptComponent* com,IDllScriptComponent::Func1 func, Actor* tar){
+	void Function(IDllScriptComponent* com,IDllScriptComponent::Func1 func, GameObject tar){
 		((IDllFunction1)mFunction1)(com,func, tar);
 	}
 	std::list<ScriptComponent*> mList;
@@ -659,7 +667,6 @@ void ScriptComponent::Initialize(){
 	actors.mList.push_back(this);
 
 	if (pDllClass){
-		pDllClass->game = &gSGame;
 		pDllClass->gameObject = gameObject;
 	}
 
@@ -705,7 +712,6 @@ void ScriptComponent::Load(){
 	pDllClass = actors.Create(mClassName);
 
 	if (pDllClass){
-		pDllClass->game = &gSGame;
 		pDllClass->gameObject = gameObject;
 	}
 }
@@ -758,7 +764,6 @@ void ScriptComponent::Update(){
 	if (pDllClass){
 
 		if (pDllClass){
-			pDllClass->game = &gSGame;
 			pDllClass->gameObject = gameObject;
 		}
 
@@ -808,7 +813,7 @@ void ScriptComponent::OnCollide(Actor* target){
 		return;
 	}
 
-	mCollideMap[(int)target] = ColliderStateData(target,ColliderState::Begin,1);
+	mCollideMap[(int)target] = ColliderStateData(target->shared_from_this(),ColliderState::Begin,1);
 
 	//if (pDllClass){
 	//	actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, target);
@@ -818,7 +823,7 @@ void ScriptComponent::OnCollide(Actor* target){
 void ScriptComponent::LostCollide(Actor* target){
 	auto ite = mCollideMap.find((int)target);
 	if (ite == mCollideMap.end()){
-		mCollideMap[(int)target] = ColliderStateData(target, ColliderState::Begin, -1);
+		mCollideMap[(int)target] = ColliderStateData(target->shared_from_this(), ColliderState::Begin, -1);
 		return;
 	}
 	auto& get = *ite;
@@ -836,6 +841,8 @@ void ScriptComponent::LostCollide(Actor* target){
 }
 
 
+#ifdef _ENGINE_MODE
+
 template<class T>
 bool reflect(MemberInfo& info, Inspector& ins){
 
@@ -852,6 +859,37 @@ bool reflect(MemberInfo& info, Inspector& ins){
 
 	return true;
 }
+bool reflect_v(MemberInfo& info, Inspector& ins) {
+
+	if (info.GetTypeName() != typeid(XMVECTOR).name()) {
+		return false;
+	}
+
+	volatile XMVECTOR* paramdata = Reflection::Get<XMVECTOR>(info);
+
+	Vector3 v(*(XMVECTOR*)paramdata);
+	ins.Add(info.GetName(), &v, [paramdata](Vector3 f) {
+		paramdata->x = f.x;
+		paramdata->y = f.y;
+		paramdata->z = f.z;
+	});
+
+	return true;
+}
+bool reflect_g(MemberInfo& info, Inspector& ins) {
+	
+	if (info.GetTypeName() != typeid(GameObject).name()) {
+		return false;
+	}
+
+	volatile GameObject* paramdata = Reflection::Get<GameObject>(info);
+
+	ins.Add(info.GetName(), (GameObject*)paramdata, []() {});
+
+	return true;
+}
+
+#endif
 
 void initparam(int* p){
 	*p = 0;
@@ -864,6 +902,12 @@ void initparam(bool* p){
 }
 void initparam(std::string* p){
 	*p = "";
+}
+void initparam(XMVECTOR* p) {
+	*p = XMVectorSet(0,0,0,0);
+}
+void initparam(GameObject* p) {
+	*p = NULL;
 }
 
 
@@ -881,6 +925,45 @@ bool reflect_io(MemberInfo& info,I_ioHelper* io){
 	}
 
 	io->func(*paramdata, info.GetName().c_str());
+
+	return true;
+}
+
+bool reflect_io_v(MemberInfo& info, I_ioHelper* io) {
+
+	if (info.GetTypeName() != typeid(XMVECTOR).name()) {
+		return false;
+	}
+
+	XMVECTOR* paramdata = Reflection::Get<XMVECTOR>(info);
+
+	if (io->isInput()) {
+		initparam(paramdata);
+	}
+
+	io->func(paramdata->x, (info.GetName() + "x").c_str());
+	io->func(paramdata->y, (info.GetName() + "y").c_str());
+	io->func(paramdata->z, (info.GetName() + "z").c_str());
+	io->func(paramdata->w, (info.GetName() + "w").c_str());
+
+	return true;
+}
+
+
+bool reflect_io_g(MemberInfo& info, I_ioHelper* io, Component* com) {
+
+	if (info.GetTypeName() != typeid(GameObject).name()) {
+		return false;
+	}
+
+	GameObject* paramdata = Reflection::Get<GameObject>(info);
+
+	if (io->isInput()) {
+		initparam(paramdata);
+	}
+
+	ioGameObjectHelper::func(paramdata, info.GetName().c_str(), io, &com->gameObject);
+
 
 	return true;
 }
@@ -910,6 +993,8 @@ void ScriptComponent::CreateInspector(){
 				if (reflect<int>(info, ins))break;
 				if (reflect<bool>(info, ins))break;
 				if (reflect<std::string>(info, ins))break;
+				if (reflect_v(info, ins))break;
+				if (reflect_g(info, ins))break;
 			} while (fal);
 		}
 
@@ -939,6 +1024,8 @@ void ScriptComponent::IO_Data(I_ioHelper* io){
 					if (reflect_io<int>(info, io))break;
 					if (reflect_io<bool>(info, io))break;
 					if (reflect_io<std::string>(info, io))break;
+					if (reflect_io_v(info, io))break;
+					if (reflect_io_g(info, io, this))break;
 				} while (fal);
 			}
 		}

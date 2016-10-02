@@ -37,23 +37,25 @@ void EditorCamera::Initialize(){
 void EditorCamera::Update(float deltaTime){
 	auto pos = XMVectorSet(0, 0, 0, 1);
 	float speed = 10.0f;
-	if (Input::Down(KeyCoord::Key_A)){
-		pos.x -= speed;
-	}
-	if (Input::Down(KeyCoord::Key_D)){
-		pos.x += speed;
-	}
-	if (Input::Down(KeyCoord::Key_W)){
-		pos.z += speed;
-	}
-	if (Input::Down(KeyCoord::Key_S)){
-		pos.z -= speed;
-	}
-	if (Input::Down(KeyCoord::Key_Q)){
-		pos.y += speed;
-	}
-	if (Input::Down(KeyCoord::Key_E)){
-		pos.y -= speed;
+	if (Input::Down(MouseCoord::Right)) {
+		if (Input::Down(KeyCoord::Key_A)) {
+			pos.x -= speed;
+		}
+		if (Input::Down(KeyCoord::Key_D)) {
+			pos.x += speed;
+		}
+		if (Input::Down(KeyCoord::Key_W)) {
+			pos.z += speed;
+		}
+		if (Input::Down(KeyCoord::Key_S)) {
+			pos.z -= speed;
+		}
+		if (Input::Down(KeyCoord::Key_E)) {
+			pos.y += speed;
+		}
+		if (Input::Down(KeyCoord::Key_Q)) {
+			pos.y -= speed;
+		}
 	}
 	if (Input::Trigger(MouseCoord::Right)){
 		int x, y;
@@ -92,7 +94,7 @@ void EditorCamera::Update(float deltaTime){
 	auto move = mCamera->mTransform->Position();
 	move += mCamera->mTransform->Forward() * pos.z;
 	move += mCamera->mTransform->Left() * pos.x;
-	move.y += pos.y;
+	move += mCamera->mTransform->Up() * pos.y;
 
 	mCamera->mTransform->Position(move);
 	mCamera->UpdateComponent(deltaTime);

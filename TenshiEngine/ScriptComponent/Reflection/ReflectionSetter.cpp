@@ -61,7 +61,6 @@ create(\
 
 #include "System\reflection.h"
 
-
 	
 #undef REF
 }

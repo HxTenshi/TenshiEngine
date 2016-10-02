@@ -11,6 +11,8 @@
 #include "Game/Component/TransformComponent.h"
 #include "Game/Component/MaterialComponent.h"
 #include "Game/Component/TextureModelComponent.h"
+
+#include "Game/SettingObject/Canvas.h"
 class Text : public Actor{
 public:
 	Text()
@@ -20,8 +22,10 @@ public:
 		mTransform = mComponents.AddComponent<TransformComponent>();
 		mComponents.AddComponent<TextComponent>();
 
-		mTransform->Position(XMVectorSet(256,256+50, 0, 1));
+		mTransform->Position(XMVectorSet(0, Canvas::GetHeight(),0, 1));
 		mTransform->Scale(XMVectorSet(512, 512,0,1));
+		weak_ptr<TextComponent> mFPSText = GetComponent<TextComponent>();
+		mFPSText->SetTextureCenter(XMFLOAT2(0.0f,0.0f));
 	}
 	~Text(){
 		Finish();
@@ -41,6 +45,9 @@ FPSChecker::~FPSChecker(){
 
 void FPSChecker::Update(float deltaTime){
 
+
+	mFPSObject->mTransform->Position(XMVectorSet(0, Canvas::GetHeight(), 0, 1));
+
 	static int mCorrentVectorPos = 0;
 	weak_ptr<TextComponent> mFPSText = mFPSObject->GetComponent<TextComponent>();
 	static std::vector<unsigned long> mStepFrame_times(mFrameNum, 0);
@@ -56,7 +63,7 @@ void FPSChecker::Update(float deltaTime){
 	}
 	float fps = (float)mFrameNum / sec_time * 1000;
 	auto fpsstr = std::to_string(fps);
-	std::string title = "FPS:" + fpsstr.substr(0, 4) + "‚¾‚æ`š";
+	std::string title = "FPS:" + fpsstr.substr(0, 4);
 
 	if (mFPSText)mFPSText->ChangeText(title);
 	mFPSObject->UpdateComponent(deltaTime);

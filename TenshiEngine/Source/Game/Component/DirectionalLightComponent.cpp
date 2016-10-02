@@ -50,9 +50,11 @@ void DirectionalLightComponent::Initialize(){
 void DirectionalLightComponent::Finish(){
 
 }
+#ifdef _ENGINE_MODE
 void DirectionalLightComponent::EngineUpdate(){
 	Update();
 }
+#endif
 void DirectionalLightComponent::Update(){
 
 	auto f = gameObject->mTransform->Forward();
@@ -123,7 +125,9 @@ void DirectionalLightComponent::CreateInspector(){
 	auto col = Color(m_Color);
 
 	ins.Add("Color", &col, collback);
-	ins.Add("HDR", &m_HDR, [&](float f){m_HDR = f; });
+	ins.Add("HDR", &m_HDR, [&](float f){
+		m_HDR = f;
+		SetColor(m_Color); });
 	ins.Complete();
 }
 #endif

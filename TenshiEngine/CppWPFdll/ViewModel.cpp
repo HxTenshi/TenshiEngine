@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "ViewModel.h"
 
 
@@ -56,4 +54,21 @@ std::string lexical_cast<std::string, String>(String^ p){
 	free(ch);
 
 	return temp;
+}
+
+
+
+
+#include "../Source/Game/IActor.h"
+template <>
+String^ lexical_cast_(weak_ptr<IActor>* p) {
+	return gcnew String(((bool)*p)?(*p)->Name().c_str():"");
+}
+
+template <>
+weak_ptr<IActor> lexical_cast<weak_ptr<IActor>, String>(String^ p) {
+
+	auto i = (IntPtr)System::Convert::ToInt32(p);
+	auto act = (IActor*)(void*)i;
+	return act->shared_from_this();
 }

@@ -68,9 +68,11 @@ void PhysXColliderComponent::Finish(){
 	mIsParentPhysX = false;
 }
 
+#ifdef _ENGINE_MODE
 void PhysXColliderComponent::EngineUpdate(){
 	Update();
 }
+#endif
 void PhysXColliderComponent::Update(){
 
 	SetTransform(mPosition);

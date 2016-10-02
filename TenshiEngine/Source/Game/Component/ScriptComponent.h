@@ -43,12 +43,12 @@ public:
 	};
 	struct ColliderStateData{
 		ColliderStateData(
-			Actor* target = NULL,
+			GameObject target = NULL,
 			ColliderState state = Begin,
 			int count = 0)
 			:Target(target), State(state), HitCount(count)
 		{}
-		Actor* Target;
+		GameObject Target;
 		ColliderState State;
 		int HitCount;
 	};

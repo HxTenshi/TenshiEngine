@@ -6,9 +6,11 @@
 #include <queue>
 #include "Game/Component/ComponentList.h"
 #include "Game/Parts/Enabled.h"
-
 #include "Engine/AssetDataBase.h"
+
 #include "Types.h"
+
+#include "IActor.h"
 
 class ITransformComponent;
 class File;
@@ -18,16 +20,9 @@ namespace physx{
 	class PxTransform;
 }
 
-class IActor{
-public:
-	virtual ~IActor(){}
-	virtual void* _GetScript(const char* name) = 0;
-};
-
 class Actor 
 	: public IActor
-	, public Enabled
-	, public enable_shared_from_this<Actor>{
+	, public Enabled{
 public:
 	Actor();
 	virtual ~Actor();
@@ -42,8 +37,8 @@ public:
 #endif
 	virtual void UpdateComponent(float deltaTime);
 	virtual void Update(float deltaTime);
-
-	void SetUpdateStageCollQueue(const std::function<void()> coll);
+	void SetInitializeStageCollQueue(const std::function<void()>& coll);
+	void SetUpdateStageCollQueue(const std::function<void()>& coll);
 
 	template<class T>
 	weak_ptr<T> GetComponent(){
@@ -80,8 +75,8 @@ public:
 	virtual void CreateInspector();
 #endif
 
-	std::string Name(){return mName;}
-	void Name(const std::string& name){mName = name;}
+	std::string Name() override{return mName;}
+	void Name(const std::string& name) override{mName = name;}
 
 
 	std::string Prefab(){ return mPrefab; }
@@ -94,7 +89,7 @@ public:
 	//ペアレント変更コールバックを実行
 	void RunChangeParentCallback();
 
-	void PastePrefabParam(picojson::value& json);
+	//void PastePrefabParam(picojson::value& json);
 
 	//void ExportSceneDataStart(const std::string& pass, File& sceneFile);
 	//void ExportSceneData(const std::string& pass, File& sceneFile);
@@ -126,6 +121,7 @@ protected:
 	virtual void _ExportData(I_ioHelper* io, bool childExport=false);
 	virtual void _ImportData(I_ioHelper* io);
 
+	std::queue<std::function<void()>> mInitializeStageCollQueue;
 	std::queue<std::function<void()>> mUpdateStageCollQueue;
 	std::string mName;
 

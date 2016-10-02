@@ -7,6 +7,6 @@ _REF(MoveSmoke,mMaxSpeed);
 _REF(MoveSmoke,mSpeed); 
 _REF(TextureScroll,x); 
 _REF(TextureScroll,y); 
-_REF(TPSCamera,mTargetName); 
 _REF(TPSCamera,mDistance); 
 _REF(TPSCamera,mUp); 
+_REF(TPSCamera,mTarget); 

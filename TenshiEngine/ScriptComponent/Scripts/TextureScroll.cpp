@@ -29,16 +29,16 @@ void TextureScroll::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void TextureScroll::OnCollideBegin(Actor* target){
+void TextureScroll::OnCollideBegin(GameObject target){
 	(void)target;
 }
 
 //コライダーとのヒット中に呼ばれます
-void TextureScroll::OnCollideEnter(Actor* target){
+void TextureScroll::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void TextureScroll::OnCollideExit(Actor* target){
+void TextureScroll::OnCollideExit(GameObject target){
 	(void)target;
 }

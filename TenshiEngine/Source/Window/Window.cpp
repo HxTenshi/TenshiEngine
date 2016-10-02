@@ -25,7 +25,7 @@ UINT WindowState::mHeight = 800;
 //HMODULE Window::mhModuleWnd = NULL;
 HWND Window::mhWnd = NULL;
 #ifdef _ENGINE_MODE
-std::vector<const std::function<void(void*)>> Window::mWPFCollBacks;
+std::vector<std::function<void(void*)>> Window::mWPFCollBacks;
 Test::NativeFraction Window::mMainWindow_WPF;
 #endif
 

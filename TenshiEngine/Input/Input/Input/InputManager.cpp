@@ -102,7 +102,7 @@ void InputManager::Release(){
 	}
 }
 
-void InputManager::Update(bool TargetFocus){
+void InputManager::Update(int TargetFocus){
 
 	for (int i = 0; i < (int)MouseCoord::Count; i++){
 		if (mMouseBool[i]){
@@ -131,7 +131,7 @@ void InputManager::Update(bool TargetFocus){
 	}
 	for (int i = 0; i < (int)KeyCoord::Count; i++){
 
-		if (diKeyState[i] && TargetFocus){
+		if (diKeyState[i] && TargetFocus==1){
 			mKeyCoord[i]++;
 		}
 		else if (mKeyCoord[i]>0){
@@ -140,7 +140,7 @@ void InputManager::Update(bool TargetFocus){
 		else{
 			mKeyCoord[i] = 0;
 		}
-		if (diKeyState[i]){
+		if (diKeyState[i] && TargetFocus != 0){
 			mKeyCoordEngine[i]++;
 			diKeyState[i] = 0;
 		}

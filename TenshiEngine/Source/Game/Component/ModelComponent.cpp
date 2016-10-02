@@ -33,9 +33,10 @@ void ModelComponent::Start(){
 void ModelComponent::Finish(){
 	m_MeshComVector.clear();
 }
+#ifdef _ENGINE_MODE
 void ModelComponent::EngineUpdate(){
 }
-
+#endif
 void ModelComponent::Update(){
 }
 

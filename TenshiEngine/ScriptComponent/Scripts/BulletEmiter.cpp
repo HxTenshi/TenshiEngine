@@ -18,9 +18,8 @@ void BulletEmiter::Start(){
 //毎フレーム呼ばれます
 void BulletEmiter::Update(){
 	if (Input::Trigger(KeyCoord::Key_Z)){
-		auto actor = game->CreateActor(mEmitObject.c_str());
+		auto actor = Hx::Instance(mEmitObject.c_str());
 		if (!actor)return;
-		game->AddObject(actor);
 		actor->mTransform->Position(gameObject->mTransform->Position());
 		actor->mTransform->Rotate(gameObject->mTransform->Rotate());
 	}
@@ -32,16 +31,16 @@ void BulletEmiter::Finish(){
 }
 
 //コライダーとのヒット時に呼ばれます
-void BulletEmiter::OnCollideBegin(Actor* target){
+void BulletEmiter::OnCollideBegin(GameObject target){
 	(void)target;
 }
 
 //コライダーとのヒット中に呼ばれます
-void BulletEmiter::OnCollideEnter(Actor* target){
+void BulletEmiter::OnCollideEnter(GameObject target){
 	(void)target;
 }
 
 //コライダーとのロスト時に呼ばれます
-void BulletEmiter::OnCollideExit(Actor* target){
+void BulletEmiter::OnCollideExit(GameObject target){
 	(void)target;
 }

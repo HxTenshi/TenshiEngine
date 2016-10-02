@@ -367,7 +367,7 @@ void BoneModel::UpdateAnimation(std::vector<shared_ptr<AnimationBind>>& anime){
 
 	// ボーン差分行列の作成、定数バッファに転送
 	for (DWORD ib = 0; ib<mBoneNum; ++ib){
-		XMVECTOR Determinant;
+		//XMVECTOR Determinant;
 		XMMATRIX invmtx = mBone[ib].mMtxPoseInv;
 		XMMATRIX mtx = XMMatrixMultiply(invmtx, mBone[ib].mMtxPose);
 		mtx = XMMatrixTranspose(mtx);

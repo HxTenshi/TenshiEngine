@@ -4,6 +4,9 @@ class PhysXEngine;
 class DeltaTime;
 class DebugEngine;
 class System;
+
+#include "Engine/AssetTypes.h"
+
 class IGame{
 public:
 	virtual GameObject GetRootActor() = 0;

@@ -62,6 +62,7 @@ public:
 	void SelectTreeViewItem(void* ptr);
 
 	void SetMouseEvents(bool* focus, bool* l, bool* r, int* x, int* y, int* wx, int* wy);
+	void SetEngineFocusEvent(bool* focus);
 
 
 	void AddLog(const std::string& log);

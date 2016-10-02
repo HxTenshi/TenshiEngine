@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Interop.D3DImageEx.h"
 
 #pragma comment (lib, "d3d9.lib")
