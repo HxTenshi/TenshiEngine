@@ -21,6 +21,13 @@ void PlayerController::Start(){
 //–ˆƒtƒŒ[ƒ€ŒÄ‚Î‚ê‚Ü‚·
 void PlayerController::Update(){
 
+	if (Input::Down(KeyCoord::Key_ESCAPE)) {
+		Hx::System()->LockCursorPositionToWindowCenter(false);
+	}
+	if (Input::Down(MouseCoord::Left)) {
+		Hx::System()->LockCursorPositionToWindowCenter(true);
+	}
+
 	auto cc = gameObject->GetComponent<CharacterControllerComponent>();
 	if (!cc)return;
 	
@@ -163,6 +170,8 @@ void PlayerController::Update(){
 				auto p = Hx::System()->GetLockCursorPosition();
 				float _mx = mx - p.x;
 				float _my = my - p.y;
+				if (abs(_mx) < 1.1f)_mx = 0.0f;
+				if (abs(_my) < 1.1f)_my = 0.0f;
 				mRotate.y += _mx / 200.0f;
 				mRotate.x += _my / 200.0f;
 			}

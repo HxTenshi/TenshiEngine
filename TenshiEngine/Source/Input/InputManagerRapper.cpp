@@ -27,8 +27,8 @@ void InputManagerRapper::Update(){
 
 		InputManager::SetMouseL(ml);
 		InputManager::SetMouseR(mr);
-		int x = (int)((mx / (float)wx) * (float)WindowState::mWidth + 1.5f);
-		int y = (int)((my / (float)wy) * (float)WindowState::mHeight + 1.5f);
+		int x = (int)((mx / (float)wx) * (float)WindowState::mWidth);
+		int y = (int)((my / (float)wy) * (float)WindowState::mHeight);
 		InputManager::SetMouseXY(x, y);
 
 		int f = 0;
