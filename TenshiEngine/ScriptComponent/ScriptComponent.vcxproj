@@ -127,6 +127,7 @@
     <ClCompile Include="Scripts\Bullet.cpp" />
     <ClCompile Include="Scripts\BulletEmiter.cpp" />
     <ClCompile Include="Scripts\DeltaTimeScale.cpp" />
+    <ClCompile Include="Scripts\floattest.cpp" />
     <ClCompile Include="Scripts\MoveSmoke.cpp" />
     <ClCompile Include="Scripts\PlayerController.cpp" />
     <ClCompile Include="Scripts\PlayerScript.cpp" />
@@ -136,6 +137,7 @@
     <ClCompile Include="Scripts\TPSCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Source\Engine\AssetDataBase.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Reflection\ReflectionSetter.h" />
     <ClInclude Include="Script.h" />
@@ -144,6 +146,7 @@
     <ClInclude Include="Scripts\DeltaTimeScale.h" />
     <ClInclude Include="h_component.h" />
     <ClInclude Include="h_standard.h" />
+    <ClInclude Include="Scripts\floattest.h" />
     <ClInclude Include="Scripts\MoveSmoke.h" />
     <ClInclude Include="Scripts\PlayerController.h" />
     <ClInclude Include="Scripts\PlayerScript.h" />

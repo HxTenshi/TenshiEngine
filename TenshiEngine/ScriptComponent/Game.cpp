@@ -1,6 +1,7 @@
 #include "Game.h"
 
 #include "Game/Script/IGame.h"
+#include "Engine/Assets.h"
 IGame* g_IGame = NULL;
 
 void InitializeIGame(IGame* game) {
@@ -17,8 +18,8 @@ namespace Hx {
 	GameObject Instance(GameObject base) {
 		return g_IGame->Instance(base);
 	}
-	GameObject Instance(PrefabAssetDataPtr base) {
-		return g_IGame->Instance(base);
+	GameObject Instance(PrefabAsset base) {
+		return g_IGame->Instance((PrefabAssetDataPtr)base.m_Ptr);
 	}
 	GameObject FindActor(const char* name){
 		return g_IGame->FindActor(name);

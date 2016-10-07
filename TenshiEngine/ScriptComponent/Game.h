@@ -5,14 +5,14 @@ class DeltaTime;
 class DebugEngine;
 class System;
 class DeltaTime;
-#include "Engine/AssetTypes.h"
 #include "Game/Types.h"
+#include "Engine/Assets.h"
 
 namespace Hx {
 	GameObject GetRootActor();
 	GameObject Instance();
 	GameObject Instance(GameObject base);
-	GameObject Instance(PrefabAssetDataPtr base);
+	GameObject Instance(PrefabAsset base);
 	GameObject FindActor(const char* name);
 	void DestroyObject(GameObject actor);
 	void LoadScene(const std::string& FilePath);
