@@ -1,6 +1,5 @@
 #pragma once
 
-
 #ifdef _ENGINE_MODE
 
 struct Float {
@@ -95,6 +94,7 @@ class Enabled;
 class Component;
 
 #include "IAsset.h"
+#include "Engine/AssetLoad.h"
 
 
 class IActor;
@@ -114,9 +114,24 @@ public:
 	void Add(const std::string& text, T* data, const std::function<void(T)>& collback);
 	template<typename T, typename Func>
 	void Add(const std::string& text, Asset<T>* data, Func collback){
-		Add(text, (IAsset*)data, std::function<void()>(collback));
+		Add<T>(text, (IAsset*)data, std::function<void()>(collback));
 	}
-	void Add(const std::string& text, IAsset* data, const std::function<void(void)>& collback);
+	template<class T>
+	void Add(const std::string& text, IAsset* data, const std::function<void(void)>& collback) {
+
+		std::function<void(std::string)> loadcoll = [data, collback](std::string path) {
+			MD5::MD5HashCoord hash;
+			if (AssetDataBase::FilePath2Hash(path.c_str(), hash)) {
+				AssetLoad::Instance<T>(hash, (Asset<T>*)data);
+			}
+			else {
+				data->Free();
+			}
+			collback();
+		};
+		auto dataset = new TemplateInspectorDataSet<std::string>(text, &data->m_Name, loadcoll);
+		m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
+	}
 
 	template<typename Func>
 	void Add(const std::string& text, GameObject* data, Func collback) {

@@ -17,5 +17,5 @@ private:
 	//ƒƒ“ƒo•Ï”
 
 	SERIALIZE
-	std::string mEmitObject;
+	PrefabAsset mBulletObject;
 };

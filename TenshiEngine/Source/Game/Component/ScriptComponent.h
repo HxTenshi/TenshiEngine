@@ -3,6 +3,8 @@
 #include "IComponent.h"
 #include<unordered_map>
 
+void IncludeScriptFileProject();
+
 class IDllScriptComponent;
 class ScriptComponent : public Component{
 public:

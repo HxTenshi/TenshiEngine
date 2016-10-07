@@ -4,6 +4,7 @@
 #include "MySTL/ptr.h"
 
 #include "Engine/AssetDataBase.h"
+#include "Engine/Assets.h"
 
 
 class ISoundComponent{
@@ -14,6 +15,8 @@ public:
 	virtual void Play() = 0;
 	virtual void Stop() = 0;
 	virtual bool IsPlay() = 0;
+	virtual bool Is3DSound() = 0;
+	virtual void Set3DSound(bool flag) = 0;
 	virtual void SetLoop(bool flag) = 0;
 	virtual void SetVolume(float vol) = 0;
 	virtual void SetAutoPlay(bool flag) = 0;
@@ -44,6 +47,10 @@ public:
 	void Play()override;
 	void Stop()override;
 	bool IsPlay()override;
+
+	bool Is3DSound()override;
+	void Set3DSound(bool flag)override;
+
 	void SetLoop(bool flag)override;
 	void SetVolume(float vol)override;
 	void SetAutoPlay(bool flag)override;
@@ -54,6 +61,7 @@ private:
 	bool mAutoPlay;
 	bool mIsPlay;
 	float mVolume;
+	bool mIs3DSound;
 	SoundAsset mSoundFileSource;
 	SoundAssetDataPtr mSoundFile;
 	

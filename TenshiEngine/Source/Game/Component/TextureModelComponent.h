@@ -3,6 +3,7 @@
 #include "IModelComponent.h"
 
 #include "Engine/AssetDataBase.h"
+#include "Engine/Assets.h"
 
 class Model;
 class Material;
