@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Engine/AssetDataBase.h"
+#include "Engine/Assets.h"
 
 #include "MySTL/Release_self.h"
 

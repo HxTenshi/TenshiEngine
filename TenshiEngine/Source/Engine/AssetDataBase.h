@@ -12,7 +12,6 @@
 #include "AssetFileTypes.h"
 #include "AssetTypes.h"
 
-
 class AssetFactory{
 public:
 	static AssetDataTemplatePtr Create(const char* filename);
@@ -101,6 +100,7 @@ public:
 			out = data;
 		}
 	}
+
 
 	static bool FilePath2Hash(const char* filename, MD5::MD5HashCoord& hash){
 
@@ -301,5 +301,6 @@ private:
 //const AssetFileType AssetDataTemplate<T>::_AssetFileType = AssetFileType::None;
 
 #include "details.h"
+
 
 #include "Assets.h"

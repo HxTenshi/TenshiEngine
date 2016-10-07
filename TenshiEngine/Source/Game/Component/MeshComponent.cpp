@@ -9,6 +9,7 @@
 #include "ModelComponent.h"
 
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 MeshComponent::MeshComponent()
 {
@@ -25,7 +26,8 @@ void MeshComponent::Initialize(){
 	if (!m_ModelMesh){
 		m_ModelMesh = new ModelMesh();
 	}
-	mMesh.Load(mMesh.m_Hash);
+	
+	AssetLoad::Instance(mMesh.m_Hash, mMesh);
 	SetMesh(mMesh, m_ID);
 
 }

@@ -3,10 +3,14 @@
 #include "Window/Window.h"
 
 #include "Engine/Inspector.h"
+#include "Game/Actor.h"
+#include "Game/Component/TransformComponent.h"
+#include "Engine/AssetLoad.h"
 
 SoundComponent::SoundComponent(){
 	mIsLoop = false;
 	mAutoPlay = true;
+	mIs3DSound = true;
 	mVolume = 1.0f;
 }
 SoundComponent::~SoundComponent(){
@@ -14,9 +18,10 @@ SoundComponent::~SoundComponent(){
 }
 void SoundComponent::Initialize(){
 	Stop();
-	mSoundFileSource.Load(mSoundFileSource.m_Hash);
+	
+	AssetLoad::Instance(mSoundFileSource.m_Hash, mSoundFileSource);
 	LoadFile(mSoundFileSource);
-
+	Set3DSound(mIs3DSound);
 }
 void SoundComponent::Start(){
 }
@@ -27,10 +32,30 @@ void SoundComponent::Finish(){
 }
 
 #ifdef _ENGINE_MODE
-void SoundComponent::EngineUpdate(){
+void SoundComponent::EngineUpdate()
+{
+	if (mIs3DSound) {
+		if (!mSoundFile)return;
+		auto file = mSoundFile->GetFileData();
+		if (!file)return;
+		auto sound = file->GetSoundFile();
+		if (!sound)return;
+		auto pos = gameObject->mTransform->WorldPosition();
+		sound->Set3DPosition(pos.x, pos.y, pos.z);
+	}
 }
 #endif
 void SoundComponent::Update(){
+	if (mIs3DSound) {
+		if (!mSoundFile)return;
+		auto file = mSoundFile->GetFileData();
+		if (!file)return;
+		auto sound = file->GetSoundFile();
+		if (!sound)return;
+		auto pos = gameObject->mTransform->WorldPosition();
+		sound->Set3DPosition(pos.x, pos.y, pos.z);
+	}
+
 	if (mAutoPlay){
 		mAutoPlay = false;
 		Play();
@@ -41,7 +66,8 @@ void SoundComponent::CreateInspector(){
 	Inspector ins("Sound", this);
 	ins.AddEnableButton(this);
 	ins.Add("File", &mSoundFileSource, [&](){LoadFile(mSoundFileSource); });
-	ins.Add("AutoPlay", &mAutoPlay, [&](bool f){mAutoPlay = f; });
+	ins.Add("AutoPlay", &mAutoPlay, [&](bool f) {mAutoPlay = f; });
+	ins.Add("3DSound", &mIs3DSound, [&](bool f){Set3DSound(f); });
 	ins.Add("Loop", &mIsLoop, [&](bool f){SetLoop(f); });
 	ins.AddSlideBar("Volume", 0.0f, 1.0f, &mVolume, [&](float f){SetVolume(f); });
 	ins.AddButton("Play", [&](){
@@ -113,6 +139,22 @@ bool SoundComponent::IsPlay(){
 	auto sound = file->GetSoundFile();
 	if (!sound)return false;
 	return sound->IsPlay();
+}
+
+bool SoundComponent::Is3DSound() {
+	return mIs3DSound;
+}
+void SoundComponent::Set3DSound(bool flag){
+	mIs3DSound = flag;
+
+	if (!mSoundFile)return;
+	auto file = mSoundFile->GetFileData();
+	if (!file)return;
+	auto sound = file->GetSoundFile();
+	if (!sound)return;
+
+	sound->Set3DMode(mIs3DSound);
+
 }
 void SoundComponent::SetLoop(bool flag){
 	mIsLoop = flag;

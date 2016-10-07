@@ -6,6 +6,7 @@
 
 #include"Graphic/Material/Material.h"
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 void MaterialComponent::LoadAssetResource(const std::string& path){
 
@@ -110,12 +111,12 @@ void MaterialComponent::Initialize(){
 	mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
 	mMaterials[0].mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
 
-	mAlbedoTexture.Load(mAlbedoTexture.m_Hash);
-	mNormalTexture.Load(mNormalTexture.m_Hash);
-	mHeightTexture.Load(mHeightTexture.m_Hash);
-	mSpecularTexture.Load(mSpecularTexture.m_Hash);
-	mRoughnessTexture.Load(mRoughnessTexture.m_Hash);
-	mEmissiveTexture.Load(mEmissiveTexture.m_Hash);
+	AssetLoad::Instance(mAlbedoTexture.m_Hash, mAlbedoTexture);
+	AssetLoad::Instance(mNormalTexture.m_Hash, mNormalTexture);
+	AssetLoad::Instance(mHeightTexture.m_Hash, mHeightTexture);
+	AssetLoad::Instance(mSpecularTexture.m_Hash, mSpecularTexture);
+	AssetLoad::Instance(mRoughnessTexture.m_Hash, mRoughnessTexture);
+	AssetLoad::Instance(mEmissiveTexture.m_Hash, mEmissiveTexture);
 	mMaterials[0].SetTexture(mAlbedoTexture, 0);
 	mMaterials[0].SetTexture(mNormalTexture, 1);
 	mMaterials[0].SetTexture(mHeightTexture, 2);

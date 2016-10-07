@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IComponent.h"
-#include "Engine/Assets.h"
+#include "Engine/AssetDataBase.h"
 
 class Material;
 

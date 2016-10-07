@@ -5,6 +5,7 @@
 #include "Window/Window.h"
 
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 MovieComponent::MovieComponent(){
 	mLoop = false;
@@ -15,7 +16,7 @@ MovieComponent::~MovieComponent(){
 }
 
 void MovieComponent::Initialize() {
-	mMovieAsset.Load(mMovieAsset.m_Hash);
+	AssetLoad::Instance(mMovieAsset.m_Hash, mMovieAsset);
 	LoadFile(mMovieAsset);
 }
 void MovieComponent::Start() {

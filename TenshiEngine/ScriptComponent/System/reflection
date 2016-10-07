@@ -1,8 +1,12 @@
 
 _REF(Bullet,mDeadTime); 
 _REF(Bullet,mSpeed); 
-_REF(BulletEmiter,mEmitObject); 
+_REF(Bullet,mTest); 
+_REF(Bullet,m_jumppower); 
+_REF(BulletEmiter,mBulletObject); 
 _REF(DeltaTimeScale,mDeltaTimeScale); 
+_REF(floattest,m_jumppower); 
+_REF(floattest,m_jumppower2); 
 _REF(MoveSmoke,mMaxSpeed); 
 _REF(MoveSmoke,mSpeed); 
 _REF(TextureScroll,x); 

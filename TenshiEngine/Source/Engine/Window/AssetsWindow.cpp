@@ -61,7 +61,11 @@ namespace AssetsWindow{
 			std::string* s = (std::string*)p;
 			Replace(*s, "\\", "/");
 			std::tr2::sys::path path(*s);
-			if (path.extension() == "" || path.extension() == ".meta"){
+			Window::AddLog(path.parent_path().string());
+			Window::AddLog(path.string());
+			Window::AddLog(path.relative_path().string());
+			Window::AddLog(path.stem().string());
+			if (path.extension() == "" || path.extension() == ".meta" || path.parent_path() == "ScriptComponent/Scripts"){
 				Window::Deleter(s);
 				return;
 			}

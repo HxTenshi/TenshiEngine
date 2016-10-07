@@ -3,6 +3,7 @@
 #include "IComponent.h"
 #include "MySTL/ptr.h"
 #include "Engine/AssetDataBase.h"
+#include "Engine/Assets.h"
 
 class ModelMesh;
 

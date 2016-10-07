@@ -4,7 +4,7 @@ namespace MD5{
 
 	union MD5HashCoord{
 		char key_c[16];
-		INT32 key_i[4];
+		int key_i[4];
 		bool operator<(const MD5HashCoord &right) const {
 			return this->key_i[0] != right.key_i[0] ?
 				this->key_i[0] < right.key_i[0] :

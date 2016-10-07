@@ -22,6 +22,7 @@
 #include "MovieComponent.h"
 #include "Component.h"
 #include "DebugEngineScriptComponent.h"
+#include "SoundListenerComponent.h"
 
 
 
@@ -52,6 +53,7 @@ ComponentFactory::ComponentFactory(){
 	_NewFunc<MovieComponent>();
 	_NewFunc<PostEffectComponent>();
 	_NewFunc<DebugEngineScriptComponent>();
+	_NewFunc<SoundListenerComponent>();
 }
 
 shared_ptr<Component> ComponentFactory::Create(const std::string& ClassName){

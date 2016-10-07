@@ -18,7 +18,7 @@ void BulletEmiter::Start(){
 //–ˆƒtƒŒ[ƒ€ŒÄ‚Î‚ê‚Ü‚·
 void BulletEmiter::Update(){
 	if (Input::Trigger(KeyCoord::Key_Z)){
-		auto actor = Hx::Instance(mEmitObject.c_str());
+		auto actor = Hx::Instance(mBulletObject);
 		if (!actor)return;
 		actor->mTransform->Position(gameObject->mTransform->Position());
 		actor->mTransform->Rotate(gameObject->mTransform->Rotate());

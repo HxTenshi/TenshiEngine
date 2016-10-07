@@ -12,6 +12,7 @@
 #include "Game/Game.h"
 
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 #include "Game/SettingObject/Canvas.h"
 
@@ -45,7 +46,7 @@ void TextureModelComponent::Initialize(){
 		mMaterial = new Material();
 	}
 
-	m_TextureAsset.Load(m_TextureAsset.m_Hash);
+	AssetLoad::Instance(m_TextureAsset.m_Hash, m_TextureAsset);
 
 	if (!mMaterial->IsCreate()){
 		mMaterial->Create("EngineResource/Texture.fx");

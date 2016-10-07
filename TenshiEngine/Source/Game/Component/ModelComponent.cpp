@@ -8,6 +8,7 @@
 #include "Graphic/Model/Model.h"
 
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 ModelComponent::ModelComponent()
 {
@@ -22,8 +23,9 @@ ModelComponent::~ModelComponent(){
 		mBone.Free();
 	}
 void ModelComponent::Initialize(){
-	mMesh.Load(mMesh.m_Hash);
-	mBone.Load(mBone.m_Hash);
+	
+	AssetLoad::Instance(mMesh.m_Hash, mMesh);
+	AssetLoad::Instance(mBone.m_Hash, mBone);
 	Load(mMesh);
 	Load(mBone);
 }

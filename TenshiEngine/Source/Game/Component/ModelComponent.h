@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/AssetDatabase.h"
+#include "Engine/Assets.h"
 #include "IModelComponent.h"
 
 class Model;

@@ -231,7 +231,7 @@ Game::Game(){
 #ifdef _ENGINE_MODE
 	//LoadScene("./Assets/Scene_.scene");
 #else
-	//LoadScene("./Assets/Scenes/Title.scene");
+	LoadScene("./Assets/Title.scene");
 #endif
 
 	mCBGameParameter = ConstantBuffer<cbGameParameter>::create(11);

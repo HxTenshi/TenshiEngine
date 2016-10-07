@@ -108,21 +108,6 @@ void Inspector::Add(const std::string& text, std::string* data, const std::funct
 	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
 }
 
-void Inspector::Add(const std::string& text, IAsset* data, const std::function<void()>& collback){
-
-	std::function<void(std::string)> loadcoll = [data, collback](std::string path){
-		MD5::MD5HashCoord hash;
-		if (AssetDataBase::FilePath2Hash(path.c_str(), hash)){
-			data->Load(hash);
-		}
-		else{
-			data->Free();
-		}
-		collback();
-	};
-	auto dataset = new TemplateInspectorDataSet<std::string>(text, &data->m_Name, loadcoll);
-	m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));
-}
 
 //#include "Game/Script/GameObject.h"
 #include "Game/Actor.h"

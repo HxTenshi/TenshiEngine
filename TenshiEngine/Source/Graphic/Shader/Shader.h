@@ -5,6 +5,7 @@
 #include "MySTL/Ptr.h"
 
 #include "Engine/AssetDataBase.h"
+#include "Engine/Assets.h"
 
 class IShader{
 public:

@@ -10,6 +10,7 @@
 #include "Game/RenderingSystem.h"
 
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 CameraComponent::CameraComponent()
 {
@@ -52,7 +53,7 @@ void CameraComponent::Initialize()
 
 	SetPerspective();
 
-	mSkyTexture.Load(mSkyTexture.m_Hash);
+	AssetLoad::Instance(mSkyTexture.m_Hash, mSkyTexture);
 	SetSkyTexture(mSkyTexture);
 
 	//static RenderTarget mRenderTarget;

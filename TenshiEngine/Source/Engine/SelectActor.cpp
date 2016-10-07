@@ -32,6 +32,7 @@
 #include "Game/Game.h"
 
 #include "Game/RenderingSystem.h"
+#include "Engine/AssetLoad.h"
 
 //選択時の移動オブジェクト
 class Arrow : public Actor{
@@ -48,7 +49,7 @@ public:
 		MeshAsset asset;
 		MD5::MD5HashCoord hash;
 		AssetDataBase::FilePath2Hash("EngineResource/Arrow.pmx.tesmesh", hash);
-		asset.Load(hash);
+		AssetLoad::Instance(hash, asset);
 		model->Load(asset);
 		mComponents.AddComponent<ModelComponent>(model);
 		auto material = make_shared<MaterialComponent>();
@@ -598,15 +599,15 @@ void SelectActor::Update(){
 	}
 
 	int g = mCurrentGuide;
-	if (EngineInput::Trigger(KeyCoord::Key_W)){
+	if (Input::Down(MouseCoord::Right)==0 && EngineInput::Trigger(KeyCoord::Key_W)){
 		mCurrentGuide = 0;
 		mIsDragMode = false;
 	}
-	if (EngineInput::Trigger(KeyCoord::Key_E)){
+	if (Input::Down(MouseCoord::Right) == 0 && EngineInput::Trigger(KeyCoord::Key_E)){
 		mCurrentGuide = 1;
 		mIsDragMode = false;
 	}
-	if (EngineInput::Trigger(KeyCoord::Key_R)){
+	if (Input::Down(MouseCoord::Right) == 0 && EngineInput::Trigger(KeyCoord::Key_R)){
 		mCurrentGuide = 2;
 		mIsDragMode = false;
 	}

@@ -585,6 +585,7 @@
     <ClCompile Include="Source\Game\Component\PointLightComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PostEffectComponent.cpp" />
     <ClCompile Include="Source\Game\Component\SoundComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\SoundListenerComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TextureModelComponent.cpp" />
     <ClCompile Include="Source\Game\DeferredRendering.cpp" />
     <ClCompile Include="Source\Game\DeltaTime.cpp" />
@@ -614,6 +615,7 @@
     <ClCompile Include="Source\Graphic\Material\Texture.cpp" />
     <ClCompile Include="Source\Graphic\Model\BoneModel.cpp" />
     <ClCompile Include="Source\Graphic\Model\Model.cpp" />
+    <ClCompile Include="Source\Graphic\RenderTarget\RenderTarget.cpp" />
     <ClCompile Include="Source\Graphic\Shader\ComputeShader.cpp" />
     <ClCompile Include="Source\Graphic\Shader\GeometryShader.cpp" />
     <ClCompile Include="Source\Graphic\Shader\InputLayout.cpp" />
@@ -677,6 +679,7 @@
     <ClInclude Include="Source\Engine\AssetFile\Prefab\PrefabFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Shader\ShaderFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Sound\SoundFileData.h" />
+    <ClInclude Include="Source\Engine\AssetLoad.h" />
     <ClInclude Include="Source\Engine\AssetLoader.h" />
     <ClInclude Include="Source\Engine\Assets.h" />
     <ClInclude Include="Source\Engine\AssetTypes.h" />
@@ -693,6 +696,7 @@
     <ClInclude Include="Source\Game\Component\CharacterControllerComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugEngineScriptComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugScript\DebugNaviMesh.h" />
+    <ClInclude Include="Source\Game\Component\SoundListenerComponent.h" />
     <ClInclude Include="Source\Game\IActor.h" />
     <ClInclude Include="Source\Game\Component\JointComponent.h" />
     <ClInclude Include="Source\Game\Component\MovieComponent.h" />

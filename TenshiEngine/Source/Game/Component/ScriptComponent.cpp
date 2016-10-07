@@ -10,6 +10,7 @@
 #include "MySTL/Reflection/Reflection.h"
 #include "Window/window.h"
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 #include "../ScriptComponent/main.h"
 typedef IDllScriptComponent* (__cdecl *CreateInstance_)(const char*);
@@ -889,6 +890,21 @@ bool reflect_g(MemberInfo& info, Inspector& ins) {
 	return true;
 }
 
+template<class T>
+bool reflect_a(MemberInfo& info, Inspector& ins) {
+
+	if (info.GetTypeName() != typeid(T).name()) {
+		return false;
+	}
+
+	volatile T* paramdata = Reflection::Get<T>(info);
+
+	ins.Add(info.GetName(), (T*)paramdata, []() {});
+
+	return true;
+}
+
+
 #endif
 
 void initparam(int* p){
@@ -908,6 +924,13 @@ void initparam(XMVECTOR* p) {
 }
 void initparam(GameObject* p) {
 	*p = NULL;
+}
+void initparam(IAsset* p) {
+	p->m_Hash.key_i[0] = 0;
+	p->m_Hash.key_i[1] = 0;
+	p->m_Hash.key_i[2] = 0;
+	p->m_Hash.key_i[3] = 0;
+	p->m_Name = "";
 }
 
 
@@ -968,6 +991,29 @@ bool reflect_io_g(MemberInfo& info, I_ioHelper* io, Component* com) {
 	return true;
 }
 
+template<class T>
+bool reflect_io_a(MemberInfo& info, I_ioHelper* io, Component* com) {
+
+	if (info.GetTypeName() != typeid(T).name()) {
+		return false;
+	}
+
+	T* paramdata = Reflection::Get<T>(info);
+
+	if (io->isInput()) {
+		initparam((IAsset*)paramdata);
+	}
+
+	io->func(*(IAsset*)paramdata, info.GetName().c_str());
+
+	if (io->isInput()) {
+		
+		AssetLoad::Instance(paramdata->m_Hash, paramdata);
+	}
+
+	return true;
+}
+
 #ifdef _ENGINE_MODE
 void ScriptComponent::CreateInspector(){
 
@@ -995,6 +1041,15 @@ void ScriptComponent::CreateInspector(){
 				if (reflect<std::string>(info, ins))break;
 				if (reflect_v(info, ins))break;
 				if (reflect_g(info, ins))break;
+				if (reflect_a<MetaAsset>(info, ins))break;
+				if (reflect_a<MeshAsset>(info, ins))break;
+				if (reflect_a<BoneAsset>(info, ins))break;
+				if (reflect_a<PrefabAsset>(info, ins))break;
+				if (reflect_a<ShaderAsset>(info, ins))break;
+				if (reflect_a<TextureAsset>(info, ins))break;
+				if (reflect_a<PhysxMaterialAsset>(info, ins))break;
+				if (reflect_a<SoundAsset>(info, ins))break;
+				if (reflect_a<MovieAsset>(info, ins))break;
 			} while (fal);
 		}
 
@@ -1026,6 +1081,15 @@ void ScriptComponent::IO_Data(I_ioHelper* io){
 					if (reflect_io<std::string>(info, io))break;
 					if (reflect_io_v(info, io))break;
 					if (reflect_io_g(info, io, this))break;
+					if (reflect_io_a<MetaAsset>(info, io, this))break;
+					if (reflect_io_a<MeshAsset>(info, io, this))break;
+					if (reflect_io_a<BoneAsset>(info, io, this))break;
+					if (reflect_io_a<PrefabAsset>(info, io, this))break;
+					if (reflect_io_a<ShaderAsset>(info, io, this))break;
+					if (reflect_io_a<TextureAsset>(info, io, this))break;
+					if (reflect_io_a<PhysxMaterialAsset>(info, io, this))break;
+					if (reflect_io_a<SoundAsset>(info, io, this))break;
+					if (reflect_io_a<MovieAsset>(info, io, this))break;
 				} while (fal);
 			}
 		}
