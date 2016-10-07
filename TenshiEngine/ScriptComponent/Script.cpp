@@ -25,7 +25,7 @@ public:
 
 		//‚±‚±‚Éì¬‚µ‚½ƒNƒ‰ƒX‚ğ’Ç‰Á‚µ‚Ü‚·
 
-#include "System\factory.h"
+#include "System/factory.h"
 
 #undef _ADD
 	}

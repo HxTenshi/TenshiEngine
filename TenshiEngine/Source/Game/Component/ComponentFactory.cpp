@@ -23,6 +23,7 @@
 #include "Component.h"
 #include "DebugEngineScriptComponent.h"
 #include "SoundListenerComponent.h"
+#include "GizumoComponent.h"
 
 
 
@@ -54,6 +55,7 @@ ComponentFactory::ComponentFactory(){
 	_NewFunc<PostEffectComponent>();
 	_NewFunc<DebugEngineScriptComponent>();
 	_NewFunc<SoundListenerComponent>();
+	_NewFunc<GizumoComponent>();
 }
 
 shared_ptr<Component> ComponentFactory::Create(const std::string& ClassName){

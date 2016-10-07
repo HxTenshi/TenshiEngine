@@ -2,7 +2,7 @@
 #include "ReflectionSetter.h"
 
 #define private public
-#include "System\include"
+#include "System/include.h"
 #undef private
 
 #include<type_traits>
@@ -59,7 +59,7 @@ create(\
 	//REF(TextureScroll, y);
 	//ここにコンポーネントで表示したい変数を追加します
 
-#include "System\reflection.h"
+#include "System/reflection.h"
 
 	
 #undef REF

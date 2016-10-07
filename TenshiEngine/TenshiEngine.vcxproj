@@ -575,6 +575,7 @@
     <ClCompile Include="Source\Game\Component\DebugEngineScriptComponent.cpp" />
     <ClCompile Include="Source\Game\Component\DebugScript\DebugNaviMesh.cpp" />
     <ClCompile Include="Source\Game\Component\DirectionalLightComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\GizumoComponent.cpp" />
     <ClCompile Include="Source\Game\Component\JointComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MaterialComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MeshComponent.cpp" />
@@ -696,6 +697,7 @@
     <ClInclude Include="Source\Game\Component\CharacterControllerComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugEngineScriptComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugScript\DebugNaviMesh.h" />
+    <ClInclude Include="Source\Game\Component\GizumoComponent.h" />
     <ClInclude Include="Source\Game\Component\SoundListenerComponent.h" />
     <ClInclude Include="Source\Game\IActor.h" />
     <ClInclude Include="Source\Game\Component\JointComponent.h" />

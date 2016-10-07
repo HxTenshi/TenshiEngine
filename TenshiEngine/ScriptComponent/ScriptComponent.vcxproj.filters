@@ -63,7 +63,7 @@
     <ClCompile Include="Game.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Scripts\floattest.cpp">
+    <ClCompile Include="Scripts\testunk.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -92,9 +92,6 @@
     <ClInclude Include="System\reflection.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="System\factory" />
-    <ClInclude Include="System\include" />
-    <ClInclude Include="System\reflection" />
     <ClInclude Include="Scripts\ThunderLight.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -128,7 +125,7 @@
     <ClInclude Include="..\Source\Engine\AssetDataBase.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Scripts\floattest.h">
+    <ClInclude Include="Scripts\testunk.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

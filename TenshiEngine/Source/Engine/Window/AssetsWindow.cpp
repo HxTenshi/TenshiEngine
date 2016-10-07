@@ -26,6 +26,8 @@ namespace MoveFileCheck{
 	}
 }
 
+#include "Game/Component/ScriptComponent.h"
+
 namespace AssetsWindow{
 
 	//  文字列を置換する
@@ -50,6 +52,12 @@ namespace AssetsWindow{
 			std::string* s = (std::string*)p;
 			Replace(*s, "\\", "/");
 
+			//テンプファイル上書き保存処理？で誤認される
+			//std::tr2::sys::path path(*s);
+			//if (path.extension() == ".cpp" || path.extension() == ".h") {
+			//	IncludeScriptFileProject();
+			//}
+
 			MoveFileCheck::Set(*s);
 			m_Back = AssetDataBase::GetAssetFile(*s);
 			AssetDataBase::Remove(s->c_str());
@@ -61,14 +69,16 @@ namespace AssetsWindow{
 			std::string* s = (std::string*)p;
 			Replace(*s, "\\", "/");
 			std::tr2::sys::path path(*s);
-			Window::AddLog(path.parent_path().string());
-			Window::AddLog(path.string());
-			Window::AddLog(path.relative_path().string());
-			Window::AddLog(path.stem().string());
-			if (path.extension() == "" || path.extension() == ".meta" || path.parent_path() == "ScriptComponent/Scripts"){
+			if (path.extension() == ".meta"){
 				Window::Deleter(s);
 				return;
 			}
+			if (path.extension() == ".cpp" || path.extension() == ".h") {
+				IncludeScriptFileProject();
+				Window::Deleter(s);
+				return;
+			}
+
 
 			if (MoveFileCheck::CheckMove(s)){
 				auto old = MoveFileCheck::Get() + ".meta";

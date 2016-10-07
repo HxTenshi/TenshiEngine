@@ -63,6 +63,61 @@ void CreateScriptFileExtension(const std::string& classNmae, const std::string& 
 	delete[] buf;
 }
 
+void IncludeScriptFileProject() {
+
+	std::fstream file;
+
+	auto srcname = "EngineResource/ScriptTemplate/ScriptTemplate.vcxproj";
+	file.open(srcname, std::ios::in | std::ios::ate);
+
+	std::fstream outFile;
+	auto outfilename = "ScriptComponent/ScriptComponent.vcxproj";
+	outFile.open(outfilename, std::ios::out);
+
+	int length = (int)file.tellg();
+	file.seekg(0, file.beg);//ファイルポインタを最初に戻す
+	char * buf = new char[length + 1];
+
+	memset(buf, 0, (length + 1) * sizeof(char));
+	file.read(buf, length);
+
+	std::string buffer = buf;
+
+	std::string add = "\n";
+	
+	namespace sys = std::tr2::sys;
+	sys::path p("./ScriptComponent/Scripts/"); // 列挙の起点
+											   //std::for_each(sys::directory_iterator(p), sys::directory_iterator(),
+											   //  再帰的に走査するならコチラ↓
+	std::for_each(sys::recursive_directory_iterator(p), sys::recursive_directory_iterator(),
+		[&](const sys::path& p) {
+		if (sys::is_regular_file(p)) { // ファイルなら...
+			if (p.extension() == ".h") {
+				add += "    <ClInclude Include=\"Scripts\\"+p.stem().string()+".h\" />\n";
+			}
+			else if (p.extension() == ".cpp") {
+				add += "    <ClCompile Include=\"Scripts\\" + p.stem().string() + ".cpp\" />\n";
+			}
+		}
+		else if (sys::is_directory(p)) { // ディレクトリなら...a
+										 //std::cout << "dir.: " << p.string() << std::endl;
+		}
+	});
+	const std::string end = "    <None Include=\"dll.def\" />\n  </ItemGroup>\n  <Import Project = \"$(VCTargetsPath)\Microsoft.Cpp.targets\" />\n  <ImportGroup Label = \"ExtensionTargets\">\n</ImportGroup>\n</Project>";
+
+
+	outFile.write(buffer.c_str(), buffer.size());
+	outFile.write(add.c_str(), add.size());
+	outFile.write(end.c_str(), end.size());
+
+	outFile << "";
+
+	file.close();
+	outFile.close();
+
+	delete[] buf;
+}
+
 
 bool removeDirectory(std::string fileName)
 {
@@ -141,7 +196,7 @@ bool create_cmd_process(){
 #endif
 
 	if (!PathFileExists("ScriptComponent\\createdll_auto.bat")){
-		Window::AddLog("コンパイル失敗");
+		Window::AddLog("内蔵コンパイル失敗");
 		return false;
 	}
 
@@ -261,9 +316,13 @@ public:
 			//リリースフォルダ削除
 			removeDirectory(".\\ScriptComponent\\Release");
 		}
-
+		else {
+			//これを消しておけば大体平気？
+			DeleteFile(".\\ScriptComponent\\Release\\Script.obj");
+		}
 		if (!create_cmd_process()){
 			//MessageBox(Window::GetMainHWND(), "ビルドを手動で行って下さい。", "DLL読み込み", MB_OK);
+			Window::AddLog("コマンドプロンプトからのコンパイル開始");
 
 					char cdir[255];
 					GetCurrentDirectory(255, cdir);
@@ -287,7 +346,7 @@ public:
 			sei.lpFile = pass.c_str();
 			//プロセス起動
 			if (!ShellExecuteEx(&sei) || (const int)sei.hInstApp <= 32){
-				MessageBox(Window::GetMainHWND(), "ファイルを開けませんでした", "失敗", MB_OK);
+				Window::AddLog("ファイルを開けませんでした");
 				return;
 			}
 			
@@ -296,6 +355,8 @@ public:
 			WaitForSingleObject(sei.hProcess, INFINITE);
 			
 			CloseHandle(sei.hProcess);
+
+			Window::AddLog("コンパイル終了");
 		}
 
 		DllLoad();
@@ -304,6 +365,7 @@ public:
 			p->Load();
 			p->LoadParam();
 		}
+
 	}
 
 	void CreateIncludeClassFile(){
@@ -320,11 +382,11 @@ public:
 			h1.close(); 
 		}
 		//インクルードの構築
-		File includesFile("./ScriptComponent/System/include");
+		File includesFile("./ScriptComponent/System/include.h");
 		includesFile.FileCreate();
-		File factorysFile("./ScriptComponent/System/factory");
+		File factorysFile("./ScriptComponent/System/factory.h");
 		factorysFile.FileCreate();
-		File reflectionsFile("./ScriptComponent/System/reflection");
+		File reflectionsFile("./ScriptComponent/System/reflection.h");
 		reflectionsFile.FileCreate();
 
 		namespace sys = std::tr2::sys;
@@ -348,7 +410,70 @@ public:
 				//std::cout << "dir.: " << p.string() << std::endl;
 			}
 		});
+
+		IncludeScriptFileProject();
 	}
+	//void ReplaceEnter(std::string& targetStr) {
+
+	//	const std::string CRLF = "\r\n";
+	//	const std::string CR = "\r";
+	//	const std::string LF = "\n";
+	//	std::string::size_type pos = 0;
+	//	while (pos = targetStr.find(CR, pos), pos != std::string::npos) {
+	//		targetStr.replace(pos, CR.length(), LF);
+	//	}
+	//	pos = 0;
+	//	while (pos = targetStr.find(CRLF, pos), pos != std::string::npos) {
+	//		targetStr.replace(pos, CRLF.length(), LF);
+	//	}
+	//}
+	//bool GetLine(std::string& targetStr, std::string& out) {
+
+	//	const std::string LF = "\n";
+	//	std::string::size_type pos = 0;
+	//	pos = 0;
+	//	pos = targetStr.find(LF);
+	//	if (pos != std::string::npos) {
+	//		out = targetStr.substr(0, pos);
+	//		targetStr.replace(0, pos, "");
+	//		return true;
+	//	}
+
+	//	return false;
+	//}
+	//void ReplaceComment(std::string& targetStr) {
+
+
+
+	//	for (;;) {
+	//		auto start = targetStr.find("//");
+	//		if (start == std::string::npos) {
+	//			break;
+	//		}
+	//		targetStr.erase(start);
+	//	}
+	//	for (;;) {
+	//		auto start = targetStr.find("\n");
+	//		if (start == std::string::npos) {
+	//			break;
+	//		}
+	//		targetStr.erase(start);
+	//	}
+
+	//	for (;;) {
+	//		auto start = targetStr.find("/*");
+	//		if (start == std::string::npos) {
+	//			start = 0;
+	//		}
+	//		auto end = targetStr.find("*/", start);
+	//		if (end == std::string::npos) {
+	//			targetStr.erase(start);
+	//		}
+	//		else {
+	//			targetStr.erase(start, end);
+	//		}
+	//	}
+	//}
 
 	void findSerialize(File* file, const std::string& classname){
 
@@ -366,6 +491,7 @@ public:
 
 		unsigned int findpoint = 0;
 		for(;;){
+
 			//シリアライズ検索
 			auto serialize = str.find("SERIALIZE", findpoint);
 
@@ -456,7 +582,7 @@ public:
 				break;
 			}
 			auto end = str.find("*/", start);
-			if (start == std::string::npos){
+			if (end == std::string::npos){
 				str.erase(start);
 			}
 			else{

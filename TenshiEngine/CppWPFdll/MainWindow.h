@@ -1437,7 +1437,8 @@ private:
 	//ツリービューアイテムの作成
 	TestContent::Person^ CreateAssetItem(String^ name){
 
-		if (System::IO::Path::GetExtension(name) == ".meta"){
+		if (System::IO::Path::GetExtension(name) == ".meta" ||
+			name == "desktop.ini"){
 			return nullptr;
 		}
 

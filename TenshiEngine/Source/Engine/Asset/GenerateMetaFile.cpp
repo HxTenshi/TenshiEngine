@@ -3,9 +3,21 @@
 #include "Library/picojson.h"
 #include "Library/MD5.h"
 #include <fstream>
+#include <filesystem>
 
 void MakeMetaFile(std::string FileName){
 
+	std::tr2::sys::path path(FileName);
+
+	auto p = path.extension().string().find("~");
+	if (!path.has_extension() ||
+		path.extension() == ".tmp" || std::string::npos != p ||
+		path.extension() == ".h" || path.extension() == ".cpp" ||
+		path.extension() == ".meta" ||
+		path.parent_path() == "ScriptComponent/Scripts" ||
+		(path.stem() == "desktop" && path.extension() == ".ini")) {
+		return;
+	}
 
 	MD5::MD5HashCoord m_Hash;
 	if (!MD5::GenerateMD5(m_Hash))return;
