@@ -16,7 +16,14 @@ public:
 
 	void SetWeapon(GameObject weapon);
 
+	void Atack();
+	void Guard();
 private:
 	//ƒƒ“ƒo•Ï”
 	GameObject mWeapon;
+
+	SERIALIZE
+	GameObject m_GuardPos;
+	float m_AtackTime;
+	bool m_IsGuard;
 };
