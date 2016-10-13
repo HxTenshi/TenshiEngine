@@ -114,6 +114,9 @@ public:
 	void Add(const std::string& text, T* data, const std::function<void(T)>& collback);
 	template<typename T, typename Func>
 	void Add(const std::string& text, Asset<T>* data, Func collback){
+		if (!data->IsLoad()) {
+			AssetLoad::Instance(data->m_Hash, *data);
+		}
 		Add<T>(text, (IAsset*)data, std::function<void()>(collback));
 	}
 	template<class T>

@@ -59,7 +59,7 @@ void MeshComponent::CreateInspector(){
 		SetMesh(mMesh, m_ID);
 	};
 	Inspector ins("Mesh",this);
-	ins.AddEnableButton(this);
+	//ins.AddEnableButton(this);
 	ins.Add("Mesh", &mMesh, [&](){
 		SetMesh(mMesh, m_ID);
 	});

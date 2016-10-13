@@ -444,7 +444,7 @@ const XMVECTOR& TransformComponent::WorldPosition() const{
 	return GetMatrix().r[3];
 }
 void TransformComponent::WorldPosition(const XMVECTOR& position){
-	auto mat = mParent->mTransform->GetMatrix();
+	auto mat = mParent?mParent->mTransform->GetMatrix():XMMatrixIdentity();
 	XMVECTOR null;
 	mat = XMMatrixInverse(&null, mat);
 	mat = XMMatrixTranslationFromVector(position) * mat;
@@ -452,13 +452,13 @@ void TransformComponent::WorldPosition(const XMVECTOR& position){
 }
 void TransformComponent::WorldQuaternion(const XMVECTOR& quaternion){
 
-	auto wq = mParent->mTransform->WorldQuaternion();
+	auto wq = mParent?mParent->mTransform->WorldQuaternion():XMQuaternionIdentity();
 	auto q = XMQuaternionMultiply(quaternion, XMQuaternionInverse(wq));
 	Quaternion(q);
 }
 void TransformComponent::WorldScale(const XMVECTOR& scale){
 	Quaternion();
-	auto m = mParent->mTransform->GetMatrix();
+	auto m = mParent? mParent->mTransform->GetMatrix() :XMMatrixIdentity();
 	//m = fromEulerYXZ(mRotate) * m;
 	XMVECTOR null;
 	m = XMMatrixInverse(&null, m);
@@ -655,6 +655,7 @@ void TransformComponent::SetParentUniqueID(UniqueID id){
 }
 void TransformComponent::SetParent(GameObject parent){
 	//if (mParent == parent)return;
+	if (!gameObject)return;
 	if (mParent){
 		mParent->mTransform->Children().remove_if([&](GameObject act){
 			return gameObject.Get() == act.Get();
@@ -668,8 +669,16 @@ void TransformComponent::SetParent(GameObject parent){
 		parent->RunChangeParentCallback();
 	}
 	FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
+
+#ifdef _ENGINE_MODE
+	//ƒGƒ‰[‚Å—Ž‚¿‚é
+	//Game::Get()->WindowParentSet(gameObject->shared_from_this());
+#endif
 }
 void TransformComponent::SetParentWorld(GameObject parent){
+
+	if (!gameObject)return;
+
 	auto pos = WorldPosition();
 	auto quat = WorldQuaternion();
 	auto scale = WorldScale();

@@ -4,6 +4,7 @@
 #include "Game/Component/PointLightComponent.h"
 #include "Game/Component/MeshDrawComponent.h"
 #include "Game/Component/PhysxColliderComponent.h"
+#include "Game/Component/CharacterControllerComponent.h"
 #include "MySTL/File.h"
 #include "MySTL/ptr.h"
 #include "Game.h"
@@ -17,6 +18,7 @@
 Actor::Actor()
 	: mTreeViewPtr(NULL)
 	, mTransform(NULL)
+	, mEndInitialize(false)
 	, mEndStart(false)
 {
 	mName = "new Object";
@@ -42,6 +44,7 @@ void Actor::Initialize(){
 		cmp.second->_Initialize(this->shared_from_this());
 	}
 	mComponents.RunInitialize();
+	mEndInitialize = true;
 }
 void Actor::Start(){
 	mComponents.RunStart();
@@ -49,6 +52,7 @@ void Actor::Start(){
 }
 void Actor::Finish(){
 	mComponents.RunFinish();
+	mEndInitialize = false;
 	mEndStart = false;
 }
 #ifdef _ENGINE_MODE
@@ -119,6 +123,10 @@ void Actor::Update(float deltaTime){
 
 void Actor::SetInitializeStageCollQueue(const std::function<void()>& coll)
 {
+	if (mEndInitialize) {
+		coll();
+		return;
+	}
 	mInitializeStageCollQueue.push(coll);
 }
 
@@ -141,10 +149,7 @@ void Actor::CreateInspector(){
 	ins.Add("Name", &mName, collback);
 	ins.Add("Prefab", &mPrefab, collbackpre);
 	ins.AddSelect("Layer", &mPhysxLayer, Game::GetLayerNames(), [&](int f){
-		mPhysxLayer = f;
-		if (auto com = mComponents.GetComponent<PhysXColliderComponent>()){
-			com->SetPhysxLayer(mPhysxLayer);
-		}
+		SetLayer(f);
 	});
 	
 
@@ -354,6 +359,17 @@ void Actor::CreateNewID(){
 	//UniqueID“o˜^‚µ‚È‚¨‚µ
 	for (auto child : mTransform->Children()){
 		child->mTransform->SetParentUniqueID(mUniqueHash);
+	}
+}
+
+void Actor::SetLayer(int layer)
+{
+	mPhysxLayer = layer;
+	if (auto com = mComponents.GetComponent<PhysXColliderComponent>()) {
+		com->SetPhysxLayer(mPhysxLayer);
+	}
+	if (auto com = mComponents.GetComponent<CharacterControllerComponent>()) {
+		com->SetPhysxLayer(mPhysxLayer);
 	}
 }
 

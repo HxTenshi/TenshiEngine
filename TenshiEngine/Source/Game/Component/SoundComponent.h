@@ -57,6 +57,10 @@ public:
 	bool GetAutoPlay()override;
 	float GetVolume()override;
 private:
+
+	void OnEnabled()override;
+	void OnDisabled()override;
+
 	bool mIsLoop;
 	bool mAutoPlay;
 	bool mIsPlay;

@@ -9,4 +9,7 @@ public:
 
 	virtual std::string Name() = 0;
 	virtual void Name(const std::string& name) = 0;
+
+	virtual void SetLayer(int layer) = 0;
+	virtual int GetLayer() = 0;
 };

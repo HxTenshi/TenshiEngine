@@ -178,3 +178,9 @@ bool SoundComponent::GetAutoPlay(){
 float SoundComponent::GetVolume(){
 	return mVolume;
 }
+
+void SoundComponent::OnEnabled() {
+	Stop();
+}
+void SoundComponent::OnDisabled() {
+}

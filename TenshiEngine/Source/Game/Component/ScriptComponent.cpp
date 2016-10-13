@@ -894,27 +894,37 @@ void ScriptComponent::Update(){
 			pDllClass->gameObject = gameObject;
 		}
 
-		actors.Function(pDllClass, &IDllScriptComponent::Update);
-
 		for (auto ite = mCollideMap.begin(); ite != mCollideMap.end();){
 
 			auto& data = *ite;
+			//ïsê≥ÇÃîªíË
+			if (data.second.HitCount <= -1) {
+				ite = mCollideMap.erase(ite);
+				continue;
+			}
 
 			if (data.second.HitCount == 0){
-
-				if (data.second.State != ColliderState::Begin){	
-					actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, data.second.Target);
+				if (data.second.State == ColliderState::Begin) {
+					if (data.second.Target)actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, data.second.Target);
+					if (data.second.Target)actors.Function(pDllClass, &IDllScriptComponent::OnCollideEnter, data.second.Target);
+					if (data.second.Target)actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, data.second.Target);
+				}
+				if (data.second.State == ColliderState::Enter){
+					if (data.second.Target)actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, data.second.Target);
 				}
 				ite = mCollideMap.erase(ite);
 				continue;
 
-			}else if (data.second.State == ColliderState::Begin){
-				actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, data.second.Target);
-				data.second.State = Enter;
 			}
-			else if (data.second.State == ColliderState::Enter){
-				actors.Function(pDllClass, &IDllScriptComponent::OnCollideEnter, data.second.Target);
+			else {
+				if (data.second.State == ColliderState::Begin) {
+					if (data.second.Target)actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, data.second.Target);
+					data.second.State = Enter;
+				}
 
+				if (data.second.State == ColliderState::Enter) {
+					if (data.second.Target)actors.Function(pDllClass, &IDllScriptComponent::OnCollideEnter, data.second.Target);
+				}
 			}
 			//else if (data.second.State == ColliderState::Exit){
 			//	actors.Function(pDllClass, &IDllScriptComponent::OnCollideExit, data.second.Target);
@@ -923,6 +933,8 @@ void ScriptComponent::Update(){
 			//}
 			++ite;
 		}
+
+		actors.Function(pDllClass, &IDllScriptComponent::Update);
 	}
 
 }
@@ -934,13 +946,17 @@ void ScriptComponent::Finish(){
 
 
 void ScriptComponent::OnCollide(Actor* target){
-	auto& get = mCollideMap[(int)target];
-	if (get.Target){
-		get.HitCount++;
+	auto ite = mCollideMap.find((int)target);
+	if (ite == mCollideMap.end()) {
+		mCollideMap[(int)target] = ColliderStateData(target->shared_from_this(), ColliderState::Begin, 1);
 		return;
 	}
 
-	mCollideMap[(int)target] = ColliderStateData(target->shared_from_this(),ColliderState::Begin,1);
+	auto& get = *ite;
+	if (get.second.Target){
+		get.second.HitCount++;
+	}
+
 
 	//if (pDllClass){
 	//	actors.Function(pDllClass, &IDllScriptComponent::OnCollideBegin, target);

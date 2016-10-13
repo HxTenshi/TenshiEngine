@@ -14,6 +14,7 @@ CharacterControllerComponent::CharacterControllerComponent()
 	, mSlopeLimitDigree(45.0f)
 	, mStepOffset(0.1f)
 	, mSize(1.0f)
+	, mShape(NULL)
 {
 }
 
@@ -25,16 +26,10 @@ void CharacterControllerComponent::Initialize(){
 	auto act = mController->getActor();
 	mController->setUserData(gameObject.Get());
 	act->userData = gameObject.Get();
-	PxShape* shape = NULL;
-	act->getShapes(&shape, 1);
-	if (shape){
-		PxFilterData  filterData;
-		filterData.word0 = 1;//FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
-		filterData.word1 = 1;//FilterGroup::eSUBMARINE;	//ワード1 = IDマスクcallback; 
-		shape->setSimulationFilterData(filterData);
-		shape->setQueryFilterData(filterData);
-		shape->userData = gameObject.Get();
-	}
+	act->getShapes(&mShape, 1);
+	mShape->userData = gameObject.Get();
+	
+	SetPhysxLayer(gameObject->GetLayer());
 
 	SetSlopeLimit(mSlopeLimitDigree);
 	SetStepOffset(mStepOffset);
@@ -54,6 +49,7 @@ void CharacterControllerComponent::Finish(){
 		mController->release();
 		mController = NULL;
 	}
+	mShape = NULL;
 }
 #ifdef _ENGINE_MODE
 void CharacterControllerComponent::EngineUpdate(){
@@ -141,6 +137,7 @@ void CharacterControllerComponent::CreateInspector() {
 	ins.Add("Size", &mSize, [&](float f){
 		SetSize(f);
 	});
+	ins.AddEnableButton(this);
 	ins.Complete();
 }
 #endif
@@ -168,7 +165,9 @@ void CharacterControllerComponent::Move(const XMVECTOR& velocity){
 	PxF32 minDist = 0.0f;
 	PxControllerFilters filters;
 	PxFilterData  filterData;
-	filterData.word0 = 0;//FilterGroup::eSUBMARINE;  //ワード0 =自分のID 
+	int layer = gameObject->GetLayer();
+	auto l = (Layer::Enum)(1 << layer);
+	filterData.word0 = Game::Get()->GetPhysX()->GetLayerCollideFlag(l);
 	filters.mFilterData = &filterData;
 	filters.mFilterFlags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER;
 
@@ -225,22 +224,59 @@ bool CharacterControllerComponent::IsGround(){
 
 
 void CharacterControllerComponent::SetSlopeLimit(float degree){
-	if (!mController)return;
 	mSlopeLimitDigree = degree;
+	if (!mController)return;
 	//歩ける斜面
 	float slopeLimit = cosf(XM_PI / 180.0f * mSlopeLimitDigree);
 	mController->setSlopeLimit(slopeLimit);
 }
 void CharacterControllerComponent::SetStepOffset(float offset){
-	if (!mController)return;
 	mStepOffset = offset;
+	if (!mController)return;
 
 	//段差を登る高さ
 	mController->setStepOffset(mStepOffset);
 }
 
 void CharacterControllerComponent::SetSize(float size){
-	if (!mController)return;
 	mSize = size;
+	if (!mController)return;
 	mController->resize(mSize);
+}
+
+void CharacterControllerComponent::SetPhysxLayer(int layer) {
+	if (!mShape)return;
+	PxFilterData  filterData;
+	auto l = (Layer::Enum)(1 << layer);
+
+	filterData.word0 = l;  //ワード0 =自分のID 
+	mShape->setSimulationFilterData(filterData);
+	mShape->setQueryFilterData(filterData);
+}
+
+void CharacterControllerComponent::OnEnabled() {
+	mController = Game::GetPhysX()->CreateController();
+	auto act = mController->getActor();
+	mController->setUserData(gameObject.Get());
+	act->userData = gameObject.Get();
+	act->getShapes(&mShape, 1);
+	mShape->userData = gameObject.Get();
+
+	SetPhysxLayer(gameObject->GetLayer());
+
+	SetSlopeLimit(mSlopeLimitDigree);
+	SetStepOffset(mStepOffset);
+	SetSize(mSize);
+
+	auto wp = gameObject->mTransform->WorldPosition();
+	PxExtendedVec3 setpos(wp.x, wp.y, wp.z);
+	mController->setPosition(setpos);
+}
+void CharacterControllerComponent::OnDisabled() {
+	if (mController) {
+		mController->release();
+		mController = NULL;
+	}
+	mShape = NULL;
+
 }

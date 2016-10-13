@@ -140,6 +140,8 @@
     <ClInclude Include="Scripts\BulletEmiter.h" />
     <ClCompile Include="Scripts\DeltaTimeScale.cpp" />
     <ClInclude Include="Scripts\DeltaTimeScale.h" />
+    <ClCompile Include="Scripts\GetWeapon.cpp" />
+    <ClInclude Include="Scripts\GetWeapon.h" />
     <ClCompile Include="Scripts\MoveSmoke.cpp" />
     <ClInclude Include="Scripts\MoveSmoke.h" />
     <ClCompile Include="Scripts\PlayerController.cpp" />
@@ -148,14 +150,16 @@
     <ClInclude Include="Scripts\PlayerScript.h" />
     <ClCompile Include="Scripts\testhit.cpp" />
     <ClInclude Include="Scripts\testhit.h" />
-    <ClCompile Include="Scripts\testunk.cpp" />
-    <ClInclude Include="Scripts\testunk.h" />
     <ClCompile Include="Scripts\TextureScroll.cpp" />
     <ClInclude Include="Scripts\TextureScroll.h" />
     <ClCompile Include="Scripts\ThunderLight.cpp" />
     <ClInclude Include="Scripts\ThunderLight.h" />
     <ClCompile Include="Scripts\TPSCamera.cpp" />
     <ClInclude Include="Scripts\TPSCamera.h" />
+    <ClCompile Include="Scripts\Weapon.cpp" />
+    <ClInclude Include="Scripts\Weapon.h" />
+    <ClCompile Include="Scripts\WeaponHand.cpp" />
+    <ClInclude Include="Scripts\WeaponHand.h" />
     <None Include="dll.def" />
   </ItemGroup>
   <Import Project = "$(VCTargetsPath)Microsoft.Cpp.targets" />

@@ -100,6 +100,8 @@ public:
 	static bool IsGamePlay();
 	void GameStop();
 	static void SetMainCameraEngineUpdate(CameraComponent* Camera);
+
+	void WindowParentSet(GameObject child);
 #endif
 
 	void ChangePlayGame(bool isPlay);

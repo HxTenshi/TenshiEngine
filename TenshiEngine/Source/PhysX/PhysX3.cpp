@@ -121,7 +121,7 @@ class TestOn : public physx::PxSimulationEventCallback{
 	}
 };
 
-std::unordered_map<int, bool> mCollideFiler;
+std::unordered_map<unsigned int, unsigned int> mCollideFiler;
 
 PxFilterFlags SampleSubmarineFilterShader(
 	PxFilterObjectAttributes attributes0, PxFilterData filterData0,
@@ -160,7 +160,7 @@ PxFilterFlags SampleSubmarineFilterShader(
 	// trigger the contact callback for pairs (A,B) where
 	// the filtermask of A contains the ID of B and vice versa.
 	//if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
-	if (mCollideFiler[filterData0.word0 | filterData1.word0]){
+	if (mCollideFiler[filterData0.word0] & filterData1.word0){
 		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 		return PxFilterFlag::eDEFAULT;
 	}
@@ -298,12 +298,9 @@ PxDefaultCpuDispatcher* mCpuDispatcher = NULL;
 PxVec3 gravity(0, -9.81f, 0);
 void PhysX3Main::InitializePhysX() {
 
-	for (int I = 0; I < 13; I++){
-		for (int J = I; J < 13; J++){
-			int i = 1 << I;
-			int j = 1 << J;
-			mCollideFiler[i | j] = true;
-		}
+	for (int I = 0; I < _LAYER_NUM; I++){
+		int i = 1 << I;
+		mCollideFiler[i] = 0xFFFFFFFF;
 	}
 
 
@@ -727,11 +724,29 @@ void PhysX3Main::ShutdownPhysX() {
 	if (mFoundation)mFoundation->release();
 }
 
+unsigned int PhysX3Main::GetLayerCollideFlag(Layer::Enum l1)
+{
+	return mCollideFiler[l1];
+}
+
 bool PhysX3Main::GetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2){
-	return mCollideFiler[l1 | l2];
+	return (bool)(mCollideFiler[l1] & l2);
 }
 void PhysX3Main::SetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2, bool flag){
-	mCollideFiler[l1 | l2] = flag;
+	if (flag) {
+		bool f = mCollideFiler[l1] & l2;
+		if (!f) {
+			mCollideFiler[l1] ^= l2;
+			mCollideFiler[l2] ^= l1;
+		}
+	}
+	else {
+		bool f = mCollideFiler[l1] & l2;
+		if (f) {
+			mCollideFiler[l1] ^= l2;
+			mCollideFiler[l2] ^= l1;
+		}
+	}
 }
 void PhysX3Main::AddActor(PxActor* act){
 	gScene->addActor(*act);

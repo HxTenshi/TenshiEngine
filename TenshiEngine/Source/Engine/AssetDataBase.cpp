@@ -145,21 +145,21 @@ void AssetDataTemplate<PrefabFileData>::CreateInspector(){
 	m_FileData->GetActor()->CreateInspector();
 
 	
-	//std::function<void()> collback = [&](){
-	//	auto before = m_FileData->Apply();
+	std::function<void()> collback = [&](){
+		auto before = m_FileData->Apply();
 
-	//	Game::GetAllObject([&](GameObject tar){
-	//		auto str = tar->Prefab();
-	//		if (m_FileData->GetFileName() == str){
+		//Game::GetAllObject([&](GameObject tar){
+		//	auto str = tar->Prefab();
+		//	if (m_FileData->GetFileName() == str){
 
-	//			tar->PastePrefabParam(before);
+		//		tar->PastePrefabParam(before);
 
-	//		}
-	//	});
-	//};
-	//Inspector ins("Prefab",NULL);
-	//ins.AddButton("Apply",collback);
-	//ins.Complete();
+		//	}
+		//});
+	};
+	Inspector ins("Prefab",NULL);
+	ins.AddButton("Save",collback);
+	ins.Complete();
 }
 
 void AssetDataTemplate<ShaderFileData>::CreateInspector(){
@@ -180,16 +180,16 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 
 	Inspector ins("PhysxMaterial", NULL);
 
-	std::function<void()> collback = [&](){
-		m_FileData->Create(m_FileData->GetFileName().c_str());
+	//std::function<void()> collback = [&](){
+	//	m_FileData->Create(m_FileData->GetFileName().c_str());
 
-		Game::GetAllObject([&](GameObject tar){
-			auto com = tar->GetComponent<PhysXColliderComponent>();
-			if (com){
-				com->ChangeMaterial(com->GetMaterial());
-			}
-		});
-	};
+	//	Game::GetAllObject([&](GameObject tar){
+	//		auto com = tar->GetComponent<PhysXColliderComponent>();
+	//		if (com){
+	//			com->ChangeMaterial(com->GetMaterial());
+	//		}
+	//	});
+	//};
 
 	auto pmate = m_FileData->GetMaterial();
 
@@ -226,7 +226,7 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 		ins.Add("Restitution", &m_FileData->m_Param_r, collbackf3);
 	}
 
-	ins.AddButton("Compile", collback);
+	//ins.AddButton("Compile", collback);
 	ins.Complete();
 }
 

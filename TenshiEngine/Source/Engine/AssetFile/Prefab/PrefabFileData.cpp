@@ -11,10 +11,7 @@ PrefabFileData::PrefabFileData(){
 
 }
 PrefabFileData::~PrefabFileData(){
-	if (m_PrefabActor){
-		delete m_PrefabActor;
-		m_PrefabActor = NULL;
-	}
+	m_PrefabActor = NULL;
 	if (mBeforeParam){
 		delete mBeforeParam;
 		mBeforeParam = NULL;
@@ -26,11 +23,14 @@ bool PrefabFileData::Create(const char* filename){
 
 
 	if (!m_PrefabActor){
-		m_PrefabActor = new Actor();
+		m_PrefabActor = make_shared<Actor>();
 	}
-	if (!mBeforeParam){
-		mBeforeParam = new picojson::value();
+
+	if (mBeforeParam) {
+		delete mBeforeParam;
+		mBeforeParam = NULL;
 	}
+	mBeforeParam = new picojson::value();
 
 	m_FileName = filename;
 
@@ -47,19 +47,19 @@ picojson::value PrefabFileData::Apply(){
 
 	m_PrefabActor->ExportData(path, file, true);
 
-	picojson::value back;
+	//picojson::value back;
 
-	if (mBeforeParam){
-		back = *mBeforeParam;
-		delete mBeforeParam;
-		mBeforeParam = NULL;
-	}
+	//if (mBeforeParam){
+	//	back = *mBeforeParam;
+	//	delete mBeforeParam;
+	//	mBeforeParam = NULL;
+	//}
 
-	mBeforeParam = new picojson::value();
-	m_PrefabActor->ExportData(*mBeforeParam, true);
+	//mBeforeParam = new picojson::value();
+	//m_PrefabActor->ExportData(*mBeforeParam, true);
 
 
-	return back;
+	return *mBeforeParam;
 }
 
 shared_ptr<I_InputHelper> PrefabFileData::GetData() const{

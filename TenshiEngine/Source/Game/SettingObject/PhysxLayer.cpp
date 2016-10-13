@@ -21,16 +21,16 @@ PhysxLayer::PhysxLayer(){
 	mSelects.push_back("Layer12");
 
 
-	for (int I = 0; I < 13; I++){
-		for (int J = I; J < 13; J++){
+	for (int I = 0; I < _LAYER_NUM; I++){
+		for (int J = I; J < _LAYER_NUM; J++){
 			int i = 1 << I;
 			int j = 1 << J;
 			mCollideFiler[i | j] = true;
 		}
 	}
 
-	for (int I = 0; I < 13; I++){
-		for (int J = I; J < 13; J++){
+	for (int I = 0; I < _LAYER_NUM; I++){
+		for (int J = I; J < _LAYER_NUM; J++){
 			int i = 1 << I;
 			int j = 1 << J;
 
@@ -48,14 +48,14 @@ void PhysxLayer::CreateInspector(){
 
 	Inspector ins("PhysxLayer", NULL);
 
-	for (int i = 0; i < 13; i++){
+	for (int i = 0; i < _LAYER_NUM; i++){
 		ins.Add(std::to_string(i), &mSelects[i], [&, i](std::string f){
 			mSelects[i] = f;
 		});
 	}
 
-	for (int I = 0; I < 13; I++){
-		for (int J = I; J < 13; J++){
+	for (int I = 0; I < _LAYER_NUM; I++){
+		for (int J = I; J < _LAYER_NUM; J++){
 			int i = 1 << I;
 			int j = 1 << J;
 			std::string text = std::to_string(I) + "x" + std::to_string(J);
@@ -88,12 +88,12 @@ void PhysxLayer::_ExportData(I_ioHelper* io, bool childExport){
 #define _KEY_COMPEL(x) io->func( x , #x,true)
 #define _KEY_COMPEL_ARR(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str(),true)
 
-	for (int i = 0; i < 13; i++){
+	for (int i = 0; i < _LAYER_NUM; i++){
 		_KEY_COMPEL_ARR(i, mSelects[i]);
 	}
 
-	for (int I = 0; I < 13; I++){
-		for (int J = I; J < 13; J++){
+	for (int I = 0; I < _LAYER_NUM; I++){
+		for (int J = I; J < _LAYER_NUM; J++){
 			int i = 1 << I;
 			int j = 1 << J;
 
@@ -115,12 +115,12 @@ void PhysxLayer::_ImportData(I_ioHelper* io){
 #define _KEY_COMPEL_ARR(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str())
 
 
-	for (int i = 0; i < 13; i++){
+	for (int i = 0; i < _LAYER_NUM; i++){
 		_KEY_COMPEL_ARR(i, mSelects[i]);
 	}
 
-	for (int I = 0; I < 13; I++){
-		for (int J = I; J < 13; J++){
+	for (int I = 0; I < _LAYER_NUM; I++){
+		for (int J = I; J < _LAYER_NUM; J++){
 			int i = 1 << I;
 			int j = 1 << J;
 

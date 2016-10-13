@@ -13,17 +13,18 @@
 #include "Engine/AssetFile/Mesh/MeshFileData.h"
 #include "Engine/AssetFile/Physx/PhysxMaterialFileData.h"
 
-
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 PhysXColliderComponent::PhysXColliderComponent(){
-	mIsSphere = false;
+	mGeometryType = GeometryType::Box;
 	mShape = NULL;
 	mAttachTarget = NULL;
 	mIsTrigger = false;
 	mPosition = XMVectorSet(0, 0, 0, 1);
 	mScale = XMVectorSet(1, 1, 1, 1);
-	mPhysicsMaterial = NULL;
+	mMeshAsset.Free();
+	mPhysicsMaterialAsset.Free();
 	mIsParentPhysX = false;
 
 
@@ -39,23 +40,31 @@ PhysXColliderComponent::~PhysXColliderComponent(){
 }
 void PhysXColliderComponent::Initialize(){
 
+	AssetLoad::Instance(mMeshAsset.m_Hash, mMeshAsset);
+	AssetLoad::Instance(mPhysicsMaterialAsset.m_Hash, mPhysicsMaterialAsset);
+
 	if (!mShape){
-		CreateMesh(mMeshFile);
-		
-		if (!mShape){
-			ChangeShape(mIsSphere);
+		switch (mGeometryType)
+		{
+		case  GeometryType::Box:
+			ChangeShapeBox();
+			break;
+		case  GeometryType::Sphere:
+			ChangeShapeSphere();
+			break;
+		case  GeometryType::Mesh:
+			ChangeShapeMesh(mMeshAsset);
+			break;
+		default:
+			break;
 		}
 	}
-	ChangeMaterial(mPhysicsMaterialFile);
 
 	SetTransform(mPosition);
 	SetScale(mScale);
-
-	SetPhysxLayer(gameObject->GetLayer());
 }
 
 void PhysXColliderComponent::Start(){
-	SetIsTrigger(mIsTrigger);
 	if (!mAttachPhysXComponent){
 		SearchAttachPhysXComponent();
 		ShapeAttach(mShape);
@@ -66,6 +75,12 @@ void PhysXColliderComponent::Finish(){
 	ShapeAttach(NULL);
 	mAttachPhysXComponent = NULL;
 	mIsParentPhysX = false;
+
+	mMeshAsset.Free();
+	mPhysicsMaterialAsset.Free();
+#ifdef _ENGINE_MODE
+	mDebugDraw.Release();
+#endif
 }
 
 #ifdef _ENGINE_MODE
@@ -123,9 +138,10 @@ void PhysXColliderComponent::ShapeAttach(PxShape* shape){
 	ReleaseAttach();
 	if (mShape != shape){
 		ReleaseShape();
-	}
-	mShape = shape;
 
+		mShape = shape;
+		ShapeReSettings();
+	}
 
 	//リジッドダイナミックがあれば
 	if (mAttachPhysXComponent){
@@ -134,6 +150,8 @@ void PhysXColliderComponent::ShapeAttach(PxShape* shape){
 	else{
 		AttachRigidStatic(true);
 	}
+
+	
 }
 
 //シェイプをリジッドスタティックにアタッチするか削除する
@@ -184,76 +202,53 @@ void PhysXColliderComponent::ReleaseAttach(){
 	AttachRigidStatic(false);
 }
 
-void PhysXColliderComponent::ChangeShape(bool flag){
-	PxShape* shape = NULL;
-	mIsSphere = flag;
-	if (mIsSphere){
-		shape = Game::GetPhysX()->CreateShapeSphere();
-	}
-	else{
-		shape = Game::GetPhysX()->CreateShape();
-	}
+void PhysXColliderComponent::ChangeShapeBox(){
+	mMeshAsset.Free();
+	mGeometryType = GeometryType::Box;
+	if (!IsEnabled())return;
+	PxShape* shape = Game::GetPhysX()->CreateShape();
 
-	if (shape){
-		shape->userData = gameObject.Get();
+	ShapeAttach(shape);
+}
+void PhysXColliderComponent::ChangeShapeSphere() {
+	mMeshAsset.Free();
+	mGeometryType = GeometryType::Sphere;
+	if (!IsEnabled())return;
+	PxShape* shape = Game::GetPhysX()->CreateShapeSphere();
+
+	ShapeAttach(shape);
+}
+void PhysXColliderComponent::ChangeShapeMesh(const MeshAsset& mesh) {
+	mMeshAsset = mesh;
+	mGeometryType = GeometryType::Mesh;
+	if (!IsEnabled())return;
+	if (!mMeshAsset.IsLoad()) {
+		ShapeAttach(NULL);
+		return;
 	}
+	auto shape = Game::GetPhysX()->CreateTriangleMesh(mMeshAsset.Get()->GetPolygonsData());
+
 	ShapeAttach(shape);
 }
 
-void PhysXColliderComponent::ChangeMaterial(const PhysxMaterialAssetDataPtr& material){
-	mPhysicsMaterialFile = "";
-	mPhysicsMaterial = material;
-	if (mPhysicsMaterialFile == "")return;
-	AssetDataBase::Instance(mPhysicsMaterialFile.c_str(), mPhysicsMaterial);
-	if (!mPhysicsMaterial)return;
-	if (!mPhysicsMaterial->GetFileData())return;
-	auto pxmate = mPhysicsMaterial->GetFileData()->GetMaterial();
+void PhysXColliderComponent::ChangeMaterial(const PhysxMaterialAsset& material){
+	mPhysicsMaterialAsset = material;
+	if (!mPhysicsMaterialAsset.IsLoad())return;
+	auto pxmate = mPhysicsMaterialAsset.Get()->GetMaterial();
 	if (!pxmate)return;
+
+	if (!mShape)return;
 	mShape->setMaterials(&pxmate, 1);
 }
-void PhysXColliderComponent::ChangeMaterial(const std::string& file){
-	mPhysicsMaterialFile = file;
-	mPhysicsMaterial = NULL;
-	if (mPhysicsMaterialFile == "")return;
-	AssetDataBase::Instance(mPhysicsMaterialFile.c_str(), mPhysicsMaterial);
-	if (!mPhysicsMaterial)return;
-	if (!mPhysicsMaterial->GetFileData())return;
-	auto pxmate = mPhysicsMaterial->GetFileData()->GetMaterial();
-	if (!pxmate)return;
-	mShape->setMaterials(&pxmate, 1);
-}
-PhysxMaterialAssetDataPtr PhysXColliderComponent::GetMaterial(){
-	return mPhysicsMaterial;
-}
-
-void PhysXColliderComponent::CreateMesh(const MeshAssetDataPtr& mesh){
-
-	if (!mesh)return;
-	auto shape = Game::GetPhysX()->CreateTriangleMesh(mesh->GetFileData()->GetPolygonsData());
-
-	if (shape){
-		shape->userData = gameObject.Get();
-	}
-	ShapeAttach(shape);
-}
-void PhysXColliderComponent::CreateMesh(const std::string& file){
-
-	mMeshFile = file;
-	if (file == "")return;
-	MeshAssetDataPtr data;
-	AssetDataBase::Instance(mMeshFile.c_str(), data);
-	if (!data)return;
-	auto shape = Game::GetPhysX()->CreateTriangleMesh(data->GetFileData()->GetPolygonsData());
-	if (shape){
-		shape->userData = gameObject.Get();
-	}
-	ShapeAttach(shape);
+PhysxMaterialAsset PhysXColliderComponent::GetMaterial(){
+	return mPhysicsMaterialAsset;
 }
 
 void PhysXColliderComponent::SetIsTrigger(bool flag){
 	mIsTrigger = flag;
 	//PxShapeFlag::eTRIGGER_SHAPE または　PxShapeFlag::eSIMULATION_SHAPE 
 
+	if (!mShape)return;
 	PxShapeFlags flags = mShape->getFlags();
 
 	//一旦オンにして
@@ -280,31 +275,49 @@ physx::PxShape* PhysXColliderComponent::GetShape(){
 }
 #ifdef _ENGINE_MODE
 void PhysXColliderComponent::CreateInspector() {
-	BoolCollback collback = [&](bool value){
-		ChangeShape(value);
-	};
-	std::function<void(std::string)> collbackpath = [&](std::string name){
-		CreateMesh(name);
-	};
-	BoolCollback collbacktri = [&](bool value){
-		SetIsTrigger(value);
-	};
-	std::function<void(std::string)> collbackmatepath = [&](std::string name){
-		ChangeMaterial(name);
-	};
 
 	Inspector ins("Collider",this);
 	ins.AddEnableButton(this);
-	ins.Add("Mesh", &mMeshFile, collbackpath);
-	ins.Add("IsSphere", &mIsSphere, collback);
-	ins.Add("IsTrigger", &mIsTrigger, collbacktri);
+	static bool mIni = false;
+	static std::vector<std::string> types;
+	if (!mIni) {
+		mIni = true;
+		types.push_back("Box");
+		types.push_back("Sphere");
+		types.push_back("Mesh");
+	}
+	ins.AddSelect("GeometryType", &mGeometryType, types, [&](int value) {
+		mGeometryType = value;
+		switch (mGeometryType)
+		{
+			case  GeometryType::Box:
+				ChangeShapeBox();
+				break;
+			case  GeometryType::Sphere:
+				ChangeShapeSphere();
+				break;
+			case  GeometryType::Mesh:
+				ChangeShapeMesh(mMeshAsset);
+				break;
+			default:
+				break;
+		}
+	});
+	ins.Add("Mesh", &mMeshAsset, [&]() {
+		ChangeShapeMesh(mMeshAsset);
+	});
+	ins.Add("IsTrigger", &mIsTrigger, [&](bool value) {
+		SetIsTrigger(value);
+	});
 	auto p = Vector3(mPosition);
 	auto s = Vector3(mScale);
 
 	ins.Add("Position", &p, [&](Vector3 f){SetTransform(XMVectorSet(f.x, f.y, f.z, 1)); }
 	);
 	ins.Add("Scale", &s, [&](Vector3 f){SetScale(XMVectorSet(f.x, f.y, f.z, 1)); });
-	ins.Add("PhysxMaterial", &mPhysicsMaterialFile, collbackmatepath);
+	ins.Add("PhysxMaterial", &mPhysicsMaterialAsset, [&]() {
+		ChangeMaterial(mPhysicsMaterialAsset);
+	});
 
 	ins.Complete();
 }
@@ -315,8 +328,8 @@ void PhysXColliderComponent::IO_Data(I_ioHelper* io){
 	Enabled::IO_Data(io);
 
 #define _KEY(x) io->func( x , #x)
-	_KEY(mMeshFile);
-	_KEY(mIsSphere);
+	_KEY(mMeshAsset);
+	_KEY(mGeometryType);
 	_KEY(mIsTrigger);
 	_KEY(mPosition.x);
 	_KEY(mPosition.y);
@@ -326,12 +339,15 @@ void PhysXColliderComponent::IO_Data(I_ioHelper* io){
 	_KEY(mScale.y);
 	_KEY(mScale.z);
 	_KEY(mScale.w);
-	_KEY(mPhysicsMaterialFile);
+	_KEY(mPhysicsMaterialAsset);
 
 #undef _KEY
 }
 
 void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Material& material){
+
+#ifdef _ENGINE_MODE
+	if (!mShape || !gameObject)return;
 	auto g = mShape->getGeometry();
 
 
@@ -352,9 +368,9 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 	}
 	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
 
-		if (mDebugStr != mMeshFile){
-			mDebugStr = mMeshFile;
-			mDebugDraw.Create(mMeshFile.c_str());
+		if (mDebugStr != mMeshAsset.m_Name){
+			mDebugStr = mMeshAsset.m_Name;
+			mDebugDraw.Create(mDebugStr.c_str());
 		}
 	}
 	if (!mDebugDraw.IsCreate()){
@@ -362,7 +378,6 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 	}
 
 	auto transform = mShape->getLocalPose();
-	
 	auto par = gameObject;
 	if (mAttachPhysXComponent){
 		par = mAttachPhysXComponent->gameObject;
@@ -423,10 +438,13 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 	mDebugDraw.mWorld = Matrix;
 	mDebugDraw.Update();
 	mDebugDraw.Draw(context, material);
+#endif
 }
 
 void PhysXColliderComponent::SetTransform(const XMVECTOR& pos){
 	mPosition = pos;
+
+	if (!mShape || !gameObject)return;
 	if (mAttachTarget == -1){
 
 		auto scale = gameObject->mTransform->WorldScale();
@@ -573,6 +591,8 @@ const XMVECTOR& PhysXColliderComponent::GetTransform() const{
 
 void PhysXColliderComponent::SetScale(const XMVECTOR& scale){
 	mScale = scale;
+	if (!mShape)return;
+
 	auto s = mScale * mGameObjectScale;
 
 	//PxBoxGeometry box(PxVec3(1.0f*scale.x, 1.0f*scale.y, 1.0f*scale.z));
@@ -619,4 +639,14 @@ void PhysXColliderComponent::OnEnabled(){
 void PhysXColliderComponent::OnDisabled(){
 
 	ReleaseAttach();
+}
+
+void PhysXColliderComponent::ShapeReSettings()
+{
+	if (!mShape || !gameObject)return;
+	mShape->userData = gameObject.Get();
+
+	ChangeMaterial(mPhysicsMaterialAsset);
+	SetPhysxLayer(gameObject->GetLayer());
+	SetIsTrigger(mIsTrigger);
 }

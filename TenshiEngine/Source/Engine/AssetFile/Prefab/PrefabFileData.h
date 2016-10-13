@@ -17,7 +17,7 @@ public:
 	picojson::value Apply();
 
 	shared_ptr<I_InputHelper> GetData() const;
-	Actor* GetActor() const{
+	weak_ptr<Actor> GetActor() const{
 		return m_PrefabActor;
 	}
 
@@ -31,6 +31,6 @@ private:
 	PrefabFileData(const PrefabFileData&) = delete;
 	PrefabFileData& operator=(const PrefabFileData&) = delete;
 
-	Actor* m_PrefabActor;
+	shared_ptr<Actor> m_PrefabActor;
 	picojson::value* mBeforeParam;
 };

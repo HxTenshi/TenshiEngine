@@ -62,11 +62,11 @@ public:
 		phy->mIsEngineMode = true;
 		mComponents.AddComponent<PhysXColliderComponent>();
 
-		this->SetUpdateStageCollQueue([this](){
+		this->SetUpdateStageCollQueue([this, asset](){
 			auto phy = mComponents.GetComponent<PhysXComponent>();
 			phy->SetKinematic(true);
 			auto col = mComponents.GetComponent<PhysXColliderComponent>();
-			col->CreateMesh(std::string("EngineResource/Arrow.pmx.tesmesh"));
+			col->ChangeShapeMesh(asset);
 		});
 
 	}

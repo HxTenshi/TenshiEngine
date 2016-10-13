@@ -315,7 +315,7 @@ void ParticleComponent::CreateInspector(){
 		mParticleParam.Vector.w = f;
 	};
 	std::function<void(Vector3)> collbackMinV = [&](Vector3 f){
-		mParticleParam.Rot.x = f.z;
+		mParticleParam.Rot.x = f.x;
 		mParticleParam.Rot.y = f.y;
 		mParticleParam.Rot.z = f.z;
 	};
@@ -329,7 +329,7 @@ void ParticleComponent::CreateInspector(){
 	};
 
 	std::function<void(Vector3)> collbackG = [&](Vector3 f){
-		mParticleParam.G.x = f.z;
+		mParticleParam.G.x = f.x;
 		mParticleParam.G.y = f.y;
 		mParticleParam.G.z = f.z;
 	};

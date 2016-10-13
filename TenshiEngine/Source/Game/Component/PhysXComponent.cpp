@@ -24,23 +24,28 @@ void PhysXComponent::Initialize(){
 	else{
 		mRigidActor = Game::CreateRigitBody();
 	}
-	if (IsEnabled()){
-		if (mIsEngineMode){
-			Game::GetPhysX()->AddActorEngine(mRigidActor);
-		}
-		else{
-			Game::GetPhysX()->AddActor(mRigidActor);
-		}
+
+	if (mIsEngineMode){
+		Game::GetPhysX()->AddActorEngine(mRigidActor);
+	}
+	else{
+		Game::GetPhysX()->AddActor(mRigidActor);
+	}
+
+	if (!IsEnabled()){
+		mRigidActor->setActorFlag(PxActorFlag::eDISABLE_SIMULATION, true);
 	}
 
 	SetKinematic(mIsKinematic);
 	SetGravity(mIsGravity);
 
+	if(gameObject)
 	mRigidActor->userData = gameObject.Get();
 }
 
 
 void PhysXComponent::Start(){
+	if (!mRigidActor || !gameObject)return;
 	auto t = mRigidActor->getGlobalPose();
 	auto position = gameObject->mTransform->WorldPosition();
 	t.p = physx::PxVec3(position.x, position.y, position.z);
@@ -83,7 +88,7 @@ void PhysXComponent::ChildrenAttachShape(Actor* actor){
 
 }
 void PhysXComponent::Finish(){
-	if (mRigidActor){
+	if (mRigidActor || !gameObject){
 
 		weak_ptr<PhysXComponent> physxCom = NULL;
 		{
@@ -113,14 +118,14 @@ void PhysXComponent::Finish(){
 		}
 
 		mRigidActor->userData = NULL;
-		if (IsEnabled()){
-			if (mIsEngineMode){
-				Game::RemovePhysXActorEngine(mRigidActor);
-			}
-			else{
-				Game::RemovePhysXActor(mRigidActor);
-			}
+		
+		if (mIsEngineMode){
+			Game::RemovePhysXActorEngine(mRigidActor);
 		}
+		else{
+			Game::RemovePhysXActor(mRigidActor);
+		}
+		
 		mRigidActor->release();
 	}
 	mRigidActor = NULL;
@@ -146,7 +151,7 @@ void PhysXComponent::Update(){
 }
 
 void PhysXComponent::SetTransform(bool RebirthSet){
-
+	if (!mRigidActor || !gameObject)return;
 	auto t = mRigidActor->getGlobalPose();
 
 	if (mChengeTransformFlag&(char)PhysXChangeTransformFlag::Position){
@@ -250,40 +255,54 @@ void PhysXComponent::SetGravity(bool flag){
 
 
 XMVECTOR PhysXComponent::GetForceVelocity(){
+	if (!mRigidActor)return XMVectorZero();
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	auto v = a->getLinearVelocity();
 	return XMVectorSet(v.x, v.y, v.z, 1);
 }
 
 void PhysXComponent::SetForceVelocity(const XMVECTOR& v){
+	if (!mRigidActor)return;
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	a->setLinearVelocity(PxVec3(v.x, v.y, v.z));
 }
 
 void PhysXComponent::AddForce(const XMVECTOR& force, ForceMode::Enum forceMode){
+	if (!mRigidActor)return;
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	a->addForce(PxVec3(force.x, force.y, force.z),(physx::PxForceMode::Enum)forceMode);
 }
 
 void PhysXComponent::AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode){
+	if (!mRigidActor)return;
 	PxRigidDynamic* a = (PxRigidDynamic*)mRigidActor;
 	a->addTorque(PxVec3(force.x, force.y, force.z), (physx::PxForceMode::Enum)forceMode);
 }
 
 
 void PhysXComponent::OnEnabled(){
-	if (mIsEngineMode){
-		Game::GetPhysX()->AddActorEngine(mRigidActor);
-	}
-	else{
-		Game::GetPhysX()->AddActor(mRigidActor);
-	}
+	if (!mRigidActor)return;
+
+	mRigidActor->setActorFlag(PxActorFlag::eDISABLE_SIMULATION, false);
+	//if (mIsEngineMode){
+	//	Game::GetPhysX()->AddActorEngine(mRigidActor);
+	//}
+	//else{
+	//	Game::GetPhysX()->AddActor(mRigidActor);
+	//}
+	//if(mIsKinematic)
+	//	SetKinematic(mIsKinematic);
 }
 void PhysXComponent::OnDisabled(){
-	if (mIsEngineMode){
-		Game::GetPhysX()->RemoveActorEngine(mRigidActor);
-	}
-	else{
-		Game::GetPhysX()->RemoveActor(mRigidActor);
-	}
+	if (!mRigidActor)return;
+
+	mRigidActor->setActorFlag(PxActorFlag::eDISABLE_SIMULATION,true);
+	//auto r = (PxRigidDynamic*)mRigidActor;
+	//r->setRigidDynamicFlag(PxRigidDynamicFlag::eKINEMATIC, false);
+	//if (mIsEngineMode){
+	//	Game::GetPhysX()->RemoveActorEngine(mRigidActor);
+	//}
+	//else{
+	//	Game::GetPhysX()->RemoveActor(mRigidActor);
+	//}
 }

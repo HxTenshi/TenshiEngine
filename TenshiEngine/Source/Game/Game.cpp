@@ -266,14 +266,7 @@ Game::Game(){
 
 		act->mTreeViewPtr = p;
 		//ツリービューで親子関係のセット関数
-		if (auto par = act->mTransform->GetParent()){
-			if (par.Get() == mRootObject.Get())return;
-
-			//ツリービューが完成するまで繰り返す関数
-			auto coll = CreateSetParentTreeViewItemColl(par.Get(), act);
-			//とりあえず１回実行
-			coll();
-		}
+		WindowParentSet(act->shared_from_this());
 			
 	});
 
@@ -433,7 +426,7 @@ Game::Game(){
 		PrefabAssetDataPtr data;
 		AssetDataBase::Instance(s->c_str(), data);
 		if (data){
-			mSelectActor.SetSelectAsset(data->GetFileData()->GetActor(), s->c_str());
+			mSelectActor.SetSelectAsset(data->GetFileData()->GetActor().Get(), s->c_str());
 		}
 		else{
 			mSelectActor.SetSelectAsset(NULL, s->c_str());
@@ -711,6 +704,19 @@ bool Game::IsGamePlay(){
 
 void Game::SetMainCameraEngineUpdate(CameraComponent* Camera){
 	*gMainCameraEngineUpdate = Camera;
+}
+void Game::WindowParentSet(GameObject child)
+{
+	if (!child)return;
+	//ツリービューで親子関係のセット関数
+	if (auto par = child->mTransform->GetParent()) {
+		if (par.Get() == mRootObject.Get())return;
+
+		//ツリービューが完成するまで繰り返す関数
+		auto coll = CreateSetParentTreeViewItemColl(par.Get(), child.Get());
+		//とりあえず１回実行
+		coll();
+	}
 }
 #endif
 

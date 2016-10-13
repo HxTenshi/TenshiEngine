@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>stdafxwpf.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>No</GenerateDebugInformation>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <AdditionalDependencies />
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>

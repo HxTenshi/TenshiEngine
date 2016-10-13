@@ -18,11 +18,6 @@ PhysxMaterialFileData::~PhysxMaterialFileData(){
 
 bool PhysxMaterialFileData::Create(const char* filename){
 
-
-	if (m_Material){
-		m_Material->release();
-		m_Material = NULL;
-	}
 	File f(filename);
 	if (!f)return false;
 
@@ -30,8 +25,13 @@ bool PhysxMaterialFileData::Create(const char* filename){
 	f.In(&staticfric);
 	f.In(&dinamicfric);
 	f.In(&restiut);
-	
-	m_Material = Game::GetPhysX()->GetSDK()->createMaterial(staticfric,dinamicfric,restiut);
+	if (!m_Material) {
+		m_Material = Game::GetPhysX()->GetSDK()->createMaterial(staticfric, dinamicfric, restiut);
+	}
+
+	m_Material->setStaticFriction(staticfric);
+	m_Material->setDynamicFriction(dinamicfric);
+	m_Material->setRestitution(restiut);
 	m_FileName = filename;
 
 	return true;

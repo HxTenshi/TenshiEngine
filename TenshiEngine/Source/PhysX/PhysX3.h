@@ -35,11 +35,12 @@ class Actor;
 class IPolygonsData;
 #include "IPhysXEngine.h"
 
+#define _LAYER_NUM 13
 struct  Layer
 {
 	enum  Enum
 	{
-		None = (0 << 0),
+		None = (1 << 0),
 		UserTag1 = (1 << 1),
 		UserTag2 = (1 << 2),
 		UserTag3 = (1 << 3),
@@ -67,7 +68,7 @@ public:
 	void InitializePhysX();
 
 	void createPlane();
-	PxRigidActor* createSphere();
+	//PxRigidActor* createSphere();
 	PxRigidActor* createBody();
 	PxRigidActor* createBodyEngine();
 	PxRigidStatic* createRigidStatic();
@@ -93,6 +94,7 @@ public:
 	PxRevoluteJoint* CreateRevoluteJoint();
 	PxDistanceJoint* CreateDistanceJoint();
 
+	unsigned int GetLayerCollideFlag(Layer::Enum l1);
 	bool GetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2);
 	void SetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2, bool flag);
 
