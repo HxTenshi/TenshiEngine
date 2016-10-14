@@ -22,6 +22,13 @@ namespace MD5{
 				this->key_i[2] == right.key_i[2] &&
 				this->key_i[3] == right.key_i[3];
 		}
+		MD5HashCoord& operator=(const MD5HashCoord &right){
+			this->key_i[0] = right.key_i[0];
+			this->key_i[1] = right.key_i[1];
+			this->key_i[2] = right.key_i[2];
+			this->key_i[3] = right.key_i[3];
+			return *this;
+		}
 
 		std::string GetString() const{
 			std::string temp;
