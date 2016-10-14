@@ -2,7 +2,6 @@
 #pragma once
 #include "main.h"
 
-
 class WeaponHand :public IDllScriptComponent{
 public:
 	void Initialize()override;
@@ -16,7 +15,7 @@ public:
 
 	void SetWeapon(GameObject weapon);
 
-	void Atack();
+	void Attack();
 	void Guard();
 private:
 	//ƒƒ“ƒo•Ï”
@@ -24,6 +23,6 @@ private:
 
 	SERIALIZE
 	GameObject m_GuardPos;
-	float m_AtackTime;
+	float m_AttackTime;
 	bool m_IsGuard;
 };

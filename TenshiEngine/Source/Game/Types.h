@@ -1,4 +1,5 @@
 #pragma once
 #include <string>
-typedef std::string UniqueID;
+#include "Library/MD5.h"
+typedef MD5::MD5HashCoord UniqueID;
 #include "Script/GameObject.h"

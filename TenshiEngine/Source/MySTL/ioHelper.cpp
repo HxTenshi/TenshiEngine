@@ -50,11 +50,11 @@ void I_InputHelper::get(const picojson::value& value, picojson::value* out){
 	(void)value;
 	*out = picojson::value();
 }
-template<>
-void I_InputHelper::get(const picojson::value& value, MD5::MD5HashCoord* out){
-	auto c = (std::string)value.get<std::string>();
-	*out = MD5::MD5HashCoord(c.c_str());
-}
+//template<>
+//void I_InputHelper::get(const picojson::value& value, MD5::MD5HashCoord* out){
+//	auto c = (std::string)value.get<std::string>();
+//	*out = MD5::MD5HashCoord(c.c_str());
+//}
 
 
 
@@ -91,12 +91,12 @@ void I_OutputHelper::_func_out(const picojson::value* value, const char* name){
 	o->insert(std::make_pair(name, (picojson::value)*value));
 }
 
-template<>
-void I_OutputHelper::_func_out(const MD5::MD5HashCoord* value, const char* name){
-	o->insert(std::make_pair(name, picojson::value((std::string)value->GetString())));
-}
-
-template<>
-void I_OutputHelper::_func_out(const IAsset* value, const char* name){
-	o->insert(std::make_pair(name, picojson::value((std::string)value->m_Hash.GetString())));
-}
+//template<>
+//void I_OutputHelper::_func_out(const MD5::MD5HashCoord* value, const char* name){
+//	o->insert(std::make_pair(name, picojson::value((std::string)value->GetString())));
+//}
+//
+//template<>
+//void I_OutputHelper::_func_out(const IAsset* value, const char* name){
+//	o->insert(std::make_pair(name, picojson::value((std::string)value->m_Hash.GetString())));
+//}

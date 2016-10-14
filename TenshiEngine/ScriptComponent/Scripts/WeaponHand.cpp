@@ -1,9 +1,10 @@
 #include "WeaponHand.h"
 #include "h_standard.h"
+#include "Weapon.h"
 
 //生成時に呼ばれます（エディター中も呼ばれます）
 void WeaponHand::Initialize(){
-	m_AtackTime = 0.0f;
+	m_AttackTime = 0.0f;
 	m_IsGuard = false;
 }
 
@@ -14,19 +15,24 @@ void WeaponHand::Start(){
 
 //毎フレーム呼ばれます
 void WeaponHand::Update(){
+	if (!mWeapon)return;
 
-	if (m_AtackTime != 0.0f) {
-		m_AtackTime -= Hx::DeltaTime()->GetDeltaTime();
 
-		mWeapon->mTransform->Rotate(XMVectorSet(m_AtackTime,0,0,1));
-	}
 
 	if (m_IsGuard) {
 		if(m_GuardPos)
 			mWeapon->mTransform->SetParent(m_GuardPos);
+		m_AttackTime = 0.0f;
 	}
 	else {
 		mWeapon->mTransform->SetParent(gameObject);
+
+		if (m_AttackTime > 0.0f) {
+			m_AttackTime -= Hx::DeltaTime()->GetDeltaTime();
+			m_AttackTime = max(m_AttackTime, 0.0f);
+
+			mWeapon->mTransform->Rotate(XMVectorSet(m_AttackTime * 40.0f, 0, 0, 1));
+		}
 	}
 
 	m_IsGuard = false;
@@ -58,15 +64,16 @@ void WeaponHand::SetWeapon(GameObject weapon)
 		Hx::DestroyObject(mWeapon);
 	}
 	mWeapon = weapon;
+	if (!mWeapon)return;
 	mWeapon->mTransform->SetParent(gameObject);
 	mWeapon->mTransform->Position(XMVectorZero());
 	mWeapon->mTransform->Rotate(XMVectorZero());
 	mWeapon->RemoveComponent<PhysXComponent>();
 }
 
-void WeaponHand::Atack()
+void WeaponHand::Attack()
 {
-	m_AtackTime = 1.0f;
+	m_AttackTime = 1.0f;
 }
 
 void WeaponHand::Guard()

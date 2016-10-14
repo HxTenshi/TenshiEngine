@@ -31,11 +31,11 @@ void JointComponent::Initialize(){
 
 void JointComponent::Start(){
 
-	if (mActorUID[0] != ""){
+	if (!mActorUID[0].IsNull()){
 		auto act = Game::FindUID(mActorUID[0]);
 		SetRigidActor(RigitActorID::Actor_0, act);
 	}
-	if (mActorUID[1] != ""){
+	if (!mActorUID[1].IsNull()){
 		auto act = Game::FindUID(mActorUID[1]);
 		SetRigidActor(RigitActorID::Actor_1, act);
 	}

@@ -52,7 +52,15 @@ void PlayerController::Update(){
 		doge();
 	}
 
-	rotate();	
+	rotate();
+
+	if (!m_WeaponHand)return;
+	if (Input::Down(KeyCoord::Key_F)) {
+		guard();
+	}
+	if (Input::Down(MouseCoord::Left)) {
+		attack();
+	}
 }
 
 //開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）（エディター中も呼ばれます）
@@ -218,8 +226,15 @@ void PlayerController::doge()
 		if (abs(x) == 0 && abs(y) == 0) {
 			return;
 		}
-		mJump.x = x * m_MoveSpeed * 2;
-		mJump.z = y * m_MoveSpeed * 2;
+
+
+		auto v = XMVectorZero();
+		v += y * gameObject->mTransform->Forward();
+		v += x * gameObject->mTransform->Left();
+		v.y = 0.0f;
+		v = XMVector3Normalize(v);
+
+		mJump += v * m_MoveSpeed * 2;
 		mJump.y += m_JumpPower/2.0f;
 		auto p = mJump * Hx::DeltaTime()->GetDeltaTime();
 		m_CharacterControllerComponent->Move(p);
@@ -227,10 +242,19 @@ void PlayerController::doge()
 	}
 }
 
+#include "WeaponHand.h"
 void PlayerController::guard()
 {
+	auto weaponHand = m_WeaponHand->GetScript<WeaponHand>();
+	if (weaponHand) {
+		weaponHand->Guard();
+	}
 }
 
 void PlayerController::attack()
 {
+	auto weaponHand = m_WeaponHand->GetScript<WeaponHand>();
+	if (weaponHand) {
+		weaponHand->Attack();
+	}
 }

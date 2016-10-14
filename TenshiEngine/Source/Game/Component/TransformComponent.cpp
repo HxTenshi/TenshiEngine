@@ -10,8 +10,8 @@
 
 TransformComponent::TransformComponent()
 	:mFixMatrixFlag(false)
-	, mParent(NULL)
-	, mParentUniqueHashID(""){
+	, mParent(NULL){
+	mParentUniqueHashID.clear();
 	mMatrix = XMMatrixIdentity();
 	mScale = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 	mRotate = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
@@ -31,7 +31,7 @@ void TransformComponent::Initialize(){
 }
 
 void TransformComponent::Start(){
-	if (mParentUniqueHashID != ""){
+	if (!mParentUniqueHashID.IsNull()){
 		mParent = Game::FindUID(mParentUniqueHashID);
 	}
 	SetParent(mParent);
@@ -662,7 +662,7 @@ void TransformComponent::SetParent(GameObject parent){
 		});
 	}
 	mParent = parent;
-	mParentUniqueHashID = "";
+	mParentUniqueHashID.clear();
 	if (parent){
 		parent->mTransform->Children().push_back(gameObject);
 		mParentUniqueHashID = parent->GetUniqueID();

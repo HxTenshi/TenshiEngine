@@ -22,7 +22,6 @@ Actor::Actor()
 	, mEndStart(false)
 {
 	mName = "new Object";
-	mUniqueHash = "";
 	mPhysxLayer = 0;
 }
 Actor::~Actor()
@@ -353,7 +352,7 @@ bool Actor::ImportDataAndNewID(const std::string& fileName){
 void Actor::CreateNewID(){
 	MD5::MD5HashCoord hash;
 	MD5::GenerateMD5(hash);
-	mUniqueHash = hash.GetString();
+	mUniqueHash = hash;
 
 	if (!mTransform)return;
 	//UniqueID“o˜^‚µ‚È‚¨‚µ
