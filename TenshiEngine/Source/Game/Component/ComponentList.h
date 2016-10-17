@@ -97,6 +97,7 @@ public:
 			return false;
 		});
 	}
+private:
 #ifdef COMPONENTLIST_TYPE_MAP
 	using item_type = std::pair<size_t, shared_ptr<Component>>;
 	std::list<item_type> mComponent;
@@ -106,7 +107,12 @@ public:
 	std::unordered_map<item_type> mComponent;
 #endif
 
+public:
+	std::list<item_type> GetComponents() {
+		return mComponent;
+	}
 private:
+
 	GameObject gameObject;
 
 	bool mInitializeEnd;

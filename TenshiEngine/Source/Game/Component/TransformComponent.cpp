@@ -32,6 +32,7 @@ void TransformComponent::Initialize(){
 
 void TransformComponent::Start(){
 	if (!mParentUniqueHashID.IsNull()){
+		//if (mParent && mParent->GetUniqueID() == mParentUniqueHashID)return;
 		mParent = Game::FindUID(mParentUniqueHashID);
 	}
 	SetParent(mParent);
@@ -481,14 +482,14 @@ void TransformComponent::WorldScale(const XMVECTOR& scale){
 	Scale(s);
 }
 
-const XMVECTOR& TransformComponent::Forward() const{
-	return GetMatrix().r[2];
+const XMVECTOR TransformComponent::Forward() const{
+	return XMVector3Normalize(GetMatrix().r[2]);
 }
-const XMVECTOR& TransformComponent::Left() const{
-	return GetMatrix().r[0];
+const XMVECTOR TransformComponent::Left() const{
+	return XMVector3Normalize(GetMatrix().r[0]);
 }
-const XMVECTOR& TransformComponent::Up() const{
-	return GetMatrix().r[1];
+const XMVECTOR TransformComponent::Up() const{
+	return XMVector3Normalize(GetMatrix().r[1]);
 }
 
 const XMMATRIX& TransformComponent::GetMatrix() const{
@@ -541,8 +542,8 @@ const XMMATRIX& TransformComponent::GetMatrix() const{
 //このゲームオブジェクトより子のオブジェクトを全てデストロイする
 void TransformComponent::AllChildrenDestroy(){
 	while (mChildren.size()){
-		auto child = Children().front();
-		Children().pop_front();
+		auto child = mChildren.front();
+		mChildren.pop_front();
 		if (!child)continue;
 		//親と子が同時に死ぬとエラーが出る
 		child->mTransform->SetParent(NULL);
@@ -643,7 +644,7 @@ void TransformComponent::AddTorque(const XMVECTOR& force, ForceMode::Enum forceM
 		c->AddTorque(force, forceMode);
 }
 
-std::list<GameObject>& TransformComponent::Children(){
+std::list<GameObject> TransformComponent::Children(){
 	return mChildren;
 }
 GameObject TransformComponent::GetParent(){
@@ -657,14 +658,15 @@ void TransformComponent::SetParent(GameObject parent){
 	//if (mParent == parent)return;
 	if (!gameObject)return;
 	if (mParent){
-		mParent->mTransform->Children().remove_if([&](GameObject act){
+		auto children = mParent->mTransform->ChildrenRef();
+		children->remove_if([&](GameObject act){
 			return gameObject.Get() == act.Get();
 		});
 	}
 	mParent = parent;
 	mParentUniqueHashID.clear();
 	if (parent){
-		parent->mTransform->Children().push_back(gameObject);
+		parent->mTransform->ChildrenRef()->push_back(gameObject);
 		mParentUniqueHashID = parent->GetUniqueID();
 		parent->RunChangeParentCallback();
 	}

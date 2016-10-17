@@ -65,12 +65,12 @@ namespace MD5{
 	}
 
 
-	bool GenerateMD5(std::string key, MD5HashCoord& hash)
+	bool GenerateMD5(std::string key, MD5HashCode& hash)
 	{
 		return GetMD5Hash(key.c_str(), key.length(), hash.key_c);
 	}
 
-	bool GenerateMD5(MD5HashCoord& hash){
+	bool GenerateMD5(MD5HashCode& hash){
 		static Random::xor128 r;
 
 		/* Œ»İ‚Ìæ“¾ */

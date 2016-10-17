@@ -12,6 +12,17 @@ const int WorldGrid::mXlineNum = 100;
 
 WorldGrid::WorldGrid(){
 
+}
+WorldGrid::~WorldGrid(){
+	mpVertexBuffer->Release();
+	mpIndexBuffer->Release();
+
+}
+
+
+void WorldGrid::Initialize()
+{
+
 	create();
 
 	mShader.Create("EngineResource/Line.fx");
@@ -31,18 +42,11 @@ WorldGrid::WorldGrid(){
 
 
 	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-	
+
 	mLineCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
 	mLineCBuffer.mParam.mWorld = XMMatrixIdentity();
 	mLineCBuffer.UpdateSubresource(render->m_Context);
-
 }
-WorldGrid::~WorldGrid(){
-	mpVertexBuffer->Release();
-	mpIndexBuffer->Release();
-
-}
-
 
 void WorldGrid::Draw(){
 

@@ -42,8 +42,8 @@ public:
 			InitializeMetaData(_filename);
 			data = AssetFactory::Create(_filename);
 			if (data){
-				MD5::MD5HashCoord hash;
-				memset(hash.key_c, NULL, sizeof(MD5::MD5HashCoord));
+				MD5::MD5HashCode hash;
+				memset(hash.key_c, NULL, sizeof(MD5::MD5HashCode));
 				m_AssetCache.insert(std::make_pair(_filename, std::make_pair(hash, data)));
 			}
 		}
@@ -71,7 +71,7 @@ public:
 	}
 
 	template <class T>
-	static void Instance(const MD5::MD5HashCoord& hash, shared_ptr<T>& out){
+	static void Instance(const MD5::MD5HashCode& hash, shared_ptr<T>& out){
 		auto file = m_AssetMetaCache.find(hash);
 
 		AssetDataTemplatePtr data;
@@ -102,7 +102,7 @@ public:
 	}
 
 
-	static bool FilePath2Hash(const char* filename, MD5::MD5HashCoord& hash){
+	static bool FilePath2Hash(const char* filename, MD5::MD5HashCode& hash){
 
 		std::string x(filename);
 		std::transform(x.begin(), x.end(), x.begin(), [](int x) { return (char)std::tolower(x); });
@@ -114,7 +114,7 @@ public:
 		hash = file->second.first;
 		return true;
 	}
-	static bool Hash2FilePath(MD5::MD5HashCoord& hash, std::string& filename){
+	static bool Hash2FilePath(MD5::MD5HashCode& hash, std::string& filename){
 
 		auto file = m_AssetMetaCache.find(hash);
 		if (file == m_AssetMetaCache.end())return false;
@@ -213,8 +213,8 @@ public:
 	}
 
 private:
-	static std::unordered_map<std::string, std::pair<MD5::MD5HashCoord,AssetDataTemplatePtr>> m_AssetCache;
-	static std::map<MD5::MD5HashCoord, std::pair<std::string, AssetDataTemplatePtr>> m_AssetMetaCache;
+	static std::unordered_map<std::string, std::pair<MD5::MD5HashCode,AssetDataTemplatePtr>> m_AssetCache;
+	static std::map<MD5::MD5HashCode, std::pair<std::string, AssetDataTemplatePtr>> m_AssetMetaCache;
 	static std::pair<std::string, AssetDataTemplatePtr> m_DeleteCache;
 };
 

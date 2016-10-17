@@ -58,7 +58,7 @@ public:
 	XMFLOAT4 mSpecular;
 	XMFLOAT2 mTexScale;
 	XMFLOAT2 mHeightPower;
-	XMFLOAT4 mNormaleScale;
+	XMFLOAT4 mNormalScale;
 	XMFLOAT2 mOffset;
 	float mEmissivePowor;
 	bool mForwardRendering;

@@ -74,7 +74,7 @@ void PhysXComponent::Start(){
 
 void PhysXComponent::ChildrenAttachShape(Actor* actor){
 
-	for (auto& act : actor->mTransform->Children()){
+	for (auto act : actor->mTransform->Children()){
 		auto com = act->GetComponent<PhysXComponent>();
 		if (com)continue;
 

@@ -10,6 +10,32 @@
 
 void MaterialComponent::LoadAssetResource(const std::string& path){
 
+	FileInputHelper io(path,NULL);
+
+	if (io.error) {
+		return;
+	}
+
+	auto dir = forward_than_find_last_of(path, "/") + "/";
+
+	mMaterials[0].IO_Data(&io, dir);
+
+	SetAlbedoColor(mAlbedo);
+	SetSpecularColor(mSpecular);
+	mTexScale = mMaterials[0].mTexScale;
+	mHeightPower = mMaterials[0].mHeightPower;
+	mThickness = mMaterials[0].mAmbient.w;
+	mNormalScale = mMaterials[0].mNormalScale;
+	mOffset = mMaterials[0].mOffset;
+	mEmissivePowor = mMaterials[0].mEmissivePowor;
+
+	mAlbedoTexture.m_Hash = mMaterials[0].mTexture[0].GetHash();
+	mNormalTexture.m_Hash = mMaterials[0].mTexture[1].GetHash();
+	mHeightTexture.m_Hash = mMaterials[0].mTexture[2].GetHash();
+	mSpecularTexture.m_Hash = mMaterials[0].mTexture[3].GetHash();
+	mRoughnessTexture.m_Hash = mMaterials[0].mTexture[4].GetHash();
+	mEmissiveTexture.m_Hash = mMaterials[0].mTexture[5].GetHash();
+
 	//File f(path);
 	//if (!f)return;
 
@@ -65,7 +91,7 @@ MaterialComponent::MaterialComponent(){
 	mSpecular = XMFLOAT4(0, 0, 0, 1);
 	mTexScale = XMFLOAT2(1, 1);
 	mHeightPower = XMFLOAT2(2.0f, 1);
-	mNormaleScale = XMFLOAT4(1, 1, 1, 1);
+	mNormalScale = XMFLOAT4(1, 1, 1, 1);
 	mOffset = XMFLOAT2(0,0);
 	mThickness = 0.0f;
 	mEmissivePowor = 1.0f;
@@ -107,7 +133,7 @@ void MaterialComponent::Initialize(){
 	mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
 	mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
 	mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
-	mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
+	mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormalScale;
 	mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
 	mMaterials[0].mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
 
@@ -204,10 +230,10 @@ void MaterialComponent::CreateInspector(){
 	};
 
 	std::function<void(Vector3)> collbackNormalScale = [&](Vector3 f){
-		mNormaleScale.x = f.x;
-		mNormaleScale.y = f.y;
-		mNormaleScale.z = f.z;
-		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormaleScale;
+		mNormalScale.x = f.x;
+		mNormalScale.y = f.y;
+		mNormalScale.z = f.z;
+		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormalScale;
 	};
 
 	Inspector ins("Material",this);
@@ -242,7 +268,7 @@ void MaterialComponent::CreateInspector(){
 	auto tex = Vector2(mTexScale);
 	ins.Add("TextureScale", &tex, collbackTex);
 
-	auto texNormal = Vector3(mNormaleScale);
+	auto texNormal = Vector3(mNormalScale);
 	ins.Add("NormaleScale", &texNormal, collbackNormalScale);
 
 	auto off = Vector2(mOffset);
@@ -292,10 +318,10 @@ void MaterialComponent::IO_Data(I_ioHelper* io){
 	_KEY(mOffset.y);
 	_KEY(mHeightPower.x);
 	_KEY(mHeightPower.y);
-	_KEY(mNormaleScale.x);
-	_KEY(mNormaleScale.y);
-	_KEY(mNormaleScale.z);
-	_KEY(mNormaleScale.w);
+	_KEY(mNormalScale.x);
+	_KEY(mNormalScale.y);
+	_KEY(mNormalScale.z);
+	_KEY(mNormalScale.w);
 	_KEY(mThickness);
 #undef _KEY
 }

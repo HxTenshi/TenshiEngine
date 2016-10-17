@@ -113,6 +113,10 @@ public:
 		return mPhysxLayer;
 	}
 
+	bool EndFinish() {
+		return mEndFinish;
+	}
+
 protected:
 	ComponentList mComponents;
 
@@ -132,6 +136,7 @@ protected:
 	UniqueID mUniqueHash;
 	bool mEndInitialize;
 	bool mEndStart;
+	bool mEndFinish;
 
 	int mPhysxLayer;
 

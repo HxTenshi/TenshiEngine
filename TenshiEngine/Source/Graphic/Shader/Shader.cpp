@@ -4,9 +4,16 @@
 #include "Engine/AssetFile/Shader/ShaderFileData.h"
 
 void Shader::Create(const char* fileName){
-	AssetDataBase::Instance(fileName, m_ShaderAssetData);
+	AssetDataBase::FilePath2Hash(fileName, m_Hash);
+	AssetDataBase::Instance(m_Hash, m_ShaderAssetData);
+}
+void Shader::Create(const MD5::MD5HashCode & hash)
+{
+	m_Hash = hash;
+	AssetDataBase::Instance(m_Hash, m_ShaderAssetData);
 }
 void Shader::Create(ShaderAsset& asset){
+	m_Hash = asset.m_Hash;
 	m_ShaderAssetData = asset.m_Ptr;
 }
 

@@ -22,12 +22,17 @@ public:
 	}
 
 	void Create(const char* fileName);
+	void Create(const MD5::MD5HashCode& hash);
 	void Create(ShaderAsset& asset);
 
 	void SetShader(bool UseAnime, ID3D11DeviceContext* context) const;
 	void SetShader_VS(bool UseAnime, ID3D11DeviceContext* context) const;
 	void SetShader_PS(ID3D11DeviceContext* context) const;
 
+	MD5::MD5HashCode GetHash()const { return m_Hash; }
+
+
 private:
+	MD5::MD5HashCode m_Hash;
 	ShaderAssetDataPtr m_ShaderAssetData;
 };

@@ -10,6 +10,7 @@ Material::Material()
 	mHeightPower = XMFLOAT2(2.0f, 1.0f);
 	mNormalScale = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	mOffset = XMFLOAT2(0.0f,0.0f);
+	mEmissivePowor = 1.0f;
 }
 Material::~Material()
 {
@@ -30,7 +31,7 @@ HRESULT Material::Create(const char* shaderFileName){
 	mCBMaterial.mParam.HeightPower = mHeightPower;
 	mCBMaterial.mParam.MNormaleScale = mNormalScale;
 	mCBMaterial.mParam.MOffset = mOffset;
-	mCBMaterial.mParam.EmissivePowor = 1.0f;
+	mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
 	mCBMaterial.mParam.MNULL = 0.0f;
 
 	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
@@ -58,7 +59,7 @@ HRESULT Material::Create(ShaderAsset& asset){
 	mCBMaterial.mParam.HeightPower = mHeightPower;
 	mCBMaterial.mParam.MNormaleScale = mNormalScale;
 	mCBMaterial.mParam.MOffset = mOffset;
-	mCBMaterial.mParam.EmissivePowor = 1.0f;
+	mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
 	mCBMaterial.mParam.MNULL = 0.0f;
 
 	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
@@ -199,6 +200,31 @@ void Material::SetTexture(const char* FileName, UINT Slot){
 		mCBUseTexture.mParam.UseTexture2.w = flag;
 	//mCBUseTexture->UpdateSubresource();
 }
+void Material::SetTexture(const MD5::MD5HashCode& hash, UINT Slot) {
+	HRESULT hr = mTexture[Slot].Create(hash);
+	mTexture[Slot].mFileName = "ref";
+	float flag = 1.0f;
+	if (FAILED(hr))
+		flag = 0.0f;
+	if (Slot == 0)
+		mCBUseTexture.mParam.UseTexture.x = flag;
+	if (Slot == 1)
+		mCBUseTexture.mParam.UseTexture.y = flag;
+	if (Slot == 2)
+		mCBUseTexture.mParam.UseTexture.z = flag;
+	if (Slot == 3)
+		mCBUseTexture.mParam.UseTexture.w = flag;
+
+	if (Slot == 4)
+		mCBUseTexture.mParam.UseTexture2.x = flag;
+	if (Slot == 5)
+		mCBUseTexture.mParam.UseTexture2.y = flag;
+	if (Slot == 6)
+		mCBUseTexture.mParam.UseTexture2.z = flag;
+	if (Slot == 7)
+		mCBUseTexture.mParam.UseTexture2.w = flag;
+	//mCBUseTexture->UpdateSubresource();
+}
 void Material::SetTexture(const Texture& Tex, UINT Slot){
 	mTexture[Slot] = Tex;
 	mTexture[Slot].mFileName = "ref";
@@ -253,29 +279,102 @@ void Material::SetTexture(const TextureAsset& Tex, UINT Slot){
 	//mCBUseTexture->UpdateSubresource();
 }
 
-#include "MySTL/File.h"
-void  Material::ExportData(File& f){
-	auto& use = mCBUseTexture.mParam.UseTexture;
-	int num = (int)(use.x + use.y + use.z + use.w);
-	f.Out(num);
-	if (use.x == 1.0f){
-		int slot = 0;
-		f.Out(slot);
-		mTexture[slot].ExportData(f);
+#include "MySTL/ioHelper.h"
+void Material::IO_Data(I_ioHelper* io, const std::string& materialPath) {
+#define _KEY(x) io->func( x , #x)
+
+	io->func(mDiffuse, "Albedo");
+	io->func(mSpecular, "Specular");
+	io->func(mAmbient, "Ambient");
+	io->func(mTexScale, "TexScale");
+	io->func(mHeightPower, "HeightPower");
+	io->func(mNormalScale, "NormalScale");
+	io->func(mOffset, "Offset");
+	io->func(mSpecular.w, "Roughness");
+	io->func(mAmbient.w, "Thickness");
+	io->func(mEmissivePowor, "EmissivePowor");
+	io->func(mSpecular.w, "Roughness");
+
+	if (io->isInput()) {
+
+		mCBMaterial.mParam.Diffuse = mDiffuse;
+		mCBMaterial.mParam.Specular = mSpecular;
+		mCBMaterial.mParam.Ambient = mAmbient;
+		mCBMaterial.mParam.TexScale = mTexScale;
+		mCBMaterial.mParam.HeightPower = mHeightPower;
+		mCBMaterial.mParam.MNormaleScale = mNormalScale;
+		mCBMaterial.mParam.MOffset = mOffset;
+		mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
+		mCBMaterial.mParam.MNULL = 0.0f;
+
+		std::string name;
+		io->func(name, "AlbedoTexture");
+		SetTexture((materialPath + name).c_str(), 0);
+		name = "";
+		io->func(name, "NormalTexture");
+		SetTexture((materialPath + name).c_str(), 1);
+		name = "";
+		io->func(name, "HeightTexture");
+		SetTexture((materialPath + name).c_str(), 2);
+		name = "";
+		io->func(name, "SpecularTexture");
+		SetTexture((materialPath + name).c_str(), 3);
+		name = "";
+		io->func(name, "RoughnessTexture");
+		SetTexture((materialPath + name).c_str(), 4);
+		name = "";
+		io->func(name, "EmissiveTexture");
+		SetTexture((materialPath + name).c_str(), 5);
+		name = "";
+		io->func(name, "Tex6");
+		SetTexture((materialPath + name).c_str(), 6);
+		name = "";
+		io->func(name, "Tex7");
+		SetTexture((materialPath + name).c_str(), 7);
+
+
+		MD5::MD5HashCode hash;
+
+		io->func(hash, "Shader");
+		mShader.Create(hash);
+		TextureAsset tex;
+		io->func(hash, "AlbedoTextureHash");
+		if(!hash.IsNull())SetTexture(hash, 0);
+		hash.clear();
+		io->func(hash, "NormalTextureHash");
+		if (!hash.IsNull())SetTexture(hash, 1);
+		hash.clear();
+		io->func(hash, "HeightTextureHash");
+		if (!hash.IsNull())SetTexture(hash, 2);
+		hash.clear();
+		io->func(hash, "SpecularTextureHash");
+		if (!hash.IsNull())SetTexture(hash, 3);
+		hash.clear();
+		io->func(hash, "RoughnessTextureHash");
+		if (!hash.IsNull())SetTexture(hash, 4);
+		hash.clear();
+		io->func(hash, "EmissiveTextureHash");
+		if (!hash.IsNull())SetTexture(hash, 5);
+		hash.clear();
+		io->func(hash, "Tex6Hash");
+		if (!hash.IsNull())SetTexture(hash, 6);
+		hash.clear();
+		io->func(hash, "Tex7Hash");
+		if (!hash.IsNull())SetTexture(hash, 7);
 	}
-	if (use.y == 1.0f){
-		int slot = 1;
-		f.Out(slot);
-		mTexture[slot].ExportData(f);
+	else {
+		io->func(mShader.GetHash(), "Shader");
+
+		io->func(mTexture[0].GetHash(), "AlbedoTextureHash");
+		io->func(mTexture[1].GetHash(), "NormalTextureHash");
+		io->func(mTexture[2].GetHash(), "HeightTextureHash");
+		io->func(mTexture[3].GetHash(), "SpecularTextureHash");
+		io->func(mTexture[4].GetHash(), "RoughnessTextureHash");
+		io->func(mTexture[5].GetHash(), "EmissiveTextureHash");
+		io->func(mTexture[6].GetHash(), "Tex6Hash");
+		io->func(mTexture[7].GetHash(), "Tex7Hash");
 	}
-	if (use.z == 1.0f){
-		int slot = 2;
-		f.Out(slot);
-		mTexture[slot].ExportData(f);
-	}
-	if (use.w == 1.0f){
-		int slot = 3;
-		f.Out(slot);
-		mTexture[slot].ExportData(f);
-	}
+
+	//_KEY(mForwardRendering);
+#undef _KEY
 }

@@ -80,10 +80,10 @@ void ModelComponent::ExpanderMesh(){
 	int num = mModel->GetMeshNum();
 
 	for (int i = 0; i < num; i++){
-		auto obj = new Actor();
+		auto obj = make_shared<Actor>();
 		obj->mTransform = obj->AddComponent<TransformComponent>();
 		Game::AddObject(obj);
-		obj->mTransform->SetParent(gameObject);
+		obj->mTransform->SetParentUniqueID(gameObject->GetUniqueID());
 		obj->Name("Mesh:"+std::to_string(i));
 		obj->AddComponent<MaterialComponent>();
 		auto com = obj->AddComponent<MeshComponent>();

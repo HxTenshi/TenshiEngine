@@ -20,6 +20,7 @@ Actor::Actor()
 	, mTransform(NULL)
 	, mEndInitialize(false)
 	, mEndStart(false)
+	, mEndFinish(false)
 {
 	mName = "new Object";
 	mPhysxLayer = 0;
@@ -39,20 +40,23 @@ void Actor::Initialize(){
 
 	mComponents.Initialize(this->shared_from_this());
 
-	for (const auto& cmp : mComponents.mComponent){
+	for (auto cmp : mComponents.GetComponents()){
 		cmp.second->_Initialize(this->shared_from_this());
 	}
 	mComponents.RunInitialize();
 	mEndInitialize = true;
+	mEndFinish = false;
 }
 void Actor::Start(){
 	mComponents.RunStart();
 	mEndStart = true;
+	mEndFinish = false;
 }
 void Actor::Finish(){
 	mComponents.RunFinish();
 	mEndInitialize = false;
 	mEndStart = false;
+	mEndFinish = true;
 }
 #ifdef _ENGINE_MODE
 void Actor::Initialize_Script(){
@@ -78,13 +82,12 @@ void Actor::EngineUpdateComponent(float deltaTime){
 	}
 
 	mTransform->EngineUpdate();
-	for (const auto& cmp : mComponents.mComponent){
+	for (auto cmp : mComponents.GetComponents()){
 		if (cmp.second.Get() == mTransform.Get())continue;
 
 		if (!cmp.second->IsEnabled())continue;
 		cmp.second->EngineUpdate();
 	}
-
 
 	for (auto child : mTransform->Children()){
 		child->EngineUpdateComponent(deltaTime);
@@ -99,7 +102,7 @@ void Actor::UpdateComponent(float deltaTime){
 	Update(deltaTime);
 
 	mTransform->Update();
-	for (const auto& cmp : mComponents.mComponent){
+	for (auto cmp : mComponents.GetComponents()){
 		if (cmp.second.Get() == mTransform.Get())continue;
 		if (!cmp.second->IsEnabled())continue;
 		cmp.second->Update();
@@ -153,7 +156,7 @@ void Actor::CreateInspector(){
 	
 
 	ins.Complete();
-	for (const auto& cmp : mComponents.mComponent){
+	for (auto cmp : mComponents.GetComponents()){
 		cmp.second->CreateInspector();
 	}
 }
@@ -237,7 +240,7 @@ void Actor::_ExportData(I_ioHelper* io, bool childExport){
 
 	io->pushObject("components");
 
-	for (const auto& cmp : mComponents.mComponent){
+	for (auto cmp : mComponents.GetComponents()){
 		io->pushObject(cmp.second->ClassName());
 
 		cmp.second->IO_Data(io);
@@ -350,7 +353,7 @@ bool Actor::ImportDataAndNewID(const std::string& fileName){
 
 #include "Library/MD5.h"
 void Actor::CreateNewID(){
-	MD5::MD5HashCoord hash;
+	MD5::MD5HashCode hash;
 	MD5::GenerateMD5(hash);
 	mUniqueHash = hash;
 
@@ -533,11 +536,12 @@ void* Actor::_GetScript(const char* name){
 //ペアレント変更コールバックを実行
 void Actor::RunChangeParentCallback(){
 
-	for (auto& com : mComponents.mComponent){
+	for (auto com : mComponents.GetComponents()){
+		if (!com.second)continue;
 		this->ChildEnableChanged(com.second.Get());
 		com.second->ChangeParentCallback();
 	}
-	for (auto& child : mTransform->Children()){
+	for (auto child : mTransform->Children()){
 		this->ChildEnableChanged(child.Get());
 		child->RunChangeParentCallback();
 	}
@@ -545,7 +549,7 @@ void Actor::RunChangeParentCallback(){
 
 
 void Actor::OnEnabled(){
-	for (auto& com : mComponents.mComponent){
+	for (auto com : mComponents.GetComponents()){
 		this->ChildEnableChanged(com.second.Get());
 	}
 	for (auto child : mTransform->Children()){
@@ -553,7 +557,7 @@ void Actor::OnEnabled(){
 	}
 }
 void Actor::OnDisabled(){
-	for (auto& com : mComponents.mComponent){
+	for (auto com : mComponents.GetComponents()){
 		this->ChildEnableChanged(com.second.Get());
 	}
 	for (auto child : mTransform->Children()){

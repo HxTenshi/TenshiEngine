@@ -47,7 +47,7 @@ public:
 		auto model = make_shared<ModelComponent>();
 
 		MeshAsset asset;
-		MD5::MD5HashCoord hash;
+		MD5::MD5HashCode hash;
 		AssetDataBase::FilePath2Hash("EngineResource/Arrow.pmx.tesmesh", hash);
 		AssetLoad::Instance(hash, asset);
 		model->Load(asset);

@@ -171,6 +171,8 @@ Game::Game(){
 	mMainCamera = NULL;
 	mMainCameraEngineUpdate = NULL;
 
+	mWorldGrid.Initialize();
+
 	gpDeltaTime = &mDeltaTime;
 #ifdef _ENGINE_MODE
 	gSelectActor = &mSelectActor;
@@ -492,7 +494,7 @@ void Game::AddObject(GameObjectPtr actor, bool undoFlag, bool DelayInitialize){
 		//delete actor;
 		return;
 	}
-	if (actor->GetUniqueID() == ""){
+	if (actor->GetUniqueID().IsNull()){
 		actor->CreateNewID();
 	}
 
@@ -554,7 +556,7 @@ void Game::ActorMoveStage(){
 		if (tar.first == ActorMove::Delete){
 
 #ifdef _ENGINE_MODE
-
+			if (actor->EndFinish())continue;
 
 			mGame->mSelectActor.ReleaseSelect(actor);
 			
@@ -647,7 +649,7 @@ GameObject Game::FindActor(Actor* actor){
 GameObject Game::FindEngineActor(Actor* actor){
 
 	
-	for (auto& act : mEngineRootObject->mTransform->Children()){
+	for (auto act : mEngineRootObject->mTransform->Children()){
 		if (act.Get() == actor){
 			return act;
 		}
@@ -745,6 +747,8 @@ void Game::ChangePlayGame(bool isPlay){
 	mIsPlay = isPlay;
 	gIsPlay = mIsPlay;
 	if (isPlay){
+
+		mPhysX3Main->DisplayInitialize();
 
 		mDeltaTime.Reset();
 

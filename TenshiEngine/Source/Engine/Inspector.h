@@ -123,7 +123,7 @@ public:
 	void Add(const std::string& text, IAsset* data, const std::function<void(void)>& collback) {
 
 		std::function<void(std::string)> loadcoll = [data, collback](std::string path) {
-			MD5::MD5HashCoord hash;
+			MD5::MD5HashCode hash;
 			if (AssetDataBase::FilePath2Hash(path.c_str(), hash)) {
 				AssetLoad::Instance<T>(hash, (Asset<T>*)data);
 			}

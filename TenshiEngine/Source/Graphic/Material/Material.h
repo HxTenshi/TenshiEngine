@@ -32,6 +32,7 @@ public:
 	virtual ~IMaterial(){};
 };
 
+class I_ioHelper;
 class Material : public IMaterial{
 public:
 	Material();
@@ -47,11 +48,11 @@ public:
 	void PSSetShaderResources(ID3D11DeviceContext* context , ForcedMaterialFilter::Enum filter = ForcedMaterialFilter::ALL) const;
 	void GSSetShaderResources(ID3D11DeviceContext* context , ForcedMaterialFilter::Enum filter = ForcedMaterialFilter::ALL) const;
 	void SetTexture(const char* FileName, UINT Slot = 0);
+	void SetTexture(const MD5::MD5HashCode& hash, UINT Slot = 0);
 	void SetTexture(const Texture& Tex, UINT Slot = 0);
 	void SetTexture(const TextureAsset& Tex, UINT Slot = 0);
 
-
-	void ExportData(File& f);
+	void IO_Data(I_ioHelper* io, const std::string& materialPath = "");
 
 	bool IsCreate(){
 		return mCBMaterial.mBuffer != NULL;
@@ -68,6 +69,7 @@ public:
 	XMFLOAT2 mHeightPower;
 	XMFLOAT4 mNormalScale;
 	XMFLOAT2 mOffset;
+	float mEmissivePowor;
 	//unsigned char toon_index;
 	//unsigned char edge_flag;//	—ÖŠsƒtƒ‰ƒO
 

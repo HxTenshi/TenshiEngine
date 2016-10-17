@@ -74,6 +74,7 @@ public:
 	PxRigidStatic* createRigidStatic();
 
 	void EngineDisplay();
+	void DisplayInitialize();
 	void Display();
 
 	void ShutdownPhysX();

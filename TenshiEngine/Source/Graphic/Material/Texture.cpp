@@ -28,6 +28,7 @@ Texture::~Texture()
 
 HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 	mFileName = "";
+	mHash.clear();
 	HRESULT hr = S_OK;
 	// Create the sample state
 	D3D11_SAMPLER_DESC sampDesc;
@@ -63,6 +64,7 @@ HRESULT Texture::Create(ID3D11ShaderResourceView* pTexture){
 
 HRESULT Texture::Create(ID3D11Texture2D* pTexture){
 	mFileName = "";
+	mHash.clear();
 	ID3D11ShaderResourceView* pShaderResourceView;
 	auto hr = Device::mpd3dDevice->CreateShaderResourceView(pTexture, nullptr, &pShaderResourceView);
 	if (FAILED(hr)){
@@ -75,14 +77,19 @@ HRESULT Texture::Create(ID3D11Texture2D* pTexture){
 
 HRESULT Texture::Create(const char* FileName){
 	mFileName = FileName;
+	if (!AssetDataBase::FilePath2Hash(FileName, mHash)){
+		mHash.clear();
+		return E_FAIL;
+	}
 	TextureAssetDataPtr tex(NULL);
-	AssetDataBase::Instance(FileName, tex);
+	AssetDataBase::Instance(mHash, tex);
 	mTextureAssetData = tex;
 	return ((bool)mTextureAssetData)?S_OK:E_FAIL;
 }
 
-HRESULT Texture::Create(const MD5::MD5HashCoord& hash){
+HRESULT Texture::Create(const MD5::MD5HashCode& hash){
 	mFileName = "";// FileName;
+	mHash = hash;
 	TextureAssetDataPtr tex(NULL);
 	AssetDataBase::Instance(hash, tex);
 	mTextureAssetData = tex;
@@ -92,6 +99,7 @@ HRESULT Texture::Create(const TextureAsset& tex){
 	mFileName = "";// FileName;
 	mTextureAssetData = NULL;
 	mTextureAssetData = tex.m_Ptr;
+	mHash = tex.m_Hash;
 	return ((bool)mTextureAssetData) ? S_OK : E_FAIL;
 }
 
@@ -130,18 +138,4 @@ shared_ptr<Release_self<ID3D11Resource>> Texture::GetResource(){
 	shared_ptr<Release_self<ID3D11Resource>> temp = make_shared<Release_self<ID3D11Resource>>();
 	(*temp) = res;
 	return temp;
-}
-
-
-#include "MySTL/File.h"
-void Texture::ExportData(File& f){
-	if (mFileName != ""){
-		auto name = mFileName;
-		auto ioc = name.find(" ");
-		while (std::string::npos != ioc){
-			name.replace(ioc, 1, "$");
-			ioc = name.find(" ");
-		}
-		f.Out(name);
-	}
 }

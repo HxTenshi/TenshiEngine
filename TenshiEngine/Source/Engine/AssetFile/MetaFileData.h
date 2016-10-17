@@ -10,7 +10,7 @@ public:
 	bool Create(const char* filename) override;
 
 
-	const MD5::MD5HashCoord* GetHash() const{
+	const MD5::MD5HashCode* GetHash() const{
 		return &m_Hash;
 	}
 
@@ -20,5 +20,5 @@ private:
 	MetaFileData(const MetaFileData&) = delete;
 	MetaFileData& operator=(const MetaFileData&) = delete;
 
-	MD5::MD5HashCoord m_Hash;
+	MD5::MD5HashCode m_Hash;
 };

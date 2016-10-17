@@ -31,6 +31,7 @@
 #pragma comment(lib,"PhysX3CharacterKinematic_x86.lib")
 #endif
 
+//bool g_SimulationInitialize = false;
 class TestOn : public physx::PxSimulationEventCallback{
 	void onConstraintBreak(PxConstraintInfo *constraints, PxU32 count) override{
 		(void)constraints;
@@ -46,6 +47,7 @@ class TestOn : public physx::PxSimulationEventCallback{
 	}
 	void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs) override
 	{
+		//if (g_SimulationInitialize)return;
 		for (PxU32 i = 0; i < nbPairs; i++)
 		{
 			Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
@@ -88,6 +90,7 @@ class TestOn : public physx::PxSimulationEventCallback{
 		}
 	}
 	void onTrigger(PxTriggerPair *pairs, PxU32 count) override{
+		//if (g_SimulationInitialize)return;
 		for (PxU32 i = 0; i < count; i++)
 		{
 			const PxTriggerPair& cp = pairs[i];
@@ -647,6 +650,13 @@ void PhysX3Main::EngineDisplay() {
 		//mEngineScene->checkResults(true);
 		mEngineScene->fetchResults(true);
 
+	}
+
+}
+void PhysX3Main::DisplayInitialize() {
+	if (gScene)
+	{
+		gScene->flushSimulation(false);
 	}
 
 }

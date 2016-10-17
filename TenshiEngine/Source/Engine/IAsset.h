@@ -22,7 +22,7 @@ public:
 		return m_Ptr != NULL;
 	}
 	shared_ptr <IAssetDataTemplate> m_Ptr;
-	MD5::MD5HashCoord m_Hash;
+	MD5::MD5HashCode m_Hash;
 	std::string m_Name;
 };
 

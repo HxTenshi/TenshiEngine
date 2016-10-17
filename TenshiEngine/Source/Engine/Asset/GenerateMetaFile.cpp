@@ -19,7 +19,7 @@ void MakeMetaFile(std::string FileName){
 		return;
 	}
 
-	MD5::MD5HashCoord m_Hash;
+	MD5::MD5HashCode m_Hash;
 	if (!MD5::GenerateMD5(m_Hash))return;
 
 	FileName += ".meta";
