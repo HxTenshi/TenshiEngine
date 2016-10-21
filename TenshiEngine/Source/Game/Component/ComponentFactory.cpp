@@ -24,6 +24,7 @@
 #include "DebugEngineScriptComponent.h"
 #include "SoundListenerComponent.h"
 #include "GizumoComponent.h"
+#include "NaviMeshComponent.h"
 
 
 
@@ -56,6 +57,7 @@ ComponentFactory::ComponentFactory(){
 	_NewFunc<DebugEngineScriptComponent>();
 	_NewFunc<SoundListenerComponent>();
 	_NewFunc<GizumoComponent>();
+	_NewFunc<NaviMeshComponent>();
 }
 
 shared_ptr<Component> ComponentFactory::Create(const std::string& ClassName){

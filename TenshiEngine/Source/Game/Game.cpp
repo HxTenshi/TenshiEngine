@@ -171,10 +171,10 @@ Game::Game(){
 	mMainCamera = NULL;
 	mMainCameraEngineUpdate = NULL;
 
-	mWorldGrid.Initialize();
 
 	gpDeltaTime = &mDeltaTime;
 #ifdef _ENGINE_MODE
+	mWorldGrid.Initialize();
 	gSelectActor = &mSelectActor;
 
 	mIsPlay = false;

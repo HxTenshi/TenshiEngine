@@ -22,5 +22,6 @@
 #include "Game/Component/PostEffectComponent.h"
 #include "Game/Component/ParticleComponent.h"
 #include "Game/Component/SoundComponent.h"
+#include "Game/Component/NaviMeshComponent.h"
 
 #pragma warning( pop )

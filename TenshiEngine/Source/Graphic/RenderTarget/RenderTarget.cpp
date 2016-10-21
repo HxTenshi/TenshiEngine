@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderTarget.h"
+#include "Game/RenderingSystem.h"
 
 
 RenderTarget::RenderTarget()

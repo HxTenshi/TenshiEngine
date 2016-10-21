@@ -582,6 +582,7 @@
     <ClCompile Include="Source\Game\Component\MeshDrawComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ModelComponent.cpp" />
     <ClCompile Include="Source\Game\Component\MovieComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\NaviMeshComponent.cpp" />
     <ClCompile Include="Source\Game\Component\ParticleComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PointLightComponent.cpp" />
     <ClCompile Include="Source\Game\Component\PostEffectComponent.cpp" />
@@ -698,6 +699,7 @@
     <ClInclude Include="Source\Game\Component\DebugEngineScriptComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugScript\DebugNaviMesh.h" />
     <ClInclude Include="Source\Game\Component\GizumoComponent.h" />
+    <ClInclude Include="Source\Game\Component\NaviMeshComponent.h" />
     <ClInclude Include="Source\Game\Component\SoundListenerComponent.h" />
     <ClInclude Include="Source\Game\IActor.h" />
     <ClInclude Include="Source\Game\Component\JointComponent.h" />

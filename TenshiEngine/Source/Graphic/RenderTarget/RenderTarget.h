@@ -4,7 +4,6 @@
 #include "Device/DirectX11Device.h"
 #include "Graphic/Material/Texture.h"
 
-#include "Game/RenderingSystem.h"
 
 class RenderTarget{
 public:
