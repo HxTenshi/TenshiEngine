@@ -41,15 +41,15 @@ public:
 	virtual void Position(const XMVECTOR& position) = 0;
 	virtual void Quaternion(const XMVECTOR& Quaternion) = 0;
 
-	virtual const XMVECTOR& Forward() const = 0;
-	virtual const XMVECTOR& Left() const = 0;
-	virtual const XMVECTOR& Up() const = 0;
+	virtual const XMVECTOR Forward() const = 0;
+	virtual const XMVECTOR Left() const = 0;
+	virtual const XMVECTOR Up() const = 0;
 
 	virtual void AddForce(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) = 0;
 	virtual void AddTorque(const XMVECTOR& force, ForceMode::Enum forceMode = ForceMode::eFORCE) = 0;
 	virtual const XMMATRIX& GetMatrix() const = 0;
 
-	virtual std::list<GameObject>& Children() = 0;
+	virtual std::list<GameObject> Children() = 0;
 	virtual GameObject GetParent() = 0;
 	virtual void SetParentUniqueID(UniqueID id) = 0;
 	virtual void SetParent(GameObject parent) = 0;
@@ -59,6 +59,8 @@ public:
 protected:
 	ITransformComponent(){};
 private:
+
+	virtual std::list<GameObject>* ChildrenRef() = 0;
 	friend TransformComponent;
 	virtual void FlagSetChangeMatrix(PhysXChangeTransformFlag flag) = 0;
 
@@ -89,9 +91,9 @@ public:
 	void DegreeRotate(const XMVECTOR& rotate) override;
 	void Quaternion(const XMVECTOR& Quaternion) override;
 
-	const XMVECTOR& Forward() const override;
-	const XMVECTOR& Left() const override;
-	const XMVECTOR& Up() const override;
+	const XMVECTOR Forward() const override;
+	const XMVECTOR Left() const override;
+	const XMVECTOR Up() const override;
 
 	void Initialize() override;
 	void Start() override;
@@ -120,13 +122,17 @@ public:
 		return !mFixMatrixFlag;
 	}
 
-	std::list<GameObject>& Children() override;
+	std::list<GameObject> Children() override;
 	GameObject GetParent() override;
 	void SetParentUniqueID(UniqueID id) override;
 	void SetParent(GameObject parent) override;
 	void SetParentWorld(GameObject parent) override;
 
 private:
+
+	std::list<GameObject>* ChildrenRef() override {
+		return &mChildren;
+	}
 	XMVECTOR mScale;
 	XMVECTOR mRotate;
 	XMVECTOR mInspectorRotateDegree;

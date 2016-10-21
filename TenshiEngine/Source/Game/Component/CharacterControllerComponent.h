@@ -5,6 +5,7 @@
 
 namespace physx{
 	class PxController;
+	class PxShape;
 }
 
 class ICharacterControllerComponent :public Component{
@@ -53,11 +54,18 @@ public:
 
 	void SetSize(float size) override;
 private:
+	void SetPhysxLayer(int layer);
+
+	void OnEnabled()override;
+	void OnDisabled()override;
+
 	physx::PxController* mController;
 	float mSlopeLimitDigree;
 	float mStepOffset;
 	float mSize;
+	physx::PxShape* mShape;
 	//XMVECTOR mGravity;
 	//XMVECTOR mJump;
+	friend Actor;
 };
 

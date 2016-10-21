@@ -200,18 +200,26 @@ public:
 	void Create(const std::string& MeshFile){
 		MeshAssetDataPtr mMeshAsset;
 		AssetDataBase::Instance(MeshFile.c_str(), mMeshAsset);
+		Create(mMeshAsset);
+	}
 
-		if (!mMeshAsset)return;
-		if (!mMeshAsset.Get())return;
-		if (!mMeshAsset.Get()->GetFileData())return;
+	void Create(const MeshAssetDataPtr MeshFile) {
 
-		auto data = mMeshAsset->GetFileData()->GetPolygonsData();     
+
+		mNaviMeshDataBase.clear();
+		mNaviMeshWallDataBase.clear();
+
+		if (!MeshFile)return;
+		if (!MeshFile.Get())return;
+		if (!MeshFile.Get()->GetFileData())return;
+
+		auto data = MeshFile->GetFileData()->GetPolygonsData();
 		auto idxnum = data->GetIndexNum();
 		auto polynum = idxnum / 3;
 
 		mNaviMeshDataBase.resize(polynum);
 
-		for (int i = 0; i < polynum; i ++){
+		for (int i = 0; i < polynum; i++) {
 			NaviMeshPolygonData polydata;
 
 			int id = i * 3;
@@ -225,7 +233,7 @@ public:
 			polydata.Vertex[2] = toVector(data->GetVertexPos(polydata.Index[2]));
 
 			polydata.CenterPosition = (polydata.Vertex[0] + polydata.Vertex[1] + polydata.Vertex[2]) / 3.0f;
-			
+
 			auto v1 = XMVector3Normalize(polydata.Vertex[1] - polydata.Vertex[0]);
 			auto v2 = XMVector3Normalize(polydata.Vertex[2] - polydata.Vertex[0]);
 			polydata.Normal = XMVector3Normalize(XMVector3Cross(v1, v2));
@@ -235,31 +243,31 @@ public:
 			mNaviMeshDataBase[i] = NaviMeshPolygon(polydata);
 		}
 
-		for (int i = 0; i < polynum; i++){
+		for (int i = 0; i < polynum; i++) {
 
-			for (int lineID = 0; lineID < 3; lineID++){
+			for (int lineID = 0; lineID < 3; lineID++) {
 
 				unsigned int line[2];
 				auto base = &mNaviMeshDataBase[i];
 				base->GetLine(lineID, &line[0], &line[1]);
 				bool linkflag = false;
 				//Ç∑Ç≈Ç…ÉäÉìÉNçœÇ›
-				if (base->GetLink()[lineID]){
+				if (base->GetLink()[lineID]) {
 					continue;
 				}
 
-				for (int j = i + 1; j < polynum; j++){
+				for (int j = i + 1; j < polynum; j++) {
 
-					for (int lineTarID = 0; lineTarID < 3; lineTarID++){
+					for (int lineTarID = 0; lineTarID < 3; lineTarID++) {
 						unsigned int linetarget[2];
 						auto target = &mNaviMeshDataBase[j];
 						target->GetLine(lineTarID, &linetarget[0], &linetarget[1]);
 
 						//ÉâÉCÉìÇ™àÍív
 						if ((line[0] == linetarget[0] && line[1] == linetarget[1]) ||
-							(line[0] == linetarget[1] && line[1] == linetarget[0])){
+							(line[0] == linetarget[1] && line[1] == linetarget[0])) {
 
-							base->SetLink(lineID,target);
+							base->SetLink(lineID, target);
 							target->SetLink(lineTarID, base);
 							linkflag = true;
 							break;
@@ -271,13 +279,13 @@ public:
 			}
 		}
 
-		for (int i = 0; i < polynum; i++){
+		for (int i = 0; i < polynum; i++) {
 
-			for (int lineID = 0; lineID < 3; lineID++){
+			for (int lineID = 0; lineID < 3; lineID++) {
 
 				auto base = &mNaviMeshDataBase[i];
 				//Ç∑Ç≈Ç…ÉäÉìÉNçœÇ›
-				if (base->GetLink()[lineID]){
+				if (base->GetLink()[lineID]) {
 					continue;
 				}
 
@@ -414,6 +422,19 @@ public:
 		return mRoute;
 	}
 
+	const NaviLine* GetCurrentRoute() {
+		if (mRoute.end() == mCurrent)return NULL;
+		return &(*mCurrent);
+	}
+
+	float GetEndRouteDistance() {
+		return mTotalLength - mMoveTotal;
+	}
+	float GetTotalRouteDistance() {
+		 return mTotalLength;
+	}
+
+
 private:
 	std::list<NaviLine> mRoute;
 	std::list<NaviLine>::iterator mCurrent;
@@ -457,6 +478,7 @@ public:
 
 
 	}
+	//åªç›ÇÃêÑèß
 	void N2(){
 
 

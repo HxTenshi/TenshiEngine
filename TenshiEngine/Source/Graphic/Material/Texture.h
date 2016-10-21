@@ -23,18 +23,23 @@ public:
 	HRESULT Create(ID3D11Texture2D* pTexture);
 	HRESULT Create(ID3D11ShaderResourceView* pTexture);
 	HRESULT Create(const char* FileName);
-	HRESULT Create(const MD5::MD5HashCoord& hash);
+	HRESULT Create(const MD5::MD5HashCode& hash);
 	HRESULT Create(const TextureAsset& tex);
 	void PSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;
 	void GSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;
 	void CSSetShaderResources(ID3D11DeviceContext* context, UINT Slot) const;
 
 	shared_ptr<Release_self<ID3D11Resource>> GetResource();
+	std::string GetFileName()const {
+		return mFileName;
+	}
+	MD5::MD5HashCode GetHash()const{
+		return mHash;
+	}
 
-	void ExportData(File& f);
 	std::string mFileName;
-
 private:
+	MD5::MD5HashCode mHash;
 	TextureAssetDataPtr mTextureAssetData;
 	//static Texture mNullTexture;
 };

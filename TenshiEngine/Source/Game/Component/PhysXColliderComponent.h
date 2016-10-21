@@ -14,6 +14,14 @@ struct ID3D11DeviceContext;
 class PhysXComponent;
 class Material;
 
+struct GeometryType {
+	enum Enum {
+		Box,
+		Sphere,
+		Mesh,
+	};
+};
+
 class IPhysXColliderComponent{
 public:
 	virtual ~IPhysXColliderComponent(){}
@@ -22,12 +30,12 @@ public:
 	virtual void SetScale(const XMVECTOR& scale) = 0;
 	virtual const XMVECTOR& GetScale() const = 0;
 
-	virtual void ChangeMaterial(const PhysxMaterialAssetDataPtr& material) = 0;
-	virtual void ChangeMaterial(const std::string& file) = 0;
-	virtual PhysxMaterialAssetDataPtr GetMaterial() = 0;
+	virtual void ChangeMaterial(const PhysxMaterialAsset& material) = 0;
+	virtual PhysxMaterialAsset GetMaterial() = 0;
 
-	virtual void CreateMesh(const MeshAssetDataPtr& mesh) = 0;
-	virtual void CreateMesh(const std::string& file) = 0;
+	virtual void ChangeShapeBox() = 0;
+	virtual void ChangeShapeSphere() = 0;
+	virtual void ChangeShapeMesh(const MeshAsset& mesh) = 0;
 
 	virtual void SetIsTrigger(bool flag) = 0;
 	virtual bool GetIsTrigger() = 0;
@@ -53,22 +61,18 @@ public:
 
 	void DrawMesh(ID3D11DeviceContext* context, const Material& material);
 
-
 	void SetTransform(const XMVECTOR& pos) override;
 	const XMVECTOR& GetTransform() const override;
 
 	void SetScale(const XMVECTOR& scale) override;
 	const XMVECTOR& GetScale() const override;
 
-	void ChangeMaterial(const PhysxMaterialAssetDataPtr& material) override;
-	void ChangeMaterial(const std::string& file) override;
-	PhysxMaterialAssetDataPtr GetMaterial() override;
-
-	// false=box, true=sphere 
-	void ChangeShape(bool flag);
-
-	void CreateMesh(const MeshAssetDataPtr& mesh) override;
-	void CreateMesh(const std::string& file) override;
+	void ChangeMaterial(const PhysxMaterialAsset& material) override;
+	PhysxMaterialAsset GetMaterial() override;
+ 
+	void ChangeShapeBox();
+	void ChangeShapeSphere();
+	void ChangeShapeMesh(const MeshAsset& mesh) override;
 
 	void SetIsTrigger(bool flag) override;
 	bool GetIsTrigger() override;
@@ -77,8 +81,8 @@ public:
 
 	physx::PxShape* GetShape();
 
-	void SetPhysxLayer(int layer);
 private:
+	void SetPhysxLayer(int layer);
 	bool SearchAttachPhysXComponent();
 	void ShapeAttach(physx::PxShape* shape);
 
@@ -94,6 +98,8 @@ private:
 	void OnEnabled()override;
 	void OnDisabled()override;
 
+	void ShapeReSettings();
+
 	physx::PxShape* mShape;
 	XMMATRIX mShapeMatrix;
 	//-1 = static, 0 = none, 1~ = dynamic
@@ -102,10 +108,9 @@ private:
 
 	bool mIsParentPhysX;
 
-	bool mIsSphere;
-	std::string mMeshFile;
-	std::string mPhysicsMaterialFile;
-	PhysxMaterialAssetDataPtr mPhysicsMaterial;
+	int mGeometryType;
+	MeshAsset mMeshAsset;
+	PhysxMaterialAsset mPhysicsMaterialAsset;
 
 	XMVECTOR mPosition;
 	XMVECTOR mScale;
@@ -115,7 +120,10 @@ private:
 	XMVECTOR mGameObjectScale;
 
 	bool mIsTrigger;
-
+#ifdef _ENGINE_MODE
 	std::string mDebugStr;
 	Model mDebugDraw;
+#endif
+
+	friend Actor;
 };

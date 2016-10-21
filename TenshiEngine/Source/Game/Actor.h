@@ -107,9 +107,14 @@ public:
 	shared_ptr<ITransformComponent> mTransform;
 
 	void* mTreeViewPtr;
+	void SetLayer(int layer)override;
 
-	int GetLayer(){
+	int GetLayer() override {
 		return mPhysxLayer;
+	}
+
+	bool EndFinish() {
+		return mEndFinish;
 	}
 
 protected:
@@ -129,7 +134,9 @@ protected:
 	PrefabAssetDataPtr mPrefabAsset;
 
 	UniqueID mUniqueHash;
+	bool mEndInitialize;
 	bool mEndStart;
+	bool mEndFinish;
 
 	int mPhysxLayer;
 

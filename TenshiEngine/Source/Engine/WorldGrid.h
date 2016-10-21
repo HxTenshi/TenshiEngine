@@ -8,6 +8,8 @@ public:
 
 	WorldGrid();
 	~WorldGrid();
+
+	void Initialize();
 	void Draw();
 private:
 

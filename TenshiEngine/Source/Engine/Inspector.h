@@ -114,13 +114,23 @@ public:
 	void Add(const std::string& text, T* data, const std::function<void(T)>& collback);
 	template<typename T, typename Func>
 	void Add(const std::string& text, Asset<T>* data, Func collback){
+<<<<<<< HEAD
+=======
+		if (!data->IsLoad()) {
+			AssetLoad::Instance(data->m_Hash, *data);
+		}
+>>>>>>> develop
 		Add<T>(text, (IAsset*)data, std::function<void()>(collback));
 	}
 	template<class T>
 	void Add(const std::string& text, IAsset* data, const std::function<void(void)>& collback) {
 
 		std::function<void(std::string)> loadcoll = [data, collback](std::string path) {
+<<<<<<< HEAD
 			MD5::MD5HashCoord hash;
+=======
+			MD5::MD5HashCode hash;
+>>>>>>> develop
 			if (AssetDataBase::FilePath2Hash(path.c_str(), hash)) {
 				AssetLoad::Instance<T>(hash, (Asset<T>*)data);
 			}

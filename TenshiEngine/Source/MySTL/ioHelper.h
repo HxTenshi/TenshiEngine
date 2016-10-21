@@ -94,29 +94,141 @@ public:
 		get<T>(v->second, out);
 		return true;
 	}
-	template<class T>
-	bool _func(Asset<T>* out, const char* name){
+	//template<class T>
+	//bool _func(Asset<T>* out, const char* name){
+	//	auto v = o->find(name);
+	//	if (v == o->end())return false;
+	//	
+	//	IAsset temp;
+	//	if (prefab){
+	//		if (!prefab->func((IAsset)temp, name)){
+	//			return false;
+	//		}
+	//	}
+	//	get<T>(v->second, (IAsset*)out);
+	//	return true;
+	//}
+	template<>
+	bool _func(XMVECTOR* out, const char* name) {
 		auto v = o->find(name);
-		if (v == o->end())return false;
+		if (v != o->end()) {
 
-		IAsset temp;
-		if (prefab){
-			if (!prefab->func((IAsset)temp, name)){
-				return false;
+			MD5::MD5HashCode temp;
+			if (prefab) {
+				if (!prefab->func((MD5::MD5HashCode)temp, name)) {
+					return false;
+				}
 			}
+			get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
+			return true;
 		}
 
-		get<T>(v->second, (IAsset*)out);
-		return true;
+		bool f = true;
+		f = f&&_func(&out->x, (std::string(name) + ".x").c_str());
+		f = f&&_func(&out->y, (std::string(name) + ".y").c_str());
+		f = f&&_func(&out->z, (std::string(name) + ".z").c_str());
+		f = f&&_func(&out->w, (std::string(name) + ".w").c_str());
+		return f;
+	}
+	template<>
+	bool _func(XMFLOAT2* out, const char* name) {
+		auto v = o->find(name);
+		if (v != o->end()) {
+
+			MD5::MD5HashCode temp;
+			if (prefab) {
+				if (!prefab->func((MD5::MD5HashCode)temp, name)) {
+					return false;
+				}
+			}
+			get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
+			return true;
+		}
+
+		bool f = true;
+		f = f&&_func(&out->x, (std::string(name) + ".x").c_str());
+		f = f&&_func(&out->y, (std::string(name) + ".y").c_str());
+		return f;
+	}
+	template<>
+	bool _func(XMFLOAT4* out, const char* name) {
+		auto v = o->find(name);
+		if (v != o->end()) {
+
+			MD5::MD5HashCode temp;
+			if (prefab) {
+				if (!prefab->func((MD5::MD5HashCode)temp, name)) {
+					return false;
+				}
+			}
+			get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
+			return true;
+		}
+
+		bool f = true;
+		f = f&&_func(&out->x, (std::string(name) + ".x").c_str());
+		f = f&&_func(&out->y, (std::string(name) + ".y").c_str());
+		f = f&&_func(&out->z, (std::string(name) + ".z").c_str());
+		f = f&&_func(&out->w, (std::string(name) + ".w").c_str());
+		return f;
+	}
+	template<>
+	bool _func(MD5::MD5HashCode* out, const char* name) {
+		auto v = o->find(name);
+		if (v != o->end()) {
+
+			MD5::MD5HashCode temp;
+			if (prefab) {
+				if (!prefab->func((MD5::MD5HashCode)temp, name)) {
+					return false;
+				}
+			}
+			get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
+			return true;
+		}
+
+		bool f = true;
+		f = f&&_func(&out->key_i[0], (std::string(name) + "0").c_str());
+		f = f&&_func(&out->key_i[1], (std::string(name) + "1").c_str());
+		f = f&&_func(&out->key_i[2], (std::string(name) + "2").c_str());
+		f = f&&_func(&out->key_i[3], (std::string(name) + "3").c_str());
+		return f;
+	}
+	template<class T>
+	bool _func(Asset<T>* out, const char* name) {
+		auto v = o->find(name);
+		if (v != o->end()) {
+
+			IAsset temp;
+			if (prefab) {
+				if (!prefab->func((IAsset)temp, name)) {
+					return false;
+				}
+			}
+			get<T>(v->second, (IAsset*)out);
+			return true;
+		}
+
+		bool f = true;
+		f = f&&_func(&out->m_Hash.key_i[0], (std::string(name) + "0").c_str());
+		f = f&&_func(&out->m_Hash.key_i[1], (std::string(name) + "1").c_str());
+		f = f&&_func(&out->m_Hash.key_i[2], (std::string(name) + "2").c_str());
+		f = f&&_func(&out->m_Hash.key_i[3], (std::string(name) + "3").c_str());
+		return f;
 	}
 private:
 	template<class T>
 	void get(const picojson::value& value, T* out);
 
+	template<>
+	void I_InputHelper::get(const picojson::value& value, MD5::MD5HashCode* out) {
+		auto c = (std::string)value.get<std::string>();
+		*out = MD5::MD5HashCode(c.c_str());
+	}
 	template<class T>
 	void get(const picojson::value& value, IAsset* out){
 		auto c = (std::string)value.get<std::string>();
-		out->m_Hash = MD5::MD5HashCoord(c.c_str());
+		out->m_Hash = MD5::MD5HashCode(c.c_str());
 	}
 
 private:
@@ -208,6 +320,102 @@ public:
 		_func_out(out,name);
 	}
 	template<>
+	void _func(const XMVECTOR* out, const char* name, bool compel) {
+
+		XMVECTOR temp;
+		if (mOutputFilterRebirth) {
+			if (compel)return;
+			if (prefab && prefab->func(temp, name)) {
+				if (!(temp.x == out->x&&
+					temp.y == out->y&&
+					temp.z == out->z&&
+					temp.w == out->w))return;
+			}
+		}
+		else {
+			if (!compel && prefab && prefab->func(temp, name)) {
+				if ((temp.x == out->x&&
+					temp.y == out->y&&
+					temp.z == out->z&&
+					temp.w == out->w))return;
+			}
+		}
+		o->insert(std::make_pair((std::string(name) + ".x").c_str(), picojson::value((double)out->x)));
+		o->insert(std::make_pair((std::string(name) + ".y").c_str(), picojson::value((double)out->y)));
+		o->insert(std::make_pair((std::string(name) + ".z").c_str(), picojson::value((double)out->z)));
+		o->insert(std::make_pair((std::string(name) + ".w").c_str(), picojson::value((double)out->w)));
+
+	}
+	template<>
+	void _func(const XMFLOAT2* out, const char* name, bool compel) {
+
+		XMFLOAT2 temp;
+		if (mOutputFilterRebirth) {
+			if (compel)return;
+			if (prefab && prefab->func(temp, name)) {
+				if (!(temp.x == out->x&&
+					temp.y == out->y))return;
+			}
+		}
+		else {
+			if (!compel && prefab && prefab->func(temp, name)) {
+				if ((temp.x == out->x&&
+					temp.y == out->y))return;
+			}
+		}
+		o->insert(std::make_pair((std::string(name) + ".x").c_str(), picojson::value((double)out->x)));
+		o->insert(std::make_pair((std::string(name) + ".y").c_str(), picojson::value((double)out->y)));
+
+	}
+	template<>
+	void _func(const XMFLOAT4* out, const char* name, bool compel) {
+
+		XMFLOAT4 temp;
+		if (mOutputFilterRebirth) {
+			if (compel)return;
+			if (prefab && prefab->func(temp, name)) {
+				if (!(temp.x == out->x&&
+					temp.y == out->y&&
+					temp.z == out->z&&
+					temp.w == out->w))return;
+			}
+		}
+		else {
+			if (!compel && prefab && prefab->func(temp, name)) {
+				if ((temp.x == out->x&&
+					temp.y == out->y&&
+					temp.z == out->z&&
+					temp.w == out->w))return;
+			}
+		}
+		o->insert(std::make_pair((std::string(name) + ".x").c_str(), picojson::value((double)out->x)));
+		o->insert(std::make_pair((std::string(name) + ".y").c_str(), picojson::value((double)out->y)));
+		o->insert(std::make_pair((std::string(name) + ".z").c_str(), picojson::value((double)out->z)));
+		o->insert(std::make_pair((std::string(name) + ".w").c_str(), picojson::value((double)out->w)));
+
+	}
+	template<>
+	void _func(const MD5::MD5HashCode* out, const char* name, bool compel) {
+
+		MD5::MD5HashCode temp;
+		if (mOutputFilterRebirth) {
+			if (compel)return;
+			if (prefab && prefab->func(temp, name)) {
+				if (!(temp == *out))return;
+			}
+		}
+		else {
+			if (!compel && prefab && prefab->func(temp, name)) {
+				if (temp == *out)return;
+			}
+		}
+		o->insert(std::make_pair((std::string(name) + "0").c_str(), picojson::value((double)out->key_i[0])));
+		o->insert(std::make_pair((std::string(name) + "1").c_str(), picojson::value((double)out->key_i[1])));
+		o->insert(std::make_pair((std::string(name) + "2").c_str(), picojson::value((double)out->key_i[2])));
+		o->insert(std::make_pair((std::string(name) + "3").c_str(), picojson::value((double)out->key_i[3])));
+
+	}
+	template<>
 	void _func(const IAsset* out, const char* name, bool compel){
 
 		IAsset temp;
@@ -224,7 +432,10 @@ public:
 		}
 		//_func_out((IAsset*)out, name);
 
-		o->insert(std::make_pair(name, picojson::value((std::string)out->m_Hash.GetString())));
+		o->insert(std::make_pair((std::string(name) + "0").c_str(), picojson::value((double)out->m_Hash.key_i[0])));
+		o->insert(std::make_pair((std::string(name) + "1").c_str(), picojson::value((double)out->m_Hash.key_i[1])));
+		o->insert(std::make_pair((std::string(name) + "2").c_str(), picojson::value((double)out->m_Hash.key_i[2])));
+		o->insert(std::make_pair((std::string(name) + "3").c_str(), picojson::value((double)out->m_Hash.key_i[3])));
 	}
 	template<class T>
 	void _func(const Asset<T>* out, const char* name, bool compel){
@@ -242,7 +453,11 @@ public:
 			}
 		}
 		//_func_out((IAsset*)out, name);
-		o->insert(std::make_pair(name, picojson::value((std::string)out->m_Hash.GetString())));
+		//o->insert(std::make_pair(name, picojson::value((std::string)out->m_Hash.GetString())));
+		o->insert(std::make_pair((std::string(name) + "0").c_str(), picojson::value((double)out->m_Hash.key_i[0])));
+		o->insert(std::make_pair((std::string(name) + "1").c_str(), picojson::value((double)out->m_Hash.key_i[1])));
+		o->insert(std::make_pair((std::string(name) + "2").c_str(), picojson::value((double)out->m_Hash.key_i[2])));
+		o->insert(std::make_pair((std::string(name) + "3").c_str(), picojson::value((double)out->m_Hash.key_i[3])));
 	}
 	template<class T>
 	void _func_out(const T* out, const char* name);
