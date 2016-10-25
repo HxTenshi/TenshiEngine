@@ -24,7 +24,7 @@ public:
 	//void CreateAnime(vmd& VMD);
 
 
-	shared_ptr<AnimationBind> BindAnimation(AnimeData* data);
+	shared_ptr<AnimationBind> BindAnimation(const AnimeData* data);
 
 	void SetConstantBuffer(ID3D11DeviceContext* context) const;
 
@@ -33,6 +33,8 @@ public:
 	//bool IsCreateAnime(){ return mIsCreateAnime; }
 
 	//UINT GetMaxAnimeTime();
+
+	std::vector<Bone>& GetBones() { return mBone; }
 
 private:
 

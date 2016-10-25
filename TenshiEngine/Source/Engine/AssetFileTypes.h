@@ -7,10 +7,11 @@ enum class AssetFileType {
 	Temesh,
 	Tebone,
 	Shader,
-	Vmd,
+	Animation,
 	Image,
 	PhysxMaterial,
 	Sound,
 	Movie,
+	Material,
 	Count,
 };

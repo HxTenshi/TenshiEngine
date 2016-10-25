@@ -20,6 +20,11 @@ private:
 protected:
 	AssetFactory();
 	~AssetFactory();
+
+	template<class T>
+	void factory(std::string ex) {
+		m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::move(ex), [](const char* filename) { return AssetDataTemplate<T>::Create(filename); }));
+	}
 };
 #include "Library/MD5.h"
 class AssetDataBase{

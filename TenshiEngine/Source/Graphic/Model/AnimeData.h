@@ -21,9 +21,9 @@ public:
 	{}
 
 	//IDの取得
-	int GetBoneID(const std::string& boneName){
+	int GetBoneID(const std::string& boneName) const{
 		if (mBoneName2ID.count(boneName) == 0)return -1;
-		return  mBoneName2ID[boneName].id;
+		return  mBoneName2ID.at(boneName).id;
 	}
 	//ボーンモーションの取得
 	Motion* GetBoneMotion(const std::string& boneName){
@@ -31,8 +31,14 @@ public:
 		if (id == -1)return NULL;
 		return &mBoneMoution[id];
 	}
+	//ボーンモーションの取得
+	const Motion* GetBoneMotion(const std::string& boneName) const{
+		int id = GetBoneID(boneName);
+		if (id == -1)return NULL;
+		return &mBoneMoution[id];
+	}
 
-	float GetLastFrameTime(){
+	float GetLastFrameTime() const{
 		return (float)mLastKeyNo;
 	}
 
@@ -43,7 +49,7 @@ public:
 		mLastKeyNo = 0;
 	}
 
-	void Create(const std::string& fileName){
+	bool Create(const std::string& fileName){
 
 		mBoneMoution.clear();
 		mBoneName2ID.clear();
@@ -51,7 +57,7 @@ public:
 		mLastKeyNo = 0;
 
 		vmd Anime(fileName.c_str());
-		if (!Anime.mLoadResult)return;
+		if (!Anime.mLoadResult)return false;
 
 		//使用するボーンの洗い出し
 		for (unsigned int i = 0; i < Anime.mKeyNum; i++){
@@ -79,6 +85,7 @@ public:
 		for (auto& motion : mBoneMoution){
 			std::sort(motion.begin(), motion.end());
 		}
+		return true;
 	}
 
 private:

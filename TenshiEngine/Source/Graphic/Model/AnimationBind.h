@@ -61,7 +61,7 @@ public:
 		AnimationUpdate();
 	}
 
-	void Create(std::vector<Bone>& boneData, AnimeData* animeData){
+	void Create(std::vector<Bone>& boneData, const AnimeData* animeData){
 
 		mAnimeData = animeData;
 		DWORD mBoneNum = boneData.size();
@@ -101,7 +101,7 @@ private:
 
 	//ボーン毎のアニメーション再生データ
 	struct BoneAnimation{
-		AnimeData::Motion *BaseAnime; //ボーンアニメーションデータ
+		const AnimeData::Motion *BaseAnime; //ボーンアニメーションデータ
 		int FramePoint; //現在のアニメーション位置
 		BoneFrame CurrentKeyFrame;
 	};
@@ -210,7 +210,7 @@ private:
 			int curID = boneAnime.FramePoint;
 			int nexID = min(curID + 1, size - 1);
 			auto& Anime = *boneAnime.BaseAnime;
-			vmd::VMDKeyFrame* key[2] = { &Anime[curID].mKeyFrame, &Anime[nexID].mKeyFrame };
+			const vmd::VMDKeyFrame* key[2] = { &Anime[curID].mKeyFrame, &Anime[nexID].mKeyFrame };
 
 			//キーフレーム位置の線形補完
 			float t = 1.0f;
@@ -268,7 +268,7 @@ private:
 		return (3 * s*s *t *y1) + (3 * s *t*t *y2) + (t*t*t);
 	}
 
-	AnimeData* mAnimeData; //再生アニメーション
+	const AnimeData* mAnimeData; //再生アニメーション
 	std::vector<BoneAnimation> mBoneAnimations; //ボーンのアニメーション再生データ
 
 	float mWeight;//適用率

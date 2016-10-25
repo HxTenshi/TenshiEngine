@@ -19,6 +19,8 @@ struct GeometryType {
 		Box,
 		Sphere,
 		Mesh,
+		Capsule,
+		ConvexMesh,
 	};
 };
 
@@ -35,7 +37,9 @@ public:
 
 	virtual void ChangeShapeBox() = 0;
 	virtual void ChangeShapeSphere() = 0;
+	virtual void ChangeShapeCapsule() = 0;
 	virtual void ChangeShapeMesh(const MeshAsset& mesh) = 0;
+	virtual void ChangeShapeConvexMesh(const MeshAsset& mesh) = 0;
 
 	virtual void SetIsTrigger(bool flag) = 0;
 	virtual bool GetIsTrigger() = 0;
@@ -70,9 +74,11 @@ public:
 	void ChangeMaterial(const PhysxMaterialAsset& material) override;
 	PhysxMaterialAsset GetMaterial() override;
  
-	void ChangeShapeBox();
-	void ChangeShapeSphere();
+	void ChangeShapeBox() override;
+	void ChangeShapeSphere() override;
+	void ChangeShapeCapsule() override;
 	void ChangeShapeMesh(const MeshAsset& mesh) override;
+	void ChangeShapeConvexMesh(const MeshAsset& mesh) override;
 
 	void SetIsTrigger(bool flag) override;
 	bool GetIsTrigger() override;
