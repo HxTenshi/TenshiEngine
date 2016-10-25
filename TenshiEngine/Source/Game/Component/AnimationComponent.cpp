@@ -166,7 +166,7 @@ void AnimationComponent::SetAnimetionParam(int id,const AnimeParam& param){
 	//if (createflag){
 	//	mAnimationSets[id].Create();
 	//}
-	if (!mAnimationSets[id].mAnimationBind);
+	if (!mAnimationSets[id].mAnimationBind)return;
 	mAnimationSets[id].mAnimationBind->SetWeight(mAnimationSets[id].Param.mWeight);
 	mAnimationSets[id].mAnimationBind->SetLoopFlag(mAnimationSets[id].Param.mLoop);
 	mAnimationSets[id].mAnimationBind->PlayAnimetionSetTime(mAnimationSets[id].Param.mTime);

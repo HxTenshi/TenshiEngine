@@ -67,7 +67,7 @@ String^ lexical_cast_(weak_ptr<IActor>* p) {
 
 template <>
 weak_ptr<IActor> lexical_cast<weak_ptr<IActor>, String>(String^ p) {
-	if (p->Empty) {
+	if (String::IsNullOrEmpty(p)) {
 		return NULL;
 	}
 	auto i = (IntPtr)System::Convert::ToInt32(p);
