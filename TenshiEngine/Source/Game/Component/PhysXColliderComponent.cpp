@@ -55,6 +55,12 @@ void PhysXColliderComponent::Initialize(){
 		case  GeometryType::Mesh:
 			ChangeShapeMesh(mMeshAsset);
 			break;
+		case  GeometryType::Capsule:
+			ChangeShapeCapsule();
+			break;
+		case  GeometryType::ConvexMesh:
+			ChangeShapeConvexMesh(mMeshAsset);
+			break;
 		default:
 			break;
 		}
@@ -141,7 +147,9 @@ void PhysXColliderComponent::ShapeAttach(PxShape* shape){
 
 		mShape = shape;
 		ShapeReSettings();
+
 	}
+	if(mShape)mShape->userData = gameObject.Get();
 
 	//リジッドダイナミックがあれば
 	if (mAttachPhysXComponent){
@@ -193,6 +201,7 @@ void PhysXColliderComponent::AttachRigidDynamic(bool attach){
 
 void PhysXColliderComponent::ReleaseShape(){
 	if (mShape){
+		mShape->userData = NULL;
 		mShape->release();
 		mShape = NULL;
 	}
@@ -218,6 +227,15 @@ void PhysXColliderComponent::ChangeShapeSphere() {
 
 	ShapeAttach(shape);
 }
+void PhysXColliderComponent::ChangeShapeCapsule()
+{
+	mMeshAsset.Free();
+	mGeometryType = GeometryType::Capsule;
+	if (!IsEnabled())return;
+	PxShape* shape = Game::GetPhysX()->CreateShapeCapsule();
+
+	ShapeAttach(shape);
+}
 void PhysXColliderComponent::ChangeShapeMesh(const MeshAsset& mesh) {
 	mMeshAsset = mesh;
 	mGeometryType = GeometryType::Mesh;
@@ -227,6 +245,20 @@ void PhysXColliderComponent::ChangeShapeMesh(const MeshAsset& mesh) {
 		return;
 	}
 	auto shape = Game::GetPhysX()->CreateTriangleMesh(mMeshAsset.Get()->GetPolygonsData());
+
+	ShapeAttach(shape);
+}
+
+void PhysXColliderComponent::ChangeShapeConvexMesh(const MeshAsset & mesh)
+{
+	mMeshAsset = mesh;
+	mGeometryType = GeometryType::ConvexMesh;
+	if (!IsEnabled())return;
+	if (!mMeshAsset.IsLoad()) {
+		ShapeAttach(NULL);
+		return;
+	}
+	auto shape = Game::GetPhysX()->CreateConvexMesh(mMeshAsset.Get()->GetPolygonsData());
 
 	ShapeAttach(shape);
 }
@@ -285,6 +317,8 @@ void PhysXColliderComponent::CreateInspector() {
 		types.push_back("Box");
 		types.push_back("Sphere");
 		types.push_back("Mesh");
+		types.push_back("Capsule");
+		types.push_back("ConvexMesh");
 	}
 	ins.AddSelect("GeometryType", &mGeometryType, types, [&](int value) {
 		mGeometryType = value;
@@ -299,12 +333,23 @@ void PhysXColliderComponent::CreateInspector() {
 			case  GeometryType::Mesh:
 				ChangeShapeMesh(mMeshAsset);
 				break;
+			case  GeometryType::Capsule:
+				ChangeShapeCapsule();
+				break;
+			case  GeometryType::ConvexMesh:
+				ChangeShapeConvexMesh(mMeshAsset);
+				break;
 			default:
 				break;
 		}
 	});
 	ins.Add("Mesh", &mMeshAsset, [&]() {
-		ChangeShapeMesh(mMeshAsset);
+		if (mGeometryType == GeometryType::ConvexMesh) {
+			ChangeShapeConvexMesh(mMeshAsset);
+		}
+		else {
+			ChangeShapeMesh(mMeshAsset);
+		}
 	});
 	ins.Add("IsTrigger", &mIsTrigger, [&](bool value) {
 		SetIsTrigger(value);
@@ -366,9 +411,22 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 			scale.z = scale.x;
 		}
 	}
+	else if (g.getType() == PxGeometryType::eCAPSULE) {
+		if (mDebugStr != "box") {
+			mDebugStr = "box";
+			mDebugDraw.Create("EngineResource/box.tesmesh");
+		}
+	}
 	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
 
 		if (mDebugStr != mMeshAsset.m_Name){
+			mDebugStr = mMeshAsset.m_Name;
+			mDebugDraw.Create(mDebugStr.c_str());
+		}
+	}
+	else if (g.getType() == PxGeometryType::eCONVEXMESH) {
+
+		if (mDebugStr != mMeshAsset.m_Name) {
 			mDebugStr = mMeshAsset.m_Name;
 			mDebugDraw.Create(mDebugStr.c_str());
 		}
@@ -605,6 +663,11 @@ void PhysXColliderComponent::SetScale(const XMVECTOR& scale){
 		g.sphere().radius = abs(0.5f*s.x);
 		mShape->setGeometry(g.sphere());
 	}
+	else if (g.getType() == PxGeometryType::eCAPSULE) {
+		g.capsule().halfHeight = abs(0.5f*s.x);
+		g.capsule().radius = abs(0.5f*s.y);
+		mShape->setGeometry(g.capsule());
+	}
 	else if (g.getType() == PxGeometryType::eTRIANGLEMESH){
 		physx::PxQuat q = physx::PxQuat(0,0,0,1);
 		if (gameObject){
@@ -614,6 +677,16 @@ void PhysXColliderComponent::SetScale(const XMVECTOR& scale){
 
 		g.triangleMesh().scale = PxMeshScale(PxVec3(s.x, s.y, s.z), q);
 		mShape->setGeometry(g.triangleMesh());
+	}
+	else if (g.getType() == PxGeometryType::eCONVEXMESH) {
+		physx::PxQuat q = physx::PxQuat(0, 0, 0, 1);
+		if (gameObject) {
+			auto rotate = gameObject->mTransform->Quaternion();
+			q = physx::PxQuat(rotate.x, rotate.y, rotate.z, rotate.w);
+		}
+
+		g.convexMesh().scale = PxMeshScale(PxVec3(s.x, s.y, s.z), q);
+		mShape->setGeometry(g.convexMesh());
 	}
 
 }

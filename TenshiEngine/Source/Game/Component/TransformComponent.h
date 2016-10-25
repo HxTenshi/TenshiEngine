@@ -27,6 +27,7 @@ public:
 	virtual void WorldPosition(const XMVECTOR& position) = 0;
 	virtual void WorldQuaternion(const XMVECTOR& quaternion) = 0;
 	virtual void WorldScale(const XMVECTOR& scale) = 0;
+	virtual void WorldMatrix(const XMMATRIX& matrix) = 0;
 
 
 	virtual const XMVECTOR& Scale() const = 0;
@@ -79,6 +80,7 @@ public:
 	void WorldPosition(const XMVECTOR& position) override;
 	void WorldQuaternion(const XMVECTOR& quaternion) override;
 	void WorldScale(const XMVECTOR& scale) override;
+	void WorldMatrix(const XMMATRIX & matrix) override;
 
 	const XMVECTOR& Scale() const override;
 	const XMVECTOR& Rotate() const override;

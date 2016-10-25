@@ -159,7 +159,7 @@ HRESULT BoneModel::Create(BoneAsset& asset){
 }
 
 
-shared_ptr<AnimationBind> BoneModel::BindAnimation(AnimeData* data){
+shared_ptr<AnimationBind> BoneModel::BindAnimation(const AnimeData* data){
 	auto bind = make_shared<AnimationBind>();
 	bind->Create(mBone, data);
 

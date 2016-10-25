@@ -458,20 +458,30 @@ void TransformComponent::WorldQuaternion(const XMVECTOR& quaternion){
 	Quaternion(q);
 }
 void TransformComponent::WorldScale(const XMVECTOR& scale){
-	Quaternion();
+	//Quaternion();
+	auto mat = GetMatrix();
+	XMFLOAT3 w(mat.r[0].w, mat.r[1].w, mat.r[2].w);
+	mat.r[0] = XMVector3Normalize(mat.r[0]) * scale.x;
+	mat.r[1] = XMVector3Normalize(mat.r[1]) * scale.y;
+	mat.r[2] = XMVector3Normalize(mat.r[2]) * scale.z;
+	mat.r[0].w = w.x;
+	mat.r[1].w = w.y;
+	mat.r[2].w = w.z;
 	auto m = mParent? mParent->mTransform->GetMatrix() :XMMatrixIdentity();
 	//m = fromEulerYXZ(mRotate) * m;
 	XMVECTOR null;
 	m = XMMatrixInverse(&null, m);
-	auto s = XMVector3Rotate(scale, XMQuaternionInverse(WorldQuaternion()));
-	//auto s = scale;
-	m = XMMatrixScalingFromVector(s) * m;
-	s = XMVectorSet(XMVector3Length(m.r[0]).x, XMVector3Length(m.r[1]).x, XMVector3Length(m.r[2]).x, 1);
-	s = XMVector3Rotate(s, WorldQuaternion());
-	s.x = abs(s.x);
-	s.y = abs(s.y);
-	s.z = abs(s.z);
-	s.w = 1.0f;
+	m = XMMatrixMultiply(mat, m);
+	auto s = XMVectorSet(XMVector3Length(m.r[0]).x, XMVector3Length(m.r[1]).x, XMVector3Length(m.r[2]).x, 1);
+	//auto s = XMVector3Rotate(scale, XMQuaternionInverse(WorldQuaternion()));
+	////auto s = scale;
+	//m = XMMatrixScalingFromVector(s) * m;
+	//s = XMVectorSet(XMVector3Length(m.r[0]).x, XMVector3Length(m.r[1]).x, XMVector3Length(m.r[2]).x, 1);
+	//s = XMVector3Rotate(s, WorldQuaternion());
+	//s.x = abs(s.x);
+	//s.y = abs(s.y);
+	//s.z = abs(s.z);
+	//s.w = 1.0f;
 
 	//auto sm = XMMatrixScalingFromVector(scale);
 	//auto rm = XMMatrixInverse(&null, fromEulerYXZ(mRotate));
@@ -480,6 +490,21 @@ void TransformComponent::WorldScale(const XMVECTOR& scale){
 	//auto s = XMVectorSet(XMVector3Length(m.r[0]).x, XMVector3Length(m.r[1]).x, XMVector3Length(m.r[2]).x, 1);
 
 	Scale(s);
+}
+
+void TransformComponent::WorldMatrix(const XMMATRIX & matrix)
+{
+	WorldPosition(matrix.r[3]);
+	mFixMatrixFlag = true;
+
+	auto m = XMMatrixIdentity();
+	m.r[0] = XMVector3Normalize(matrix.r[0]);
+	m.r[1] = XMVector3Normalize(matrix.r[1]);
+	m.r[2] = XMVector3Normalize(matrix.r[2]);
+	WorldQuaternion(XMQuaternionRotationMatrix(m));
+	mFixMatrixFlag = true;
+
+	WorldScale(XMVectorSet(XMVector3Length(matrix.r[0]).x, XMVector3Length(matrix.r[1]).x, XMVector3Length(matrix.r[2]).x, 1));
 }
 
 const XMVECTOR TransformComponent::Forward() const{
@@ -688,6 +713,9 @@ void TransformComponent::SetParentWorld(GameObject parent){
 	SetParent(parent);
 
 	WorldPosition(pos);
+	mFixMatrixFlag = true;
 	WorldQuaternion(quat);
+	mFixMatrixFlag = true;
 	WorldScale(scale);
 }
+

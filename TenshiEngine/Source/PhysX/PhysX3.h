@@ -90,7 +90,9 @@ public:
 
 	PxShape* CreateShape();
 	PxShape* CreateShapeSphere();
+	PxShape* CreateShapeCapsule();
 	PxShape* CreateTriangleMesh(const IPolygonsData* poly);
+	PxShape* CreateConvexMesh(const IPolygonsData* poly);
 	PxController* CreateController();
 	PxRevoluteJoint* CreateRevoluteJoint();
 	PxDistanceJoint* CreateDistanceJoint();

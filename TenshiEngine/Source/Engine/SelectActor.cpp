@@ -96,7 +96,7 @@ void EditGuide::UpdateGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat){
 		mGuide[i]->mTransform->Position(pos);
 
 		auto q = XMQuaternionRotationRollPitchYawFromVector(v[i]);
-		q = XMQuaternionMultiply(q, quat);
+		q = XMQuaternionMultiply(quat,q);
 		mGuide[i]->mTransform->Quaternion(q);
 	}
 
@@ -356,7 +356,7 @@ public:
 		for (auto& act : actors){
 			auto quat = act->mTransform->Quaternion();
 			auto q = XMQuaternionRotationRollPitchYawFromVector(mQuat);
-			q = XMQuaternionMultiply(q, quat);
+			q = XMQuaternionMultiply(quat,q);
 			act->mTransform->Quaternion(q);
 		}
 	}

@@ -543,6 +543,7 @@
     <ClCompile Include="Source\Application\Shutdown.cpp" />
     <ClCompile Include="Source\Device\DirectX11Device.cpp" />
     <ClCompile Include="Source\Engine\AssetDataBase.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\Animation\AnimationFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Bone\BoneFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Material\TextureFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshBufferData.cpp" />
@@ -567,6 +568,7 @@
     <ClCompile Include="Source\Engine\WorldGrid.cpp" />
     <ClCompile Include="Source\Game\Actor.cpp" />
     <ClCompile Include="Source\Game\Component\AnimationComponent.cpp" />
+    <ClCompile Include="Source\Game\Component\BoneMirrorComponent.cpp" />
     <ClCompile Include="Source\Game\Component\CameraComponent.cpp" />
     <ClCompile Include="Source\Game\Component\CharacterControllerComponent.cpp" />
     <ClCompile Include="Source\Game\Component\Component.cpp" />
@@ -669,6 +671,7 @@
     <CLInclude Include="Resource\resource.h" />
     <ClInclude Include="Source\Engine\AssetDataBase.h" />
     <ClInclude Include="Source\Engine\AssetFileTypes.h" />
+    <ClInclude Include="Source\Engine\AssetFile\Animation\AnimationFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\AssetFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Bone\BoneFileData.h" />
     <ClInclude Include="Source\Engine\AssetFile\Material\TextureFileData.h" />
@@ -695,6 +698,7 @@
     <ClInclude Include="Source\Engine\ICommand.h" />
     <ClInclude Include="Source\Engine\ModelConverter.h" />
     <ClInclude Include="Source\Engine\SystemLog.h" />
+    <ClInclude Include="Source\Game\Component\BoneMirrorComponent.h" />
     <ClInclude Include="Source\Game\Component\CharacterControllerComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugEngineScriptComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugScript\DebugNaviMesh.h" />

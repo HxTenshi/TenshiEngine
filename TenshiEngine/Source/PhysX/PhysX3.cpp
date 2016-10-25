@@ -50,13 +50,16 @@ class TestOn : public physx::PxSimulationEventCallback{
 		//if (g_SimulationInitialize)return;
 		for (PxU32 i = 0; i < nbPairs; i++)
 		{
-			Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
-			Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
+			//Actor* act0 = (Actor*)pairHeader.actors[0]->userData;
+			//Actor* act1 = (Actor*)pairHeader.actors[1]->userData;
+
+			const PxContactPair& cp = pairs[i];
+			Actor* act0 = (Actor*)cp.shapes[0]->userData;
+			Actor* act1 = (Actor*)cp.shapes[1]->userData;
 			if (!(act0&&act1))continue;
 			auto script0 = act0->GetComponent<ScriptComponent>();
 			auto script1 = act1->GetComponent<ScriptComponent>();
 
-			const PxContactPair& cp = pairs[i];
 			if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
 				if (script0)
@@ -95,8 +98,8 @@ class TestOn : public physx::PxSimulationEventCallback{
 		{
 			const PxTriggerPair& cp = pairs[i];
 
-			Actor* act0 = (Actor*)cp.triggerActor->userData;
-			Actor* act1 = (Actor*)cp.otherActor->userData;
+			Actor* act0 = (Actor*)cp.triggerShape->userData;
+			Actor* act1 = (Actor*)cp.otherShape->userData;
 			if (!(act0&&act1))continue;
 			auto script0 = act0->GetComponent<ScriptComponent>();
 			auto script1 = act1->GetComponent<ScriptComponent>();
@@ -524,6 +527,18 @@ PxShape* PhysX3Main::CreateShapeSphere(){
 
 }
 
+PxShape * PhysX3Main::CreateShapeCapsule()
+{
+	PxCapsuleGeometry geometry(0.5,0.5);
+	auto shape = gPhysicsSDK->createShape(geometry, *mMaterial, true, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
+	PxFilterData  filterData;
+	filterData.word0 = Layer::None;  //ワード0 =自分のID 
+	shape->setSimulationFilterData(filterData);
+	shape->setQueryFilterData(filterData);
+
+	return shape;
+}
+
 PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 	if (!poly)return NULL;
 	auto vnum = poly->GetVertexNum();
@@ -581,6 +596,71 @@ PxShape* PhysX3Main::CreateTriangleMesh(const IPolygonsData* poly){
 	PxTriangleMeshGeometry meshGeo(mesh);
 	//PxShapeFlag::eSIMULATION_SHAPE
 	auto shape = gPhysicsSDK->createShape(meshGeo, *mMaterial, true, PxShapeFlag::eSCENE_QUERY_SHAPE);
+
+	PxFilterData  filterData;
+	filterData.word0 = Layer::None;  //ワード0 =自分のID 
+	shape->setSimulationFilterData(filterData);
+	shape->setQueryFilterData(filterData);
+
+	return shape;
+}
+PxShape* PhysX3Main::CreateConvexMesh(const IPolygonsData* poly) {
+	if (!poly)return NULL;
+	auto vnum = poly->GetVertexNum();
+	//std::vector<PxVec3> vertexVec3(VertexNum);
+	std::vector<PxVec3> vertexVec3(vnum);
+	for (int i = 0; i < vnum; i++) {
+		auto Pos = poly->GetVertexPos(i);
+		vertexVec3[i] = PxVec3(Pos.x, Pos.y, Pos.z);
+	}
+
+	//PxBoundedData vertexdata;
+	//vertexdata.count = vertex.size();
+	//vertexdata.stride = sizeof(PxVec3);
+	//vertexdata.data = vertexVec3.data();
+
+
+	auto inum = poly->GetIndexNum();
+	//std::vector<PxU32> indexU32;
+	std::vector<PxU32> indexU32(inum);
+	for (int i = 0; i < inum; i++) {
+		indexU32[i] = (PxU32)poly->GetIndex(i);
+	}
+
+	//PxBoundedData indexdata;
+	//indexdata.count = index.size() / 3;
+	//indexdata.stride = sizeof(PolygonsData::IndexType) * 3;
+	//indexdata.data = indexU32.data();
+
+
+	// メッシュデータのパラメータを設定
+	PxConvexMeshDesc triangleDesc;
+	// 頂点データ
+	triangleDesc.points.count = vertexVec3.size();
+	triangleDesc.points.stride = sizeof(PxVec3);
+	triangleDesc.points.data = vertexVec3.data();
+	// 三角形の頂点インデックス
+	triangleDesc.triangles.count = indexU32.size() / 3;
+	triangleDesc.triangles.stride = sizeof(PxU32) * 3;
+	triangleDesc.triangles.data = indexU32.data();
+
+	//triangleDesc.flags = PxMeshFlag;
+
+	PxDefaultMemoryOutputStream writeBuffer;
+	bool status = mCooking->cookConvexMesh(triangleDesc, writeBuffer);
+	if (!status) {
+
+		_SYSTEM_LOG_ERROR("PhysX Shape ConvexMeshの作成");
+		return NULL;
+	}
+
+	PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+	// メッシュを作成する
+	auto mesh = gPhysicsSDK->createConvexMesh(readBuffer);
+
+	PxConvexMeshGeometry meshGeo(mesh);
+	//PxShapeFlag::eSIMULATION_SHAPE
+	auto shape = gPhysicsSDK->createShape(meshGeo, *mMaterial, true, PxShapeFlag::eSIMULATION_SHAPE | PxShapeFlag::eSCENE_QUERY_SHAPE);
 
 	PxFilterData  filterData;
 	filterData.word0 = Layer::None;  //ワード0 =自分のID 

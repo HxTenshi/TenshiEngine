@@ -114,8 +114,12 @@ void Inspector::Add(const std::string& text, std::string* data, const std::funct
 void Inspector::Add(const std::string& text, wp<IActor>* data, const std::function<void()>& collback) {
 
 	std::function<void(wp<IActor>)> loadcoll = [data, collback](wp<IActor> act) {
-		if (!act)return;
-		*data = act;
+		if (!act) {
+			*data = NULL;
+		}
+		else {
+			*data = act;
+		}
 		collback();
 	};
 

@@ -11,6 +11,7 @@ class TextureFileData;
 class PhysxMaterialFileData;
 class SoundFileData;
 class MovieFileData;
+class AnimationFileData;
 
 using MetaAsset = Asset<MetaFileData>;
 using MeshAsset = Asset<MeshFileData>;
@@ -21,3 +22,4 @@ using TextureAsset = Asset<TextureFileData>;
 using PhysxMaterialAsset = Asset<PhysxMaterialFileData>;
 using SoundAsset = Asset<SoundFileData>;
 using MovieAsset = Asset<MovieFileData>;
+using AnimationAsset = Asset<AnimationFileData>;

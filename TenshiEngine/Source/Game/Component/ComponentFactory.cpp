@@ -25,6 +25,7 @@
 #include "SoundListenerComponent.h"
 #include "GizumoComponent.h"
 #include "NaviMeshComponent.h"
+#include "BoneMirrorComponent.h"
 
 
 
@@ -58,6 +59,7 @@ ComponentFactory::ComponentFactory(){
 	_NewFunc<SoundListenerComponent>();
 	_NewFunc<GizumoComponent>();
 	_NewFunc<NaviMeshComponent>();
+	_NewFunc<BoneMirrorComponent>();
 }
 
 shared_ptr<Component> ComponentFactory::Create(const std::string& ClassName){

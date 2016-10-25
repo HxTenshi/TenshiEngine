@@ -8,9 +8,12 @@
 #include "Graphic/Loader/Animation/VMD.h"
 #include "Graphic/Model/Model.h"
 #include "Graphic/Model/BoneModel.h"
-
+#include "Engine/AssetLoad.h"
 
 #include "Engine/Inspector.h"
+
+#include "Engine/AssetFile/Animation/AnimationFileData.h"
+
 
 AnimationComponent::AnimationComponent()
 	:mCurrentSet(0)
@@ -21,7 +24,21 @@ void AnimationComponent::Initialize(){
 	for (auto& set : mAnimationSets){
 		set.Create();
 	}
-	ChangeAnimetion(0);
+	changeAnimetion(0);
+}
+
+void AnimationComponent::Start() {
+	if (!mModel) {
+		mModel = gameObject->GetComponent<ModelComponent>();
+		if (!mModel)return;
+	}
+	if (mModel && mModel->mModel && mModel->mModel->mBoneModel) {
+
+		auto bone = mModel->mModel->mBoneModel;
+		for (auto& set : mAnimationSets) {
+			set.Bind(bone);
+		}
+	}
 }
 
 void AnimationComponent::Finish(){
@@ -39,7 +56,10 @@ void AnimationComponent::Update(){
 		auto bone = mModel->mModel->mBoneModel;
 
 		for (auto& set : mAnimationSets){
-			set.Update(bone);
+			if (!set.mAnimationBind) {
+				set.Bind(bone);
+			}
+			set.Update();
 		}
 
 		auto& set = mAnimationSets[mCurrentSet];
@@ -61,7 +81,7 @@ void AnimationComponent::CreateInspector(){
 	ins.AddEnableButton(this);
 
 	std::function<void(int)> collbackset = [&](int f){
-		ChangeAnimetion(f);
+		changeAnimetion(f);
 	};
 	ins.Add("ID", &mCurrentSet, collbackset);
 
@@ -96,13 +116,12 @@ void AnimationComponent::CreateInspector(){
 	};
 	ins.Add("Loop", &mView.Param.mLoop, collbackloop);
 
-	std::function<void(std::string)> collbackpath = [&](std::string name){
-		mView.Param.mFileName = name;
-		mAnimationSets[mCurrentSet].Param.mFileName = name;
+
+	ins.Add("VMD", &mView.Param.mAnimationAsset, [&]() {
+		mAnimationSets[mCurrentSet].Param.mAnimationAsset = mView.Param.mAnimationAsset;
 		mAnimationSets[mCurrentSet].Create();
 
-	};
-	ins.Add("VMD", &mView.Param.mFileName, collbackpath);
+	});
 
 	ins.Complete();
 }
@@ -115,7 +134,7 @@ void AnimationComponent::IO_Data(I_ioHelper* io){
 #define _KEY(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str() )
 
 	for (int i = 0; i < mAnimetionCapacity; i++){
-		_KEY(i, mAnimationSets[i].Param.mFileName);
+		_KEY(i, mAnimationSets[i].Param.mAnimationAsset);
 		_KEY(i, mAnimationSets[i].Param.mTime);
 		_KEY(i, mAnimationSets[i].Param.mTimeScale);
 		_KEY(i, mAnimationSets[i].Param.mLoop);
@@ -125,7 +144,7 @@ void AnimationComponent::IO_Data(I_ioHelper* io){
 #undef _KEY
 }
 
-void AnimationComponent::ChangeAnimetion(int id){
+void AnimationComponent::changeAnimetion(int id){
 	mCurrentSet = min(max(id, 0), (mAnimetionCapacity - 1));
 	auto& set = mAnimationSets[mCurrentSet];
 	mView.Param = set.Param;
@@ -137,38 +156,71 @@ AnimeParam AnimationComponent::GetAnimetionParam(int id){
 }
 void AnimationComponent::SetAnimetionParam(int id,const AnimeParam& param){
 	id = min(max(id, 0), (mAnimetionCapacity - 1));
-	bool createflag = false;
-	if (mAnimationSets[id].Param.mFileName != param.mFileName){
-		createflag = true;
-	}
+	//bool createflag = false;
+	//if (mAnimationSets[id].Param.mFileName != param.mFileName){
+	//	createflag = true;
+	//}
 
 	mAnimationSets[id].Param = param;
-	if (createflag){
-		mAnimationSets[id].Create();
-
-	}
-
+	mAnimationSets[id].Create();
+	//if (createflag){
+	//	mAnimationSets[id].Create();
+	//}
+	if (!mAnimationSets[id].mAnimationBind);
 	mAnimationSets[id].mAnimationBind->SetWeight(mAnimationSets[id].Param.mWeight);
 	mAnimationSets[id].mAnimationBind->SetLoopFlag(mAnimationSets[id].Param.mLoop);
 	mAnimationSets[id].mAnimationBind->PlayAnimetionSetTime(mAnimationSets[id].Param.mTime);
 }
 
+float AnimationComponent::GetTotalTime(int id)
+{
+	id = min(max(id, 0), (mAnimetionCapacity - 1));
+	if (!mAnimationSets[id].mAnimationBind)return 0.0f;
 
+	auto& asset = mAnimationSets[id].Param.mAnimationAsset;
+	if (!asset.IsLoad())return 0.0f;
+	auto animedata = asset.Get();
+	if (!animedata)return 0.0f;
+	return animedata->GetAnimeData().GetLastFrameTime();
+}
 
 
 
 #include "Game/Game.h"
 
-void AnimeSet::Update(BoneModel* bone){
-	//‚È‚¯‚ê‚Îì¬
-	if (!mAnimationBind){
-		mAnimationBind = bone->BindAnimation(&mAnimeData);
+AnimeSet::AnimeSet()
+{
+	mAnimationBind = NULL;
+}
 
-		mAnimationBind->SetLoopFlag(Param.mLoop);
-		mAnimationBind->SetWeight(Param.mWeight);
-		mAnimationBind->PlayAnimetionSetTime(Param.mTime);
+AnimeSet::~AnimeSet()
+{
+	mAnimationBind = NULL;
+}
+
+void AnimeSet::Create()
+{
+	if (!Param.mAnimationAsset.IsLoad()) {
+		AssetLoad::Instance(Param.mAnimationAsset.m_Hash, Param.mAnimationAsset);
 	}
 
+	mAnimationBind = NULL;
+}
+
+void AnimeSet::Bind(BoneModel * bone)
+{
+	if (!Param.mAnimationAsset.IsLoad())return;
+	auto animedata = Param.mAnimationAsset.Get();
+	if (!animedata)return;
+	mAnimationBind = bone->BindAnimation(&animedata->GetAnimeData());
+
+	mAnimationBind->SetLoopFlag(Param.mLoop);
+	mAnimationBind->SetWeight(Param.mWeight);
+	mAnimationBind->PlayAnimetionSetTime(Param.mTime);
+}
+
+void AnimeSet::Update()
+{
 	if (!mAnimationBind)return;
 	auto time = Game::GetDeltaTime()->GetDeltaTime();
 	Param.mTime = mAnimationBind->GetTime();

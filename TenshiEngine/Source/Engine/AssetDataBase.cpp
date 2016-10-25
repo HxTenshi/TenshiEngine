@@ -20,6 +20,7 @@
 #include "AssetFile\Physx\PhysxMaterialFileData.h"
 #include "AssetFile\Sound\SoundFileData.h"
 #include "AssetFile\Movie\MovieFileData.h"
+#include "AssetFile/Animation/AnimationFileData.h"
 
 #include "Engine/Inspector.h"
 
@@ -75,41 +76,41 @@ void AssetDataBase::InitializeMetaData(const char* filename){
 
 }
 
-
 AssetFactory::AssetFactory(){
 	//ÉÄÅ[ÉrÅ[é¸ÇË
 	{
 		//MFStartup(MF_VERSION);
 	}
+	factory<MeshFileData>("tesmesh");
+	factory<MeshFileData>("tedmesh");
+	factory<MeshFileData>("tedmesh2");
 
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tesmesh"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tedmesh"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tedmesh2"), [](const char* filename){ return AssetDataTemplate<MeshFileData>::Create(filename); }));
+	factory<BoneFileData>("tebone2");
+	
+	factory<PrefabFileData>("prefab");
+	
+	factory<ShaderFileData>("fx");
 
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tebone2"), [](const char* filename){ return AssetDataTemplate<BoneFileData>::Create(filename); }));
-
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("prefab"), [](const char* filename){ return AssetDataTemplate<PrefabFileData>::Create(filename); }));
-
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("fx"), [](const char* filename){ return AssetDataTemplate<ShaderFileData>::Create(filename); }));
-
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("png"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("jpg"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("jpge"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("bmp"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tif"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("tga"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("hdr"), [](const char* filename){ return AssetDataTemplate<TextureFileData>::Create(filename); }));
-
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("pxmaterial"), [](const char* filename){ return AssetDataTemplate<PhysxMaterialFileData>::Create(filename); }));
-
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wav"), [](const char* filename){ return AssetDataTemplate<SoundFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wave"), [](const char* filename){ return AssetDataTemplate<SoundFileData>::Create(filename); }));
-
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("mp4"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("wmv"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("avi"), [](const char* filename){ return AssetDataTemplate<MovieFileData>::Create(filename); }));
-
-	m_Factory.insert(std::make_pair<std::string, std::function<AssetDataTemplatePtr(const char*)>>(std::string("meta"), [](const char* filename){ return AssetDataTemplate<MetaFileData>::Create(filename); }));
+	factory<TextureFileData>("png");
+	factory<TextureFileData>("jpg");
+	factory<TextureFileData>("jpge");
+	factory<TextureFileData>("bmp");
+	factory<TextureFileData>("tif");
+	factory<TextureFileData>("tga");
+	factory<TextureFileData>("hdr");
+	
+	factory<PhysxMaterialFileData>("pxmaterial");
+	
+	factory<SoundFileData>("wav");
+	factory<SoundFileData>("wave");
+	
+	factory<MovieFileData>("mp4");
+	factory<MovieFileData>("wmv");
+	factory<MovieFileData>("avi");
+	
+	factory<MetaFileData>("meta");
+	
+	factory<AnimationFileData>("vmd");
 }
 
 
