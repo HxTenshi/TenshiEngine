@@ -9,6 +9,8 @@ void PlayerController::Initialize(){
 	mJump = XMVectorZero();
 	mGravity = XMVectorSet(0, -9.81f, 0,1);
 	mRotate = XMVectorZero();
+	m_IsDoge = false;
+	m_IsGround = false;
 }
 
 //initializeとupdateの前に呼ばれます（エディター中も呼ばれます）
@@ -16,182 +18,49 @@ void PlayerController::Start(){
 
 	Hx::System()->LockCursorPositionToWindowCenter(true);
 
+	m_CharacterControllerComponent = gameObject->GetComponent<CharacterControllerComponent>();
+
 }
 
 //毎フレーム呼ばれます
 void PlayerController::Update(){
 
-	if (Input::Down(KeyCoord::Key_ESCAPE)) {
+	if (Input::Down(KeyCode::Key_ESCAPE)) {
 		Hx::System()->LockCursorPositionToWindowCenter(false);
 	}
-	if (Input::Down(MouseCoord::Left)) {
+	if (Input::Down(MouseCode::Left)) {
 		Hx::System()->LockCursorPositionToWindowCenter(true);
 	}
 
-	auto cc = gameObject->GetComponent<CharacterControllerComponent>();
-	if (!cc)return;
-	
-	float time = Hx::DeltaTime()->GetDeltaTime();
-	
-	float speed = 10.0f;
-	float x = 0, y = 0;
-	if (Input::Down(KeyCoord::Key_W) || Input::Down(PAD_X_KeyCoord::Button_UP)){
-		y = 1.0f;
-	}
-	if (Input::Down(KeyCoord::Key_S)){
-		y = -1.0f;
-	}
-	if (Input::Down(KeyCoord::Key_D)){
-		x = 1.0f;
-	}
-	if (Input::Down(KeyCoord::Key_A)){
-		x = -1.0f;
+
+	if (!m_CharacterControllerComponent) {
+		m_CharacterControllerComponent = gameObject->GetComponent<CharacterControllerComponent>();
+		if (!m_CharacterControllerComponent)return;
 	}
 
-	
-	bool isGround = cc->IsGround();
-
-	XMVECTOR pos = gameObject->mTransform->WorldPosition();
-	if (isGround){
-		auto d = XMVectorSet(0, -1, 0, 1);
-		RaycastHit hit;
-		if (Hx::PhysX()->RaycastHit(pos, d, 100.0f, &hit)){
-			auto dot = XMVector3Dot(hit.normal,XMVectorSet(0,1,0,1)).x;
-			auto angle = dot;
-
-			auto deg = cc->GetSlopeLimit();
-			float slopeLimit = cosf(XM_PI / 180.0f * deg);
-			if (slopeLimit > angle){
-				isGround = false;
-
-				hit.normal.y = 0.0f;
-				hit.normal = XMVector3Normalize(hit.normal);
-				auto v2 = mJump + hit.normal * speed * 0.2f;
-				v2.y = 0.0f;
-				auto s = min(max(XMVector3Length(v2).x, -speed), speed);
-				v2 = XMVector3Normalize(v2)*s;
-				mJump.x = v2.x;
-				mJump.z = v2.z;
-			}
-		}
+	if (m_CharacterControllerComponent->IsGround()) {
+		m_IsGround = true;
+		m_IsDoge = false;
 	}
 
-	auto xy = XMVector2Normalize(XMVectorSet(x, y, 0, 1));
-	auto v = XMVectorZero();
-	v += xy.y * gameObject->mTransform->Forward();
-	v += xy.x * gameObject->mTransform->Left();
+	if(!m_IsDoge)
+		move();
 
-	if (isGround){
-		mJump = XMVectorZero();
-		if (Input::Trigger(KeyCoord::Key_SPACE) || Input::Down(PAD_X_KeyCoord::Button_A)){
-  			mJump.y += 3.5f;
-		}
-		v *= speed;
-	}
-	else{
+	moveUpdate();
 
-		mJump.x -= mJump.x * 6.0f * time;
-		mJump.z -= mJump.z * 6.0f * time;
-		auto v2 = mJump + v * speed * 0.1f;
-		v2.y = 0.0f;
-		auto s = min(max(XMVector3Length(v2).x, -speed), speed);
-		v = XMVector3Normalize(v2)*s;
-
+	if (m_IsGround) {
+		doge();
 	}
 
-	mJump.x = v.x;
-	mJump.z = v.z;
-	mJump += mGravity * time;
-	
-	auto p = XMVectorZero();
-	p += mJump * time;
-	
-	cc->Move(p);
+	rotate();
 
-	if (isGround && !cc->IsGround() && mJump.y <= 0.0f){
-		XMVECTOR donw = XMVectorSet(0, -cc->GetStepOffset(), 0, 1);
-		cc->Move(donw);
-		if (!cc->IsGround()){
-			cc->Move(-donw);
-		}
+	if (!m_WeaponHand)return;
+	if (Input::Down(KeyCode::Key_F)) {
+		guard();
 	}
-	
-	
-	if (false){
-		float rotY = 0.0f;
-		float rotX = 0.0f;
-		if (Input::Down(KeyCoord::Key_Q)){
-			rotY = -1.0f;
-		}
-		if (Input::Down(KeyCoord::Key_E)){
-			rotY = 1.0f;
-		}
-		rotY *= Hx::DeltaTime()->GetDeltaTime();
-
-		XMVECTOR normal = XMVectorSet(0, 1, 0, 1);
-		if (isGround){
-			//auto pos = gameObject->mTransform->WorldPosition();
-			auto d = XMVectorSet(0, -1, 0, 1);
-			RaycastHit hit;
-			if (Hx::PhysX()->RaycastHit(pos, d, 5.0f, &hit)){
-				normal = hit.normal;
-				normal = XMVector3Normalize(normal);
-			}
-		}
-
-		{
-			auto up = gameObject->mTransform->Up();
-			up = XMVector3Normalize(up);
-			auto dot = XMVector3Dot(normal, up).x;
-			auto angle = acos(dot);
-			auto n = XMVector3Cross(up, normal);
-			n = XMVector3Normalize(n);
-			n.w = 1.0f;
-			angle = min(angle, XM_PI * time);
-			auto q = XMQuaternionRotationNormal(n, angle);
-			auto wq = gameObject->mTransform->WorldQuaternion();
-			q = XMQuaternionMultiply(wq, q);
-			q = XMQuaternionNormalize(q);
-			if (XMQuaternionIsInfinite(q) || XMQuaternionIsNaN(q)){
-				return;
-			}
-
-
-			auto rotateQ = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0);
-			q = XMQuaternionMultiply(rotateQ, q);
-			gameObject->mTransform->WorldQuaternion(q);
-		}
+	if (Input::Down(MouseCode::Left)) {
+		attack();
 	}
-	else{
-
-			{
-				int mx, my;
-				Input::MousePosition(&mx, &my);
-				auto p = Hx::System()->GetLockCursorPosition();
-				float _mx = mx - p.x;
-				float _my = my - p.y;
-				if (abs(_mx) < 1.1f)_mx = 0.0f;
-				if (abs(_my) < 1.1f)_my = 0.0f;
-				mRotate.y += _mx / 200.0f;
-				mRotate.x += _my / 200.0f;
-			}
-
-
-		float MAX = XM_PI / 2 - 0.1f;
-		mRotate.x = min(max(mRotate.x, -MAX),MAX);
-
-		auto left = gameObject->mTransform->Left();
-
-		auto qx = XMQuaternionRotationRollPitchYaw(mRotate.x, 0, 0);
-		//auto qx = XMQuaternionRotationAxis(left, mRotate.x);
-		//qx = XMQuaternionNormalize(qx);
-		auto qy = XMQuaternionRotationRollPitchYaw(0, mRotate.y, 0);
-		qx = XMQuaternionMultiply(qx, qy);
-		qx = XMQuaternionNormalize(qx);
-		
-		gameObject->mTransform->WorldQuaternion(qx);
-	}
-	
 }
 
 //開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）（エディター中も呼ばれます）
@@ -212,4 +81,180 @@ void PlayerController::OnCollideEnter(GameObject target){
 //コライダーとのロスト時に呼ばれます
 void PlayerController::OnCollideExit(GameObject target){
 	(void)target;
+}
+
+void PlayerController::move()
+{
+
+	float time = Hx::DeltaTime()->GetDeltaTime();
+	float speed = m_MoveSpeed;
+	float x = 0, y = 0;
+	if (Input::Down(KeyCode::Key_W)) {
+		y = 1.0f;
+	}
+	if (Input::Down(KeyCode::Key_S)) {
+		y = -1.0f;
+	}
+	if (Input::Down(KeyCode::Key_D)) {
+		x = 1.0f;
+	}
+	if (Input::Down(KeyCode::Key_A)) {
+		x = -1.0f;
+	}
+
+
+	m_IsGround = m_CharacterControllerComponent->IsGround();
+
+	XMVECTOR pos = gameObject->mTransform->WorldPosition();
+	if (m_IsGround) {
+		auto d = XMVectorSet(0, -1, 0, 1);
+		RaycastHit hit;
+		if (Hx::PhysX()->RaycastHit(pos, d, 100.0f, &hit)) {
+			auto dot = XMVector3Dot(hit.normal, XMVectorSet(0, 1, 0, 1)).x;
+			auto angle = dot;
+
+			auto deg = m_CharacterControllerComponent->GetSlopeLimit();
+			float slopeLimit = cosf(XM_PI / 180.0f * deg);
+			if (slopeLimit > angle) {
+				m_IsGround = false;
+
+				hit.normal.y = 0.0f;
+				hit.normal = XMVector3Normalize(hit.normal);
+				auto v2 = mJump + hit.normal * speed * 0.2f;
+				v2.y = 0.0f;
+				auto s = min(max(XMVector3Length(v2).x, -speed), speed);
+				v2 = XMVector3Normalize(v2)*s;
+				mJump.x = v2.x;
+				mJump.z = v2.z;
+			}
+		}
+	}
+
+	auto xy = XMVector2Normalize(XMVectorSet(x, y, 0, 1));
+	auto v = XMVectorZero();
+	v += xy.y * gameObject->mTransform->Forward();
+	v += xy.x * gameObject->mTransform->Left();
+
+	if (m_IsGround) {
+		mJump = XMVectorZero();
+		if (Input::Trigger(KeyCode::Key_SPACE)) {
+			mJump.y += m_JumpPower;
+		}
+		v *= speed;
+	}
+	else {
+
+		mJump.x -= mJump.x * 6.0f * time;
+		mJump.z -= mJump.z * 6.0f * time;
+		auto v2 = mJump + v * speed * 0.1f;
+		v2.y = 0.0f;
+		auto s = min(max(XMVector3Length(v2).x, -speed), speed);
+		v = XMVector3Normalize(v2)*s;
+
+	}
+
+	mJump.x = v.x;
+	mJump.z = v.z;
+
+}
+
+void PlayerController::moveUpdate()
+{
+	float time = Hx::DeltaTime()->GetDeltaTime();
+	mJump += mGravity * time;
+	auto p = XMVectorZero();
+	p += mJump * time;
+
+	m_CharacterControllerComponent->Move(p);
+
+	if (m_IsGround && !m_CharacterControllerComponent->IsGround() && mJump.y <= 0.0f) {
+		XMVECTOR donw = XMVectorSet(0, -m_CharacterControllerComponent->GetStepOffset(), 0, 1);
+		m_CharacterControllerComponent->Move(donw);
+		if (!m_CharacterControllerComponent->IsGround()) {
+			m_CharacterControllerComponent->Move(-donw);
+		}
+	}
+}
+
+void PlayerController::rotate()
+{
+	
+	int mx, my;
+	Input::MousePosition(&mx, &my);
+	auto p = Hx::System()->GetLockCursorPosition();
+	float _mx = mx - p.x;
+	float _my = my - p.y;
+	if (abs(_mx) < 1.1f)_mx = 0.0f;
+	if (abs(_my) < 1.1f)_my = 0.0f;
+	mRotate.y += _mx / 200.0f;
+	mRotate.x += _my / 200.0f;
+
+
+	float MAX = XM_PI / 2 - 0.1f;
+	mRotate.x = min(max(mRotate.x, -MAX), MAX);
+
+	auto left = gameObject->mTransform->Left();
+
+	auto qx = XMQuaternionRotationRollPitchYaw(mRotate.x, 0, 0);
+	//auto qx = XMQuaternionRotationAxis(left, mRotate.x);
+	//qx = XMQuaternionNormalize(qx);
+	auto qy = XMQuaternionRotationRollPitchYaw(0, mRotate.y, 0);
+	qx = XMQuaternionMultiply(qx, qy);
+	qx = XMQuaternionNormalize(qx);
+
+	gameObject->mTransform->WorldQuaternion(qx);
+}
+
+void PlayerController::doge()
+{
+	if (Input::Trigger(KeyCode::Key_LSHIFT)) {
+		
+		float x = 0, y = 0;
+		if (Input::Down(KeyCode::Key_W)) {
+			y = 1.0f;
+		}
+		if (Input::Down(KeyCode::Key_S)) {
+			y = -1.0f;
+		}
+		if (Input::Down(KeyCode::Key_D)) {
+			x = 1.0f;
+		}
+		if (Input::Down(KeyCode::Key_A)) {
+			x = -1.0f;
+		}
+
+		if (abs(x) == 0 && abs(y) == 0) {
+			return;
+		}
+
+
+		auto v = XMVectorZero();
+		v += y * gameObject->mTransform->Forward();
+		v += x * gameObject->mTransform->Left();
+		v.y = 0.0f;
+		v = XMVector3Normalize(v);
+
+		mJump += v * m_MoveSpeed * 2;
+		mJump.y += m_JumpPower/2.0f;
+		auto p = mJump * Hx::DeltaTime()->GetDeltaTime();
+		m_CharacterControllerComponent->Move(p);
+		m_IsDoge = true;
+	}
+}
+
+#include "WeaponHand.h"
+void PlayerController::guard()
+{
+	auto weaponHand = m_WeaponHand->GetScript<WeaponHand>();
+	if (weaponHand) {
+		weaponHand->Guard();
+	}
+}
+
+void PlayerController::attack()
+{
+	auto weaponHand = m_WeaponHand->GetScript<WeaponHand>();
+	if (weaponHand) {
+		weaponHand->Attack();
+	}
 }

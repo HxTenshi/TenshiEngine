@@ -15,6 +15,7 @@ public:
 
 	virtual int GetTargetBoneID() = 0;
 	virtual void SetTargetBoneID(int id) = 0;
+	virtual void SetTargetBoneID(const std::string& name) = 0;
 };
 
 class BoneMirrorComponent :public IBoneMirrorComponent, public Component{
@@ -39,6 +40,7 @@ public:
 	std::vector<std::string>& GetBoneNames() override;
 	int GetTargetBoneID() override;
 	void SetTargetBoneID(int id) override;
+	void SetTargetBoneID(const std::string& name)override;
 private:
 	void transform(BoneModel* bone);
 

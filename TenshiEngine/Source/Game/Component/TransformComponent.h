@@ -146,6 +146,7 @@ private:
 
 	friend Actor;
 	friend Game;
+	bool mIsEndInitialize;
 protected:
 	mutable bool mFixMatrixFlag;
 };

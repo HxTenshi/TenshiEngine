@@ -9,10 +9,10 @@ public:
 	XInput(){
 		ZeroMemory(&state, sizeof(XINPUT_STATE));
 
-		for (int i = 0; i < (int)PAD_X_KeyCoord::Count; i++){
+		for (int i = 0; i < (int)PAD_X_KeyCode::Count; i++){
 			m_XState[i] = 0;
 		}
-		for (int i = 0; i < (int)PAD_X_LevelCoord::Count; i++){
+		for (int i = 0; i < (int)PAD_X_LevelCode::Count; i++){
 			m_XAnalog[i] = 0;
 		}
 
@@ -70,73 +70,73 @@ public:
 		}
 
 
-		m_XState[(int)PAD_X_KeyCoord::Button_A] =
+		m_XState[(int)PAD_X_KeyCode::Button_A] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_A?1:0;
-		m_XState[(int)PAD_X_KeyCoord::Button_B] =
+		m_XState[(int)PAD_X_KeyCode::Button_B] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_B ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_X] =
+		m_XState[(int)PAD_X_KeyCode::Button_X] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_X ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_Y] =
+		m_XState[(int)PAD_X_KeyCode::Button_Y] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_Y ? 1 : 0;
 
 
-		m_XState[(int)PAD_X_KeyCoord::Button_UP] =
+		m_XState[(int)PAD_X_KeyCode::Button_UP] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_Up ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_DOWN] =
+		m_XState[(int)PAD_X_KeyCode::Button_DOWN] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_Down ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_LEFT] =
+		m_XState[(int)PAD_X_KeyCode::Button_LEFT] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_Left ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_RIGHT] =
+		m_XState[(int)PAD_X_KeyCode::Button_RIGHT] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_Right ? 1 : 0;
 
 
 
-		m_XState[(int)PAD_X_KeyCoord::Button_START] =
+		m_XState[(int)PAD_X_KeyCode::Button_START] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_Start ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_BACK] =
+		m_XState[(int)PAD_X_KeyCode::Button_BACK] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_Back ? 1 : 0;
 
-		m_XState[(int)PAD_X_KeyCoord::Button_R1] =
+		m_XState[(int)PAD_X_KeyCode::Button_R1] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_R1 ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_R2] =
+		m_XState[(int)PAD_X_KeyCode::Button_R2] =
 			state.Gamepad.bRightTrigger;
-		m_XState[(int)PAD_X_KeyCoord::Button_R3] =
+		m_XState[(int)PAD_X_KeyCode::Button_R3] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_R3 ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_L1] =
+		m_XState[(int)PAD_X_KeyCode::Button_L1] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_L1 ? 1 : 0;
-		m_XState[(int)PAD_X_KeyCoord::Button_L2] =
+		m_XState[(int)PAD_X_KeyCode::Button_L2] =
 			state.Gamepad.bLeftTrigger;
-		m_XState[(int)PAD_X_KeyCoord::Button_L3] =
+		m_XState[(int)PAD_X_KeyCode::Button_L3] =
 			state.Gamepad.wButtons & XInput_BitFlag::Button_L3 ? 1 : 0;
 
-		m_XAnalog[(int)PAD_X_LevelCoord::Level_R2] =
+		m_XAnalog[(int)PAD_X_LevelCode::Level_R2] =
 			state.Gamepad.bRightTrigger / 255.0f;
-		m_XAnalog[(int)PAD_X_LevelCoord::Level_L2] = 
+		m_XAnalog[(int)PAD_X_LevelCode::Level_L2] = 
 			state.Gamepad.bLeftTrigger / 255.0f;
 
-		m_XAnalog[(int)PAD_X_LevelCoord::Level_R2] =
+		m_XAnalog[(int)PAD_X_LevelCode::Level_R2] =
 			state.Gamepad.bRightTrigger / 255.0f;
-		m_XAnalog[(int)PAD_X_LevelCoord::Level_L2] =
+		m_XAnalog[(int)PAD_X_LevelCode::Level_L2] =
 			state.Gamepad.bLeftTrigger / 255.0f;
 
 #define _SHROT_MAX 32768.0f
 
-		m_XAnalog[(int)PAD_X_LevelCoord::Level_LStickX] =
+		m_XAnalog[(int)PAD_X_LevelCode::Level_LStickX] =
 			state.Gamepad.sThumbLX / _SHROT_MAX;
-		m_XAnalog[(int)PAD_X_LevelCoord::Level_LStickY] =
+		m_XAnalog[(int)PAD_X_LevelCode::Level_LStickY] =
 			state.Gamepad.sThumbLY / _SHROT_MAX;
 
-		m_XAnalog[(int)PAD_X_LevelCoord::Level_RStickX] =
+		m_XAnalog[(int)PAD_X_LevelCode::Level_RStickX] =
 			state.Gamepad.sThumbRX / _SHROT_MAX;
-		m_XAnalog[(int)PAD_X_LevelCoord::Level_RStickY] =
+		m_XAnalog[(int)PAD_X_LevelCode::Level_RStickY] =
 			state.Gamepad.sThumbRY / _SHROT_MAX;
 	}
 
 
-	bool Down(PAD_X_KeyCoord keyCoord){
+	bool Down(PAD_X_KeyCode keyCoord){
 		return m_XState[(int)keyCoord] != 0;
 	}
-	float Level(PAD_X_LevelCoord levelCoord){
+	float Level(PAD_X_LevelCode levelCoord){
 		return m_XAnalog[(int)levelCoord];
 	}
 
@@ -149,8 +149,8 @@ private:
 	XINPUT_STATE state;
 
 
-	BYTE m_XState[(int)PAD_X_KeyCoord::Count];
-	float m_XAnalog[(int)PAD_X_LevelCoord::Count];
+	BYTE m_XState[(int)PAD_X_KeyCode::Count];
+	float m_XAnalog[(int)PAD_X_LevelCode::Count];
 
 	enum XInput_BitFlag{
 		Button_Up = XINPUT_GAMEPAD_DPAD_UP,

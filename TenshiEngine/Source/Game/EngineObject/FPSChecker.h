@@ -9,7 +9,7 @@ class FPSChecker : public GameEngineObject{
 public:
 	FPSChecker();
 	~FPSChecker();
-	void Update(float deltaTime) override;
+	void Update() override;
 
 private:
 

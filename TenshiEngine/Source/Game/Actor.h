@@ -26,6 +26,7 @@ class Actor
 public:
 	Actor();
 	virtual ~Actor();
+	void PlayInitializeStageColl();
 	virtual void Initialize();
 	virtual void Start();
 	virtual void Finish();
@@ -33,10 +34,10 @@ public:
 #ifdef _ENGINE_MODE
 	virtual void Initialize_Script();
 	virtual void Start_Script();
-	virtual void EngineUpdateComponent(float deltaTime);
+	virtual void EngineUpdateComponent();
 #endif
-	virtual void UpdateComponent(float deltaTime);
-	virtual void Update(float deltaTime);
+	virtual void UpdateComponent();
+	virtual void Update();
 	void SetInitializeStageCollQueue(const std::function<void()>& coll);
 	void SetUpdateStageCollQueue(const std::function<void()>& coll);
 
@@ -84,6 +85,9 @@ public:
 	UniqueID GetUniqueID(){
 		return mUniqueHash;
 	}
+	UniqueID GetBeforeUniqueID() {
+		return mBeforeUniqueHash;
+	}
 
 
 	//ペアレント変更コールバックを実行
@@ -93,14 +97,14 @@ public:
 
 	//void ExportSceneDataStart(const std::string& pass, File& sceneFile);
 	//void ExportSceneData(const std::string& pass, File& sceneFile);
-	void ExportData(const std::string& pass, const std::string& fileName, bool childExport = false);
+	void ExportData(const std::string& fileName, bool childExport = false);
 	//void ExportData(const std::string& pass);
-	void ImportData(const std::string& fileName);
-	void ImportData(picojson::value& json);
-	bool ImportDataAndNewID(const std::string& fileName);
+	void ImportData(const std::string& fileName, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto){}, bool newID = false);
+	void ImportData(picojson::value& json, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {}, bool newID = false);
+	bool ImportDataAndNewID(const std::string& fileName, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {});
 
 	void ExportData(picojson::value& json, bool childExport=false);
-	void ImportDataAndNewID(picojson::value& json);
+	void ImportDataAndNewID(picojson::value& json, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {});
 
 	void CreateNewID();
 
@@ -117,6 +121,12 @@ public:
 		return mEndFinish;
 	}
 
+	void SetInspectorFindGameObjectFunc(const std::function<weak_ptr<Actor>(const UniqueID&)>& func) {
+		m_InspectorFindGameObjectFunc = func;
+	}
+	weak_ptr<Actor> InspectorFindGameObject(const UniqueID& id) {
+		return m_InspectorFindGameObjectFunc(id);
+	}
 protected:
 	ComponentList mComponents;
 
@@ -124,7 +134,7 @@ protected:
 
 
 	virtual void _ExportData(I_ioHelper* io, bool childExport=false);
-	virtual void _ImportData(I_ioHelper* io);
+	virtual void _ImportData(I_ioHelper* io, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {}, bool newID = false);
 
 	std::queue<std::function<void()>> mInitializeStageCollQueue;
 	std::queue<std::function<void()>> mUpdateStageCollQueue;
@@ -134,14 +144,21 @@ protected:
 	PrefabAssetDataPtr mPrefabAsset;
 
 	UniqueID mUniqueHash;
+	UniqueID mBeforeUniqueHash;
 	bool mEndInitialize;
 	bool mEndStart;
 	bool mEndFinish;
 
 	int mPhysxLayer;
 
-
 private:
+	std::function<weak_ptr<Actor>(const UniqueID&)> m_InspectorFindGameObjectFunc;
+
 	virtual void OnEnabled()override;
 	virtual void OnDisabled()override;
 };
+
+namespace GameObjectFindHelper {
+	//weak_ptr<Actor> GameSceneFind(const UniqueID& id);
+	weak_ptr<Actor> ChildrenFind(GameObject obj, const UniqueID& id);
+}

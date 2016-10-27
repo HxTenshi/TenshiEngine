@@ -1,13 +1,13 @@
 #pragma once
 
-enum class MouseCoord{
+enum class MouseCode{
 	Left,
 	Right,
 	Middle,
 	Count
 };
 
-enum class KeyCoord{
+enum class KeyCode{
 	/*
 	DIK_0,
 	DIK_1,
@@ -156,154 +156,154 @@ enum class KeyCoord{
 	Count
 	*/
 
- Key_ESCAPE=1          //0x01
-,Key_1               //0x02
-,Key_2               //0x03
-,Key_3               //0x04
-,Key_4               //0x05
-,Key_5               //0x06
-,Key_6               //0x07
-,Key_7               //0x08
-,Key_8               //0x09
-,Key_9               //0x0A
-,Key_0               //0x0B
-,Key_MINUS           //0x0C
-,Key_EQUALS          //0x0D
-,Key_BACK            //0x0E
-,Key_TAB             //0x0F
-,Key_Q               //0x10
-,Key_W               //0x11
-,Key_E               //0x12
-,Key_R               //0x13
-,Key_T               //0x14
-,Key_Y               //0x15
-,Key_U               //0x16
-,Key_I               //0x17
-,Key_O               //0x18
-,Key_P               //0x19
-,Key_LBRACKET        //0x1A
-,Key_RBRACKET        //0x1B
-,Key_RETURN          //0x1C
-,Key_LCONTROL        //0x1D
-,Key_A               //0x1E
-,Key_S               //0x1F
-,Key_D               //0x20
-,Key_F               //0x21
-,Key_G               //0x22
-,Key_H               //0x23
-,Key_J               //0x24
-,Key_K               //0x25
-,Key_L               //0x26
-,Key_SEMICOLON       //0x27
-,Key_APOSTROPHE      //0x28
-,Key_GRAVE           //0x29
-,Key_LSHIFT          //0x2A
-,Key_BACKSLASH       //0x2B
-,Key_Z               //0x2C
-,Key_X               //0x2D
-,Key_C               //0x2E
-,Key_V               //0x2F
-,Key_B               //0x30
-,Key_N               //0x31
-,Key_M               //0x32
-,Key_COMMA           //0x33
-,Key_PERIOD          //0x34
-,Key_SLASH           //0x35
-,Key_RSHIFT          //0x36
-,Key_MULTIPLY        //0x37
-,Key_LMENU           //0x38
-,Key_SPACE           //0x39
-,Key_CAPITAL         //0x3A
-,Key_F1              //0x3B
-,Key_F2              //0x3C
-,Key_F3              //0x3D
-,Key_F4              //0x3E
-,Key_F5              //0x3F
-,Key_F6              //0x40
-,Key_F7              //0x41
-,Key_F8              //0x42
-,Key_F9              //0x43
-,Key_F10             //0x44
-,Key_NUMLOCK         //0x45
-,Key_SCROLL          //0x46
-,Key_NUMPAD7         //0x47
-,Key_NUMPAD8         //0x48
-,Key_NUMPAD9         //0x49
-,Key_SUBTRACT        //0x4A
-,Key_NUMPAD4         //0x4B
-,Key_NUMPAD5         //0x4C
-,Key_NUMPAD6         //0x4D
-,Key_ADD             //0x4E
-,Key_NUMPAD1         //0x4F
-,Key_NUMPAD2         //0x50
-,Key_NUMPAD3         //0x51
-,Key_NUMPAD0         //0x52
-,Key_DECIMAL         //0x53
-,Key_OEM_102         //0x56
-,Key_F11             //0x57
-,Key_F12             //0x58
-,Key_F13             //0x64
-,Key_F14             //0x65
-,Key_F15             //0x66
-,Key_KANA            //0x70
-,Key_ABNT_C1         //0x73
-,Key_CONVERT         //0x79
-,Key_NOCONVERT       //0x7B
-,Key_YEN             //0x7D
-,Key_ABNT_C2         //0x7E
-,Key_NUMPADEQUALS    //0x8D
-,Key_PREVTRACK       //0x90
-,Key_AT              //0x91
-,Key_COLON           //0x92
-,Key_UNDERLINE       //0x93
-,Key_KANJI           //0x94
-,Key_STOP            //0x95
-,Key_AX              //0x96
-,Key_UNLABELED       //0x97
-,Key_NEXTTRACK       //0x99
-,Key_NUMPADENTER     //0x9C
-,Key_RCONTROL        //0x9D
-,Key_MUTE            //0xA0
-,Key_CALCULATOR      //0xA1
-,Key_PLAYPAUSE       //0xA2
-,Key_MEDIASTOP       //0xA4
-,Key_VOLUMEDOWN      //0xAE
-,Key_VOLUMEUP        //0xB0
-,Key_WEBHOME         //0xB2
-,Key_NUMPADCOMMA     //0xB3
-,Key_DIVIDE          //0xB5
-,Key_SYSRQ           //0xB7
-,Key_RMENU           //0xB8
-,Key_PAUSE           //0xC5
-,Key_HOME            //0xC7
-,Key_UP              //0xC8
-,Key_PRIOR           //0xC9
-,Key_LEFT            //0xCB
-,Key_RIGHT           //0xCD
-,Key_END             //0xCF
-,Key_DOWN            //0xD0
-,Key_NEXT            //0xD1
-,Key_INSERT          //0xD2
-,Key_DELETE          //0xD3
-,Key_LWIN            //0xDB
-,Key_RWIN            //0xDC
-,Key_APPS            //0xDD
-,Key_POWER           //0xDE
-,Key_SLEEP           //0xDF
-,Key_WAKE            //0xE3
-,Key_WEBSEARCH       //0xE5
-,Key_WEBFAVORITES    //0xE6
-,Key_WEBREFRESH      //0xE7
-,Key_WEBSTOP         //0xE8
-,Key_WEBFORWARD      //0xE9
-,Key_WEBBACK         //0xEA
-,Key_MYCOMPUTER      //0xEB
-,Key_MAIL            //0xEC
-,Key_MEDIASELECT     //0xED
-,Count
+ Key_ESCAPE          =0x01
+,Key_1               =0x02
+,Key_2               =0x03
+,Key_3               =0x04
+,Key_4               =0x05
+,Key_5               =0x06
+,Key_6               =0x07
+,Key_7               =0x08
+,Key_8               =0x09
+,Key_9               =0x0A
+,Key_0               =0x0B
+,Key_MINUS           =0x0C
+,Key_EQUALS          =0x0D
+,Key_BACK            =0x0E
+,Key_TAB             =0x0F
+,Key_Q               =0x10
+,Key_W               =0x11
+,Key_E               =0x12
+,Key_R               =0x13
+,Key_T               =0x14
+,Key_Y               =0x15
+,Key_U               =0x16
+,Key_I               =0x17
+,Key_O               =0x18
+,Key_P               =0x19
+,Key_LBRACKET        =0x1A
+,Key_RBRACKET        =0x1B
+,Key_RETURN          =0x1C
+,Key_LCONTROL        =0x1D
+,Key_A               =0x1E
+,Key_S               =0x1F
+,Key_D               =0x20
+,Key_F               =0x21
+,Key_G               =0x22
+,Key_H               =0x23
+,Key_J               =0x24
+,Key_K               =0x25
+,Key_L               =0x26
+,Key_SEMICOLON       =0x27
+,Key_APOSTROPHE      =0x28
+,Key_GRAVE           =0x29
+,Key_LSHIFT          =0x2A
+,Key_BACKSLASH       =0x2B
+,Key_Z               =0x2C
+,Key_X               =0x2D
+,Key_C               =0x2E
+,Key_V               =0x2F
+,Key_B               =0x30
+,Key_N               =0x31
+,Key_M               =0x32
+,Key_COMMA           =0x33
+,Key_PERIOD          =0x34
+,Key_SLASH           =0x35
+,Key_RSHIFT          =0x36
+,Key_MULTIPLY        =0x37
+,Key_LMENU           =0x38
+,Key_SPACE           =0x39
+,Key_CAPITAL         =0x3A
+,Key_F1              =0x3B
+,Key_F2              =0x3C
+,Key_F3              =0x3D
+,Key_F4              =0x3E
+,Key_F5              =0x3F
+,Key_F6              =0x40
+,Key_F7              =0x41
+,Key_F8              =0x42
+,Key_F9              =0x43
+,Key_F10             =0x44
+,Key_NUMLOCK         =0x45
+,Key_SCROLL          =0x46
+,Key_NUMPAD7         =0x47
+,Key_NUMPAD8         =0x48
+,Key_NUMPAD9         =0x49
+,Key_SUBTRACT        =0x4A
+,Key_NUMPAD4         =0x4B
+,Key_NUMPAD5         =0x4C
+,Key_NUMPAD6         =0x4D
+,Key_ADD             =0x4E
+,Key_NUMPAD1         =0x4F
+,Key_NUMPAD2         =0x50
+,Key_NUMPAD3         =0x51
+,Key_NUMPAD0         =0x52
+,Key_DECIMAL         =0x53
+,Key_OEM_102         =0x56
+,Key_F11             =0x57
+,Key_F12             =0x58
+,Key_F13             =0x64
+,Key_F14             =0x65
+,Key_F15             =0x66
+,Key_KANA            =0x70
+,Key_ABNT_C1         =0x73
+,Key_CONVERT         =0x79
+,Key_NOCONVERT       =0x7B
+,Key_YEN             =0x7D
+,Key_ABNT_C2         =0x7E
+,Key_NUMPADEQUALS    =0x8D
+,Key_PREVTRACK       =0x90
+,Key_AT              =0x91
+,Key_COLON           =0x92
+,Key_UNDERLINE       =0x93
+,Key_KANJI           =0x94
+,Key_STOP            =0x95
+,Key_AX              =0x96
+,Key_UNLABELED       =0x97
+,Key_NEXTTRACK       =0x99
+,Key_NUMPADENTER     =0x9C
+,Key_RCONTROL        =0x9D
+,Key_MUTE            =0xA0
+,Key_CALCULATOR      =0xA1
+,Key_PLAYPAUSE       =0xA2
+,Key_MEDIASTOP       =0xA4
+,Key_VOLUMEDOWN      =0xAE
+,Key_VOLUMEUP        =0xB0
+,Key_WEBHOME         =0xB2
+,Key_NUMPADCOMMA     =0xB3
+,Key_DIVIDE          =0xB5
+,Key_SYSRQ           =0xB7
+,Key_RMENU           =0xB8
+,Key_PAUSE           =0xC5
+,Key_HOME            =0xC7
+,Key_UP              =0xC8
+,Key_PRIOR           =0xC9
+,Key_LEFT            =0xCB
+,Key_RIGHT           =0xCD
+,Key_END             =0xCF
+,Key_DOWN            =0xD0
+,Key_NEXT            =0xD1
+,Key_INSERT          =0xD2
+,Key_DELETE          =0xD3
+,Key_LWIN            =0xDB
+,Key_RWIN            =0xDC
+,Key_APPS            =0xDD
+,Key_POWER           =0xDE
+,Key_SLEEP           =0xDF
+,Key_WAKE            =0xE3
+,Key_WEBSEARCH       =0xE5
+,Key_WEBFAVORITES    =0xE6
+,Key_WEBREFRESH      =0xE7
+,Key_WEBSTOP         =0xE8
+,Key_WEBFORWARD      =0xE9
+,Key_WEBBACK         =0xEA
+,Key_MYCOMPUTER      =0xEB
+,Key_MAIL            =0xEC
+,Key_MEDIASELECT     =0xED
+,Count				 =0xFF
 };
 
-enum class PAD_DS4_KeyCoord{
+enum class PAD_DS4_KeyCode{
 	Button_UP,
 	Button_DOWN,
 	Button_LEFT,
@@ -327,7 +327,7 @@ enum class PAD_DS4_KeyCoord{
 	Count,
 };
 //2
-enum class PAD_DS4_LevelCoord{
+enum class PAD_DS4_LevelCode{
 	Level_L2,
 	Level_R2,
 	Level_LStickX,
@@ -348,7 +348,7 @@ enum class PAD_DS4_LevelCoord{
 };
 
 //8
-enum class PAD_DS4_Velo2Coord{
+enum class PAD_DS4_Velo2Code{
 	Velo2_LStick,
 	Velo2_RStick,
 	Velo2_1stTouch,
@@ -357,13 +357,13 @@ enum class PAD_DS4_Velo2Coord{
 };
 
 //6
-enum class PAD_DS4_Velo3Coord{
+enum class PAD_DS4_Velo3Code{
 	Velo3_Angular,
 	Velo3_Acceleration,
 	Count,
 };
 
-enum class PAD_X_KeyCoord{
+enum class PAD_X_KeyCode{
 	Button_UP,
 	Button_DOWN,
 	Button_LEFT,
@@ -382,7 +382,7 @@ enum class PAD_X_KeyCoord{
 	Button_BACK,
 	Count,
 };
-enum class PAD_X_LevelCoord{
+enum class PAD_X_LevelCode{
 	Level_L2,
 	Level_R2,
 	Level_LStickX,
@@ -392,7 +392,7 @@ enum class PAD_X_LevelCoord{
 	Count,
 };
 
-enum class PAD_X_Velo2Coord{
+enum class PAD_X_Velo2Code{
 	Velo2_LStick,
 	Velo2_RStick,
 	Count,

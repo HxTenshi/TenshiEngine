@@ -17,44 +17,18 @@ public:
 		return Game::GetRootActor();
 	}
 	GameObject Instance(GameObject base)override{
-	
-		if (base){
-			picojson::value val;
-			base->ExportData(val, true);
 
-
-			auto a = make_shared<Actor>();
-			a->ImportDataAndNewID(val);
-
-			Game::AddObject(a);
-			return a;
-
-		}
-
-		return NULL;
+		return Game::Get()->Instance(base);
 	}
 
 	GameObject Instance(PrefabAssetDataPtr base) override{
 
-		if (base){
-			if (base->GetFileData()){
-				auto val = base->GetFileData()->GetParam();
-				auto a = make_shared<Actor>();
-				a->ImportDataAndNewID(*val);
-				Game::AddObject(a);
-				return a;
-			}
-
-		}
-
-		return NULL;
+		return Game::Get()->Instance(base);
 	}
 
 	GameObject Instance() override{
 
-		auto a = make_shared<Actor>();
-		Game::AddObject(a);
-		return a;
+		return Game::Get()->Instance();
 	}
 
 	GameObject FindActor(const char* name)override{
@@ -93,5 +67,6 @@ public:
 	}
 	
 private:
+
 	DebugSystem mDebugEngine;
 };
