@@ -14,10 +14,10 @@ public:
 		, m_ReceiveBuffer(NULL)
 	{
 		memset(&m_Overlapped, 0, sizeof(OVERLAPPED));
-		for (int i = 0; i < (int)PAD_DS4_KeyCoord::Count; i++){
+		for (int i = 0; i < (int)PAD_DS4_KeyCode::Count; i++){
 			m_DS4State[i] = 0;
 		}
-		for (int i = 0; i < (int)PAD_DS4_LevelCoord::Count; i++){
+		for (int i = 0; i < (int)PAD_DS4_LevelCode::Count; i++){
 			m_DS4Analog[i] = 0;
 		}
 	}
@@ -137,10 +137,10 @@ public:
 		_ReadAnalog(m_DS4Analog);
 	}
 
-	bool Down(PAD_DS4_KeyCoord keyCoord){
+	bool Down(PAD_DS4_KeyCode keyCoord){
 		return m_DS4State[(int)keyCoord] != 0;
 	}
-	float Level(PAD_DS4_LevelCoord levelCoord){
+	float Level(PAD_DS4_LevelCode levelCoord){
 		return m_DS4Analog[(int)levelCoord];
 	}
 
@@ -244,65 +244,65 @@ private:
 	void _ReadInput(BYTE* buttons){
 
 		byte pov = m_ReceiveBuffer[(int)DS4_ArrayFlag::POV] & 0x0f;
-		buttons[(int)PAD_DS4_KeyCoord::Button_UP] =
+		buttons[(int)PAD_DS4_KeyCode::Button_UP] =
 			(pov == DS4_BitFlag::Button_UP ||
 			pov == DS4_BitFlag::Button_UP_RIGHT ||
 			pov == DS4_BitFlag::Button_LEFT_UP
 			);
-		buttons[(int)PAD_DS4_KeyCoord::Button_RIGHT] =
+		buttons[(int)PAD_DS4_KeyCode::Button_RIGHT] =
 			(pov == DS4_BitFlag::Button_RIGHT ||
 			pov == DS4_BitFlag::Button_UP_RIGHT ||
 			pov == DS4_BitFlag::Button_RIGHT_DOWN
 			);
-		buttons[(int)PAD_DS4_KeyCoord::Button_DOWN] =
+		buttons[(int)PAD_DS4_KeyCode::Button_DOWN] =
 			(pov == DS4_BitFlag::Button_DOWN ||
 			pov == DS4_BitFlag::Button_RIGHT_DOWN ||
 			pov == DS4_BitFlag::Button_DOWN_LEFT
 			);
-		buttons[(int)PAD_DS4_KeyCoord::Button_LEFT] =
+		buttons[(int)PAD_DS4_KeyCode::Button_LEFT] =
 			(pov == DS4_BitFlag::Button_LEFT ||
 			pov == DS4_BitFlag::Button_DOWN_LEFT ||
 			pov == DS4_BitFlag::Button_LEFT_UP
 			);
 
-		buttons[(int)PAD_DS4_KeyCoord::Button_SQUARE] =
+		buttons[(int)PAD_DS4_KeyCode::Button_SQUARE] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button] & DS4_BitFlag::Button_SQUARE;
-		buttons[(int)PAD_DS4_KeyCoord::Button_CROSS] =
+		buttons[(int)PAD_DS4_KeyCode::Button_CROSS] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button] & DS4_BitFlag::Button_CROSS;
-		buttons[(int)PAD_DS4_KeyCoord::Button_CIRCLE] =
+		buttons[(int)PAD_DS4_KeyCode::Button_CIRCLE] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button] & DS4_BitFlag::Button_CIRCLE;
-		buttons[(int)PAD_DS4_KeyCoord::Button_TRIANGLE] =
+		buttons[(int)PAD_DS4_KeyCode::Button_TRIANGLE] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button] & DS4_BitFlag::Button_TRIANGLE;
 
-		buttons[(int)PAD_DS4_KeyCoord::Button_L1] =
+		buttons[(int)PAD_DS4_KeyCode::Button_L1] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button2] & DS4_BitFlag::Button_L1;
-		buttons[(int)PAD_DS4_KeyCoord::Button_L2] =
+		buttons[(int)PAD_DS4_KeyCode::Button_L2] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button2] & DS4_BitFlag::Button_L2;
-		buttons[(int)PAD_DS4_KeyCoord::Button_L3] =
+		buttons[(int)PAD_DS4_KeyCode::Button_L3] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button2] & DS4_BitFlag::Button_L3;
 
-		buttons[(int)PAD_DS4_KeyCoord::Button_R1] =
+		buttons[(int)PAD_DS4_KeyCode::Button_R1] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button2] & DS4_BitFlag::Button_R1;
-		buttons[(int)PAD_DS4_KeyCoord::Button_R2] =
+		buttons[(int)PAD_DS4_KeyCode::Button_R2] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button2] & DS4_BitFlag::Button_R2;
-		buttons[(int)PAD_DS4_KeyCoord::Button_R3] =
+		buttons[(int)PAD_DS4_KeyCode::Button_R3] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button2] & DS4_BitFlag::Button_R3;
 
-		buttons[(int)PAD_DS4_KeyCoord::Button_OPTIONS] =
+		buttons[(int)PAD_DS4_KeyCode::Button_OPTIONS] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button2] & DS4_BitFlag::Button_OPTIONS;
-		buttons[(int)PAD_DS4_KeyCoord::Button_SHARE] =
+		buttons[(int)PAD_DS4_KeyCode::Button_SHARE] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button2] & DS4_BitFlag::Button_SHARE;
 
 
-		buttons[(int)PAD_DS4_KeyCoord::Button_1stTOUCH] =
+		buttons[(int)PAD_DS4_KeyCode::Button_1stTOUCH] =
 			(m_ReceiveBuffer[(int)DS4_ArrayFlag::Touch_1st] & DS4_BitFlag::Button_1stTOUCH) == 0 ? 1 : 0;
-		buttons[(int)PAD_DS4_KeyCoord::Button_2ndTOUCH] =
+		buttons[(int)PAD_DS4_KeyCode::Button_2ndTOUCH] =
 			(m_ReceiveBuffer[(int)DS4_ArrayFlag::Touch_2nd] & DS4_BitFlag::Button_2ndTOUCH) == 0 ? 1 : 0;
 
-		buttons[(int)PAD_DS4_KeyCoord::Button_PS] =
+		buttons[(int)PAD_DS4_KeyCode::Button_PS] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button3] & DS4_BitFlag::Button_PS;
 
-		buttons[(int)PAD_DS4_KeyCoord::Button_TOUCHPAD] =
+		buttons[(int)PAD_DS4_KeyCode::Button_TOUCHPAD] =
 			m_ReceiveBuffer[(int)DS4_ArrayFlag::Button3] & DS4_BitFlag::Button_TOUCHPAD;
 	}
 
@@ -326,8 +326,8 @@ private:
 	USHORT m_OutputReportLength;
 	byte* m_ReceiveBuffer;
 
-	BYTE m_DS4State[(int)PAD_DS4_KeyCoord::Count];
-	float m_DS4Analog[(int)PAD_DS4_LevelCoord::Count];
+	BYTE m_DS4State[(int)PAD_DS4_KeyCode::Count];
+	float m_DS4Analog[(int)PAD_DS4_LevelCode::Count];
 
 	enum DS4_ArrayFlag{
 		LAnalogX = 1,

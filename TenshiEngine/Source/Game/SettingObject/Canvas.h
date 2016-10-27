@@ -13,7 +13,7 @@ public:
 #endif
 
 	void _ExportData(I_ioHelper* io, bool childExport = false) override;
-	void _ImportData(I_ioHelper* io) override;
+	void _ImportData(I_ioHelper* io, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {},bool newID = false) override;
 
 	static float GetWidth() { return m_Width; }
 	static float GetHeight() { return m_Height; }

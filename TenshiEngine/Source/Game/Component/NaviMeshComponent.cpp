@@ -5,6 +5,7 @@
 #include "Game/Game.h"
 
 #include "Engine/Inspector.h"
+#include "Engine/AssetLoad.h"
 
 NaviMeshComponent::NaviMeshComponent() {
 	mStart = NULL;
@@ -21,6 +22,7 @@ NaviMeshComponent::~NaviMeshComponent() {
 
 }
 void NaviMeshComponent::Initialize() {
+	AssetLoad::Instance(m_Mesh.m_Hash, m_Mesh);
 	SetNaviMesh(m_Mesh);
 }
 
@@ -170,6 +172,8 @@ void NaviMeshComponent::IO_Data(I_ioHelper* io) {
 void NaviMeshComponent::SetNaviMesh(MeshAsset mesh)
 {
 	m_Mesh = mesh;
+	if(!m_Mesh.IsLoad())
+		AssetLoad::Instance(m_Mesh.m_Hash, m_Mesh);
 	mNaviMesh.Create(mesh.m_Ptr);
 	RootCreate(mStartTarget, mEndTarget);
 }

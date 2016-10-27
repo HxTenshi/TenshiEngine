@@ -25,10 +25,10 @@ void PlayerController::Start(){
 //–ˆƒtƒŒ[ƒ€ŒÄ‚Î‚ê‚Ü‚·
 void PlayerController::Update(){
 
-	if (Input::Down(KeyCoord::Key_ESCAPE)) {
+	if (Input::Down(KeyCode::Key_ESCAPE)) {
 		Hx::System()->LockCursorPositionToWindowCenter(false);
 	}
-	if (Input::Down(MouseCoord::Left)) {
+	if (Input::Down(MouseCode::Left)) {
 		Hx::System()->LockCursorPositionToWindowCenter(true);
 	}
 
@@ -55,10 +55,10 @@ void PlayerController::Update(){
 	rotate();
 
 	if (!m_WeaponHand)return;
-	if (Input::Down(KeyCoord::Key_F)) {
+	if (Input::Down(KeyCode::Key_F)) {
 		guard();
 	}
-	if (Input::Down(MouseCoord::Left)) {
+	if (Input::Down(MouseCode::Left)) {
 		attack();
 	}
 }
@@ -89,16 +89,16 @@ void PlayerController::move()
 	float time = Hx::DeltaTime()->GetDeltaTime();
 	float speed = m_MoveSpeed;
 	float x = 0, y = 0;
-	if (Input::Down(KeyCoord::Key_W)) {
+	if (Input::Down(KeyCode::Key_W)) {
 		y = 1.0f;
 	}
-	if (Input::Down(KeyCoord::Key_S)) {
+	if (Input::Down(KeyCode::Key_S)) {
 		y = -1.0f;
 	}
-	if (Input::Down(KeyCoord::Key_D)) {
+	if (Input::Down(KeyCode::Key_D)) {
 		x = 1.0f;
 	}
-	if (Input::Down(KeyCoord::Key_A)) {
+	if (Input::Down(KeyCode::Key_A)) {
 		x = -1.0f;
 	}
 
@@ -137,7 +137,7 @@ void PlayerController::move()
 
 	if (m_IsGround) {
 		mJump = XMVectorZero();
-		if (Input::Trigger(KeyCoord::Key_SPACE)) {
+		if (Input::Trigger(KeyCode::Key_SPACE)) {
 			mJump.y += m_JumpPower;
 		}
 		v *= speed;
@@ -207,19 +207,19 @@ void PlayerController::rotate()
 
 void PlayerController::doge()
 {
-	if (Input::Trigger(KeyCoord::Key_LSHIFT)) {
+	if (Input::Trigger(KeyCode::Key_LSHIFT)) {
 		
 		float x = 0, y = 0;
-		if (Input::Down(KeyCoord::Key_W)) {
+		if (Input::Down(KeyCode::Key_W)) {
 			y = 1.0f;
 		}
-		if (Input::Down(KeyCoord::Key_S)) {
+		if (Input::Down(KeyCode::Key_S)) {
 			y = -1.0f;
 		}
-		if (Input::Down(KeyCoord::Key_D)) {
+		if (Input::Down(KeyCode::Key_D)) {
 			x = 1.0f;
 		}
-		if (Input::Down(KeyCoord::Key_A)) {
+		if (Input::Down(KeyCode::Key_A)) {
 			x = -1.0f;
 		}
 

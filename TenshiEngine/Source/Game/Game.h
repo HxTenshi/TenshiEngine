@@ -66,6 +66,12 @@ public:
 
 	static Game* Get();
 
+	GameObject Instance(const std::string & base, bool undo = false);
+	GameObject Instance(bool undo = false);
+	GameObject Instance(GameObject base, bool undo = false);
+	GameObject Instance(picojson::value base, bool undo = false);
+	GameObject Instance(PrefabAssetDataPtr base, bool undo = false);
+
 	static void AddObject(GameObjectPtr actor, bool undoFlag = false, bool DelayInitialize = false);
 	static void DestroyObject(GameObjectPtr actor, bool undoFlag = false);
 	static void ActorMoveStage();

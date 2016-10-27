@@ -69,7 +69,7 @@ SystemHelper Game::mSystemHelper;
 
 template <class T>
 struct SettingObjectData {
-	weak_ptr<T> object = NULL;
+	shared_ptr<T> object = NULL;
 	const std::string name;
 	const std::string folder;
 	SettingObjectData(const char* name, const char* folder)
@@ -80,7 +80,7 @@ struct SettingObjectData {
 		auto o = make_shared<T>();
 		object = o;
 		o->mTransform = o->AddComponent<TransformComponent>();
-		o->ImportData(folder+"/"+name);
+		o->ImportData(folder+"/"+name+".prefab");
 
 #ifdef _ENGINE_MODE
 		Game::AddEngineObject(o);
@@ -88,7 +88,7 @@ struct SettingObjectData {
 #endif
 	}
 	void Save() {
-		object->ExportData(folder,name);
+		object->ExportData(folder+"/"+name);
 	}
 };
 struct SettingObject {
@@ -161,10 +161,10 @@ void InitContextMenu(){
 #endif
 }
 
-Game::Game(){
+Game::Game() {
 
 	LoadMetaFiles();
-	
+
 
 	_SYSTEM_LOG_H("ÉQÅ[ÉÄÉVÅ[ÉìÇÃèâä˙âª");
 	mGame = this;
@@ -189,7 +189,7 @@ Game::Game(){
 #endif
 
 	hr = mMainViewRenderTarget.CreateRTandDepth(WindowState::mWidth, WindowState::mHeight, DXGI_FORMAT_R11G11B10_FLOAT);
-	if (FAILED(hr)){
+	if (FAILED(hr)) {
 		//MessageBox(NULL, "RenderTarget Create Error.", "Error", MB_OK);
 	}
 
@@ -210,7 +210,12 @@ Game::Game(){
 	gIsPlay = mIsPlay;
 #endif
 
-
+#ifdef _ENGINE_MODE
+	mEngineRootObject = make_shared<Actor>();
+	mEngineRootObject->mTransform = mEngineRootObject->AddComponent<TransformComponent>();
+	mEngineRootObject->Initialize();
+	mEngineRootObject->Start();
+#endif
 
 	mRootObject = make_shared<Actor>();
 	mRootObject->mTransform = mRootObject->AddComponent<TransformComponent>();
@@ -218,10 +223,6 @@ Game::Game(){
 	mRootObject->Start();
 
 #ifdef _ENGINE_MODE
-	mEngineRootObject = make_shared<Actor>();
-	mEngineRootObject->mTransform = mEngineRootObject->AddComponent<TransformComponent>();
-	mEngineRootObject->Initialize();
-	mEngineRootObject->Start();
 
 	g_SettingObject.Create();
 
@@ -345,12 +346,8 @@ Game::Game(){
 	Window::SetWPFCollBack(MyWindowMessage::CreatePrefabToActor, [&](void* p)
 	{
 		std::string *s = (std::string*)p;
-		auto a = make_shared<Actor>();
-		if (!a->ImportDataAndNewID(*s)){
-		}
-		else{
-			AddObject(a,true);
-		}
+		bool undo = !IsGamePlay();
+		Instance(*s, undo);
 		Window::Deleter(s);
 	});
 
@@ -363,9 +360,9 @@ Game::Game(){
 
 
 		std::string *s = (std::string*)p;
-		obj->ExportData("Assets", *s,true);
+		obj->ExportData(*s,true);
 
-		AssetDataBase::FileUpdate(("Assets/"+*s+".prefab").c_str());
+		AssetDataBase::FileUpdate((*s).c_str());
 
 		Window::Deleter(s);
 	});
@@ -488,7 +485,70 @@ Game::~Game(){
 Game* Game::Get(){
 	return mGame;
 }
-//static
+
+GameObject Game::Instance(const std::string& base,bool undo) {
+	PrefabAssetDataPtr prefub;
+	AssetDataBase::Instance(base.c_str(), prefub);
+	return Game::Instance(prefub, undo);
+}
+GameObject Game::Instance(bool undo) {
+	auto a = make_shared<Actor>();
+	a->AddComponent<TransformComponent>();
+	a->mTransform = a->GetComponent<TransformComponent>();
+	a->CreateNewID();
+	a->mTransform->SetParent(NULL);
+	Game::AddObject(a, undo);
+	return a;
+}
+GameObject Game::Instance(GameObject base, bool undo) {
+	if (base) {
+		picojson::value val;
+		base->ExportData(val, true);
+
+		return Instance(undo);
+	}
+
+	return NULL;
+}
+GameObject Game::Instance(picojson::value base, bool undo) {
+
+	auto a = make_shared<Actor>();
+	GameObject This = a;
+	a->SetInspectorFindGameObjectFunc([This](auto id)->GameObject {
+		auto target = GameObjectFindHelper::ChildrenFind(This, id);
+		if (!target) {
+			target = Game::FindUID(id);
+		}
+		return target;
+	});
+
+	a->ImportDataAndNewID(base, [](auto o) { Game::AddObject(o, false, true); });
+	a->mTransform->SetParent(NULL);
+
+	Game::AddObject(a, undo);
+	//addchild(a);
+	return a;
+}
+GameObject Game::Instance(PrefabAssetDataPtr base, bool undo) {
+	if (base) {
+		if (base->GetFileData()) {
+			auto val = base->GetFileData()->GetParam();
+			auto a = make_shared<Actor>();
+			GameObject This = a;
+			a->SetInspectorFindGameObjectFunc([This](auto id)->GameObject {
+				return GameObjectFindHelper::ChildrenFind(This, id);
+			});
+
+			a->ImportDataAndNewID(*val, [](auto o) { Game::AddObject(o,false,true); });
+			a->mTransform->SetParent(NULL);
+			Game::AddObject(a, undo);
+			//addchild(a);
+			return a;
+		}
+	}
+
+	return NULL;
+}
 void Game::AddObject(GameObjectPtr actor, bool undoFlag, bool DelayInitialize){
 	if (!actor->mTransform){
 		//delete actor;
@@ -524,20 +584,21 @@ void Game::AddEngineObject(GameObjectPtr actor){
 		//delete actor;
 		return;
 	}
-
 	actor->Initialize();
 	actor->Start();
-	if (!actor->mTransform->GetParent()){
-		actor->mTransform->SetParent(mEngineRootObject);
-	}
+	actor->mTransform->SetParent(mEngineRootObject);
+
 	mEngineObjects.push_back(actor);
 }
 #endif
 //static
 void Game::DestroyObject(GameObjectPtr actor, bool undoFlag){
 	if (!actor)return;
-	auto desnum = gpList->erase(actor->GetUniqueID());
-	if (!desnum)return;
+	auto destroy = gpList->find(actor->GetUniqueID());
+	if (gpList->end() == destroy)return;
+	if (destroy->second != actor)return;
+	gpList->erase(destroy);
+	// if (!desnum)return;
 	mGame->mActorMoveList.push(std::make_pair(ActorMove::Delete, actor));
 #ifdef _ENGINE_MODE
 	if (undoFlag){
@@ -774,6 +835,7 @@ void Game::ChangePlayGame(bool isPlay){
 	(void)isPlay;
 #endif
 }
+bool g_IsGameStopFrame = false;
 
 #include "../Engine/AssetFile/Material/TextureFileData.h"
 void Game::Draw(){
@@ -870,7 +932,7 @@ void Game::Draw(){
 
 #ifdef _ENGINE_MODE
 	static bool g_DebugRender = false;
-	if( Input::Trigger(KeyCoord::Key_F1)){
+	if( Input::Trigger(KeyCode::Key_F1)){
 		g_DebugRender = !g_DebugRender;
 	}
 
@@ -992,16 +1054,33 @@ void Game::Update(){
 #ifdef _ENGINE_MODE
 	mSelectActor.UpdateInspector();
 
-	mProfileViewer.Update(1);
+	mProfileViewer.Update();
 	if (mIsPlay){
-		GamePlay();
+		static float forceStop = 0.0f;
+		if (Input::Down(KeyCode::Key_ESCAPE)) {
+			forceStop += mDeltaTime.GetNoScaleDeltaTime();
+			if (forceStop > 1.0f) {
+				ChangePlayGame(false);
+			}
+		}
+		else {
+			forceStop = 0.0f;
+		}
+		if (Input::Trigger(KeyCode::Key_F12)) {
+			g_IsGameStopFrame = !g_IsGameStopFrame;
+		}
+		if (!g_IsGameStopFrame) {
+			GamePlay();
+		}
+		else {
+			mDeltaTime.Reset();
+		}
 	}
 	else{
 		GameStop();
 	}
 
-	float deltaTime = mDeltaTime.GetDeltaTime();
-	mFPS.Update(deltaTime);
+	mFPS.Update();
 #else
 	GamePlay();
 #endif
@@ -1009,22 +1088,21 @@ void Game::Update(){
 #ifdef _ENGINE_MODE
 void Game::GameStop(){
 	mDeltaTime.SetTimeScale(1.0f);
-	float deltaTime = mDeltaTime.GetDeltaTime();
 
-	mCamera.Update(deltaTime);
+	mCamera.Update();
 
-	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_S)) {
+	if (EngineInput::Down(KeyCode::Key_LCONTROL) && EngineInput::Trigger(KeyCode::Key_S)) {
 		SaveScene();
 	}
-	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_Z)){
+	if (EngineInput::Down(KeyCode::Key_LCONTROL) && EngineInput::Trigger(KeyCode::Key_Z)){
 		mCommandManager.Undo();
 	}
-	else if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_Y)){
+	else if (EngineInput::Down(KeyCode::Key_LCONTROL) && EngineInput::Trigger(KeyCode::Key_Y)){
 		mCommandManager.Redo();
 	}
 
 	mSelectActor.Update();
-	if (Input::Trigger(MouseCoord::Left)){
+	if (Input::Trigger(MouseCode::Left)){
 
 		if (!mSelectActor.ChackHitRay(mPhysX3Main, &mCamera)){
 
@@ -1040,7 +1118,7 @@ void Game::GameStop(){
 		}
 	}
 
-	mRootObject->EngineUpdateComponent(deltaTime);
+	mRootObject->EngineUpdateComponent();
 
 	Game::AddDrawList(DrawStage::Engine, [&](){
 		mWorldGrid.Draw();
@@ -1053,12 +1131,15 @@ void Game::GamePlay(){
 	mSystemHelper.Update();
 	float deltaTime = mDeltaTime.GetDeltaTime();
 
-	mRootObject->UpdateComponent(deltaTime);
+	mRootObject->UpdateComponent();
 	mPhysX3Main->Display();
 }
 
 void Game::ClearDrawList(){
-	for (auto &list : mDrawList){
+#ifdef _ENGINE_MODE
+	if (g_IsGameStopFrame)return;
+#endif
+	for (auto &list : mDrawList) {
 		list.second.clear();
 	}
 }

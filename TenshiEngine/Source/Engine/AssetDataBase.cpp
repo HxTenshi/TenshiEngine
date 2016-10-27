@@ -157,6 +157,7 @@ void AssetDataTemplate<PrefabFileData>::CreateInspector(){
 
 		//	}
 		//});
+		Window::ClearInspector();
 	};
 	Inspector ins("Prefab",NULL);
 	ins.AddButton("Save",collback);

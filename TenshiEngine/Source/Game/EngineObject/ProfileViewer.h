@@ -10,7 +10,7 @@ class ProfileViewer : public GameEngineObject{
 public:
 	ProfileViewer();
 	~ProfileViewer();
-	void Update(float deltaTime) override;
+	void Update() override;
 
 	void AddBar(const std::string& name, int CPU, const XMFLOAT4& color);
 

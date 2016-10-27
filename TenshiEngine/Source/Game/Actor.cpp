@@ -24,19 +24,26 @@ Actor::Actor()
 {
 	mName = "new Object";
 	mPhysxLayer = 0;
+
+	m_InspectorFindGameObjectFunc = [](auto id) {return Game::FindUID(id); };
 }
 Actor::~Actor()
 {
 }
 
-void Actor::Initialize(){
-
+void Actor::PlayInitializeStageColl()
+{
 	std::queue<std::function<void()>> temp;
 	mInitializeStageCollQueue.swap(temp);
 	while (!temp.empty()) {
 		temp.front()();
 		temp.pop();
 	}
+}
+
+void Actor::Initialize(){
+	if (mEndInitialize)return;
+	PlayInitializeStageColl();
 
 	mComponents.Initialize(this->shared_from_this());
 
@@ -48,11 +55,14 @@ void Actor::Initialize(){
 	mEndFinish = false;
 }
 void Actor::Start(){
+	if (mEndStart)return;
 	mComponents.RunStart();
 	mEndStart = true;
 	mEndFinish = false;
 }
 void Actor::Finish(){
+	if (mEndFinish)return;
+	m_InspectorFindGameObjectFunc = [](auto o)->GameObject {return NULL; };
 	mComponents.RunFinish();
 	mEndInitialize = false;
 	mEndStart = false;
@@ -70,13 +80,13 @@ void Actor::Start_Script(){
 	}
 	
 }
-void Actor::EngineUpdateComponent(float deltaTime){
-	Update(deltaTime);
+void Actor::EngineUpdateComponent(){
+	Update();
 	
 	//ツリービュー作成のため
 	if (!IsEnabled()){
 		for (auto child : mTransform->Children()){
-			child->EngineUpdateComponent(deltaTime);
+			child->EngineUpdateComponent();
 		}
 		return;
 	}
@@ -90,16 +100,16 @@ void Actor::EngineUpdateComponent(float deltaTime){
 	}
 
 	for (auto child : mTransform->Children()){
-		child->EngineUpdateComponent(deltaTime);
+		child->EngineUpdateComponent();
 	}
 }
 #endif
 
-void Actor::UpdateComponent(float deltaTime){
+void Actor::UpdateComponent(){
 	if (!mEndStart)return;
 	if (!IsEnabled()){return;}
 
-	Update(deltaTime);
+	Update();
 
 	mTransform->Update();
 	for (auto cmp : mComponents.GetComponents()){
@@ -109,12 +119,11 @@ void Actor::UpdateComponent(float deltaTime){
 	}
 
 	for (auto child : mTransform->Children()){
-		child->UpdateComponent(deltaTime);
+		child->UpdateComponent();
 	}
 
 }
-void Actor::Update(float deltaTime){
-	(void)deltaTime;
+void Actor::Update(){
 	std::queue<std::function<void()>> temp;
 	mUpdateStageCollQueue.swap(temp);
 	while (!temp.empty()){
@@ -175,18 +184,18 @@ void Actor::CreateInspector(){
 //	}
 //}
 
-void Actor::ExportData(const std::string& path, const std::string& fileName, bool childExport){
+void Actor::ExportData(const std::string& fileName, bool childExport){
 
 	shared_ptr<I_InputHelper> prefab_io(NULL);
-	if (mPrefabAsset && path != "Assets"){
-		prefab_io = mPrefabAsset->GetFileData()->GetData();
+	//if (mPrefabAsset && path != "Assets"){
+	//	prefab_io = mPrefabAsset->GetFileData()->GetData();
 		//prefab_io = new FileInputHelper(mPrefab);
 		//if (prefab_io->error){
 		//	delete prefab_io;
 		//}
-	}
+	//}
 
-	I_ioHelper* io = new FileOutputHelper(path + "/" + fileName + ".prefab", prefab_io.Get());
+	I_ioHelper* io = new FileOutputHelper(fileName, prefab_io.Get());
 	if (io->error){
 		delete io;
 		return;
@@ -338,9 +347,9 @@ void Actor::_ExportData(I_ioHelper* io, bool childExport){
 //}
 
 
-bool Actor::ImportDataAndNewID(const std::string& fileName){
+bool Actor::ImportDataAndNewID(const std::string& fileName, const std::function<void(shared_ptr<Actor>)>& childstackfunc){
 
-	ImportData(fileName);
+	ImportData(fileName, childstackfunc, true);
 
 	if (!mTransform){
 		return false;
@@ -355,6 +364,7 @@ bool Actor::ImportDataAndNewID(const std::string& fileName){
 void Actor::CreateNewID(){
 	MD5::MD5HashCode hash;
 	MD5::GenerateMD5(hash);
+	mBeforeUniqueHash = mUniqueHash;
 	mUniqueHash = hash;
 
 	if (!mTransform)return;
@@ -376,7 +386,7 @@ void Actor::SetLayer(int layer)
 }
 
 
-void Actor::ImportData(const std::string& fileName){
+void Actor::ImportData(const std::string& fileName, const std::function<void(shared_ptr<Actor>)>& childstackfunc, bool newID){
 
 	I_ioHelper* io = new FileInputHelper(fileName, NULL);
 	if (io->error){
@@ -389,12 +399,12 @@ void Actor::ImportData(const std::string& fileName){
 	}
 
 
-	_ImportData(io);
+	_ImportData(io, childstackfunc, newID);
 
 	delete io;
 }
 
-void Actor::ImportData(picojson::value& json){
+void Actor::ImportData(picojson::value& json, const std::function<void(shared_ptr<Actor>)>& childstackfunc, bool newID){
 
 	I_ioHelper* io = new MemoryInputHelper(json, NULL);
 	if (io->error){
@@ -402,12 +412,12 @@ void Actor::ImportData(picojson::value& json){
 		return;
 	}
 
-	_ImportData(io);
+	_ImportData(io, childstackfunc, newID);
 
 	delete io;
 }
 
-void Actor::ImportDataAndNewID(picojson::value& json){
+void Actor::ImportDataAndNewID(picojson::value& json, const std::function<void(shared_ptr<Actor>)>& childstackfunc){
 
 	I_ioHelper* io = new MemoryInputHelper(json, NULL);
 	if (io->error){
@@ -415,14 +425,14 @@ void Actor::ImportDataAndNewID(picojson::value& json){
 		return;
 	}
 
-	_ImportData(io);
+	_ImportData(io, childstackfunc,true);
 
 	CreateNewID();
 
 	delete io;
 }
 
-void Actor::_ImportData(I_ioHelper* io){
+void Actor::_ImportData(I_ioHelper* io, const std::function<void(shared_ptr<Actor>)>& childstackfunc, bool newID){
 
 	mComponents.Initialize(this->shared_from_this());
 
@@ -508,11 +518,17 @@ void Actor::_ImportData(I_ioHelper* io){
 	
 		auto a = make_shared<Actor>();
 		auto value = (picojson::value)childobj;
-		a->ImportDataAndNewID(value);
-		Game::AddObject(a);
+		a->SetInspectorFindGameObjectFunc(m_InspectorFindGameObjectFunc);
+		if(newID)
+			a->ImportDataAndNewID(value, childstackfunc);
+		else
+			a->ImportData(value, childstackfunc);
+		//Game::AddObject(a);
 		if (a->mTransform){
+			//a->mTransform->SetParentUniqueID(mUniqueHash);
 			a->mTransform->SetParent(this->shared_from_this());
 		}
+		childstackfunc(a);
 	
 		io->popObject();
 		io->popObject();
@@ -563,4 +579,19 @@ void Actor::OnDisabled(){
 	for (auto child : mTransform->Children()){
 		this->ChildEnableChanged(child.Get());
 	}
+}
+
+weak_ptr<Actor> GameObjectFindHelper::ChildrenFind(GameObject obj, const UniqueID & id)
+{
+	
+	if (obj->GetBeforeUniqueID() == id) {
+		return obj;
+	}
+	for (auto child : obj->mTransform->Children()) {
+		auto target = GameObjectFindHelper::ChildrenFind(child,id);
+		if (target) {
+			return target;
+		}
+	}
+	return NULL;
 }

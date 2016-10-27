@@ -10,7 +10,8 @@
 
 TransformComponent::TransformComponent()
 	:mFixMatrixFlag(false)
-	, mParent(NULL){
+	, mParent(NULL)
+	, mIsEndInitialize(false){
 	mParentUniqueHashID.clear();
 	mMatrix = XMMatrixIdentity();
 	mScale = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
@@ -27,20 +28,33 @@ TransformComponent::~TransformComponent(){
 }
 
 void TransformComponent::Initialize(){
+	if (!mParent) {
+		GameObject par = NULL;
+		if (!mParentUniqueHashID.IsNull()) {
+			//if (mParent && mParent->GetUniqueID() == mParentUniqueHashID)return;
+			par = Game::FindUID(mParentUniqueHashID);
+		}
+		SetParent(par);
+	}
 	FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
+	mIsEndInitialize = true;
 }
 
 void TransformComponent::Start(){
-	if (!mParentUniqueHashID.IsNull()){
-		//if (mParent && mParent->GetUniqueID() == mParentUniqueHashID)return;
-		mParent = Game::FindUID(mParentUniqueHashID);
-	}
-	SetParent(mParent);
+
 }
 void TransformComponent::Finish(){
-	//if (mParent)
-	//	mParent->mTransform->Children().remove(gameObject);
-	SetParent(NULL);
+	if (mParent) {
+		auto children = mParent->mTransform->ChildrenRef();
+		children->remove_if([&](GameObject act) {
+			return gameObject.Get() == act.Get();
+		});
+
+		mParent = NULL;
+	}
+	mParentUniqueHashID.clear();
+
+	mIsEndInitialize = false;
 }
 
 #ifdef _ENGINE_MODE
@@ -571,7 +585,6 @@ void TransformComponent::AllChildrenDestroy(){
 		mChildren.pop_front();
 		if (!child)continue;
 		//親と子が同時に死ぬとエラーが出る
-		child->mTransform->SetParent(NULL);
 		Game::DestroyObject(child);
 		child->mTransform->AllChildrenDestroy();
 	}
@@ -680,7 +693,11 @@ void TransformComponent::SetParentUniqueID(UniqueID id){
 	mParentUniqueHashID = id;
 }
 void TransformComponent::SetParent(GameObject parent){
-	//if (mParent == parent)return;
+	if (!parent) {
+		parent = Game::GetRootActor();
+	}
+	if (mParent == parent)return;
+	if (gameObject == parent)return;
 	if (!gameObject)return;
 	if (mParent){
 		auto children = mParent->mTransform->ChildrenRef();
@@ -693,7 +710,8 @@ void TransformComponent::SetParent(GameObject parent){
 	if (parent){
 		parent->mTransform->ChildrenRef()->push_back(gameObject);
 		mParentUniqueHashID = parent->GetUniqueID();
-		parent->RunChangeParentCallback();
+		if(mIsEndInitialize)
+			gameObject->RunChangeParentCallback();
 	}
 	FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
 

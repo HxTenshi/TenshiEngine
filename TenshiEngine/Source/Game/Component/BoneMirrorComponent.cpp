@@ -175,8 +175,28 @@ void BoneMirrorComponent::SetTargetBoneID(int id)
 	}
 }
 
+void BoneMirrorComponent::SetTargetBoneID(const std::string & name)
+{
+	m_TargetBoneID = -1;
+
+	if (!(m_ModelComponent && m_ModelComponent->mModel && m_ModelComponent->mModel->mBoneModel))return;
+
+	auto bone = m_ModelComponent->mModel->mBoneModel;
+	int i = 0;
+	for (auto bonename : m_BoneNames) {
+		if (bonename == name) {
+			m_TargetBoneID = i;
+			transform(bone);
+			break;
+		}
+		i++;
+	}
+}
+
 void BoneMirrorComponent::transform(BoneModel * bone)
 {
+	if (!IsEnabled())return;
+
 	if (m_TargetBoneID != -1 && bone->GetBones().size() > m_TargetBoneID && m_TargetBone) {
 		auto s = gameObject->mTransform->WorldScale();
 		auto m = XMMatrixMultiply(bone->GetBones()[m_TargetBoneID].mMtxPose, m_TargetBone->mTransform->GetMatrix());

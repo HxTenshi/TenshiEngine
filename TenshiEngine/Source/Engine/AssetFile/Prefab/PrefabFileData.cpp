@@ -16,14 +16,25 @@ PrefabFileData::~PrefabFileData(){
 		delete mBeforeParam;
 		mBeforeParam = NULL;
 	}
+	m_PrefabActorChildren.clear();
 	m_FileName = "";
 }
 
 bool PrefabFileData::Create(const char* filename){
 
-
 	if (!m_PrefabActor){
 		m_PrefabActor = make_shared<Actor>();
+		m_PrefabActor->SetInspectorFindGameObjectFunc([&](auto id)->wp<Actor> {
+			if (m_PrefabActor->GetBeforeUniqueID() == id) {
+				return m_PrefabActor;
+			}
+			for (auto child : m_PrefabActorChildren) {
+				if (child->GetBeforeUniqueID() == id) {
+					return child;
+				}
+			}
+			return NULL;
+		});
 	}
 
 	if (mBeforeParam) {
@@ -33,19 +44,21 @@ bool PrefabFileData::Create(const char* filename){
 	mBeforeParam = new picojson::value();
 
 	m_FileName = filename;
-
-	m_PrefabActor->ImportData(m_FileName);
+	std::list<shared_ptr<Actor>> list;
+	m_PrefabActor->ImportDataAndNewID(m_FileName, [&](shared_ptr<Actor> obj) { list.push_back(obj); });
+	m_PrefabActorChildren = list;
+	m_PrefabActor->PlayInitializeStageColl();
 	m_PrefabActor->ExportData(*mBeforeParam,true);
 	return true;
 
 }
 picojson::value PrefabFileData::Apply(){
 
-	auto file = behind_than_find_last_of(m_FileName, "/");
-	file = forward_than_find_last_of(file, ".");
-	auto path = forward_than_find_last_of(m_FileName, "/");
+	//auto file = behind_than_find_last_of(m_FileName, "/");
+	//file = forward_than_find_last_of(file, ".");
+	//auto path = forward_than_find_last_of(m_FileName, "/");
 
-	m_PrefabActor->ExportData(path, file, true);
+	m_PrefabActor->ExportData(m_FileName, true);
 
 	//picojson::value back;
 

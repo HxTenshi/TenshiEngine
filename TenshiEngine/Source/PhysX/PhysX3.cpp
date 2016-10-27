@@ -736,6 +736,8 @@ void PhysX3Main::EngineDisplay() {
 void PhysX3Main::DisplayInitialize() {
 	if (gScene)
 	{
+		//gScene->setFlag(PxSceneFlag::eENABLE_STABILIZATION, false);
+		//gScene->setFlag(PxSceneFlag::eENABLE_STABILIZATION, true);
 		gScene->flushSimulation(false);
 	}
 
@@ -858,13 +860,16 @@ void PhysX3Main::RemoveStaticShape(PxShape* shape){
 	mRigidStatic->detachShape(*shape);
 }
 
-Actor* PhysX3Main::Raycast(const XMVECTOR& pos,const XMVECTOR& dir,float distance){
+Actor* PhysX3Main::Raycast(const XMVECTOR& pos,const XMVECTOR& dir,float distance, Layer::Enum layer){
 	PxVec3 ori(pos.x, pos.y, pos.z);
 	PxVec3 _dir(dir.x, dir.y, dir.z);
 	PxReal dis = distance;
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
 	PxRaycastHit hit;
-	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit)){
+	PxQueryFilterData filter;
+	filter.data.word0 = layer;
+	filter.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER;
+	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit, filter)){
 		return (Actor*)hit.shape->userData;
 	}
 	return NULL;
@@ -875,24 +880,53 @@ Actor* PhysX3Main::EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir){
 	PxReal dis = 100;
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
 	PxRaycastHit hit;
+
 	if (mEngineScene->raycastSingle(ori, _dir, dis, hitflag, hit)){
 		return (Actor*)hit.shape->userData;
 	}
 	return NULL;
 }
 
-bool PhysX3Main::RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, ::RaycastHit* result){
+bool PhysX3Main::RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, ::RaycastHit* result, Layer::Enum layer){
 	if (!result)return false;
 	PxVec3 ori(pos.x, pos.y, pos.z);
 	PxVec3 _dir(dir.x, dir.y, dir.z);
 	PxReal dis = distance;
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT | PxHitFlag::eNORMAL | PxHitFlag::ePOSITION;
 	PxRaycastHit hit;
-	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit)){
+	PxQueryFilterData filter;
+	filter.data.word0 = layer;
+	filter.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER;
+	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit, filter)){
 		result->hit = (Actor*)hit.shape->userData;
 		result->normal = XMVectorSet(hit.normal.x, hit.normal.y, hit.normal.z, 1.0f);
 		result->position = XMVectorSet(hit.position.x, hit.position.y, hit.position.z,1.0f);
 		return true;
 	}
 	return false;
+}
+
+#include "Game/Component/PhysXColliderComponent.h"
+int PhysX3Main::OverlapHitMultiple(weak_ptr<PhysXColliderComponent> collder,const std::function<void(GameObject)>& collback, Layer::Enum layer) {
+	if (!collder)return 0;
+	auto shape = collder->GetShape();
+	auto geo = shape->getGeometry().any();
+
+	auto quat = collder->gameObject->mTransform->WorldQuaternion();
+	auto pos = collder->gameObject->mTransform->WorldPosition();
+	PxTransform parTrans(pos.x, pos.y, pos.z, PxQuat(quat.x, quat.y, quat.z, quat.w));
+	parTrans = shape->getLocalPose() * parTrans;
+
+	static PxOverlapHit hit[256];
+	//PxQueryFilterData filter;
+	//filter.data.word0 = layer;
+	//filter.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER;
+	if (int hitNum = gScene->overlapMultiple(geo, parTrans, hit,256)) {
+		for (int i = 0; i < hitNum; i++) {
+			auto act = (Actor*)hit[i].shape->userData;
+			collback(act->shared_from_this());
+		}
+		return hitNum;
+	}
+	return 0;
 }

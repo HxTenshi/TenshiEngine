@@ -827,17 +827,30 @@ protected:
 		t->IsSelected = false;
 	}
 
+	TreeViewItem^ m_DDItem = nullptr;
+	//ツリービュー共通ドラッグ開始処理
+	void TreeViewItem_OnMouseLeftClick(Object ^s, System::Windows::Input::MouseButtonEventArgs ^e)
+	{
+		auto item = (TreeViewItem^)s;
+		m_DDItem = item;
+	}
 	//ツリービュー共通ドラッグ開始処理
 	void TreeViewItem_OnMouseLeave(Object ^s, System::Windows::Input::MouseEventArgs ^e)
 	{
-		auto item = (TreeViewItem^)s;
+		//auto item = (TreeViewItem^)s;
+		if (e->LeftButton == MouseButtonState::Released) {
+			m_DDItem = nullptr;
+		}
+		if(m_DDItem != nullptr)
 		if (e->LeftButton == MouseButtonState::Pressed
 			&& e->RightButton == MouseButtonState::Released
 			&& e->MiddleButton == MouseButtonState::Released)
 			DragDrop::DoDragDrop(
-			item, // ドラッグされる物
-			item, // 渡すデータ
+			m_DDItem, // ドラッグされる物
+			m_DDItem, // 渡すデータ
 			DragDropEffects::Copy); // D&Dで許可するオペレーション
+
+		e->Handled = true;
 	}
 
 };
@@ -864,6 +877,7 @@ private:
 			//setter->Add(gcnew System::Windows::Setter(TreeViewItem::ForegroundProperty, gcnew SolidColorBrush(Color::FromRgb(240, 240, 240))));
 			//setter->Add(gcnew System::Windows::Setter(TreeViewItem::BackgroundProperty, gcnew SolidColorBrush(Color::FromRgb(5, 147, 14 * 16 + 2))));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDrop)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::PreviewMouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &SceneTreeView::TreeViewItem_OnMouseLeftClick)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &SceneTreeView::TreeViewItem_OnMouseLeave)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDragOver)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &SceneTreeView::ActorTreeView_OnDragOver)));
@@ -1152,8 +1166,9 @@ private:
 			auto setter = s->Setters;
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::ExpandedEvent, gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::TreeView_Expanded)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DropEvent, gcnew DragEventHandler(this, &AssetTreeView::OnDrop)));
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::PreviewMouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::TreeViewItem_OnMouseLeftClick)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &AssetTreeView::TreeViewItem_OnMouseLeave)));
-
+			
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::LostKeyboardFocusEvent, gcnew System::Windows::Input::KeyboardFocusChangedEventHandler(this, &AssetTreeView::MyTreeView_OnLostKeyboardFocus)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::SelectedEvent, gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnSelected)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeftButtonUpEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnMouseClickUp)));
@@ -1679,10 +1694,33 @@ private:
 
 	void AssetTreeView_ActorDrop(Object ^s, TestContent::Person^ dragitem){
 
-		std::string* str = string_cast(dragitem->Name);
+		auto targettreeitem = dynamic_cast<TreeViewItem^>(s);
+		//ツリービューアイテムに対してDropしたか
+		if (targettreeitem) {
+			auto targetitem = dynamic_cast<TestContent::Person^>(targettreeitem->DataContext);
+			if (!targetitem)return;
+			String^ destPath = String::Empty;
+			//フォルダーに対してDropしたか
+			if (targetitem->Children->Count != 0) {
 
-		Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)dragitem->DataPtr);
-		Data::MyPostMessage(MyWindowMessage::CreateActorToPrefab, (void*)str);
+				destPath = GetFolderPath(targetitem) + dragitem->Name + ".prefab";
+			}
+
+			//ファイルに対してDropしたか
+			if (targetitem->Children->Count == 0) {
+				targetitem = targetitem->Parent;
+
+				//フォルダーに対してDropしたか
+				if (targetitem->Children->Count != 0) {
+
+					destPath = GetFolderPath(targetitem) + dragitem->Name + ".prefab";
+				}
+			}
+			std::string* str = string_cast(destPath);
+
+			Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)dragitem->DataPtr);
+			Data::MyPostMessage(MyWindowMessage::CreateActorToPrefab, (void*)str);
+		}
 	}
 
 	void AssetTreeView_WindowsFileDrop(DragEventArgs ^e){
@@ -1893,8 +1931,9 @@ public:
 
 	int count = 0;
 	void AddLog(String^ log){
+
 		count++;
-		if (m_LogBox->Items->Count>100){
+		if (m_LogBox->Items->Count > 100) {
 			m_LogBox->Items->RemoveAt(0);
 		}
 		m_LogBox->Items->Add(count.ToString() + ":" + log);

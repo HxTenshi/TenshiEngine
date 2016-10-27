@@ -24,23 +24,23 @@ void PlayerScript::Update(){
 
 	if (!camera)return;
 	float speed = 50.0f;
-	if (Input::Down(PAD_DS4_KeyCoord::Button_UP)){
+	if (Input::Down(PAD_DS4_KeyCode::Button_UP)){
 		//gameObject->mTransform->AddTorque(camera->mTransform->Forward()*speed);
 	}
 
-	if (Input::Down(KeyCoord::Key_RIGHT)){
+	if (Input::Down(KeyCode::Key_RIGHT)){
 		gameObject->mTransform->AddTorque(camera->mTransform->Forward()*-speed);
 	}
-	if (Input::Down(KeyCoord::Key_UP)){
+	if (Input::Down(KeyCode::Key_UP)){
 		gameObject->mTransform->AddTorque(camera->mTransform->Left()*speed);
 	}
-	if (Input::Down(KeyCoord::Key_DOWN)){
+	if (Input::Down(KeyCode::Key_DOWN)){
 		gameObject->mTransform->AddTorque(camera->mTransform->Left()*-speed);
 	}
-	if (Input::Down(KeyCoord::Key_Z)){
+	if (Input::Down(KeyCode::Key_Z)){
 		gameObject->mTransform->AddForce(camera->mTransform->Forward() * 10);
 	}
-	if (Input::Down(KeyCoord::Key_SPACE)){
+	if (Input::Down(KeyCode::Key_SPACE)){
 
 	}
 

@@ -43,7 +43,7 @@ FPSChecker::~FPSChecker(){
 	//delete mFPSObject;
 }
 
-void FPSChecker::Update(float deltaTime){
+void FPSChecker::Update(){
 
 
 	mFPSObject->mTransform->Position(XMVectorSet(0, Canvas::GetHeight(), 0, 1));
@@ -66,5 +66,5 @@ void FPSChecker::Update(float deltaTime){
 	std::string title = "FPS:" + fpsstr.substr(0, 4);
 
 	if (mFPSText)mFPSText->ChangeText(title);
-	mFPSObject->UpdateComponent(deltaTime);
+	mFPSObject->UpdateComponent();
 }

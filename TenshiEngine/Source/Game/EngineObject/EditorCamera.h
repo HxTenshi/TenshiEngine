@@ -10,7 +10,7 @@ public:
 	EditorCamera();
 	~EditorCamera();
 	void Initialize();
-	void Update(float deltaTime) override;
+	void Update() override;
 
 	XMVECTOR ScreenToWorldPoint(const XMVECTOR& point);
 

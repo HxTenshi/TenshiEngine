@@ -157,8 +157,9 @@ public:
 
 		auto file = m_AssetCache.find(_filename);
 		if (file != m_AssetCache.end()){
-			if (file->second.second)
+			if (file->second.second) {
 				file->second.second->FileUpdate(filename);
+			}
 		}
 		else{
 			//AssetDataTemplatePtr temp;

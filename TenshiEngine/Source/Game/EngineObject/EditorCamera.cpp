@@ -8,6 +8,7 @@
 #include "Game/Component/CameraComponent.h"
 
 #include "Input/Input.h"
+#include "Game/Game.h"
 
 EditorCamera::EditorCamera(){
 	mRClickMousePos = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
@@ -34,30 +35,33 @@ void EditorCamera::Initialize(){
 	mCamera->mTransform->Position(XMVectorSet(0, 3, -10, 1));
 	mCamera->mTransform->Scale(XMVectorSet(1, 1, 1, 1));
 }
-void EditorCamera::Update(float deltaTime){
+void EditorCamera::Update(){
 	auto pos = XMVectorSet(0, 0, 0, 1);
 	float speed = 10.0f;
-	if (Input::Down(MouseCoord::Right)) {
-		if (Input::Down(KeyCoord::Key_A)) {
+	if (Input::Down(KeyCode::Key_LSHIFT)) {
+		speed *= 2;
+	}
+	if (Input::Down(MouseCode::Right)) {
+		if (Input::Down(KeyCode::Key_A)) {
 			pos.x -= speed;
 		}
-		if (Input::Down(KeyCoord::Key_D)) {
+		if (Input::Down(KeyCode::Key_D)) {
 			pos.x += speed;
 		}
-		if (Input::Down(KeyCoord::Key_W)) {
+		if (Input::Down(KeyCode::Key_W)) {
 			pos.z += speed;
 		}
-		if (Input::Down(KeyCoord::Key_S)) {
+		if (Input::Down(KeyCode::Key_S)) {
 			pos.z -= speed;
 		}
-		if (Input::Down(KeyCoord::Key_E)) {
+		if (Input::Down(KeyCode::Key_E)) {
 			pos.y += speed;
 		}
-		if (Input::Down(KeyCoord::Key_Q)) {
+		if (Input::Down(KeyCode::Key_Q)) {
 			pos.y -= speed;
 		}
 	}
-	if (Input::Trigger(MouseCoord::Right)){
+	if (Input::Trigger(MouseCode::Right)){
 		int x, y;
 		Input::MousePosition(&x, &y);
 		mRClickMousePos = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f);
@@ -69,7 +73,7 @@ void EditorCamera::Update(float deltaTime){
 		//mRClickRotate = mCamera.mTransform->Rotate();
 
 	}
-	if (Input::Down(MouseCoord::Right)){
+	if (Input::Down(MouseCode::Right)){
 		int x, y;
 		Input::MousePosition(&x, &y);
 		XMVECTOR DragVect = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 0.0f) - mRClickMousePos;
@@ -90,6 +94,7 @@ void EditorCamera::Update(float deltaTime){
 
 	}
 
+	float deltaTime = Game::GetDeltaTime()->GetDeltaTime();
 	pos *= deltaTime;
 	auto move = mCamera->mTransform->Position();
 	move += mCamera->mTransform->Forward() * pos.z;
@@ -97,7 +102,7 @@ void EditorCamera::Update(float deltaTime){
 	move += mCamera->mTransform->Up() * pos.y;
 
 	mCamera->mTransform->Position(move);
-	mCamera->UpdateComponent(deltaTime);
+	mCamera->UpdateComponent();
 
 	if (mUpdateFunc != NULL){
 		mUpdateFunc(deltaTime);

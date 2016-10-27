@@ -10,13 +10,30 @@ ActorUndoCommand::ActorUndoCommand(Actor* actor,bool childExport)
 
 void ActorUndoCommand::Undo(){
 	auto act = make_shared<Actor>();
-	act->ImportData(mPrev);
+	GameObject This = act;
+
+	act->ImportData(mPrev, [](auto o) {
+		auto id = o->GetUniqueID();
+		
+		if (auto tar = Game::FindUID(id)) {
+			Game::DestroyObject(tar.lock());
+		}
+		Game::AddObject(o,false,true); });
 	auto id = act->GetUniqueID();
 	if (auto tar = Game::FindUID(id)){
 		Game::DestroyObject(tar.lock());
 	}
 	Game::AddObject(act);
 }
+//void ActorUndoCommand::Undo() {
+//	auto target = Game::FindUID(id);
+//	if (target) {
+//		target->Finish();
+//		target->ImportData(mPrev);
+//		target->Initialize();
+//		target->Start();
+//	}
+//}
 
 ActorDestroyUndoCommand::ActorDestroyUndoCommand(Actor* actor)
 {

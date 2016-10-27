@@ -44,7 +44,7 @@ public:
 		mate->SetMaterial(0, material);
 	}
 
-	float ProfileBarUpdate(float x, float deltaTime){
+	float ProfileBarUpdate(float x){
 		auto pos = mTransform->Position();
 		auto scale = mTransform->Scale();
 
@@ -56,7 +56,7 @@ public:
 		mTransform->Position(XMVectorSet(x + sx/2, pos.y, 0, 1));
 		mTransform->Scale(XMVectorSet(sx,scale.y, 1, 1));
 
-		UpdateComponent(deltaTime);
+		UpdateComponent();
 
 		return sx;
 	}
@@ -87,12 +87,12 @@ void ProfileViewer::AddBar(const std::string& name, int CPU, const XMFLOAT4& col
 	obj->Init(color);
 	mProfileBars[CPU].push_back(obj);
 }
-void ProfileViewer::Update(float deltaTime){
+void ProfileViewer::Update(){
 
 	for (int i = 0; i < 2; i++){
 		float x = 0;
 		for (auto bar : mProfileBars[i]){
-			x += bar->ProfileBarUpdate(x, deltaTime);
+			x += bar->ProfileBarUpdate(x);
 		}
 	}
 }

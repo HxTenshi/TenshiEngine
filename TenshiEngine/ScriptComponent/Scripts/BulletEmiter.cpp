@@ -17,7 +17,7 @@ void BulletEmiter::Start(){
 
 //–ˆƒtƒŒ[ƒ€ŒÄ‚Î‚ê‚Ü‚·
 void BulletEmiter::Update(){
-	if (Input::Trigger(KeyCoord::Key_Z)){
+	if (Input::Trigger(KeyCode::Key_Z)){
 		auto actor = Hx::Instance(mBulletObject);
 		if (!actor)return;
 		actor->mTransform->Position(gameObject->mTransform->Position());

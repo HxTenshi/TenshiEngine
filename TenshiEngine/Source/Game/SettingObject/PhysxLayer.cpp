@@ -108,7 +108,7 @@ void PhysxLayer::_ExportData(I_ioHelper* io, bool childExport){
 #undef _KEY_COMPEL_ARR
 }
 
-void PhysxLayer::_ImportData(I_ioHelper* io){
+void PhysxLayer::_ImportData(I_ioHelper* io, const std::function<void(shared_ptr<Actor>)>& childstackfunc, bool newID){
 
 
 #define _KEY_COMPEL(x) io->func( x , #x)

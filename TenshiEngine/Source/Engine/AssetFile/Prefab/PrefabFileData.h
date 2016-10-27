@@ -7,6 +7,7 @@
 class I_InputHelper;
 class MemoryInputHelper;
 class Actor;
+#include <list>
 
 class PrefabFileData : public AssetFileData{
 public:
@@ -32,5 +33,6 @@ private:
 	PrefabFileData& operator=(const PrefabFileData&) = delete;
 
 	shared_ptr<Actor> m_PrefabActor;
+	std::list<shared_ptr<Actor>> m_PrefabActorChildren;
 	picojson::value* mBeforeParam;
 };

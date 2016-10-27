@@ -27,7 +27,7 @@ struct GeometryType {
 class IPhysXColliderComponent{
 public:
 	virtual ~IPhysXColliderComponent(){}
-	virtual void SetTransform(const XMVECTOR& pos) = 0;
+	virtual void SetTransform(const XMVECTOR& pos, bool force = false) = 0;
 	virtual const XMVECTOR& GetTransform() const = 0;
 	virtual void SetScale(const XMVECTOR& scale) = 0;
 	virtual const XMVECTOR& GetScale() const = 0;
@@ -65,7 +65,7 @@ public:
 
 	void DrawMesh(ID3D11DeviceContext* context, const Material& material);
 
-	void SetTransform(const XMVECTOR& pos) override;
+	void SetTransform(const XMVECTOR& pos, bool force = false) override;
 	const XMVECTOR& GetTransform() const override;
 
 	void SetScale(const XMVECTOR& scale) override;
@@ -112,7 +112,7 @@ private:
 	int mAttachTarget;
 	weak_ptr<PhysXComponent> mAttachPhysXComponent;
 
-	bool mIsParentPhysX;
+	//bool mIsParentPhysX;
 
 	int mGeometryType;
 	MeshAsset mMeshAsset;

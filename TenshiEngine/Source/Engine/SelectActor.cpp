@@ -123,7 +123,7 @@ int EditGuide::SetGuideHit(Actor* act){
 void EditGuide::Update(){
 
 	for (int _i = 0; _i < 3; _i++){
-		mGuide[_i]->UpdateComponent(Game::GetDeltaTime()->GetDeltaTime());
+		mGuide[_i]->UpdateComponent();
 	}
 	//ÉAÉçÅ[ï`âÊ
 	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&](){
@@ -414,10 +414,11 @@ void Selects::CopyDelete(){
 void Selects::Paste(){
 	mSelects.clear();
 	for (auto& act : mCopy){
-		auto postactor = make_shared<Actor>();
-		postactor->ImportDataAndNewID(*act);
-		Game::AddObject(postactor,true);
-		TriggerSelect(postactor.Get());
+		auto obj = Game::Get()->Instance(*act,true);
+		//auto postactor = make_shared<Actor>();
+		//postactor->ImportDataAndNewID(*act, [](auto o) {Game::AddObject(o); });
+		//Game::AddObject(postactor,true);
+		TriggerSelect(obj.Get());
 	}
 }
 
@@ -585,29 +586,29 @@ void SelectActor::Update(){
 
 	if (!mSelects.SelectNum() || mSelectAsset)return;
 
-	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_C)){
+	if (EngineInput::Down(KeyCode::Key_LCONTROL) && EngineInput::Trigger(KeyCode::Key_C)){
 		mSelects.Copy();
 	}
-	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_V)){
+	if (EngineInput::Down(KeyCode::Key_LCONTROL) && EngineInput::Trigger(KeyCode::Key_V)){
 		mSelects.Paste();
 		SelectActor::ReCreateInspector();
 	}
-	if (EngineInput::Down(KeyCoord::Key_LCONTROL) && EngineInput::Trigger(KeyCoord::Key_D)) {
+	if (EngineInput::Down(KeyCode::Key_LCONTROL) && EngineInput::Trigger(KeyCode::Key_D)) {
 		mSelects.Copy();
 		mSelects.Paste();
 		SelectActor::ReCreateInspector();
 	}
 
 	int g = mCurrentGuide;
-	if (Input::Down(MouseCoord::Right)==0 && EngineInput::Trigger(KeyCoord::Key_W)){
+	if (Input::Down(MouseCode::Right)==0 && EngineInput::Trigger(KeyCode::Key_W)){
 		mCurrentGuide = 0;
 		mIsDragMode = false;
 	}
-	if (Input::Down(MouseCoord::Right) == 0 && EngineInput::Trigger(KeyCoord::Key_E)){
+	if (Input::Down(MouseCode::Right) == 0 && EngineInput::Trigger(KeyCode::Key_E)){
 		mCurrentGuide = 1;
 		mIsDragMode = false;
 	}
-	if (Input::Down(MouseCoord::Right) == 0 && EngineInput::Trigger(KeyCoord::Key_R)){
+	if (Input::Down(MouseCode::Right) == 0 && EngineInput::Trigger(KeyCode::Key_R)){
 		mCurrentGuide = 2;
 		mIsDragMode = false;
 	}
@@ -651,12 +652,12 @@ void SelectActor::Update(){
 	static float mBeforePow = 0.0f;
 	float pow = 0.0f;
 	if (mIsDragMode){
-		if (Input::Down(MouseCoord::Left)){
+		if (Input::Down(MouseCode::Left)){
 			int x, y;
 			Input::MouseLeftDragVector(&x, &y);
 			//float l = XMVector2Length(XMVectorSet(x,-y,0,1)).x;
 			pow = y *0.05f;
-			if (Input::Down(KeyCoord::Key_LSHIFT)){
+			if (Input::Down(KeyCode::Key_LSHIFT)){
 				pow += 0.5f;
 				pow = (float)(int)pow;
 			}
@@ -664,7 +665,7 @@ void SelectActor::Update(){
 			mEditGuide[mCurrentGuide]->UpdateTransform(mSelects.GetSelects());
 		}
 
-		if (Input::Up(MouseCoord::Left)){
+		if (Input::Up(MouseCode::Left)){
 			mSelects.SetUndo();
 			mIsDragMode = false;
 		}
@@ -737,7 +738,7 @@ void SelectActor::SetSelect(Actor* select, bool dontTreeViewSelect){
 	if (!Game::FindActor(select) && !Game::FindEngineActor(select)){
 		select = NULL;
 	}
-	if (EngineInput::Down(KeyCoord::Key_LCONTROL)){
+	if (EngineInput::Down(KeyCode::Key_LCONTROL)){
 		if (mSelects.TriggerSelect(select)){
 			mSelectUndo.Set(select);
 		}
@@ -764,7 +765,7 @@ void SelectActor::SetSelectAsset(Actor* select,const char* filename){
 	mSelectAsset = true;
 	
 
-	if (EngineInput::Down(KeyCoord::Key_LCONTROL)){
+	if (EngineInput::Down(KeyCode::Key_LCONTROL)){
 		mSelects.TriggerSelect(select);
 	}
 	else{

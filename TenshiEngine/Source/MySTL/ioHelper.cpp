@@ -7,8 +7,8 @@ void ioGameObjectHelper::func(GameObject* target, const char* name, I_ioHelper* 
 	if (io->isInput()) {
 		UniqueID id;
 		io->func(id, name);
-		(*This)->SetInitializeStageCollQueue([id, target]() {
-			*target = Game::FindUID(id);
+		(*This)->SetInitializeStageCollQueue([id, target, This]() {
+			*target = (*This)->InspectorFindGameObject(id);
 		});
 	}
 	else {

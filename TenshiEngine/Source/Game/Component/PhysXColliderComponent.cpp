@@ -25,7 +25,7 @@ PhysXColliderComponent::PhysXColliderComponent(){
 	mScale = XMVectorSet(1, 1, 1, 1);
 	mMeshAsset.Free();
 	mPhysicsMaterialAsset.Free();
-	mIsParentPhysX = false;
+	//mIsParentPhysX = false;
 
 
 	mGameObjectPosition = XMVectorSet(1, 1, 1, 1);
@@ -66,7 +66,7 @@ void PhysXColliderComponent::Initialize(){
 		}
 	}
 
-	SetTransform(mPosition);
+	SetTransform(mPosition,true);
 	SetScale(mScale);
 }
 
@@ -77,10 +77,25 @@ void PhysXColliderComponent::Start(){
 	}
 }
 
+#include "ScriptComponent.h"
 void PhysXColliderComponent::Finish(){
+
+	//int layer = gameObject->GetLayer();
+	//auto l = (Layer::Enum)(1 << layer);
+	//auto hit = Game::Get()->GetPhysX()->GetLayerCollideFlag(l);
+
+	//Game::GetPhysX()->OverlapHitMultiple(gameObject->GetComponent<PhysXColliderComponent>(), [&](auto obj) {
+	//	auto script0 = obj->GetComponent<ScriptComponent>();
+	//	auto script1 = gameObject->GetComponent<ScriptComponent>();
+	//	if (script0)
+	//		script0->LostCollide(gameObject.Get());
+	//	if (script1)
+	//		script1->LostCollide(obj.Get());
+	//}, (Layer::Enum)hit);
+
 	ShapeAttach(NULL);
 	mAttachPhysXComponent = NULL;
-	mIsParentPhysX = false;
+	//mIsParentPhysX = false;
 
 	mMeshAsset.Free();
 	mPhysicsMaterialAsset.Free();
@@ -97,12 +112,32 @@ void PhysXColliderComponent::EngineUpdate(){
 void PhysXColliderComponent::Update(){
 
 	SetTransform(mPosition);
+
+	//int layer = gameObject->GetLayer();
+	//auto l = (Layer::Enum)(1 << layer);
+	//auto hit = Game::Get()->GetPhysX()->GetLayerCollideFlag(l);
+
+	//Game::GetPhysX()->OverlapHitMultiple(gameObject->GetComponent<PhysXColliderComponent>(), [&](auto obj) {
+	//	auto script0 = obj->GetComponent<ScriptComponent>();
+	//	auto script1 = gameObject->GetComponent<ScriptComponent>();
+	//	if (script0)
+	//		script0->LostCollide(gameObject.Get());
+	//	if (script1)
+	//		script1->LostCollide(obj.Get());
+	//}, (Layer::Enum)hit);
 }
 
 void PhysXColliderComponent::ChangeParentCallback(){
-	ReleaseAttach();
+	//ëŒè€Ç™à·Ç¡ÇΩèÍçáÇÃÇ›ìñÇƒíºÇµ
+	auto back = mAttachPhysXComponent;
 	SearchAttachPhysXComponent();
-	ShapeAttach(mShape);
+	if (back != mAttachPhysXComponent) {
+		mAttachPhysXComponent = back;
+		ReleaseAttach();
+		SearchAttachPhysXComponent();
+		ShapeAttach(mShape);
+	}
+	SetTransform(mPosition, true);
 }
 
 
@@ -114,23 +149,24 @@ void PhysXColliderComponent::AttachPhysxComponent(weak_ptr<PhysXComponent> com){
 		mAttachPhysXComponent = com;
 
 		auto par = com->gameObject;
-		mIsParentPhysX = (par != gameObject) ? true : false;
+		//mIsParentPhysX = (par != gameObject) ? true : false;
 		AttachRigidDynamic(true);
 	}
 	else {
 		mAttachPhysXComponent = NULL;
-		mIsParentPhysX = false;
+		//mIsParentPhysX = false;
 		AttachRigidStatic(true);
 	}
 }
 
 bool PhysXColliderComponent::SearchAttachPhysXComponent(){
+	mAttachPhysXComponent = NULL;
 	auto par = gameObject;
 	while (par){
 		auto com = par->GetComponent<PhysXComponent>();
 		if (com){
 			mAttachPhysXComponent = com;
-			mIsParentPhysX = (par != gameObject)?true:false;
+			//mIsParentPhysX = (par != gameObject)?true:false;
 			return true;
 		}
 		par = par->mTransform->GetParent();
@@ -499,7 +535,7 @@ void PhysXColliderComponent::DrawMesh(ID3D11DeviceContext* context, const Materi
 #endif
 }
 
-void PhysXColliderComponent::SetTransform(const XMVECTOR& pos){
+void PhysXColliderComponent::SetTransform(const XMVECTOR& pos,bool force){
 	mPosition = pos;
 
 	if (!mShape || !gameObject)return;
@@ -534,7 +570,8 @@ void PhysXColliderComponent::SetTransform(const XMVECTOR& pos){
 		}
 	
 		if (!mAttachPhysXComponent){
-			if (!change)return;
+			
+			if (!change && !force)return;
 	
 			PxTransform transform;
 			transform.p = PxVec3(pos_.x, pos_.y, pos_.z);

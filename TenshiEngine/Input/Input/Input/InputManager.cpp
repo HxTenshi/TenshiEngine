@@ -4,13 +4,11 @@
 #include "Input.h"
 #include "../DS4.h"
 #include "../XInput.h"
-
-
 //static
-int InputManager::mKeyCoord[(int)KeyCoord::Count];
-int InputManager::mKeyCoordEngine[(int)KeyCoord::Count];
-bool InputManager::mMouseBool[(int)MouseCoord::Count];
-int InputManager::mMouse[(int)MouseCoord::Count];
+int InputManager::mKeyCoord[(int)KeyCode::Count];
+int InputManager::mKeyCoordEngine[(int)KeyCode::Count];
+bool InputManager::mMouseBool[(int)MouseCode::Count];
+int InputManager::mMouse[(int)MouseCode::Count];
 int InputManager::mMouseX;
 int InputManager::mMouseY;
 int InputManager::mMouseLClickX;
@@ -24,10 +22,10 @@ BYTE					InputManager::diKeyState[256];		// キーボード情報
 
 //static
 DS4* InputManager::ds4 = NULL;
-int InputManager::mDS4Input[(int)PAD_DS4_KeyCoord::Count];
+int InputManager::mDS4Input[(int)PAD_DS4_KeyCode::Count];
 
 XInput* InputManager::xinput = NULL;
-int InputManager::mXInput[(int)PAD_X_KeyCoord::Count];
+int InputManager::mXInput[(int)PAD_X_KeyCode::Count];
 
 //static
 void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
@@ -35,18 +33,18 @@ void InputManager::InitDirectInput(HWND hWnd, HINSTANCE hInst){
 	mDIKeyboardDeviceLost = false;
 	mMouseX = 0;
 	mMouseY = 0;
-	for (int i = 0; i < (int)MouseCoord::Count; i++){
+	for (int i = 0; i < (int)MouseCode::Count; i++){
 		mMouse[i] = 0;
 		mMouseBool[i] = false;
 	}
-	for (int i = 0; i < (int)KeyCoord::Count; i++){
+	for (int i = 0; i < (int)KeyCode::Count; i++){
 		mKeyCoord[i] = 0;
 		mKeyCoordEngine[i] = 0;
 	}
-	for (int i = 0; i < (int)PAD_DS4_KeyCoord::Count; i++){
+	for (int i = 0; i < (int)PAD_DS4_KeyCode::Count; i++){
 		mDS4Input[i] = 0;
 	}
-	for (int i = 0; i < (int)PAD_X_KeyCoord::Count; i++){
+	for (int i = 0; i < (int)PAD_X_KeyCode::Count; i++){
 		mXInput[i] = 0;
 	}
 
@@ -104,7 +102,7 @@ void InputManager::Release(){
 
 void InputManager::Update(int TargetFocus){
 
-	for (int i = 0; i < (int)MouseCoord::Count; i++){
+	for (int i = 0; i < (int)MouseCode::Count; i++){
 		if (mMouseBool[i]){
 			mMouse[i]++;
 		}
@@ -129,7 +127,7 @@ void InputManager::Update(int TargetFocus){
 			mDIKeyboardDeviceLost = false;
 		}
 	}
-	for (int i = 0; i < (int)KeyCoord::Count; i++){
+	for (int i = 0; i < (int)KeyCode::Count; i++){
 
 		if (diKeyState[i] && TargetFocus==1){
 			mKeyCoord[i]++;
@@ -154,9 +152,9 @@ void InputManager::Update(int TargetFocus){
 
 	ds4->Read();
 
-	for (int i = 0; i < (int)PAD_DS4_KeyCoord::Count; i++){
+	for (int i = 0; i < (int)PAD_DS4_KeyCode::Count; i++){
 
-		if (ds4->Down((PAD_DS4_KeyCoord)i) && TargetFocus){
+		if (ds4->Down((PAD_DS4_KeyCode)i) && TargetFocus){
 			mDS4Input[i]++;
 		}
 		else if (mDS4Input[i]>0){
@@ -168,9 +166,9 @@ void InputManager::Update(int TargetFocus){
 	}
 
 	xinput->Read();
-	for (int i = 0; i < (int)PAD_X_KeyCoord::Count; i++){
+	for (int i = 0; i < (int)PAD_X_KeyCode::Count; i++){
 
-		if (xinput->Down((PAD_X_KeyCoord)i) && TargetFocus){
+		if (xinput->Down((PAD_X_KeyCode)i) && TargetFocus){
 			mXInput[i]++;
 		}
 		else if (mXInput[i]>0){
@@ -191,12 +189,12 @@ void InputManager::SetMouseXY(int x, int y){
 	mMouseY = y;
 }
 void InputManager::SetMouseL(bool donw){
-	if (mMouseBool[(int)MouseCoord::Left] != donw){
+	if (mMouseBool[(int)MouseCode::Left] != donw){
 		mMouseLClickX = mMouseX;
 		mMouseLClickY = mMouseY;
 	}
-	mMouseBool[(int)MouseCoord::Left] = donw;
+	mMouseBool[(int)MouseCode::Left] = donw;
 }
 void InputManager::SetMouseR(bool donw){
-	mMouseBool[(int)MouseCoord::Right] = donw;
+	mMouseBool[(int)MouseCode::Right] = donw;
 }

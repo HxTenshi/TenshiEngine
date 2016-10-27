@@ -36,27 +36,27 @@
 class Input
 {
 public:
-	static bool Trigger(KeyCoord key){
+	static bool Trigger(KeyCode key){
 		return DLLInput::Trigger(key);
 	}
-	static int Down(KeyCoord key){
+	static int Down(KeyCode key){
 		return DLLInput::Down(key);
 
 	}
-	static bool Up(KeyCoord key){
+	static bool Up(KeyCode key){
 		return DLLInput::Up(key);
 
 	}
 
-	static bool Trigger(MouseCoord key){
+	static bool Trigger(MouseCode key){
 		return DLLInput::MTrigger(key);
 
 	}
-	static int Down(MouseCoord key){
+	static int Down(MouseCode key){
 		return DLLInput::MDown(key);
 
 	}
-	static bool Up(MouseCoord key){
+	static bool Up(MouseCode key){
 		return DLLInput::MUp(key);
 
 	}
@@ -68,49 +68,49 @@ public:
 		DLLInput::MouseLeftDragVector(x, y);
 	}
 
-	static bool Trigger(PAD_DS4_KeyCoord key){
+	static bool Trigger(PAD_DS4_KeyCode key){
 		return DLLInput::DS4Trigger(key);
 	}
-	static int Down(PAD_DS4_KeyCoord key){
+	static int Down(PAD_DS4_KeyCode key){
 		return DLLInput::DS4Down(key);
 	}
-	static bool Up(PAD_DS4_KeyCoord key){
+	static bool Up(PAD_DS4_KeyCode key){
 		return DLLInput::DS4Up(key);
 	}
 
-	static XMVECTOR Analog(PAD_DS4_LevelCoord key){
+	static XMVECTOR Analog(PAD_DS4_LevelCode key){
 		float x;
 		DLLInput::DS4Analog1(key,&x);
 		return XMVectorSet(x, 0, 0, 1);
 	}
-	static XMVECTOR Analog(PAD_DS4_Velo2Coord key){
+	static XMVECTOR Analog(PAD_DS4_Velo2Code key){
 		float x,y;
 		DLLInput::DS4Analog2(key, &x,&y);
 		return XMVectorSet(x, y, 0, 1);
 	}
-	static XMVECTOR Analog(PAD_DS4_Velo3Coord key){
+	static XMVECTOR Analog(PAD_DS4_Velo3Code key){
 		float x,y,z;
 		DLLInput::DS4Analog3(key, &x,&y,&z);
 		return XMVectorSet(x, y, z, 1);
 	}
 
 
-	static bool Trigger(PAD_X_KeyCoord key){
+	static bool Trigger(PAD_X_KeyCode key){
 		return DLLInput::XTrigger(key);
 	}
-	static int Down(PAD_X_KeyCoord key){
+	static int Down(PAD_X_KeyCode key){
 		return DLLInput::XDown(key);
 	}
-	static bool Up(PAD_X_KeyCoord key){
+	static bool Up(PAD_X_KeyCode key){
 		return DLLInput::XUp(key);
 	}
 
-	static XMVECTOR Analog(PAD_X_LevelCoord key){
+	static XMVECTOR Analog(PAD_X_LevelCode key){
 		float x;
 		DLLInput::XAnalog1(key, &x);
 		return XMVectorSet(x, 0, 0, 1);
 	}
-	static XMVECTOR Analog(PAD_X_Velo2Coord key){
+	static XMVECTOR Analog(PAD_X_Velo2Code key){
 		float x, y;
 		DLLInput::XAnalog2(key, &x, &y);
 		return XMVectorSet(x, y, 0, 1);
@@ -122,14 +122,14 @@ private:
 class EngineInput
 {
 public:
-	static bool Trigger(KeyCoord key){
+	static bool Trigger(KeyCode key){
 		return DLLInput::Trigger_Engine(key);
 	}
-	static int Down(KeyCoord key){
+	static int Down(KeyCode key){
 		return DLLInput::Down_Engine(key);
 
 	}
-	static bool Up(KeyCoord key){
+	static bool Up(KeyCode key){
 		return DLLInput::Up_Engine(key);
 
 	}

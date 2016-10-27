@@ -33,28 +33,8 @@
 using namespace physx;
 class Actor;
 class IPolygonsData;
+#include <functional>
 #include "IPhysXEngine.h"
-
-#define _LAYER_NUM 13
-struct  Layer
-{
-	enum  Enum
-	{
-		None = (1 << 0),
-		UserTag1 = (1 << 1),
-		UserTag2 = (1 << 2),
-		UserTag3 = (1 << 3),
-		UserTag4 = (1 << 4),
-		UserTag5 = (1 << 5),
-		UserTag6 = (1 << 6),
-		UserTag7 = (1 << 7),
-		UserTag8 = (1 << 8),
-		UserTag9 = (1 << 9),
-		UserTag10 = (1 << 10),
-		UserTag11 = (1 << 11),
-		UserTag12 = (1 << 12),
-	};
-};
 
 
 class PhysX3Main : public PhysXEngine
@@ -84,9 +64,10 @@ public:
 	void RemoveActor(PxActor* act);
 	void RemoveActorEngine(PxActor* act);
 
-	Actor* Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance) override;
-	bool RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, ::RaycastHit* result) override;
+	Actor* Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance, Layer::Enum layer = Layer::ALL) override;
+	bool RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, ::RaycastHit* result, Layer::Enum layer = Layer::ALL) override;
 	Actor* EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir);
+	int OverlapHitMultiple(weak_ptr<PhysXColliderComponent> collder, const std::function<void(GameObject)>& collback, Layer::Enum layer = Layer::ALL) override;
 
 	PxShape* CreateShape();
 	PxShape* CreateShapeSphere();

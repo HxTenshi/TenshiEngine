@@ -453,7 +453,7 @@ public:
 
 inline
 bool WhileColl(){
-	if (Input::Down(KeyCoord::Key_ESCAPE)){
+	if (Input::Down(KeyCode::Key_ESCAPE)){
 		throw(0);
 	}
 	return true;
@@ -462,7 +462,7 @@ bool WhileColl(){
 struct throwNull{};
 inline
 throwNull ForColl(){
-	if (Input::Down(KeyCoord::Key_ESCAPE)){
+	if (Input::Down(KeyCode::Key_ESCAPE)){
 		throw(0);
 	}
 	return throwNull();

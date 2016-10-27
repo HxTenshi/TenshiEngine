@@ -40,7 +40,7 @@ void Canvas::_ExportData(I_ioHelper * io, bool childExport)
 #undef _KEY_COMPEL
 }
 
-void Canvas::_ImportData(I_ioHelper * io)
+void Canvas::_ImportData(I_ioHelper * io, const std::function<void(shared_ptr<Actor>)>& childstackfunc, bool newID)
 {
 #define _KEY_COMPEL(x) io->func( x , #x,true)
 
