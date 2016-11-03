@@ -42,6 +42,7 @@ public:
 	virtual AnimeParam GetAnimetionParam(int id) = 0;
 	virtual void SetAnimetionParam(int id, const AnimeParam& param) = 0;
 	virtual float GetTotalTime(int id) = 0;
+	virtual bool IsAnimationEnd(int id) = 0;
 };
 
 class ModelComponent;
@@ -60,6 +61,7 @@ public:
 	AnimeParam GetAnimetionParam(int id) override;
 	void SetAnimetionParam(int id,const AnimeParam& param) override;
 	float GetTotalTime(int id) override;
+	bool IsAnimationEnd(int id) override;
 
 	void IO_Data(I_ioHelper* io) override;
 private:

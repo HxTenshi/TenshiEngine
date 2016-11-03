@@ -13,6 +13,7 @@
 #include "Engine/AssetFile/Bone/BoneFileData.h"
 
 class AnimeData;
+struct AnimeSet;
 class AnimationBind;
 
 class BoneModel{
@@ -28,7 +29,7 @@ public:
 
 	void SetConstantBuffer(ID3D11DeviceContext* context) const;
 
-	void UpdateAnimation(std::vector<shared_ptr<AnimationBind>>& anime);
+	void UpdateAnimation(const std::vector<AnimeSet>& anime);
 	//void PlayVMD(float time);
 	//bool IsCreateAnime(){ return mIsCreateAnime; }
 

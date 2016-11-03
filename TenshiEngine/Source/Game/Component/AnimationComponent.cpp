@@ -65,13 +65,13 @@ void AnimationComponent::Update(){
 		auto& set = mAnimationSets[mCurrentSet];
 		mView.Param = set.Param;
 
-		std::vector<shared_ptr<AnimationBind>> binds(mAnimetionCapacity);
-		
-		for (int i = 0; i < mAnimetionCapacity; i++){
-			binds[i] = mAnimationSets[i].mAnimationBind;
-		}
+		//std::vector<shared_ptr<AnimationBind>> binds(mAnimetionCapacity);
+		//
+		//for (int i = 0; i < mAnimetionCapacity; i++){
+		//	binds[i] = mAnimationSets[i].mAnimationBind;
+		//}
 
-		bone->UpdateAnimation(binds);
+		bone->UpdateAnimation(mAnimationSets);
 	}
 }
 #ifdef _ENGINE_MODE
@@ -83,11 +83,18 @@ void AnimationComponent::CreateInspector(){
 	std::function<void(int)> collbackset = [&](int f){
 		changeAnimetion(f);
 	};
+	ins.Add("Capacity", &mAnimetionCapacity, [&](int f) {
+		mAnimetionCapacity = f;
+		mAnimationSets.resize(mAnimetionCapacity);
+	});
+
 	ins.Add("ID", &mCurrentSet, collbackset);
 
 	std::function<void(float)> collback = [&](float f){
 		mView.Param.mTime = f;
 		mAnimationSets[mCurrentSet].Param.mTime = f;
+
+		mAnimationSets[mCurrentSet].mAnimationBind->PlayAnimetionSetTime(mAnimationSets[mCurrentSet].Param.mTime);
 	};
 	ins.Add("Time", &mView.Param.mTime, collback);
 
@@ -131,14 +138,20 @@ void AnimationComponent::IO_Data(I_ioHelper* io){
 
 	Enabled::IO_Data(io);
 
-#define _KEY(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str() )
+#define _KEY_I(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str() )
+#define _KEY(x) io->func( x , #x)
+
+	_KEY(mAnimetionCapacity);
+	if (io->isInput()) {
+		mAnimationSets.resize(mAnimetionCapacity);
+	}
 
 	for (int i = 0; i < mAnimetionCapacity; i++){
-		_KEY(i, mAnimationSets[i].Param.mAnimationAsset);
-		_KEY(i, mAnimationSets[i].Param.mTime);
-		_KEY(i, mAnimationSets[i].Param.mTimeScale);
-		_KEY(i, mAnimationSets[i].Param.mLoop);
-		_KEY(i, mAnimationSets[i].Param.mWeight);
+		_KEY_I(i, mAnimationSets[i].Param.mAnimationAsset);
+		_KEY_I(i, mAnimationSets[i].Param.mTime);
+		_KEY_I(i, mAnimationSets[i].Param.mTimeScale);
+		_KEY_I(i, mAnimationSets[i].Param.mLoop);
+		_KEY_I(i, mAnimationSets[i].Param.mWeight);
 	}
 
 #undef _KEY
@@ -160,12 +173,15 @@ void AnimationComponent::SetAnimetionParam(int id,const AnimeParam& param){
 	//if (mAnimationSets[id].Param.mFileName != param.mFileName){
 	//	createflag = true;
 	//}
-
+	bool create = mAnimationSets[id].Param.mAnimationAsset.m_Hash == param.mAnimationAsset.m_Hash;
 	mAnimationSets[id].Param = param;
-	mAnimationSets[id].Create();
-	//if (createflag){
-	//	mAnimationSets[id].Create();
-	//}
+	if (!create) {
+		mAnimationSets[id].Create();
+		if (mModel && mModel->mModel && mModel->mModel->mBoneModel) {
+			auto bone = mModel->mModel->mBoneModel;
+			mAnimationSets[id].Bind(bone);
+		}
+	}
 	if (!mAnimationSets[id].mAnimationBind)return;
 	mAnimationSets[id].mAnimationBind->SetWeight(mAnimationSets[id].Param.mWeight);
 	mAnimationSets[id].mAnimationBind->SetLoopFlag(mAnimationSets[id].Param.mLoop);
@@ -182,6 +198,18 @@ float AnimationComponent::GetTotalTime(int id)
 	auto animedata = asset.Get();
 	if (!animedata)return 0.0f;
 	return animedata->GetAnimeData().GetLastFrameTime();
+}
+
+bool AnimationComponent::IsAnimationEnd(int id)
+{
+	id = min(max(id, 0), (mAnimetionCapacity - 1));
+	if (!mAnimationSets[id].mAnimationBind)return false;
+
+	auto& asset = mAnimationSets[id].Param.mAnimationAsset;
+	if (!asset.IsLoad())return false;
+	auto animedata = asset.Get();
+	if (!animedata)return false;
+	return animedata->GetAnimeData().GetLastFrameTime() == mAnimationSets[id].mAnimationBind->GetTime();
 }
 
 
@@ -203,7 +231,6 @@ void AnimeSet::Create()
 	if (!Param.mAnimationAsset.IsLoad()) {
 		AssetLoad::Instance(Param.mAnimationAsset.m_Hash, Param.mAnimationAsset);
 	}
-
 	mAnimationBind = NULL;
 }
 
@@ -223,7 +250,7 @@ void AnimeSet::Update()
 {
 	if (!mAnimationBind)return;
 	auto time = Game::GetDeltaTime()->GetDeltaTime();
-	Param.mTime = mAnimationBind->GetTime();
 	//‚P•b‚Å‚R‚OƒtƒŒ[ƒ€
 	mAnimationBind->PlayAnimetionAddTime((30)*time * Param.mTimeScale);
+	Param.mTime = mAnimationBind->GetTime();
 }

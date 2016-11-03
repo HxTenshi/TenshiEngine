@@ -309,7 +309,8 @@ void BoneModel::SetConstantBuffer(ID3D11DeviceContext* context) const{
 	}
 }
 
-void BoneModel::UpdateAnimation(std::vector<shared_ptr<AnimationBind>>& anime){
+#include "Game/Component/AnimationComponent.h"
+void BoneModel::UpdateAnimation(const std::vector<AnimeSet>& anime){
 	if (!mBoneAssetDataPtr)return;
 	if (((int)anime.size()) == 0)return;
 	DWORD mBoneNum = mBone.size();
@@ -323,8 +324,8 @@ void BoneModel::UpdateAnimation(std::vector<shared_ptr<AnimationBind>>& anime){
 	}
 
 	for (auto& bind : anime){
-		if (!bind)continue;
-		float wegiht = bind->GetWeight();
+		if (!bind.mAnimationBind)continue;
+		float wegiht = bind.mAnimationBind->GetWeight();
 		if (wegiht <= FLT_EPSILON)continue;
 		{
 			//auto t = bind->GetTime();
@@ -339,7 +340,7 @@ void BoneModel::UpdateAnimation(std::vector<shared_ptr<AnimationBind>>& anime){
 		for (DWORD id = 0; id < mBoneNum; id++){
 
 
-			auto frame = bind->GetBoneFrame(id);
+			auto frame = bind.mAnimationBind->GetBoneFrame(id);
 			//ワールド行列計算
 			mBone[id].mPos.x += frame.Location.x*wegiht;
 			mBone[id].mPos.y += frame.Location.y*wegiht;
