@@ -174,18 +174,18 @@ public:
 	}
 	template<>
 	bool _func(MD5::MD5HashCode* out, const char* name) {
-		auto v = o->find(name);
-		if (v != o->end()) {
+		//auto v = o->find(name);
+		//if (v != o->end()) {
 
-			MD5::MD5HashCode temp;
-			if (prefab) {
-				if (!prefab->func((MD5::MD5HashCode)temp, name)) {
-					return false;
-				}
-			}
-			get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
-			return true;
-		}
+		//	MD5::MD5HashCode temp;
+		//	if (prefab) {
+		//		if (!prefab->func((MD5::MD5HashCode)temp, name)) {
+		//			return false;
+		//		}
+		//	}
+		//	get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
+		//	return true;
+		//}
 
 		bool f = true;
 		f = f&&_func(&out->key_i[0], (std::string(name) + "0").c_str());
@@ -196,18 +196,18 @@ public:
 	}
 	template<class T>
 	bool _func(Asset<T>* out, const char* name) {
-		auto v = o->find(name);
-		if (v != o->end()) {
+		//auto v = o->find(name);
+		//if (v != o->end()) {
 
-			IAsset temp;
-			if (prefab) {
-				if (!prefab->func((IAsset)temp, name)) {
-					return false;
-				}
-			}
-			get<T>(v->second, (IAsset*)out);
-			return true;
-		}
+		//	IAsset temp;
+		//	if (prefab) {
+		//		if (!prefab->func((IAsset)temp, name)) {
+		//			return false;
+		//		}
+		//	}
+		//	get<T>(v->second, (IAsset*)out);
+		//	return true;
+		//}
 
 		bool f = true;
 		f = f&&_func(&out->m_Hash.key_i[0], (std::string(name) + "0").c_str());

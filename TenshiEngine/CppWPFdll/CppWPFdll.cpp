@@ -588,6 +588,7 @@ namespace Test {
 		ViewData::window->Dispatcher->BeginInvoke(System::Windows::Threading::DispatcherPriority::Render, del, gcnew String(log.c_str()));
 	}
 
+
 	void* NativeFraction::GetGameScreenHWND() const {
 		void* temp = NULL;
 		if (ViewData::window != nullptr){

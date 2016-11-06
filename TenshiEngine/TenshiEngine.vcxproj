@@ -557,6 +557,8 @@
     <ClCompile Include="Source\Engine\AssetTypes.cpp" />
     <ClCompile Include="Source\Engine\IAsset.cpp" />
     <ClCompile Include="Source\Engine\Inspector.cpp" />
+    <ClCompile Include="Source\Engine\ScriptingSystem\ScriptCompiler.cpp" />
+    <ClCompile Include="Source\Engine\ScriptingSystem\ScriptManager.cpp" />
     <ClCompile Include="Source\Engine\window\AssetsWindow.cpp" />
     <ClCompile Include="Source\Engine\Debug.cpp" />
     <ClCompile Include="Source\Engine\Asset\GenerateMetaFile.cpp" />
@@ -659,6 +661,7 @@
     <ClInclude Include="lua\include\lua.hpp" />
     <ClInclude Include="lua\include\luaconf.h" />
     <ClInclude Include="lua\include\lualib.h" />
+    <ClInclude Include="Source\Engine\ScriptingSystem\ScriptCompiler.h" />
     <ClInclude Include="Source\Application\BuildVersion.h" />
     <ClInclude Include="Source\Application\Define.h" />
     <ClInclude Include="Source\Application\DefineDrawMultiThread.h" />
@@ -690,6 +693,7 @@
     <ClInclude Include="Source\Engine\AssetTypes.h" />
     <ClInclude Include="Source\Engine\IAsset.h" />
     <ClInclude Include="Source\Engine\Inspector.h" />
+    <ClInclude Include="Source\Engine\ScriptingSystem\ScriptManager.h" />
     <ClInclude Include="Source\Engine\window\AssetsWindow.h" />
     <ClInclude Include="Source\Engine\Debug.h" />
     <ClInclude Include="Source\Engine\DebugEngine.h" />

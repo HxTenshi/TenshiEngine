@@ -4,8 +4,8 @@
 #include "Game/Component/ComponentFactory.h"
 
 #include "Game/Component/TransformComponent.h"
-#include "Game/Component/ScriptComponent.h"
 #include "Game/Component/CameraComponent.h"
+#include "Engine/ScriptingSystem/ScriptManager.h"
 
 #include <stack>
 
@@ -88,7 +88,7 @@ struct SettingObjectData {
 #endif
 	}
 	void Save() {
-		object->ExportData(folder+"/"+name);
+		object->ExportData(folder+"/"+name + ".prefab");
 	}
 };
 struct SettingObject {
@@ -442,6 +442,14 @@ Game::Game() {
 			AllDestroyObject();
 			LoadScene(*s);
 			mCommandManager.Clear();
+		}else if((*s).find(".cpp\0") != (*s).npos || (*s).find(".h\0") != (*s).npos) {
+			int line = 0;
+			if (gIntPtrStack.size() != 0) {
+				line = gIntPtrStack.top();
+				gIntPtrStack.pop();
+			}
+
+			ScriptManager::OpenScriptFile(*s, line);
 		}
 		Window::Deleter(s);
 	});
@@ -1000,6 +1008,9 @@ void Game::Draw(){
 
 #ifdef _ENGINE_MODE
 	PlayDrawList(DrawStage::Engine);
+
+	if (g_IsGameStopFrame)
+		mDrawList[DrawStage::Engine].clear();
 #endif
 
 
@@ -1020,8 +1031,10 @@ void Game::Draw(){
 	render->PopRS();
 
 	ClearDrawList();
-
-	SetMainCamera(NULL);
+#ifdef _ENGINE_MODE
+	if (!g_IsGameStopFrame)
+#endif
+		SetMainCamera(NULL);
 #ifdef _ENGINE_MODE
 	SetMainCameraEngineUpdate(NULL);
 #endif
@@ -1066,14 +1079,15 @@ void Game::Update(){
 		else {
 			forceStop = 0.0f;
 		}
-		if (Input::Trigger(KeyCode::Key_F12)) {
-			g_IsGameStopFrame = !g_IsGameStopFrame;
-		}
+
 		if (!g_IsGameStopFrame) {
 			GamePlay();
 		}
 		else {
-			mDeltaTime.Reset();
+			//mDeltaTime.Reset();
+		}
+		if (Input::Trigger(KeyCode::Key_F12)) {
+			g_IsGameStopFrame = !g_IsGameStopFrame;
 		}
 	}
 	else{

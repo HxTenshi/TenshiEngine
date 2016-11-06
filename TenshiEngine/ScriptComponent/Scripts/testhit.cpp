@@ -20,8 +20,9 @@ void testhit::Start(){
 }
 
 //毎フレーム呼ばれます
-void testhit::Update(){
+void testhit::Update() {
 
+	gameObject->GetComponent<MaterialComponent>()->SetAlbedoColor(XMFLOAT4(0,1,0,1));
 }
 
 //開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）（エディター中も呼ばれます）

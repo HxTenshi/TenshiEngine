@@ -675,35 +675,35 @@ public:
 		Height = 50 + 36;
 
 
-		FrameworkElement ^colwnd = LoadContentsFromResource(IDR_POPWND_CREATE);
-		Content = colwnd;
-		auto createbutton = (Button^)colwnd->FindName("CreateButton");
-		createbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &CreateAssetWindow::CreateButton);
-		auto cancelbutton = (Button^)colwnd->FindName("CancelButton");
-		cancelbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &CreateAssetWindow::CancelButton);
+FrameworkElement ^colwnd = LoadContentsFromResource(IDR_POPWND_CREATE);
+Content = colwnd;
+auto createbutton = (Button^)colwnd->FindName("CreateButton");
+createbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &CreateAssetWindow::CreateButton);
+auto cancelbutton = (Button^)colwnd->FindName("CancelButton");
+cancelbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &CreateAssetWindow::CancelButton);
 
 
-		mTextBox = (TextBox^)colwnd->FindName("CreateTextBox");
+mTextBox = (TextBox^)colwnd->FindName("CreateTextBox");
 
-		this->ShowActivated = true;
-		Show();
-		Visibility = System::Windows::Visibility::Visible;
-		this->Activate();
+this->ShowActivated = true;
+Show();
+Visibility = System::Windows::Visibility::Visible;
+this->Activate();
 	}
 
 protected:
-	void OnActivated(System::EventArgs^ e) override{
+	void OnActivated(System::EventArgs^ e) override {
 		Window::OnActivated(e);
 		mTextBox->Focus();
 	}
 
 private:
 
-	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e) {
 		Data::MyPostMessage(MyWindowMessage::CreateAssetFile, string_cast(mTextBox->Text + mEx));
 		Close();
 	}
-	void CancelButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+	void CancelButton(Object ^s, System::Windows::RoutedEventArgs ^e) {
 		Close();
 	}
 	TextBox ^mTextBox;
@@ -717,7 +717,7 @@ public:
 
 	NewFolderWindow(Window^ owner)
 	{
-		if (mUnique){
+		if (mUnique) {
 			mUnique->Close();
 		}
 		mUnique = this;
@@ -745,22 +745,88 @@ public:
 	}
 
 protected:
-	void OnActivated(System::EventArgs^ e) override{
+	void OnActivated(System::EventArgs^ e) override {
 		Window::OnActivated(e);
 		mTextBox->Focus();
 	}
 
 
 private:
-	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e){
-		System::IO::Directory::CreateDirectory("Assets/"+mTextBox->Text);
+	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e) {
+		System::IO::Directory::CreateDirectory("Assets/" + mTextBox->Text);
 		Close();
 	}
-	void CancelButton(Object ^s, System::Windows::RoutedEventArgs ^e){
+	void CancelButton(Object ^s, System::Windows::RoutedEventArgs ^e) {
 		Close();
 	}
 	TextBox ^mTextBox;
 	String ^mEx;
+
+};
+
+ref class RenameWindow : public Window {
+public:
+	static RenameWindow ^mUnique = nullptr;
+
+	RenameWindow(Window^ owner, TestContent::Person^ data)
+	{
+		if (!data || !data->Parent) {
+			Close();
+			return;
+		}
+		if (data->Parent->Name == "$__Root__"){
+			Close();
+			return;
+		}
+		if (mUnique) {
+			mUnique->Close();
+		}
+		mUnique = this;
+		Owner = owner;
+		Title = "Rename";
+		Width = 400;
+		Height = 50 + 36;
+
+		mData = data;
+
+		FrameworkElement ^colwnd = LoadContentsFromResource(IDR_POPWND_CREATE);
+		Content = colwnd;
+		auto createbutton = (Button^)colwnd->FindName("CreateButton");
+		createbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &RenameWindow::CreateButton);
+		auto cancelbutton = (Button^)colwnd->FindName("CancelButton");
+		cancelbutton->Click += gcnew System::Windows::RoutedEventHandler(this, &RenameWindow::CancelButton);
+
+		mTextBox = (TextBox^)colwnd->FindName("CreateTextBox");
+		mTextBox->Text = mData->Name;
+
+
+
+		this->ShowActivated = true;
+		Show();
+		Visibility = System::Windows::Visibility::Visible;
+		this->Activate();
+	}
+
+protected:
+	void OnActivated(System::EventArgs^ e) override {
+		Window::OnActivated(e);
+		mTextBox->Focus();
+	}
+
+
+private:
+	void CreateButton(Object ^s, System::Windows::RoutedEventArgs ^e) {
+
+		auto oldname = GetFilePath(mData);
+		auto newname = GetFolderPath(mData->Parent) + mTextBox->Text;
+		System::IO::Directory::Move(oldname, newname);
+		Close();
+	}
+	void CancelButton(Object ^s, System::Windows::RoutedEventArgs ^e) {
+		Close();
+	}
+	TextBox ^mTextBox;
+	TestContent::Person^ mData;
 
 };
 
@@ -834,6 +900,13 @@ protected:
 		auto item = (TreeViewItem^)s;
 		m_DDItem = item;
 	}
+
+	void TreeViewItem_OnMouseRightClick(Object ^s, System::Windows::Input::MouseButtonEventArgs ^e)
+	{
+		auto t = (TreeViewItem^)s;
+		t->IsSelected = true;
+	}
+
 	//ツリービュー共通ドラッグ開始処理
 	void TreeViewItem_OnMouseLeave(Object ^s, System::Windows::Input::MouseEventArgs ^e)
 	{
@@ -886,10 +959,28 @@ private:
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::SelectedEvent, gcnew System::Windows::RoutedEventHandler(this, &SceneTreeView::SceneTreeViewItem_OnSelected)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeftButtonUpEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &SceneTreeView::SceneTreeViewItem_OnMouseClickUp)));
 
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::KeyDownEvent, gcnew System::Windows::Input::KeyEventHandler(this, &SceneTreeView::TreeViewItemKeyDown)));
+
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::PreviewMouseRightButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &SceneTreeView::TreeViewItem_OnMouseRightClick)));
+
+
 			auto itemselectbind = gcnew System::Windows::Data::Binding("IsSelected");
 			itemselectbind->Mode = BindingMode::TwoWay;
 			setter->Add(gcnew System::Windows::Setter(TreeViewItem::IsSelectedProperty, itemselectbind));
 
+
+			//コンテキストメニュー作成
+			{
+				auto cm = gcnew System::Windows::Controls::ContextMenu();
+				{//コンテキストメニューの要素作成
+					auto mitem = gcnew System::Windows::Controls::MenuItem();
+					mitem->Header = "Remove";
+					mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &SceneTreeView::MenuItem_Click_Remove);
+					cm->Items->Add(mitem);
+				}
+				//ツリービューに反映
+				setter->Add(gcnew System::Windows::Setter(TreeViewItem::ContextMenuProperty, cm));
+			}
 
 			m_TreeView->ItemContainerStyle = s;
 
@@ -904,12 +995,6 @@ private:
 		//コンテキストメニュー作成
 		{
 			auto cm = gcnew System::Windows::Controls::ContextMenu();
-			{//コンテキストメニューの要素作成
-				auto mitem = gcnew System::Windows::Controls::MenuItem();
-				mitem->Header = "Remove";
-				mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &SceneTreeView::MenuItem_Click_Remove);
-				cm->Items->Add(mitem);
-			}
 			//ツリービューに反映
 			m_TreeView->ContextMenu = cm;
 		}
@@ -957,6 +1042,17 @@ public:
 		(*i)->IsSelected = true;
 	}
 private:
+
+	void TreeViewItemKeyDown(Object ^sender, System::Windows::Input::KeyEventArgs^ e) {
+		if (e->Key == System::Windows::Input::Key::Delete) {
+			auto t = (TreeViewItem^)sender;
+			auto item = (TestContent::Person^)t->DataContext;
+			Data::MyPostMessage(MyWindowMessage::ActorDestroy, (void*)item->DataPtr);
+			
+		}
+		e->Handled = true;
+	}
+
 
 
 
@@ -1169,12 +1265,31 @@ private:
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::PreviewMouseLeftButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::TreeViewItem_OnMouseLeftClick)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeaveEvent, gcnew System::Windows::Input::MouseEventHandler(this, &AssetTreeView::TreeViewItem_OnMouseLeave)));
 			
-			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::LostKeyboardFocusEvent, gcnew System::Windows::Input::KeyboardFocusChangedEventHandler(this, &AssetTreeView::MyTreeView_OnLostKeyboardFocus)));
+			//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::LostKeyboardFocusEvent, gcnew System::Windows::Input::KeyboardFocusChangedEventHandler(this, &AssetTreeView::MyTreeView_OnLostKeyboardFocus)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::SelectedEvent, gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnSelected)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseLeftButtonUpEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnMouseClickUp)));
 			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::MouseDoubleClickEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::AssetsTreeViewItem_OnMouseDoubleClick)));
 			//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragEnterEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
 			//setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::DragOverEvent, gcnew DragEventHandler(this, &View::ActorTreeView_OnDragOver)));
+			
+			setter->Add(gcnew System::Windows::EventSetter(TreeViewItem::PreviewMouseRightButtonDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &AssetTreeView::TreeViewItem_OnMouseRightClick)));
+
+			auto itemselectbind = gcnew System::Windows::Data::Binding("IsSelected");
+			itemselectbind->Mode = BindingMode::TwoWay;
+			setter->Add(gcnew System::Windows::Setter(TreeViewItem::IsSelectedProperty, itemselectbind));
+
+			//コンテキストメニュー作成
+			{
+				auto cm = gcnew System::Windows::Controls::ContextMenu();
+				{//コンテキストメニューの要素作成
+					auto mitem = gcnew System::Windows::Controls::MenuItem();
+					mitem->Header = "Rename";
+					mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::MenuItem_Click_Rename);
+					cm->Items->Add(mitem);
+				}
+				//ツリービューに反映
+				setter->Add(gcnew System::Windows::Setter(TreeViewItem::ContextMenuProperty, cm));
+			}
 
 			m_TreeView->ItemContainerStyle = s;
 
@@ -1204,6 +1319,13 @@ private:
 				cm->Items->Add(mitem);
 			}
 
+			//{//コンテキストメニューの要素作成
+			//	auto mitem = gcnew System::Windows::Controls::MenuItem();
+			//	mitem->Header = "Rename";
+			//	mitem->Click += gcnew System::Windows::RoutedEventHandler(this, &AssetTreeView::MenuItem_Click_Rename);
+			//	cm->Items->Add(mitem);
+			//}
+
 			{//コンテキストメニューの要素作成
 				auto mitem = gcnew System::Windows::Controls::MenuItem();
 				mitem->Header = "CreateScritp";
@@ -1229,6 +1351,16 @@ private:
 	void MenuItem_Click_NewFolder(Object ^sender, System::Windows::RoutedEventArgs ^e){
 
 		auto w = gcnew NewFolderWindow(m_ParentWindow);
+
+		e->Handled = true;
+	}
+
+	//コンテキストメニューのオブジェクト作成
+	void MenuItem_Click_Rename(Object ^sender, System::Windows::RoutedEventArgs ^e) {
+
+		auto item = (TestContent::Person^)m_TreeView->SelectedItem;
+
+		auto w = gcnew RenameWindow(m_ParentWindow, item);
 
 		e->Handled = true;
 	}
@@ -1796,6 +1928,17 @@ public:
 		auto logBox = (Border ^)LoadContentsFromResource(IDR_LOG_LIST_BOX);
 		logPanel->Child = logBox;
 		m_LogBox = (System::Windows::Controls::ListBox^)logBox->Child;
+		System::Windows::Controls::VirtualizingStackPanel::SetIsVirtualizing(m_LogBox, true);
+		System::Windows::Controls::VirtualizingStackPanel::SetVirtualizationMode(m_LogBox, System::Windows::Controls::VirtualizationMode::Recycling);
+		//m_LogBox->SetValue(System::Windows::Controls::ScrollViewer::CanContentScrollProperty, true);
+		//m_LogBox->SetValue(System::Windows::Controls::ScrollViewer::HorizontalScrollBarVisibilityProperty, System::Windows::Controls::ScrollBarVisibility::Disabled);
+		//m_LogBox->SetValue(System::Windows::Controls::ScrollViewer::IsDeferredScrollingEnabledProperty, true);
+		//m_LogBox->SetValue(System::Windows::Controls::ScrollViewer::PanningModeProperty, System::Windows::Controls::PanningMode::VerticalOnly);
+		//m_LogBox->SetValue(System::Windows::Controls::ScrollViewer::VerticalScrollBarVisibilityProperty, System::Windows::Controls::ScrollBarVisibility::Visible);
+		//auto vp = gcnew System::Windows::Controls::VirtualizingStackPanel();
+		//vp->SetIsVirtualizing
+		//m_LogBox->SetValue(System::Windows::Controls::ItemsControl::ItemsPanelProperty,);
+		//m_LogBox->SetValue(System::Windows::Controls::VirtualizingPanel::VirtualizationModeProperty, System::Windows::Controls::VirtualizationMode::Recycling);
 
 		//アイテムリストのデータ構造
 		{
@@ -1814,9 +1957,12 @@ public:
 			templateElement->SetValue(Border::BorderThicknessProperty, gcnew System::Windows::Thickness(0, 0, 0, 1));
 			templateElement->SetValue(Border::BorderBrushProperty, gcnew SolidColorBrush(Color::FromRgb(64, 64, 64)));
 
+			templateElement->AddHandler(Border::MouseDownEvent, gcnew System::Windows::Input::MouseButtonEventHandler(this, &View::Log_OnMouseClick));
+
 			datatemp->VisualTree = templateElement;
 
 			m_LogBox->ItemTemplate = datatemp;
+
 		}
 
 
@@ -1930,14 +2076,50 @@ public:
 	}
 
 	int count = 0;
+	DWORD time = 0;
 	void AddLog(String^ log){
 
 		count++;
-		if (m_LogBox->Items->Count > 100) {
+		if (m_LogBox->Items->Count > 500) {
 			m_LogBox->Items->RemoveAt(0);
 		}
 		m_LogBox->Items->Add(count.ToString() + ":" + log);
-		m_LogBox->ScrollIntoView(m_LogBox->Items[m_LogBox->Items->Count - 1]);
+
+		auto t = GetTickCount();
+		if (time + 500 < t) {
+			time = t;
+			m_LogBox->ScrollIntoView(m_LogBox->Items[m_LogBox->Items->Count - 1]);
+		}
+	}
+
+	//ツリービュー共通ドラッグ開始処理
+	void Log_OnMouseClick(Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
+	{
+		//if (e->ClickCount == 2) {
+			auto item = (Border^)sender;
+			auto data = (String^)item->DataContext;
+
+			auto s = gcnew array<String^>(1);
+			s[0] = ":";
+			auto datas = data->Split(s,System::StringSplitOptions::None);
+			int i = datas->Length;
+			if (i < 3) return;
+
+			//auto file = gcnew System::IO::FileInfo(datas[1]);
+			//
+			//if (!file->Exists)return;
+			datas[2] = datas[2]->Replace("line(", "");
+			datas[2] = datas[2]->Replace(")", "");
+
+			datas[1] = "ScriptComponent/Scripts/" + datas[1];
+			int l = 0;
+			if (int::TryParse(datas[2], l)) {
+
+				Data::MyPostMessage(MyWindowMessage::StackIntPtr, (void*)l);
+				Data::MyPostMessage(MyWindowMessage::OpenAsset, (void*)string_cast(datas[1]));
+			}
+		//}
+
 	}
 
 

@@ -85,7 +85,8 @@ void AnimationComponent::CreateInspector(){
 	};
 	ins.Add("Capacity", &mAnimetionCapacity, [&](int f) {
 		mAnimetionCapacity = f;
-		mAnimationSets.resize(mAnimetionCapacity);
+		//auto s = mAnimationSets.size();
+		mAnimationSets.resize(mAnimetionCapacity,AnimeSet());
 	});
 
 	ins.Add("ID", &mCurrentSet, collbackset);
@@ -138,12 +139,12 @@ void AnimationComponent::IO_Data(I_ioHelper* io){
 
 	Enabled::IO_Data(io);
 
-#define _KEY_I(i_,x) io->func( x , (#x + std::to_string(##i_)).c_str() )
+#define _KEY_I(i_,x) io->func( x , (#x + std::to_string(i_)).c_str() )
 #define _KEY(x) io->func( x , #x)
 
 	_KEY(mAnimetionCapacity);
 	if (io->isInput()) {
-		mAnimationSets.resize(mAnimetionCapacity);
+		mAnimationSets.resize(mAnimetionCapacity, AnimeSet());
 	}
 
 	for (int i = 0; i < mAnimetionCapacity; i++){
