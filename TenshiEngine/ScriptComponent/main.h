@@ -60,8 +60,8 @@ void InitializeIGame(IGame* game);
 IDllScriptComponent* CreateInstance(const char* ClassName);
 
 
-void Function0(IDllScriptComponent* com, IDllScriptComponent::Func0 func);
-void Function1(IDllScriptComponent* com, IDllScriptComponent::Func1 func, GameObject tar);
+bool Function0(IDllScriptComponent* com, IDllScriptComponent::Func0 func);
+bool Function1(IDllScriptComponent* com, IDllScriptComponent::Func1 func, GameObject tar);
 
 void ReleseInstance(IDllScriptComponent* p);
 

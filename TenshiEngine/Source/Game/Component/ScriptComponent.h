@@ -62,13 +62,3 @@ private:
 
 	picojson::value* mSaveParam;
 };
-
-
-class ScriptManager{
-public:
-
-#ifdef _ENGINE_MODE
-	static void ReCompile();
-	static void CreateScriptFile(const std::string& className);
-#endif
-};

@@ -32,8 +32,8 @@ public:
 	
 	template <class T>
 	static void Instance(const char* filename, shared_ptr<T>& out){
-		if (filename == "")return;
 		std::string x(filename);
+		if (x.empty())return;
 		std::transform(x.begin(), x.end(), x.begin(), [](int x) { return (char)std::tolower(x); });
 		auto _filename = x.c_str();
 		auto file = m_AssetCache.find(_filename);
