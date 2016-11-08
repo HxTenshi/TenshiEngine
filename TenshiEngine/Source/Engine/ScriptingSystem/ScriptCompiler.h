@@ -12,8 +12,8 @@ class ScriptManager;
 class UseScriptActors {
 public:
 	static UseScriptActors* Get();
-	IDllScriptComponent* Create(const std::string& ClassName, ScriptComponent* com);
-	void Deleter(IDllScriptComponent* script, ScriptComponent* com);
+	IDllScriptComponent* Create(const std::string& ClassName);
+	void Deleter(IDllScriptComponent* script);
 	bool Function(IDllScriptComponent* com, IDllScriptComponent::Func0 func);
 	bool Function(IDllScriptComponent* com, IDllScriptComponent::Func1 func, GameObject tar);
 private:
@@ -31,7 +31,13 @@ private:
 	void filter(std::string& str);
 
 	void split(std::vector<std::string> &v, const std::string &input_string, const std::string &delimiter);
+
+public:
+	void Push(ScriptComponent* com);
+	void Pop(ScriptComponent* com);
 #endif
+
+private:
 
 	void UnLoad();
 	void DllLoad();

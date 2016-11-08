@@ -513,7 +513,7 @@ GameObject Game::Instance(GameObject base, bool undo) {
 		picojson::value val;
 		base->ExportData(val, true);
 
-		return Instance(undo);
+		return Instance(val,undo);
 	}
 
 	return NULL;

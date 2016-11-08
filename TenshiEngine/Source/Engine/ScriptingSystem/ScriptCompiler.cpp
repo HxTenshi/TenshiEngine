@@ -25,6 +25,9 @@ typedef void(__cdecl *InitIGame)(IGame*);
 #include "Game/Script/SGame.h"
 SGame gSGame;
 
+
+#define _SKIP_COMPILE 0
+
 #ifdef _ENGINE_MODE
 void IncludeScriptFileProject() {
 
@@ -259,6 +262,9 @@ bool create_cmd_process() {
 
 		UnLoad();
 
+#if _SKIP_COMPILE
+#else
+
 		CreateIncludeClassFile();
 
 
@@ -319,6 +325,8 @@ bool create_cmd_process() {
 
 			Window::AddLog("コンパイル終了");
 		}
+
+#endif
 
 		DllLoad();
 
@@ -613,6 +621,14 @@ bool create_cmd_process() {
 			v.push_back(input_string);
 		}
 	}
+	void UseScriptActors::Push(ScriptComponent * com)
+	{
+		mList.push_back(com);
+	}
+	void UseScriptActors::Pop(ScriptComponent * com)
+	{
+		mList.remove(com);
+	}
 #endif
 
 	void UseScriptActors::UnLoad() {
@@ -700,21 +716,19 @@ bool create_cmd_process() {
 		return &insctance;
 	}
 
-	IDllScriptComponent* UseScriptActors::Create(const std::string& ClassName, ScriptComponent* com) {
+	IDllScriptComponent* UseScriptActors::Create(const std::string& ClassName) {
 		if (!mCreate) {
 			_SYSTEM_LOG_ERROR("スクリプト[" + ClassName + "]の作成");
 			return NULL;
 		}
 
-		mList.push_back(com);
-
 		//dllで作成したクラスインスタンスを作成する
 		return ((CreateInstance_)mCreate)(ClassName.c_str());
 	}
 
-	void UseScriptActors::Deleter(IDllScriptComponent* script, ScriptComponent* com) {
+	void UseScriptActors::Deleter(IDllScriptComponent* script) {
 
-		mList.remove(com);
+
 		((DeleteInstance_)mDelete)(script);
 	}
 	bool UseScriptActors::Function(IDllScriptComponent* com, IDllScriptComponent::Func0 func) {

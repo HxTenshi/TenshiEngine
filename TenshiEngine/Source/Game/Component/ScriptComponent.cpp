@@ -22,6 +22,10 @@ ScriptComponent::~ScriptComponent(){
 	}
 }
 void ScriptComponent::Initialize(){
+
+#ifdef _ENGINE_MODE
+	UseScriptActors::Get()->Push(this);
+#endif
 	mCollideMap.clear();
 	Load();
 
@@ -74,7 +78,7 @@ void ScriptComponent::Load(){
 	if (pDllClass)return;
 
 	//dllで作成したクラスインスタンスを作成する
-	pDllClass = UseScriptActors::Get()->Create(mClassName, this);
+	pDllClass = UseScriptActors::Get()->Create(mClassName);
 
 	if (pDllClass){
 		pDllClass->gameObject = gameObject;
@@ -88,7 +92,7 @@ void ScriptComponent::Unload(){
 				//Window::AddLog("["+gameObject->Name()+"]["+mClassName+"]"+"Finish()");
 				Disable();
 			}
-		UseScriptActors::Get()->Deleter(pDllClass,this);
+		UseScriptActors::Get()->Deleter(pDllClass);
 	}
 
 	pDllClass = NULL;
@@ -207,6 +211,9 @@ void ScriptComponent::Update(){
 void ScriptComponent::Finish(){
 
 	Unload();
+#ifdef _ENGINE_MODE
+	UseScriptActors::Get()->Pop(this);
+#endif
 }
 
 

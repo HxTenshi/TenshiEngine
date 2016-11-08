@@ -194,6 +194,16 @@ public:
 		f = f&&_func(&out->key_i[3], (std::string(name) + "3").c_str());
 		return f;
 	}
+	template<>
+	bool _func(IAsset* out, const char* name) {
+
+		bool f = true;
+		f = f&&_func(&out->m_Hash.key_i[0], (std::string(name) + "0").c_str());
+		f = f&&_func(&out->m_Hash.key_i[1], (std::string(name) + "1").c_str());
+		f = f&&_func(&out->m_Hash.key_i[2], (std::string(name) + "2").c_str());
+		f = f&&_func(&out->m_Hash.key_i[3], (std::string(name) + "3").c_str());
+		return f;
+	}
 	template<class T>
 	bool _func(Asset<T>* out, const char* name) {
 		//auto v = o->find(name);
