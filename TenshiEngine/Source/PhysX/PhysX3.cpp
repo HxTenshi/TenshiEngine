@@ -782,26 +782,26 @@ void PhysX3Main::ShutdownPhysX() {
 		for (UINT i = 0; i < buffer.size(); i++)
 		{
 			gScene->removeActor(*buffer[i]);
-			buffer[i]->release();
+buffer[i]->release();
 		}
 	}
 	{
-		physx::PxActorTypeSelectionFlags t;
-		t |= physx::PxActorTypeSelectionFlag::eRIGID_STATIC;
-		t |= physx::PxActorTypeSelectionFlag::eRIGID_DYNAMIC;
-		t |= physx::PxActorTypeSelectionFlag::ePARTICLE_FLUID;
-		t |= physx::PxActorTypeSelectionFlag::ePARTICLE_SYSTEM;
-		t |= physx::PxActorTypeSelectionFlag::eCLOTH;
+	physx::PxActorTypeSelectionFlags t;
+	t |= physx::PxActorTypeSelectionFlag::eRIGID_STATIC;
+	t |= physx::PxActorTypeSelectionFlag::eRIGID_DYNAMIC;
+	t |= physx::PxActorTypeSelectionFlag::ePARTICLE_FLUID;
+	t |= physx::PxActorTypeSelectionFlag::ePARTICLE_SYSTEM;
+	t |= physx::PxActorTypeSelectionFlag::eCLOTH;
 
-		int n = mEngineScene->getNbActors(t);
-		std::vector<physx::PxActor*> buffer(n);
-		mEngineScene->getActors(t, buffer.data(), n);
+	int n = mEngineScene->getNbActors(t);
+	std::vector<physx::PxActor*> buffer(n);
+	mEngineScene->getActors(t, buffer.data(), n);
 
-		for (UINT i = 0; i < buffer.size(); i++)
-		{
-			mEngineScene->removeActor(*buffer[i]);
-			buffer[i]->release();
-		}
+	for (UINT i = 0; i < buffer.size(); i++)
+	{
+		mEngineScene->removeActor(*buffer[i]);
+		buffer[i]->release();
+	}
 	}
 	if (mTestOn)delete mTestOn;
 	if (gScene)gScene->release();
@@ -821,10 +821,10 @@ unsigned int PhysX3Main::GetLayerCollideFlag(Layer::Enum l1)
 	return mCollideFiler[l1];
 }
 
-bool PhysX3Main::GetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2){
+bool PhysX3Main::GetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2) {
 	return (bool)(mCollideFiler[l1] & l2);
 }
-void PhysX3Main::SetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2, bool flag){
+void PhysX3Main::SetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2, bool flag) {
 	if (flag) {
 		bool f = mCollideFiler[l1] & l2;
 		if (!f) {
@@ -840,49 +840,53 @@ void PhysX3Main::SetLayerCollideFlag(Layer::Enum l1, Layer::Enum l2, bool flag){
 		}
 	}
 }
-void PhysX3Main::AddActor(PxActor* act){
+void PhysX3Main::AddActor(PxActor* act) {
 	gScene->addActor(*act);
 }
-void PhysX3Main::AddActorEngine(PxActor* act){
+void PhysX3Main::AddActorEngine(PxActor* act) {
 	mEngineScene->addActor(*act);
 }
-void PhysX3Main::RemoveActor(PxActor* act){
+void PhysX3Main::RemoveActor(PxActor* act) {
 	gScene->removeActor(*act);
 }
-void PhysX3Main::RemoveActorEngine(PxActor* act){
+void PhysX3Main::RemoveActorEngine(PxActor* act) {
 	mEngineScene->removeActor(*act);
 }
 
-void PhysX3Main::AddStaticShape(PxShape* shape){
+void PhysX3Main::AddStaticShape(PxShape* shape) {
 	mRigidStatic->attachShape(*shape);
 }
-void PhysX3Main::RemoveStaticShape(PxShape* shape){
+void PhysX3Main::RemoveStaticShape(PxShape* shape) {
 	mRigidStatic->detachShape(*shape);
 }
 
-Actor* PhysX3Main::Raycast(const XMVECTOR& pos,const XMVECTOR& dir,float distance, Layer::Enum layer){
+GameObject PhysX3Main::Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance, Layer::Enum layer) {
 	PxVec3 ori(pos.x, pos.y, pos.z);
 	PxVec3 _dir(dir.x, dir.y, dir.z);
 	PxReal dis = distance;
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
 	PxRaycastHit hit;
 	PxQueryFilterData filter;
-	filter.data.word0 = layer;
-	filter.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER;
-	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit, filter)){
-		return (Actor*)hit.shape->userData;
+	filter.data.word0 = (PxU32)layer;
+	filter.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER | PxQueryFlag::eANY_HIT;
+	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit, filter)) {
+		if (auto act = (Actor*)hit.shape->userData) {
+			return act->shared_from_this();
+		}
 	}
 	return NULL;
 }
-Actor* PhysX3Main::EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir){
+GameObject PhysX3Main::EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir) {
 	PxVec3 ori(pos.x, pos.y, pos.z);
 	PxVec3 _dir(dir.x, dir.y, dir.z);
 	PxReal dis = 100;
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
 	PxRaycastHit hit;
 
-	if (mEngineScene->raycastSingle(ori, _dir, dis, hitflag, hit)){
-		return (Actor*)hit.shape->userData;
+	if (mEngineScene->raycastSingle(ori, _dir, dis, hitflag, hit)) {
+		if (auto act = (Actor*)hit.shape->userData) {
+			return act->shared_from_this();
+		}
 	}
 	return NULL;
 }
@@ -895,10 +899,14 @@ bool PhysX3Main::RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float dist
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT | PxHitFlag::eNORMAL | PxHitFlag::ePOSITION;
 	PxRaycastHit hit;
 	PxQueryFilterData filter;
-	filter.data.word0 = layer;
-	filter.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER;
+	filter.data.word0 = (PxU32)layer;
+	filter.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eRESERVED | PxQueryFlag::eNO_BLOCK | PxQueryFlag::ePOSTFILTER | PxQueryFlag::eANY_HIT;
 	if (gScene->raycastSingle(ori, _dir, dis, hitflag, hit, filter)){
-		result->hit = (Actor*)hit.shape->userData;
+		result->hit = NULL;
+		if (auto act = (Actor*)hit.shape->userData) {
+			auto obj = act->shared_from_this();
+			result->hit = (GameObject)obj;
+		}
 		result->normal = XMVectorSet(hit.normal.x, hit.normal.y, hit.normal.z, 1.0f);
 		result->position = XMVectorSet(hit.position.x, hit.position.y, hit.position.z,1.0f);
 		return true;

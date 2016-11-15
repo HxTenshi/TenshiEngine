@@ -799,7 +799,7 @@ bool SelectActor::ChackHitRay(PhysX3Main* physx, EditorCamera* camera){
 	auto act = physx->EngineSceneRaycast(pos, vect);
 	if (!act)return false;
 
-	if (mEditGuide[mCurrentGuide]->SetGuideHit(act) == -1) return false;
+	if (mEditGuide[mCurrentGuide]->SetGuideHit(act.Get()) == -1) return false;
 	auto p = mSelects.GetPosition();
 	mEditGuide[mCurrentGuide]->SetGuideTransform(p, XMQuaternionIdentity());
 	mIsDragMode = true;

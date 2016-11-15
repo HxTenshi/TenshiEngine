@@ -64,9 +64,9 @@ public:
 	void RemoveActor(PxActor* act);
 	void RemoveActorEngine(PxActor* act);
 
-	Actor* Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance, Layer::Enum layer = Layer::ALL) override;
+	GameObject Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance, Layer::Enum layer = Layer::ALL) override;
 	bool RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, ::RaycastHit* result, Layer::Enum layer = Layer::ALL) override;
-	Actor* EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir);
+	GameObject EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir);
 	int OverlapHitMultiple(weak_ptr<PhysXColliderComponent> collder, const std::function<void(GameObject)>& collback, Layer::Enum layer = Layer::ALL) override;
 
 	PxShape* CreateShape();

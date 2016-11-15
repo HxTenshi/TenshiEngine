@@ -269,7 +269,7 @@ void Model::Draw(ID3D11DeviceContext* context, const std::vector<weak_ptr<MeshCo
 	SetConstantBuffer(context);
 
 	for (const auto& m : mesh){
-		if (!m)continue;
+		if (!m || !m->IsEnabled())continue;
 		auto modelmesh = m->GetModelMesh();
 		modelmesh->Draw(context, (bool)(mBoneModel != NULL));
 	}

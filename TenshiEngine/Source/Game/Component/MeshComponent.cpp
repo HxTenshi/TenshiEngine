@@ -15,6 +15,10 @@ MeshComponent::MeshComponent()
 {
 	m_ModelMesh = NULL;
 	m_ID = 0;
+	if (!m_ModelMesh) {
+		m_ModelMesh = new ModelMesh();
+	}
+
 }
 MeshComponent::~MeshComponent(){
 	if (m_ModelMesh){
@@ -23,10 +27,7 @@ MeshComponent::~MeshComponent(){
 	}
 }
 void MeshComponent::Initialize(){
-	if (!m_ModelMesh){
-		m_ModelMesh = new ModelMesh();
-	}
-	
+
 	AssetLoad::Instance(mMesh.m_Hash, mMesh);
 	SetMesh(mMesh, m_ID);
 

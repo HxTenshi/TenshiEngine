@@ -116,11 +116,22 @@ static bool gIsPlay;
 //ツリービューが完成するまで繰り返す関数
 std::function<void()> CreateSetParentTreeViewItemColl(Actor* par, Actor* chil){
 	return [=](){
-		if (par->mTreeViewPtr){
+		if (par->mTreeViewPtr && chil->mTreeViewPtr){
 			Window::SetParentTreeViewItem(par->mTreeViewPtr, chil->mTreeViewPtr);
 		}
 		else{
 			chil->SetUpdateStageCollQueue(CreateSetParentTreeViewItemColl(par, chil));
+		}
+	};
+}
+//ツリービューが完成するまで繰り返す関数
+std::function<void()> CreateSetParentTreeViewItemCollRoot(Actor* chil) {
+	return [=]() {
+		if (chil->mTreeViewPtr) {
+			Window::SetParentTreeViewItem(NULL, chil->mTreeViewPtr);
+		}
+		else {
+			chil->SetUpdateStageCollQueue(CreateSetParentTreeViewItemCollRoot(chil));
 		}
 	};
 }
@@ -212,7 +223,9 @@ Game::Game() {
 
 #ifdef _ENGINE_MODE
 	mEngineRootObject = make_shared<Actor>();
-	mEngineRootObject->mTransform = mEngineRootObject->AddComponent<TransformComponent>();
+	auto t = mEngineRootObject->AddComponent<TransformComponent>();
+	mEngineRootObject->mTransform = t;
+	t->m_EngineObject = true;
 	mEngineRootObject->Initialize();
 	mEngineRootObject->Start();
 #endif
@@ -592,6 +605,8 @@ void Game::AddEngineObject(GameObjectPtr actor){
 		//delete actor;
 		return;
 	}
+	auto t = (TransformComponent*)actor->mTransform.Get();
+	t->m_EngineObject = true;
 	actor->Initialize();
 	actor->Start();
 	actor->mTransform->SetParent(mEngineRootObject);
@@ -705,6 +720,11 @@ void Game::RemovePhysXActorEngine(PxActor* act){
 GameObject Game::GetRootActor(){
 	return mRootObject;
 }
+#ifdef _ENGINE_MODE
+GameObject Game::GetEngineRootActor() {
+	return mEngineRootObject;
+}
+#endif
 GameObject Game::FindActor(Actor* actor){
 
 	for (auto& act : (*gpList)){
@@ -781,7 +801,11 @@ void Game::WindowParentSet(GameObject child)
 	if (!child)return;
 	//ツリービューで親子関係のセット関数
 	if (auto par = child->mTransform->GetParent()) {
-		if (par.Get() == mRootObject.Get())return;
+		if (par.Get() == mRootObject.Get()) {
+			auto coll = CreateSetParentTreeViewItemCollRoot(child.Get());
+			coll();
+			return;
+		}
 
 		//ツリービューが完成するまで繰り返す関数
 		auto coll = CreateSetParentTreeViewItemColl(par.Get(), child.Get());
@@ -1128,7 +1152,7 @@ void Game::GameStop(){
 
 			auto act = mPhysX3Main->Raycast(pos, vect,1000);
 			if (act)
-				mSelectActor.SetSelect(act);
+				mSelectActor.SetSelect(act.Get());
 		}
 	}
 

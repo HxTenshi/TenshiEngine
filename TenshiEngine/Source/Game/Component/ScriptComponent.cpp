@@ -167,10 +167,11 @@ void ScriptComponent::Update(){
 						}
 				}
 				if (data.second.State == ColliderState::Enter){
-					if (!UseScriptActors::Get()->Function(pDllClass, &IDllScriptComponent::OnCollideExit, data.second.Target)) {
-						//Window::AddLog("[" + gameObject->Name() + "][" + mClassName + "]" + "OnCollideExit()");
-						Disable();
-					}
+					if (data.second.Target)
+						if (!UseScriptActors::Get()->Function(pDllClass, &IDllScriptComponent::OnCollideExit, data.second.Target)) {
+							//Window::AddLog("[" + gameObject->Name() + "][" + mClassName + "]" + "OnCollideExit()");
+							Disable();
+						}
 				}
 				ite = mCollideMap.erase(ite);
 				continue;
@@ -187,10 +188,11 @@ void ScriptComponent::Update(){
 				}
 
 				if (data.second.State == ColliderState::Enter) {
-					if (!UseScriptActors::Get()->Function(pDllClass, &IDllScriptComponent::OnCollideEnter, data.second.Target)) {
-						//Window::AddLog("[" + gameObject->Name() + "][" + mClassName + "]" + "OnCollideEnter()");
-						Disable();
-					}
+					if (data.second.Target)
+						if (!UseScriptActors::Get()->Function(pDllClass, &IDllScriptComponent::OnCollideEnter, data.second.Target)) {
+							//Window::AddLog("[" + gameObject->Name() + "][" + mClassName + "]" + "OnCollideEnter()");
+							Disable();
+						}
 				}
 			}
 			//else if (data.second.State == ColliderState::Exit){

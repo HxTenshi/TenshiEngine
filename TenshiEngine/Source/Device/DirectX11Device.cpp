@@ -141,9 +141,13 @@ HRESULT Device::Init(const Window& window)
 	//レンダーターゲットと深度ステンシルの関連付け
 	mRenderTargetBack->SetRendererTarget(mpImmediateContext);
 	mRenderTargetBack->ClearView(mpImmediateContext);
+	try {
 
-	SoundDevice::Initialize();
-
+		SoundDevice::Initialize();
+	}
+	catch(...){
+		return E_FAIL;
+	}
 	return S_OK;
 
 	//mpImmediateContext->OMSetRenderTargets(0, 0, 0);

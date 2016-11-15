@@ -21,6 +21,10 @@ TransformComponent::TransformComponent()
 
 	mInspectorRotateDegree = mRotate * (180.0f / XM_PI);
 	mInspectorRotateDegree.w = 1;
+
+#ifdef _ENGINE_MODE
+	m_EngineObject = false;
+#endif
 }
 
 
@@ -28,15 +32,18 @@ TransformComponent::~TransformComponent(){
 }
 
 void TransformComponent::Initialize(){
-	if (!mParent) {
-		GameObject par = NULL;
-		if (!mParentUniqueHashID.IsNull()) {
-			//if (mParent && mParent->GetUniqueID() == mParentUniqueHashID)return;
-			par = Game::FindUID(mParentUniqueHashID);
+	//Transform‚ÍInitialize‚ª‚Q‰ñ‚æ‚Î‚ê‚é‚©‚à
+	if (!mIsEndInitialize) {
+		if (!mParent) {
+			GameObject par = NULL;
+			if (!mParentUniqueHashID.IsNull()) {
+				//if (mParent && mParent->GetUniqueID() == mParentUniqueHashID)return;
+				par = Game::FindUID(mParentUniqueHashID);
+			}
+			SetParent(par);
 		}
-		SetParent(par);
+		FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
 	}
-	FlagSetChangeMatrix((PhysXChangeTransformFlag)0);
 	mIsEndInitialize = true;
 }
 
@@ -696,6 +703,16 @@ void TransformComponent::SetParent(GameObject parent){
 	if (!parent) {
 		parent = Game::GetRootActor();
 	}
+
+	auto p = parent;
+#ifdef _ENGINE_MODE
+	if (!m_EngineObject)
+#endif
+	for (;;) {
+		if (p == Game::GetRootActor())break;
+		if (!p || p == gameObject)return;
+		p = p->mTransform->GetParent();
+	}
 	if (mParent == parent)return;
 	if (gameObject == parent)return;
 	if (!gameObject)return;
@@ -710,6 +727,7 @@ void TransformComponent::SetParent(GameObject parent){
 	if (parent){
 		parent->mTransform->ChildrenRef()->push_back(gameObject);
 		mParentUniqueHashID = parent->GetUniqueID();
+
 		if(mIsEndInitialize)
 			gameObject->RunChangeParentCallback();
 	}
@@ -717,9 +735,11 @@ void TransformComponent::SetParent(GameObject parent){
 
 #ifdef _ENGINE_MODE
 	//ƒGƒ‰[‚Å—Ž‚¿‚é
-	//Game::Get()->WindowParentSet(gameObject->shared_from_this());
+	if(!m_EngineObject)
+	Game::Get()->WindowParentSet(gameObject->shared_from_this());
 #endif
 }
+
 void TransformComponent::SetParentWorld(GameObject parent){
 
 	if (!gameObject)return;

@@ -250,7 +250,6 @@ void PhysXColliderComponent::ReleaseAttach(){
 void PhysXColliderComponent::ChangeShapeBox(){
 	mMeshAsset.Free();
 	mGeometryType = GeometryType::Box;
-	if (!IsEnabled())return;
 	PxShape* shape = Game::GetPhysX()->CreateShape();
 
 	ShapeAttach(shape);
@@ -258,7 +257,6 @@ void PhysXColliderComponent::ChangeShapeBox(){
 void PhysXColliderComponent::ChangeShapeSphere() {
 	mMeshAsset.Free();
 	mGeometryType = GeometryType::Sphere;
-	if (!IsEnabled())return;
 	PxShape* shape = Game::GetPhysX()->CreateShapeSphere();
 
 	ShapeAttach(shape);
@@ -267,7 +265,6 @@ void PhysXColliderComponent::ChangeShapeCapsule()
 {
 	mMeshAsset.Free();
 	mGeometryType = GeometryType::Capsule;
-	if (!IsEnabled())return;
 	PxShape* shape = Game::GetPhysX()->CreateShapeCapsule();
 
 	ShapeAttach(shape);
@@ -275,7 +272,6 @@ void PhysXColliderComponent::ChangeShapeCapsule()
 void PhysXColliderComponent::ChangeShapeMesh(const MeshAsset& mesh) {
 	mMeshAsset = mesh;
 	mGeometryType = GeometryType::Mesh;
-	if (!IsEnabled())return;
 	if (!mMeshAsset.IsLoad()) {
 		ShapeAttach(NULL);
 		return;
@@ -289,7 +285,6 @@ void PhysXColliderComponent::ChangeShapeConvexMesh(const MeshAsset & mesh)
 {
 	mMeshAsset = mesh;
 	mGeometryType = GeometryType::ConvexMesh;
-	if (!IsEnabled())return;
 	if (!mMeshAsset.IsLoad()) {
 		ShapeAttach(NULL);
 		return;

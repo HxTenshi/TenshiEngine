@@ -50,6 +50,8 @@ void Actor::Initialize(){
 	for (auto cmp : mComponents.GetComponents()){
 		cmp.second->_Initialize(this->shared_from_this());
 	}
+	mTransform->Initialize();
+	RunChangeParentCallback();
 	mComponents.RunInitialize();
 	mEndInitialize = true;
 	mEndFinish = false;
@@ -551,6 +553,10 @@ void* Actor::_GetScript(const char* name){
 
 //ペアレント変更コールバックを実行
 void Actor::RunChangeParentCallback(){
+
+	if (auto par = mTransform->GetParent()) {
+		par->ChildEnableChanged(&*this);
+	}
 
 	for (auto com : mComponents.GetComponents()){
 		if (!com.second)continue;
