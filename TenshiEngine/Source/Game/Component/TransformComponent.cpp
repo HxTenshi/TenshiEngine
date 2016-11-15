@@ -704,18 +704,18 @@ void TransformComponent::SetParent(GameObject parent){
 		parent = Game::GetRootActor();
 	}
 
+	if (!gameObject)return;
 	auto p = parent;
 #ifdef _ENGINE_MODE
 	if (!m_EngineObject)
 #endif
 	for (;;) {
-		if (p == Game::GetRootActor())break;
-		if (!p || p == gameObject)return;
+		if (!p || p == Game::GetRootActor())break;
+		if (p == gameObject)return;
 		p = p->mTransform->GetParent();
 	}
 	if (mParent == parent)return;
 	if (gameObject == parent)return;
-	if (!gameObject)return;
 	if (mParent){
 		auto children = mParent->mTransform->ChildrenRef();
 		children->remove_if([&](GameObject act){
