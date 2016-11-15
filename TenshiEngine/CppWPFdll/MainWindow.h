@@ -8,6 +8,7 @@
 
 
 std::string* string_cast(String^ str){
+
 	//String^ name = (String^)t->Header;
 	pin_ptr<const wchar_t> wch = PtrToStringChars(str);
 	size_t convertedChars = 0;
@@ -1020,9 +1021,14 @@ public:
 
 	//ツリービューで親子関係の登録
 	void SetParent(IntPtr parent, IntPtr child){
-		auto p = (gcroot<TestContent::Person^>*)(void*)parent;
 		auto c = (gcroot<TestContent::Person^>*)(void*)child;
-		(*p)->Add(*c);
+		if (parent != IntPtr(0)) {
+			auto p = (gcroot<TestContent::Person^>*)(void*)parent;
+			(*p)->Add(*c);
+		}
+		else {
+			m_TreeViewItemRoot->Add(*c);
+		}
 	}
 
 	//ツリービューアイテムの名前変更
@@ -1859,8 +1865,10 @@ private:
 
 		auto t = (array<String^>^)e->Data->GetData(System::Windows::Forms::DataFormats::FileDrop, false);
 		//if (t[0]->Contains(".pmx")){
-		std::string* str = string_cast(t[0]);
-		Data::MyPostMessage(MyWindowMessage::CreateModelConvert, str);
+		for (int i = 0; i < t->Length;i++) {
+			std::string* str = string_cast(t[i]);
+			Data::MyPostMessage(MyWindowMessage::CreateModelConvert, (void*)str);
+		}
 		//}
 
 	}
@@ -1885,6 +1893,9 @@ public:
 		, mSceneTreeView(nullptr)
 		, mAssetTreeView(nullptr)
 	{
+
+
+		setlocale(LC_ALL, "Japanese");
 
 		this->Closing += gcnew System::ComponentModel::CancelEventHandler(this, &View::Window_Closing);
 		//DataContext = gcnew ViewModel();

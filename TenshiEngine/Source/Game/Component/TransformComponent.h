@@ -147,6 +147,9 @@ private:
 	friend Actor;
 	friend Game;
 	bool mIsEndInitialize;
+#ifdef _ENGINE_MODE
+	bool m_EngineObject;
+#endif
 protected:
 	mutable bool mFixMatrixFlag;
 };

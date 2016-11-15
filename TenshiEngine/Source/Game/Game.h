@@ -108,6 +108,8 @@ public:
 	static void SetMainCameraEngineUpdate(CameraComponent* Camera);
 
 	void WindowParentSet(GameObject child);
+
+	GameObject GetEngineRootActor();
 #endif
 
 	void ChangePlayGame(bool isPlay);
