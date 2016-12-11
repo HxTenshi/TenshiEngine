@@ -13,7 +13,7 @@ public:
 	void CreateInspector() override;
 #endif
 
-	void _ExportData(I_ioHelper* io, bool childExport = false) override;
+	void _ExportData(I_ioHelper* io, bool childExport = false, bool worldTransform = false) override;
 	void _ImportData(I_ioHelper* io, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {}, bool newID = false) override;
 
 	std::vector<std::string>& GetSelects(){ return mSelects; };

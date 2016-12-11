@@ -28,7 +28,7 @@ void Canvas::CreateInspector()
 }
 #endif
 
-void Canvas::_ExportData(I_ioHelper * io, bool childExport)
+void Canvas::_ExportData(I_ioHelper * io, bool childExport, bool worldTransform)
 {
 	(void)childExport;
 

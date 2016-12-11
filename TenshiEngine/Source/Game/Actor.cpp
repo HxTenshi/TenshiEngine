@@ -186,7 +186,7 @@ void Actor::CreateInspector(){
 //	}
 //}
 
-void Actor::ExportData(const std::string& fileName, bool childExport){
+void Actor::ExportData(const std::string& fileName, bool childExport, bool worldTransform){
 
 	shared_ptr<I_InputHelper> prefab_io(NULL);
 	//if (mPrefabAsset && path != "Assets"){
@@ -203,7 +203,7 @@ void Actor::ExportData(const std::string& fileName, bool childExport){
 		return;
 	}
 
-	_ExportData(io, childExport);
+	_ExportData(io, childExport, worldTransform);
 
 
 	delete io;
@@ -216,7 +216,7 @@ void Actor::ExportData(const std::string& fileName, bool childExport){
 //	ExportData(path, "Object_" + std::to_string(mUniqueID));
 //}
 
-void Actor::ExportData(picojson::value& json, bool childExport){
+void Actor::ExportData(picojson::value& json, bool childExport, bool worldTransform){
 
 	shared_ptr<I_InputHelper> prefab_io(NULL);
 	if (mPrefabAsset){
@@ -226,13 +226,13 @@ void Actor::ExportData(picojson::value& json, bool childExport){
 
 	I_ioHelper* io = new MemoryOutputHelper(json, prefab_io.Get());
 
-	_ExportData(io,childExport);
+	_ExportData(io,childExport, worldTransform);
 
 	delete io;
 }
 
 
-void Actor::_ExportData(I_ioHelper* io, bool childExport){
+void Actor::_ExportData(I_ioHelper* io, bool childExport, bool worldTransform){
 
 	if (mUniqueHash == ""){
 		CreateNewID();
@@ -250,6 +250,8 @@ void Actor::_ExportData(I_ioHelper* io, bool childExport){
 
 
 	io->pushObject("components");
+	if(worldTransform)
+		TransformComponent::ExportWorldTransform = true;
 
 	for (auto cmp : mComponents.GetComponents()){
 		io->pushObject(cmp.second->ClassName());
@@ -259,6 +261,8 @@ void Actor::_ExportData(I_ioHelper* io, bool childExport){
 
 	}
 	io->popObject();
+
+	TransformComponent::ExportWorldTransform = false;
 
 
 

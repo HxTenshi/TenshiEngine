@@ -82,7 +82,7 @@ void PhysxLayer::SetLayerFlag(int l1, int l2, bool f){
 	Game::GetPhysX()->SetLayerCollideFlag((Layer::Enum)layer1, (Layer::Enum)layer2, f);
 }
 
-void PhysxLayer::_ExportData(I_ioHelper* io, bool childExport){
+void PhysxLayer::_ExportData(I_ioHelper* io, bool childExport, bool worldTransform){
 	(void)childExport;
 
 #define _KEY_COMPEL(x) io->func( x , #x,true)

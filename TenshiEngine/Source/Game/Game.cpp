@@ -371,9 +371,8 @@ Game::Game() {
 		gIntPtrStack.pop();
 		auto obj = ((Actor*)intptr);
 
-
 		std::string *s = (std::string*)p;
-		obj->ExportData(*s,true);
+		obj->ExportData(*s,true,true);
 
 		AssetDataBase::FileUpdate((*s).c_str());
 
@@ -517,7 +516,7 @@ GameObject Game::Instance(bool undo) {
 	a->AddComponent<TransformComponent>();
 	a->mTransform = a->GetComponent<TransformComponent>();
 	a->CreateNewID();
-	a->mTransform->SetParent(NULL);
+	a->mTransform->SetParentWorld(NULL);
 	Game::AddObject(a, undo);
 	return a;
 }
@@ -531,10 +530,10 @@ GameObject Game::Instance(GameObject base, bool undo) {
 
 	return NULL;
 }
-GameObject Game::Instance(picojson::value base, bool undo) {
+GameObject Game::Instance(picojson::value base, bool undo, bool parentTop) {
 
 	auto a = make_shared<Actor>();
-	GameObject This = a;
+	auto This = a;
 	a->SetInspectorFindGameObjectFunc([This](auto id)->GameObject {
 		auto target = GameObjectFindHelper::ChildrenFind(This, id);
 		if (!target) {
@@ -544,7 +543,9 @@ GameObject Game::Instance(picojson::value base, bool undo) {
 	});
 
 	a->ImportDataAndNewID(base, [](auto o) { Game::AddObject(o, false, true); });
-	a->mTransform->SetParent(NULL);
+	if (parentTop) {
+		a->mTransform->SetParentWorld(NULL);
+	}
 
 	Game::AddObject(a, undo);
 	//addchild(a);
@@ -555,13 +556,13 @@ GameObject Game::Instance(PrefabAssetDataPtr base, bool undo) {
 		if (base->GetFileData()) {
 			auto val = base->GetFileData()->GetParam();
 			auto a = make_shared<Actor>();
-			GameObject This = a;
+			auto This = a;
 			a->SetInspectorFindGameObjectFunc([This](auto id)->GameObject {
 				return GameObjectFindHelper::ChildrenFind(This, id);
 			});
 
 			a->ImportDataAndNewID(*val, [](auto o) { Game::AddObject(o,false,true); });
-			a->mTransform->SetParent(NULL);
+			a->mTransform->SetParentWorld(NULL);
 			Game::AddObject(a, undo);
 			//addchild(a);
 			return a;
@@ -633,6 +634,12 @@ void Game::DestroyObject(GameObjectPtr actor, bool undoFlag){
 
 //static
 void Game::ActorMoveStage(){
+	for (int i = 0; i < mGame->mActorMoveList.size();i++){
+		auto& tar = mGame->mActorMoveList._Get_container()[i];
+		if (tar.first == ActorMove::Create_DelayInitialize) {
+			tar.second->Initialize();
+		}
+	}
 	while (!mGame->mActorMoveList.empty()){
 		auto tar = mGame->mActorMoveList.front();
 		mGame->mActorMoveList.pop();
@@ -679,7 +686,7 @@ void Game::ActorMoveStage(){
 			Window::AddTreeViewItem(actor->Name(), actor);
 #endif
 
-			actor->Initialize();
+			//actor->Initialize();
 			actor->Start();
 
 			if (!actor->mTransform->GetParent()) {

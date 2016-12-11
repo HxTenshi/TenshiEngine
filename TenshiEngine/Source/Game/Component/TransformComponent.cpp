@@ -8,6 +8,8 @@
 
 #include "Engine/Inspector.h"
 
+bool TransformComponent::ExportWorldTransform = false;
+
 TransformComponent::TransformComponent()
 	:mFixMatrixFlag(false)
 	, mParent(NULL)
@@ -653,18 +655,37 @@ void TransformComponent::IO_Data(I_ioHelper* io){
 
 #define _KEY(x) io->func( x , #x)
 	_KEY(mParentUniqueHashID);
-	_KEY(mScale.x);
-	_KEY(mScale.y);
-	_KEY(mScale.z);
-	_KEY(mScale.w);
-	_KEY(mRotate.x);
-	_KEY(mRotate.y);
-	_KEY(mRotate.z);
-	_KEY(mRotate.w);
-	_KEY(mPosition.x);
-	_KEY(mPosition.y);
-	_KEY(mPosition.z);
-	_KEY(mPosition.w);
+	if (!io->isInput()&& ExportWorldTransform) {
+		auto mScale = WorldScale();
+		_KEY(mScale.x);
+		_KEY(mScale.y);
+		_KEY(mScale.z);
+		XMMATRIX mat = XMMatrixRotationQuaternion(WorldQuaternion());
+		auto mRotate = toEulerYXZ(mat);
+		_KEY(mRotate.x);
+		_KEY(mRotate.y);
+		_KEY(mRotate.z);
+		_KEY(mRotate.w);
+		auto mPosition = WorldPosition();
+		_KEY(mPosition.x);
+		_KEY(mPosition.y);
+		_KEY(mPosition.z);
+		_KEY(mPosition.w);
+	}
+	else {
+		_KEY(mScale.x);
+		_KEY(mScale.y);
+		_KEY(mScale.z);
+		_KEY(mScale.w);
+		_KEY(mRotate.x);
+		_KEY(mRotate.y);
+		_KEY(mRotate.z);
+		_KEY(mRotate.w);
+		_KEY(mPosition.x);
+		_KEY(mPosition.y);
+		_KEY(mPosition.z);
+		_KEY(mPosition.w);
+	}
 
 #undef _KEY
 }

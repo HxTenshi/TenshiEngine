@@ -157,6 +157,26 @@ const XMMATRIX& CameraComponent::GetViewMatrix(){
 	return mView;
 }
 
+const XMMATRIX & CameraComponent::GetProjectionMatrix()
+{
+	return mProjection;
+}
+
+const XMMATRIX CameraComponent::GetBillboardMatrix()
+{
+	return XMMatrixTranspose(mCBBillboard.mParam.mBillboardMatrix);
+}
+
+XMVECTOR CameraComponent::Project(const XMVECTOR & position)
+{
+	return XMVector3Project(position, 0, 0, (FLOAT)WindowState::mWidth, (FLOAT)WindowState::mHeight, 0.0f, 1.0f, mProjection, mView, XMMatrixIdentity());
+}
+
+XMVECTOR CameraComponent::UnProject(const XMVECTOR & position)
+{
+	return XMVector3Unproject(position, 0, 0, (FLOAT)WindowState::mWidth, (FLOAT)WindowState::mHeight, 0.0f, 1.0f, mProjection, mView, XMMatrixIdentity());
+}
+
 
 void CameraComponent::UpdateView(){
 

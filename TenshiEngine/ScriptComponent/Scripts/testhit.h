@@ -15,4 +15,7 @@ public:
 
 private:
 	//ƒƒ“ƒo•Ï”
+	SERIALIZE GameObject m_Obj1;
+	SERIALIZE GameObject m_Obj2;
+	SERIALIZE GameObject m_Obj3;
 };

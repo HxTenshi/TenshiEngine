@@ -24,6 +24,10 @@ bool PrefabFileData::Create(const char* filename){
 
 	if (!m_PrefabActor){
 		m_PrefabActor = make_shared<Actor>();
+		//m_PrefabActor->SetInspectorFindGameObjectFunc([](auto id, GameObject This)->GameObject {
+		//	return GameObjectFindHelper::ChildrenFind(This, id);
+		//});
+		////ƒ`ƒ‹ƒhƒŒƒ“‚ª•Ê‚ÌêŠ‚ðŽQÆ‚·‚é‚½‚ßˆ—‚ª•Ê
 		m_PrefabActor->SetInspectorFindGameObjectFunc([&](auto id)->wp<Actor> {
 			if (m_PrefabActor->GetBeforeUniqueID() == id) {
 				return m_PrefabActor;
@@ -34,7 +38,8 @@ bool PrefabFileData::Create(const char* filename){
 				}
 			}
 			return NULL;
-		});
+		}
+		);
 	}
 
 	if (mBeforeParam) {
@@ -48,6 +53,10 @@ bool PrefabFileData::Create(const char* filename){
 	m_PrefabActor->ImportDataAndNewID(m_FileName, [&](shared_ptr<Actor> obj) { list.push_back(obj); });
 	m_PrefabActorChildren = list;
 	m_PrefabActor->PlayInitializeStageColl();
+	for (auto child : m_PrefabActorChildren) {
+		child->PlayInitializeStageColl();
+	}
+
 	m_PrefabActor->ExportData(*mBeforeParam,true);
 	return true;
 

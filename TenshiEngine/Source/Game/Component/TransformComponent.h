@@ -130,6 +130,7 @@ public:
 	void SetParent(GameObject parent) override;
 	void SetParentWorld(GameObject parent) override;
 
+	static bool ExportWorldTransform;
 private:
 
 	std::list<GameObject>* ChildrenRef() override {

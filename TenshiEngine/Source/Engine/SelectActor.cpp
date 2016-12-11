@@ -414,7 +414,7 @@ void Selects::CopyDelete(){
 void Selects::Paste(){
 	mSelects.clear();
 	for (auto& act : mCopy){
-		auto obj = Game::Get()->Instance(*act,true);
+		auto obj = Game::Get()->Instance(*act,true,false);
 		//auto postactor = make_shared<Actor>();
 		//postactor->ImportDataAndNewID(*act, [](auto o) {Game::AddObject(o); });
 		//Game::AddObject(postactor,true);
