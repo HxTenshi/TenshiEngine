@@ -69,7 +69,7 @@ public:
 	GameObject Instance(const std::string & base, bool undo = false);
 	GameObject Instance(bool undo = false);
 	GameObject Instance(GameObject base, bool undo = false);
-	GameObject Instance(picojson::value base, bool undo = false);
+	GameObject Instance(picojson::value base, bool undo = false, bool parentTop = true);
 	GameObject Instance(PrefabAssetDataPtr base, bool undo = false);
 
 	static void AddObject(GameObjectPtr actor, bool undoFlag = false, bool DelayInitialize = false);

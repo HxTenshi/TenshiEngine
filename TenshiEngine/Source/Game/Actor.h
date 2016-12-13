@@ -97,13 +97,13 @@ public:
 
 	//void ExportSceneDataStart(const std::string& pass, File& sceneFile);
 	//void ExportSceneData(const std::string& pass, File& sceneFile);
-	void ExportData(const std::string& fileName, bool childExport = false);
+	void ExportData(const std::string& fileName, bool childExport = false, bool worldTransform = false);
 	//void ExportData(const std::string& pass);
 	void ImportData(const std::string& fileName, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto){}, bool newID = false);
 	void ImportData(picojson::value& json, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {}, bool newID = false);
 	bool ImportDataAndNewID(const std::string& fileName, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {});
 
-	void ExportData(picojson::value& json, bool childExport=false);
+	void ExportData(picojson::value& json, bool childExport=false, bool worldTransform = false);
 	void ImportDataAndNewID(picojson::value& json, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {});
 
 	void CreateNewID();
@@ -121,7 +121,7 @@ public:
 		return mEndFinish;
 	}
 
-	void SetInspectorFindGameObjectFunc(const std::function<weak_ptr<Actor>(const UniqueID&)>& func) {
+	void SetInspectorFindGameObjectFunc(const std::function<weak_ptr<Actor>(const UniqueID&) >& func) {
 		m_InspectorFindGameObjectFunc = func;
 	}
 	weak_ptr<Actor> InspectorFindGameObject(const UniqueID& id) {
@@ -133,7 +133,7 @@ protected:
 protected:
 
 
-	virtual void _ExportData(I_ioHelper* io, bool childExport=false);
+	virtual void _ExportData(I_ioHelper* io, bool childExport=false, bool worldTransform = false);
 	virtual void _ImportData(I_ioHelper* io, const std::function<void(shared_ptr<Actor>)>& childstackfunc = [](auto) {}, bool newID = false);
 
 	std::queue<std::function<void()>> mInitializeStageCollQueue;

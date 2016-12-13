@@ -11,7 +11,23 @@
 
 class EditorCamera;
 
-class CameraComponent :public Component{
+class ICameraComponent :public Component {
+public:
+	virtual ~ICameraComponent(){}
+	virtual float GetNear() = 0;
+	virtual float GetFar() = 0;
+	virtual const XMMATRIX& GetViewMatrix() = 0;
+	virtual const XMMATRIX& GetProjectionMatrix() = 0;
+	virtual const XMMATRIX GetBillboardMatrix() = 0;
+	virtual XMVECTOR Project(const XMVECTOR& position) = 0;
+	virtual XMVECTOR UnProject(const XMVECTOR& position) = 0;
+	virtual void SetPerspective() = 0;
+	virtual void SetOrthographic() = 0;
+	virtual void SetSkyTexture(TextureAsset asset) = 0;
+	virtual TextureAsset GetSkyTexture() = 0;
+};
+
+class CameraComponent :public ICameraComponent {
 public:
 	CameraComponent();
 	~CameraComponent();
@@ -32,10 +48,15 @@ public:
 	void PSSetConstantBuffers(ID3D11DeviceContext* context) const;
 	void GSSetConstantBuffers(ID3D11DeviceContext* context) const;
 
-	float GetNear();
-	float GetFar();
+	float GetNear() override;
+	float GetFar() override;
 
-	const XMMATRIX& GetViewMatrix();
+	const XMMATRIX& GetViewMatrix() override;
+	const XMMATRIX& GetProjectionMatrix() override;
+	const XMMATRIX GetBillboardMatrix() override;
+
+	XMVECTOR Project(const XMVECTOR& position) override;
+	XMVECTOR UnProject(const XMVECTOR& position) override;
 
 	enum class ScreenClearType{
 		Color,
@@ -46,10 +67,10 @@ public:
 
 	void ScreenClear();
 
-	void SetPerspective();
-	void SetOrthographic();
-	void SetSkyTexture(TextureAsset asset);
-	TextureAsset GetSkyTexture(){
+	void SetPerspective() override;
+	void SetOrthographic() override;
+	void SetSkyTexture(TextureAsset asset) override;
+	TextureAsset GetSkyTexture() override {
 		return mSkyTexture;
 	}
 private:
