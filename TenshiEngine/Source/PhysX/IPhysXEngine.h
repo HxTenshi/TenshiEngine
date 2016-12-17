@@ -29,6 +29,7 @@ struct RaycastHit{
 	GameObject hit;
 	XMVECTOR position;
 	XMVECTOR normal;
+	float distance;
 };
 
 class PhysXEngine{

@@ -731,6 +731,10 @@ GameObject Game::GetRootActor(){
 GameObject Game::GetEngineRootActor() {
 	return mEngineRootObject;
 }
+EditorCamera * Game::GetEditorCamera()
+{
+	return &mCamera;
+}
 #endif
 GameObject Game::FindActor(Actor* actor){
 
@@ -1147,21 +1151,6 @@ void Game::GameStop(){
 	}
 
 	mSelectActor.Update();
-	if (Input::Trigger(MouseCode::Left)){
-
-		if (!mSelectActor.ChackHitRay(mPhysX3Main, &mCamera)){
-
-			int x, y;
-			Input::MousePosition(&x, &y);
-			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
-			XMVECTOR vect = mCamera.PointRayVector(point);
-			XMVECTOR pos = mCamera.GetPosition();
-
-			auto act = mPhysX3Main->Raycast(pos, vect,1000);
-			if (act)
-				mSelectActor.SetSelect(act.Get());
-		}
-	}
 
 	mRootObject->EngineUpdateComponent();
 

@@ -110,6 +110,7 @@ public:
 	void WindowParentSet(GameObject child);
 
 	GameObject GetEngineRootActor();
+	EditorCamera* GetEditorCamera();
 #endif
 
 	void ChangePlayGame(bool isPlay);
@@ -125,8 +126,8 @@ public:
 
 
 private:
-	Game(const Game&);
-	Game operator = (Game&);
+	Game(const Game&) = delete;
+	Game operator = (Game&) = delete;
 
 	enum class ActorMove{
 		Create,
