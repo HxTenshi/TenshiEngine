@@ -10,6 +10,8 @@ public:
 
 	void Release();
 
+	void SetMouseP(const LPARAM& lParam);
+
 #ifdef _ENGINE_MODE
 	bool GetScreenFocus();
 #endif
