@@ -235,10 +235,9 @@ Game::Game() {
 	mRootObject->Initialize();
 	mRootObject->Start();
 
-#ifdef _ENGINE_MODE
-
 	g_SettingObject.Create();
 
+#ifdef _ENGINE_MODE
 
 	mCamera.Initialize();
 	mSelectActor.Initialize();

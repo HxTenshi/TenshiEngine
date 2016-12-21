@@ -49,6 +49,11 @@ void InputManagerRapper::Release(){
 		InputManager::Release();
 	}
 
+void InputManagerRapper::SetMouseP(const LPARAM& lParam) {
+	mx = LOWORD(lParam);	// マウスＸ座標取得
+	my = HIWORD(lParam);	// マウスＹ座標取得
+}
+
 #ifdef _ENGINE_MODE
 bool InputManagerRapper::GetScreenFocus(){
 		return mScreenFocus;

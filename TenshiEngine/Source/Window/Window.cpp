@@ -147,6 +147,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 		// ƒ}ƒEƒX‚ªˆÚ“®‚µ‚½‚Æ‚«‚Ìˆ—
 		InputManager::SetMouseP(lParam);
+		Window::mInputManagerRapper.SetMouseP(lParam);
+		InputManager::SetMouseXY(LOWORD(lParam), HIWORD(lParam));
 		break;
 
 	case WM_LBUTTONDOWN:

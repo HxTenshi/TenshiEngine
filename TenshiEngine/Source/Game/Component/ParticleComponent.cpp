@@ -205,6 +205,7 @@ void ParticleComponent::Update(){
 		}
 
 
+		mCBuffer.mParam.mBeforeWorld = mCBuffer.mParam.mWorld;
 		mCBuffer.mParam.mWorld = XMMatrixTranspose(gameObject->mTransform->GetMatrix());
 		mCBuffer.UpdateSubresource(render->m_Context);
 		mCBuffer.GSSetConstantBuffers(render->m_Context);
