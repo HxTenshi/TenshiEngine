@@ -29,6 +29,7 @@ struct RaycastHit{
 	GameObject hit;
 	XMVECTOR position;
 	XMVECTOR normal;
+	float distance;
 };
 
 class PhysXEngine{
@@ -37,6 +38,7 @@ public:
 	virtual ~PhysXEngine(){}
 
 	virtual GameObject Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance, Layer::Enum layer = Layer::ALL) = 0;
+	virtual GameObject RaycastTop(const XMVECTOR& pos, const XMVECTOR& dir, float distance, Layer::Enum layer = Layer::ALL) = 0;
 	virtual bool RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, RaycastHit* result, Layer::Enum layer = Layer::ALL) = 0;
 	virtual int OverlapHitMultiple(weak_ptr<PhysXColliderComponent> collder, const std::function<void(GameObject)>& collback, Layer::Enum layer = Layer::ALL) = 0;
 

@@ -19,9 +19,9 @@ public:
 
 class MaterialComponent :public IMaterialComponent{
 public:
-
-	void LoadAssetResource(const std::string& path);
-	void SaveAssetResource(const std::string& path);
+	void MaterialAssetCopy();
+	void LoadAssetResource();
+	//void SaveAssetResource();
 
 	MaterialComponent();
 	~MaterialComponent();
@@ -51,8 +51,8 @@ public:
 	TextureAsset mRoughnessTexture;
 	TextureAsset mEmissiveTexture;
 	std::vector<Material> mMaterials;
-	std::string mMaterialPath;
-	std::string mShaderName;
+	MaterialAsset mMaterialAsset;
+	ShaderAsset mShaderAsset;
 
 	XMFLOAT4 mAlbedo;
 	XMFLOAT4 mSpecular;

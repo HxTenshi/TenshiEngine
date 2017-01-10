@@ -82,3 +82,6 @@ using MovieAssetDataPtr = shared_ptr < AssetDataTemplate<MovieFileData> >;
 
 class AnimationFileData;
 using AnimationAssetDataPtr = shared_ptr < AssetDataTemplate<AnimationFileData> >;
+
+class MaterialFileData;
+using MaterialAssetDataPtr = shared_ptr < AssetDataTemplate<MaterialFileData> >;

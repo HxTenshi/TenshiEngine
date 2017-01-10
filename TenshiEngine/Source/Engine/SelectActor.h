@@ -7,6 +7,15 @@ class Actor;
 class PhysX3Main;
 class EditorCamera;
 
+struct SelectObjectDrawMode {
+	enum Enum{
+		None,
+		Wire,
+		ChildrenWire,
+		Count
+	};
+};
+
 #include "Graphic/Material/Material.h"
 #include "Library/picojson.h"
 #include <list>
@@ -15,17 +24,21 @@ class EditGuide{
 public:
 	EditGuide()
 		:mSelectGuide(-1)
+		, m_TransformMode(TransformMode::Local)
 	{}
 	virtual ~EditGuide(){}
 
 
 	void SetGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat);
+	void SetGuideTransform(const XMVECTOR& pos);
 	void UpdateGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat);
 	int SetGuideHit(Actor* act);
 	void Update();
 
 	void Enable();
 	void Disable();
+	bool IsTransformModeLocal();
+	void ChangeTransformMode();
 
 	virtual void GuideDrag(float pow) = 0;
 	virtual void UpdateTransform(std::list<Actor*>& actors) = 0;
@@ -35,6 +48,12 @@ protected:
 
 	XMVECTOR mGuidePosition;
 	XMVECTOR mGuideRotate;
+
+	enum TransformMode {
+		Local,
+		World,
+		Count,
+	} m_TransformMode;
 };
 
 class Selects{
@@ -54,6 +73,7 @@ public:
 
 	int SelectNum();
 	XMVECTOR GetPosition();
+	XMVECTOR GetQuaternion();
 
 	Actor* GetSelectOne();
 	std::list<Actor*>& GetSelects();
@@ -93,9 +113,10 @@ public:
 	void Update();
 
 	void ReCreateInspector();
-
-	void SelectActorDraw();
-	bool ChackHitRay(PhysX3Main* physx, EditorCamera* camera);
+	void Draw();
+	void DrawMeshWire(weak_ptr<Actor> object);
+	void DrawPhysxWire(weak_ptr<Actor> object);
+	bool ChackHitRay();
 
 	void PushUndo();
 private:
@@ -116,6 +137,8 @@ private:
 	bool mCreateInspector;
 	std::string mAssetFileName;
 	SelectUndo mSelectUndo;
+
+	SelectObjectDrawMode::Enum m_DrawMode;
 };
 
 #endif

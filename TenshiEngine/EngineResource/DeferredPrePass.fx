@@ -133,6 +133,9 @@ float4x3 getBoneMatrix(uint idx)
 	return BoneMatrix[idx];
 }
 
+//#define GAMMA 2.2
+#define GAMMA 1
+
 
 //--------------------------------------------------------------------------------------
 // Vertex Shader
@@ -240,13 +243,13 @@ PS_INPUT VSSkin(VS_INPUT input)
 float3 GetEnvironmentSphere(float3 ray, float3 N, float roughness){
 	float3 ref = reflect(ray, N);       // 反射ベクトル
 	ref.xy = ref.xy*float2(0.5, -0.5) + 0.5;
-	return pow(EnvironmentTex.SampleLevel(EnvironmentSamLinear, ref.xy, roughness * 10.0f).rgb,2.2);
+	return pow(EnvironmentTex.SampleLevel(EnvironmentSamLinear, ref.xy, roughness * 10.0f).rgb, GAMMA);
 }
 
 float3 GetEnvironmentCube(float3 ray, float3 N, float roughness){
 	float3 ref = reflect(ray, N);       // 反射ベクトル
 	float3 WorldRef = mul(ref, (float3x3)ViewInv);
-	return pow(EnvironmentTexCube.SampleLevel(EnvironmentCubeSamLinear, normalize(WorldRef), roughness * 10.0f).rgb, 2.2);
+	return pow(EnvironmentTexCube.SampleLevel(EnvironmentCubeSamLinear, normalize(WorldRef), roughness * 10.0f).rgb, GAMMA);
 }
 
 float3 GetEnvironmentPanorama(float3 ray, float3 N, float roughness){
@@ -259,7 +262,7 @@ float3 GetEnvironmentPanorama(float3 ray, float3 N, float roughness){
 	float theta = atan2(-1.0 * ref.x, ref.z) + PI;
 	float2 tex = float2(theta / TwoPI, phi / PI);
 
-		return pow(EnvironmentTex.SampleLevel(EnvironmentSamLinear, tex.xy, roughness * 10.0f).rgb, 2.2);
+		return pow(EnvironmentTex.SampleLevel(EnvironmentSamLinear, tex.xy, roughness * 10.0f).rgb, GAMMA);
 }
 
 //--------------------------------------------------------------------------------------
@@ -295,7 +298,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 	float4 DifColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture.x != 0.0){
-			DifColor = pow(AlbedoTex.Sample(AlbedoSamLinear, texcood),2.2);
+			DifColor = pow(AlbedoTex.Sample(AlbedoSamLinear, texcood), GAMMA);
 			//DifColor = AlbedoTex.SampleLevel(AlbedoSamLinear, texcood,0);
 		}
 	if (DifColor.a < 0.01)discard;
@@ -381,12 +384,12 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 
 	float4 SpcColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture.w != 0.0)
-			SpcColor = pow(SpcTex.Sample(SpcSamLinear, texcood),2.2);
+			SpcColor = pow(SpcTex.Sample(SpcSamLinear, texcood), GAMMA);
 	SpcColor.rgb = SpcColor.r * MSpecular.rgb;
 
 	float4 RghColor = float4(1.0, 1.0, 1.0, 1.0);
 		if (UseTexture2.x != 0.0)
-			RghColor = pow(RoughTex.Sample(RoughSamLinear, texcood), 2.2);
+			RghColor = pow(RoughTex.Sample(RoughSamLinear, texcood), GAMMA);
 	RghColor.r *= MSpecular.a;
 	RghColor.r = max(RghColor.r, 0.01);
 
@@ -398,7 +401,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	//}
 	float4 emi;
 	if (UseTexture2.y != 0.0){
-		emi = pow(EmissiveTex.Sample(EmissiveSamLinear, texcood), 2.2);
+		emi = pow(EmissiveTex.Sample(EmissiveSamLinear, texcood), GAMMA);
 		emi.rgb *= EmissivePowor;
 		emi.a = -1.0f;
 	}

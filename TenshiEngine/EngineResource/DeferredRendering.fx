@@ -152,12 +152,13 @@ float4 PS(PS_INPUT input) : SV_Target
 	//col.rgb *= (1-Roughness) * 0.25 + 0.75;
 	//col.rgb += col.rgb * env;
 	//col.rgb += lSpe.rgb;
-	col.rgb = pow(col.rgb, 1.0f / 2.2);
+
+	//col.rgb = pow(col.rgb, 1.0f / 2.2);
 
 	//float l = length( -ray - nor);
 	//l = abs(l);
 	//col = float4(l,l,l, 1);
 
-
+	col.rgb = pow(col.rgb, (1 / 2.2));
 	return col;
 }
