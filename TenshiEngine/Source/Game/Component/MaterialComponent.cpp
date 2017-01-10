@@ -188,12 +188,13 @@ Material* MaterialComponent::GetMaterialPtr(UINT GetNo) const{
 	}
 	return const_cast<Material*>(&mMaterials[GetNo]);
 }
-Material MaterialComponent::GetMaterial(UINT GetNo) const{
+const Material& MaterialComponent::GetMaterial(UINT GetNo) const{
 	if (mMaterialAsset.IsLoad()) {
 		return *mMaterialAsset.Get()->GetMaterial();
 	}
 	if (mMaterials.size() <= GetNo){
-		return Material();
+		static Material temp;
+		return temp;
 	}
 	return mMaterials[GetNo];
 }

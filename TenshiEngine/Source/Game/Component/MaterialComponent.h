@@ -33,7 +33,7 @@ public:
 	void CreateInspector() override;
 #endif
 	Material* GetMaterialPtr(UINT GetNo) const override;
-	Material GetMaterial(UINT GetNo) const;
+	const Material& GetMaterial(UINT GetNo) const;
 
 	void SetAlbedoColor(const XMFLOAT4& col) override;
 	void SetSpecularColor(const XMFLOAT4& col) override;

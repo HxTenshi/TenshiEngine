@@ -133,8 +133,8 @@ float4x3 getBoneMatrix(uint idx)
 	return BoneMatrix[idx];
 }
 
-//#define GAMMA 2.2
-#define GAMMA 1
+#define GAMMA 2.2
+//#define GAMMA 1
 
 
 //--------------------------------------------------------------------------------------

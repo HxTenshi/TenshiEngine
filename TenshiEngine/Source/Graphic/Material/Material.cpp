@@ -12,7 +12,6 @@ Material::Material()
 	mOffset = XMFLOAT2(0.0f,0.0f);
 	mEmissivePowor = 1.0f;
 
-	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
 	mCBUseTexture.mParam.UseTexture = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	mCBUseTexture.mParam.UseTexture2 = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 }
@@ -40,6 +39,12 @@ HRESULT Material::Create(const char* shaderFileName){
 
 	mShader.Create(shaderFileName);
 
+	auto tex1 = mCBUseTexture.mParam.UseTexture;
+	auto tex2 = mCBUseTexture.mParam.UseTexture2;
+	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
+	mCBUseTexture.mParam.UseTexture  = tex1;
+	mCBUseTexture.mParam.UseTexture2 = tex2;
+
 	return S_OK;
 
 }
@@ -61,6 +66,12 @@ HRESULT Material::Create(ShaderAsset& asset){
 	mCBMaterial.mParam.MNULL = 0.0f;
 
 	mShader.Create(asset);
+
+	auto tex1 = mCBUseTexture.mParam.UseTexture;
+	auto tex2 = mCBUseTexture.mParam.UseTexture2;
+	mCBUseTexture = ConstantBuffer<cbChangesUseTexture>::create(6);
+	mCBUseTexture.mParam.UseTexture = tex1;
+	mCBUseTexture.mParam.UseTexture2 = tex2;
 
 	return S_OK;
 
