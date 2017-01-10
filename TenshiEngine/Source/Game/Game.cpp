@@ -269,8 +269,8 @@ Game::Game() {
 
 		//íœ¸”sƒŠƒXƒg‚©‚çŒŸõ‚µ‚Äíœ
 		bool remove = false;
-		mTreeViewItem_ErrerClearList.remove_if([&](GameObjectPtr tar){
-			bool f = tar.Get() == act;
+		mTreeViewItem_ErrerClearList.remove_if([&](Actor* tar){
+			bool f = tar == act;
 			if (f){
 				Window::ClearTreeViewItem(p);
 				remove = true;
@@ -396,6 +396,7 @@ Game::Game() {
 	Window::SetWPFCollBack(MyWindowMessage::ScriptCompile, [&](void* p)
 	{
 		(void)p;
+		if (IsGamePlay())return;
 		ScriptManager::ReCompile();
 		mSelectActor.ReCreateInspector();
 	});
@@ -427,6 +428,7 @@ Game::Game() {
 	Window::SetWPFCollBack(MyWindowMessage::SaveScene, [&](void* p)
 	{
 		(void)p;
+		if (IsGamePlay())return;
 		SaveScene();
 	});
 	Window::SetWPFCollBack(MyWindowMessage::SelectAsset, [&](void* p)

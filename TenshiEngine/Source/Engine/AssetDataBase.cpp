@@ -21,6 +21,7 @@
 #include "AssetFile\Sound\SoundFileData.h"
 #include "AssetFile\Movie\MovieFileData.h"
 #include "AssetFile/Animation/AnimationFileData.h"
+#include "AssetFile/Material/MaterialFileData.h"
 
 #include "Engine/Inspector.h"
 
@@ -111,6 +112,8 @@ AssetFactory::AssetFactory(){
 	factory<MetaFileData>("meta");
 	
 	factory<AnimationFileData>("vmd");
+
+	factory<MaterialFileData>("material");
 }
 
 
@@ -229,6 +232,147 @@ void AssetDataTemplate<PhysxMaterialFileData>::CreateInspector(){
 	}
 
 	//ins.AddButton("Compile", collback);
+	ins.Complete();
+}
+
+
+
+#include "Graphic/Material/Material.h"
+void AssetDataTemplate<MaterialFileData>::CreateInspector() {
+
+	auto mate = m_FileData->GetMaterial();
+	if (!mate)return;
+
+	std::function<void(Color)> collbackAlb = [&](Color f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->mDiffuse.x = f.r;
+		mate->mDiffuse.y = f.g;
+		mate->mDiffuse.z = f.b;
+		mate->mDiffuse.w = f.a;
+		mate->mCBMaterial.mParam.Diffuse = mate->mDiffuse;
+	};
+
+
+	std::function<void(Color)> collbackSpec = [&](Color f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->mSpecular.x = f.r;
+		mate->mSpecular.y = f.g;
+		mate->mSpecular.z = f.b;
+		//mSpecular.w = f.a;
+		mate->mCBMaterial.mParam.Specular = mate->mSpecular;
+	};
+
+	std::function<void(float)> collbackas = [&](float f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->mSpecular.w = f;
+		mate->mCBMaterial.mParam.Specular = mate->mSpecular;
+	};
+
+	std::function<void(Vector2)> collbackTex = [&](Vector2 f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->mTexScale.x = f.x;
+		mate->mTexScale.y = f.y;
+		mate->mCBMaterial.mParam.TexScale = mate->mTexScale;
+	};
+
+	std::function<void(Vector2)> collbackOffset = [&](Vector2 f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->mOffset.x = f.x;
+		mate->mOffset.y = f.y;
+		mate->mCBMaterial.mParam.MOffset = mate->mOffset;
+	};
+
+	std::function<void(float)> collbackH = [&](float f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->mHeightPower.x = f;
+		mate->mCBMaterial.mParam.HeightPower = mate->mHeightPower;
+	};
+	std::function<void(float)> collbackHDR = [&](float f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->mHeightPower.y = f;
+		mate->mCBMaterial.mParam.HeightPower = mate->mHeightPower;
+	};
+
+	std::function<void(Vector3)> collbackNormalScale = [&](Vector3 f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->mNormalScale.x = f.x;
+		mate->mNormalScale.y = f.y;
+		mate->mNormalScale.z = f.z;
+		mate->mCBMaterial.mParam.MNormaleScale = mate->mNormalScale;
+	};
+	std::function<void(float)> collbackThick = [&](float f) {
+		mate->mAmbient.w = f;
+		mate->mCBMaterial.mParam.Ambient.w = mate->mAmbient.w;
+	};
+
+	Inspector ins("Material", NULL);
+
+	auto alb = Color(mate->mDiffuse);
+	ins.Add("Albedo", &alb, collbackAlb);
+
+	auto spec = Color(mate->mSpecular);
+	ins.Add("Specular", &spec, collbackSpec);
+	ins.AddSlideBar("Roughness", 0, 1, &mate->mSpecular.w, collbackas);
+
+	static TextureAsset tex[6];
+	tex[0].m_Hash = mate->mTexture[0].GetHash();
+	tex[1].m_Hash = mate->mTexture[1].GetHash();
+	tex[2].m_Hash = mate->mTexture[2].GetHash();
+	tex[3].m_Hash = mate->mTexture[3].GetHash();
+	tex[4].m_Hash = mate->mTexture[4].GetHash();
+	tex[5].m_Hash = mate->mTexture[5].GetHash();
+	ins.Add("AlbedoTextre",		&tex[0], [&]() {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->SetTexture(tex[0], 0);
+	});
+	ins.Add("NormalTextre",		&tex[1], [&]() {	auto mate = m_FileData->GetMaterial();
+	if (!mate)return; mate->SetTexture(tex[1], 1); });
+	ins.Add("HeightTextre",		&tex[2], [&]() {	auto mate = m_FileData->GetMaterial();
+	if (!mate)return; mate->SetTexture(tex[2], 2); });
+	ins.Add("SpecularTextre",	&tex[3], [&]() {	auto mate = m_FileData->GetMaterial();
+	if (!mate)return;mate->SetTexture(tex[3], 3);});
+	ins.Add("RoughnessTextre",	&tex[4], [&]() {	auto mate = m_FileData->GetMaterial();
+	if (!mate)return;mate->SetTexture(tex[4], 4);});
+	ins.Add("EmissiveTextre",	&tex[5], [&]() {	auto mate = m_FileData->GetMaterial();
+	if (!mate)return;mate->SetTexture(tex[5], 5);});
+	ins.Add("EmissivePowor", &mate->mEmissivePowor, [&](float f) {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return; mate->mEmissivePowor = f;
+		mate->mCBMaterial.mParam.EmissivePowor = mate->mEmissivePowor;
+	});
+
+	auto texs = Vector2(mate->mTexScale);
+	ins.Add("TextureScale", &texs, collbackTex);
+
+	auto texNormal = Vector3(mate->mNormalScale);
+	ins.Add("NormaleScale", &texNormal, collbackNormalScale);
+
+	auto off = Vector2(mate->mOffset);
+	ins.Add("Offset", &off, collbackOffset);
+
+	ins.AddSlideBar("HightPower", -10, 10, &mate->mHeightPower.x, collbackH);
+	ins.Add("HDR", &mate->mHeightPower.y, collbackHDR);
+	ins.Add("Thickness", &mate->mAmbient.w, collbackThick);
+
+	static ShaderAsset shader;
+	shader.m_Hash = mate->mShader.GetHash();
+	ins.Add("Shader", &shader, [&]() {
+		auto mate = m_FileData->GetMaterial();
+		if (!mate)return;
+		mate->CreateShader(shader);
+	});
+
+	ins.AddButton("SaveMaterial", [&]() {m_FileData->SaveFile(); });
+
 	ins.Complete();
 }
 

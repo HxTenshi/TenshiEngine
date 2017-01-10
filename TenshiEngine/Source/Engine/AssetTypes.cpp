@@ -29,3 +29,6 @@ void AssetDataTemplate<MovieFileData>::CreateInspector() {}
 
 const AssetFileType AssetDataTemplate<AnimationFileData>::_AssetFileType = AssetFileType::Animation;
 void AssetDataTemplate<AnimationFileData>::CreateInspector() {}
+
+const AssetFileType AssetDataTemplate<MaterialFileData>::_AssetFileType = AssetFileType::Material;
+void AssetDataTemplate<MaterialFileData>::CreateInspector();

@@ -59,6 +59,7 @@ public:
 	}
 
 	void CreateShader(const char* shaderFileName);
+	void CreateShader(ShaderAsset& asset);
 
 public:
 

@@ -65,6 +65,7 @@ public:
 	void RemoveActorEngine(PxActor* act);
 
 	GameObject Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance, Layer::Enum layer = Layer::ALL) override;
+	GameObject RaycastTop(const XMVECTOR& pos, const XMVECTOR& dir, float distance, Layer::Enum layer = Layer::ALL) override;
 	void Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float distance, const std::function<void(::RaycastHit*)>& collback, Layer::Enum layer = Layer::ALL);
 	bool RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, ::RaycastHit* result, Layer::Enum layer = Layer::ALL) override;
 	GameObject PhysX3Main::EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir);

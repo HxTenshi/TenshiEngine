@@ -533,7 +533,7 @@ private:
 		{
 			shared_ptr<MaterialComponent> mc = make_shared<MaterialComponent>();
 			CreateMaterial(data.material_count, data.material, data.textureName, "Assets/Texture/", mc);
-			mc->SaveAssetResource("Assets/" + name + ".txt");
+			//mc->SaveAssetResource("Assets/" + name + ".txt");
 		}
 
 		return hr;

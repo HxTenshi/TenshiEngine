@@ -877,6 +877,26 @@ GameObject PhysX3Main::Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float d
 	return NULL;
 }
 
+GameObject PhysX3Main::RaycastTop(const XMVECTOR & pos, const XMVECTOR & dir, float distance, Layer::Enum layer)
+{
+	std::list<::RaycastHit> hits;
+
+	//選択した物を検出
+	Raycast(pos, dir, distance, [&](::RaycastHit* hit) {
+		hits.push_back(*hit);
+	}, layer);
+	//検出に成功
+	if (hits.size() >= 1) {
+
+		hits.sort([](auto &hit1, auto &hit2) {
+			return hit1.distance < hit2.distance;
+		});
+		return hits.front().hit;
+	}
+	//検出に失敗
+	return NULL;
+}
+
 void PhysX3Main::Raycast(const XMVECTOR & pos, const XMVECTOR & dir, float distance, const std::function<void(::RaycastHit*)>& collback, Layer::Enum layer)
 {
 	PxVec3 ori(pos.x, pos.y, pos.z);

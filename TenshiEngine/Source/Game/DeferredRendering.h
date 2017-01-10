@@ -81,6 +81,7 @@ public:
 	static void SetLightVect(const XMVECTOR& vect);
 
 private:
+	void OrthographicSize(XMMATRIX& matrix, XMVECTOR& mini, XMVECTOR& maxi);
 	void CascadeUpdate();
 	void ComputeSplitPositions(int splitCount, float lamda, float nearClip, float farClip, float* positions);
 	void CalculateFrustum(float nearClip, float farClip, const XMMATRIX& viewProj, XMVECTOR* minPos, XMVECTOR* maxPos);
