@@ -268,8 +268,8 @@ Game::Game() {
 
 		//íœŽ¸”sƒŠƒXƒg‚©‚çŒŸõ‚µ‚Äíœ
 		bool remove = false;
-		mTreeViewItem_ErrerClearList.remove_if([&](GameObjectPtr tar){
-			bool f = tar.Get() == act;
+		mTreeViewItem_ErrerClearList.remove_if([&](Actor* tar){
+			bool f = tar == act;
 			if (f){
 				Window::ClearTreeViewItem(p);
 				remove = true;
@@ -395,6 +395,7 @@ Game::Game() {
 	Window::SetWPFCollBack(MyWindowMessage::ScriptCompile, [&](void* p)
 	{
 		(void)p;
+		if (IsGamePlay())return;
 		ScriptManager::ReCompile();
 		mSelectActor.ReCreateInspector();
 	});
@@ -426,6 +427,7 @@ Game::Game() {
 	Window::SetWPFCollBack(MyWindowMessage::SaveScene, [&](void* p)
 	{
 		(void)p;
+		if (IsGamePlay())return;
 		SaveScene();
 	});
 	Window::SetWPFCollBack(MyWindowMessage::SelectAsset, [&](void* p)
@@ -729,6 +731,10 @@ GameObject Game::GetRootActor(){
 #ifdef _ENGINE_MODE
 GameObject Game::GetEngineRootActor() {
 	return mEngineRootObject;
+}
+EditorCamera * Game::GetEditorCamera()
+{
+	return &mCamera;
 }
 #endif
 GameObject Game::FindActor(Actor* actor){
@@ -1146,21 +1152,6 @@ void Game::GameStop(){
 	}
 
 	mSelectActor.Update();
-	if (Input::Trigger(MouseCode::Left)){
-
-		if (!mSelectActor.ChackHitRay(mPhysX3Main, &mCamera)){
-
-			int x, y;
-			Input::MousePosition(&x, &y);
-			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
-			XMVECTOR vect = mCamera.PointRayVector(point);
-			XMVECTOR pos = mCamera.GetPosition();
-
-			auto act = mPhysX3Main->Raycast(pos, vect,1000);
-			if (act)
-				mSelectActor.SetSelect(act.Get());
-		}
-	}
 
 	mRootObject->EngineUpdateComponent();
 

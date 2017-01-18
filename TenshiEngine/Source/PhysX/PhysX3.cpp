@@ -876,19 +876,53 @@ GameObject PhysX3Main::Raycast(const XMVECTOR& pos, const XMVECTOR& dir, float d
 	}
 	return NULL;
 }
-GameObject PhysX3Main::EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir) {
+
+GameObject PhysX3Main::RaycastTop(const XMVECTOR & pos, const XMVECTOR & dir, float distance, Layer::Enum layer)
+{
+	std::list<::RaycastHit> hits;
+
+	//選択した物を検出
+	Raycast(pos, dir, distance, [&](::RaycastHit* hit) {
+		hits.push_back(*hit);
+	}, layer);
+	//検出に成功
+	if (hits.size() >= 1) {
+
+		hits.sort([](auto &hit1, auto &hit2) {
+			return hit1.distance < hit2.distance;
+		});
+		return hits.front().hit;
+	}
+	//検出に失敗
+	return NULL;
+}
+
+void PhysX3Main::Raycast(const XMVECTOR & pos, const XMVECTOR & dir, float distance, const std::function<void(::RaycastHit*)>& collback, Layer::Enum layer)
+{
 	PxVec3 ori(pos.x, pos.y, pos.z);
 	PxVec3 _dir(dir.x, dir.y, dir.z);
-	PxReal dis = 100;
+	PxReal dis = distance;
 	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
-	PxRaycastHit hit;
+	const PxU32 arraySize = 64;
+	PxRaycastHit hits[arraySize];
+	bool blockingHit;
 
-	if (mEngineScene->raycastSingle(ori, _dir, dis, hitflag, hit)) {
-		if (auto act = (Actor*)hit.shape->userData) {
-			return act->shared_from_this();
+	if (int hitNum = gScene->raycastMultiple(ori, _dir, dis, hitflag, hits, arraySize, blockingHit)) {
+		for (int i = 0; i < hitNum; i++) {
+			::RaycastHit result;
+			auto& hit = hits[i];
+
+			result.hit = NULL;
+			if (auto act = (Actor*)hit.shape->userData) {
+				result.hit = (GameObject)act->shared_from_this();
+			}
+			result.normal = XMVectorSet(hit.normal.x, hit.normal.y, hit.normal.z, 1.0f);
+			result.position = XMVectorSet(hit.position.x, hit.position.y, hit.position.z, 1.0f);
+			result.distance = hit.distance;
+
+			collback(&result);
 		}
 	}
-	return NULL;
 }
 
 bool PhysX3Main::RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float distance, ::RaycastHit* result, Layer::Enum layer){
@@ -909,9 +943,54 @@ bool PhysX3Main::RaycastHit(const XMVECTOR& pos, const XMVECTOR& dir, float dist
 		}
 		result->normal = XMVectorSet(hit.normal.x, hit.normal.y, hit.normal.z, 1.0f);
 		result->position = XMVectorSet(hit.position.x, hit.position.y, hit.position.z,1.0f);
+		result->distance = hit.distance;
 		return true;
 	}
 	return false;
+}
+
+GameObject PhysX3Main::EngineSceneRaycast(const XMVECTOR& pos, const XMVECTOR& dir) {
+	PxVec3 ori(pos.x, pos.y, pos.z);
+	PxVec3 _dir(dir.x, dir.y, dir.z);
+	PxReal dis = 100;
+	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
+	PxRaycastHit hit;
+
+	if (mEngineScene->raycastSingle(ori, _dir, dis, hitflag, hit)) {
+		if (auto act = (Actor*)hit.shape->userData) {
+			return act->shared_from_this();
+		}
+	}
+	return NULL;
+}
+
+void PhysX3Main::EngineSceneRaycast(const XMVECTOR & pos, const XMVECTOR & dir, const std::function<void(::RaycastHit*)>& collback)
+{
+
+	PxVec3 ori(pos.x, pos.y, pos.z);
+	PxVec3 _dir(dir.x, dir.y, dir.z);
+	PxReal dis = 100;
+	PxHitFlags hitflag = PxHitFlag::eDEFAULT;
+	const PxU32 arraySize = 64;
+	PxRaycastHit hits[arraySize];
+	bool blockingHit;
+
+	if (int hitNum = mEngineScene->raycastMultiple(ori, _dir, dis, hitflag, hits, arraySize, blockingHit)) {
+		for (int i = 0; i < hitNum; i++) {
+			::RaycastHit result;
+			auto& hit = hits[i];
+
+			result.hit = NULL;
+			if (auto act = (Actor*)hit.shape->userData) {
+				result.hit = (GameObject)act->shared_from_this();
+			}
+			result.normal = XMVectorSet(hit.normal.x, hit.normal.y, hit.normal.z, 1.0f);
+			result.position = XMVectorSet(hit.position.x, hit.position.y, hit.position.z, 1.0f);
+			result.distance = hit.distance;
+
+			collback(&result);
+		}
+	}
 }
 
 #include "Game/Component/PhysXColliderComponent.h"

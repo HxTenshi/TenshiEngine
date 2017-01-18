@@ -110,6 +110,7 @@ public:
 	void WindowParentSet(GameObject child);
 
 	GameObject GetEngineRootActor();
+	EditorCamera* GetEditorCamera();
 #endif
 
 	void ChangePlayGame(bool isPlay);
@@ -125,8 +126,8 @@ public:
 
 
 private:
-	Game(const Game&);
-	Game operator = (Game&);
+	Game(const Game&) = delete;
+	Game operator = (Game&) = delete;
 
 	enum class ActorMove{
 		Create,
@@ -147,7 +148,7 @@ private:
 
 #ifdef _ENGINE_MODE
 	//ツリービューのアイテム削除に失敗したアクター
-	std::list<GameObjectPtr> mTreeViewItem_ErrerClearList;
+	std::list<Actor*> mTreeViewItem_ErrerClearList;
 	static std::list<GameObjectPtr> mEngineObjects;
 
 	static GameObjectPtr mEngineRootObject;

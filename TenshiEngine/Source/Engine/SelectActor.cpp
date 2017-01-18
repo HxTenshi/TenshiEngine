@@ -85,6 +85,10 @@ void EditGuide::SetGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat){
 	mGuideRotate = quat;
 	UpdateGuideTransform(mGuidePosition, mGuideRotate);
 }
+void EditGuide::SetGuideTransform(const XMVECTOR& pos) {
+	mGuidePosition = pos;
+	UpdateGuideTransform(mGuidePosition, mGuideRotate);
+}
 void EditGuide::UpdateGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat){
 	const XMVECTOR v[] = {
 		XMVectorSet(0, 0, -90 * (XM_PI / 180.0f), 1),
@@ -96,7 +100,7 @@ void EditGuide::UpdateGuideTransform(const XMVECTOR& pos, const XMVECTOR& quat){
 		mGuide[i]->mTransform->Position(pos);
 
 		auto q = XMQuaternionRotationRollPitchYawFromVector(v[i]);
-		q = XMQuaternionMultiply(quat,q);
+		q = XMQuaternionMultiply(q, quat);
 		mGuide[i]->mTransform->Quaternion(q);
 	}
 
@@ -187,6 +191,16 @@ void EditGuide::Disable(){
 	}
 }
 
+bool EditGuide::IsTransformModeLocal()
+{
+	return m_TransformMode == TransformMode::Local;
+}
+
+void EditGuide::ChangeTransformMode()
+{
+	m_TransformMode = (TransformMode)((m_TransformMode+1)%TransformMode::Count);
+}
+
 class MoveEditGuide :public EditGuide{
 public:
 	MoveEditGuide(){
@@ -235,12 +249,12 @@ public:
 
 	void UpdateTransform(std::list<Actor*>& actors)override{
 
-		SetGuideTransform(mGuidePosition + mMove, mGuideRotate);
+		//SetGuideTransform(mGuidePosition + mMove);
 
 		for (auto& act : actors){
 			auto move = mMove * act->mTransform->GetParent()->mTransform->LossyScale();
-			auto pos = act->mTransform->Position();
-			act->mTransform->Position(pos + move);
+			auto pos = act->mTransform->WorldPosition();
+			act->mTransform->WorldPosition(pos + move);
 		}
 	}
 private:
@@ -287,8 +301,13 @@ public:
 	~ScaleEditGuide(){}
 
 	void GuideDrag(float pow)override{
-		mScale = mGuide[mSelectGuide]->mTransform->Up();
-		mScale = XMVector3Normalize(mScale);
+		XMVECTOR s[] = {
+			XMVectorSet(1, 0, 0, 1),
+			XMVectorSet(0, 1, 0, 1),
+			XMVectorSet(0, 0, 1, 1)
+		};
+		mScale = s[mSelectGuide];
+		//mScale = XMVector3Normalize(mScale);
 		mScale *= pow;
 		mScale.w = 0.0f;
 	}
@@ -344,8 +363,15 @@ public:
 	~RotateEditGuide(){}
 
 	void GuideDrag(float pow)override{
-		mQuat = mGuide[mSelectGuide]->mTransform->Up();
-		mQuat = XMVector3Normalize(mQuat);
+		XMVECTOR q[] = {
+			XMVectorSet(1, 0, 0, 1),
+			XMVectorSet(0, 1, 0, 1),
+			XMVectorSet(0, 0, 1, 1)
+		};
+		mQuat = q[mSelectGuide];
+
+		//mQuat = mGuide[mSelectGuide]->mTransform->Up();
+		//mQuat = XMVector3Normalize(mQuat);
 		mQuat *= pow;
 		mQuat.w = 0.0f;
 		mQuat *= (XM_PI / 180.0f);
@@ -356,15 +382,13 @@ public:
 		for (auto& act : actors){
 			auto quat = act->mTransform->Quaternion();
 			auto q = XMQuaternionRotationRollPitchYawFromVector(mQuat);
-			q = XMQuaternionMultiply(quat,q);
+			q = XMQuaternionMultiply(q,quat);
 			act->mTransform->Quaternion(q);
 		}
 	}
 private:
 	XMVECTOR mQuat;
 };
-
-
 
 
 
@@ -442,6 +466,14 @@ XMVECTOR Selects::GetPosition(){
 	}
 	return pos;
 }
+XMVECTOR Selects::GetQuaternion()
+{
+	int num = (int)mSelects.size();
+	if (num==1) {
+		return mSelects.front()->mTransform->WorldQuaternion();
+	}
+	return XMQuaternionIdentity();
+}
 
 Actor* Selects::GetSelectOne(){
 	int num = (int)mSelects.size();
@@ -502,6 +534,7 @@ void SelectUndo::PushUndo(){
 SelectActor::SelectActor()
 	:mCreateInspector(false)
 	, mDontTreeViewSelect(false)
+	, m_DrawMode(SelectObjectDrawMode::Wire)
 {
 	mSelectAsset = false;
 	mCurrentGuide = 0;
@@ -584,6 +617,66 @@ void SelectActor::Update(){
 	//	}
 	//}
 
+
+	if (Input::Trigger(MouseCode::Left)) {
+
+		//ガイドをクリックしていないか
+		if (!ChackHitRay()) {
+
+			auto camera = Game::Get()->GetEditorCamera();
+			int x, y;
+			Input::MousePosition(&x, &y);
+			XMVECTOR point = XMVectorSet((FLOAT)x, (FLOAT)y, 0.0f, 1.0f);
+			XMVECTOR vect = camera->PointRayVector(point);
+			XMVECTOR pos = camera->GetPosition();
+			std::list<::RaycastHit> hits;
+
+
+			//選択した物を検出
+			Game::GetPhysX()->Raycast(pos, vect,1000, [&](::RaycastHit* hit) {
+				hits.push_back(*hit);
+			});
+			//ゲームオブジェクトの選択に成功
+			if (hits.size() >= 1) {
+
+				hits.sort([](auto &hit1, auto &hit2) {
+					return hit1.distance < hit2.distance;
+				});
+
+				//選択されていれば次のを選ぶ
+				auto select = GetSelectOne();
+				GameObject result = NULL;
+				if (select) {
+					bool nextSelect = false;
+					for (auto &hit : hits) {
+						if (nextSelect) {
+							result = hit.hit;
+							nextSelect = false;
+						}
+
+						//同じものがあれば次のを選択
+						if (hit.hit.Get() == select) {
+							nextSelect = true;
+						}
+					}
+				}
+
+				//最後まで行ったか同じものがなければ または
+				//選択されていなければ一番近いのを選択
+				if (!result) {
+					result = hits.front().hit;
+				}
+
+				SetSelect(result.Get());
+			}
+			//ゲームオブジェクトの選択に失敗
+			else{
+				SetSelect(NULL);
+			}
+		}
+	}
+
+
 	if (!mSelects.SelectNum() || mSelectAsset)return;
 
 	if (EngineInput::Down(KeyCode::Key_LCONTROL) && EngineInput::Trigger(KeyCode::Key_C)){
@@ -599,20 +692,22 @@ void SelectActor::Update(){
 		SelectActor::ReCreateInspector();
 	}
 
+	int giude = -1;
 	int g = mCurrentGuide;
 	if (Input::Down(MouseCode::Right)==0 && EngineInput::Trigger(KeyCode::Key_W)){
-		mCurrentGuide = 0;
+		giude = 0;
 		mIsDragMode = false;
 	}
 	if (Input::Down(MouseCode::Right) == 0 && EngineInput::Trigger(KeyCode::Key_E)){
-		mCurrentGuide = 1;
+		giude = 1;
 		mIsDragMode = false;
 	}
 	if (Input::Down(MouseCode::Right) == 0 && EngineInput::Trigger(KeyCode::Key_R)){
-		mCurrentGuide = 2;
+		giude = 2;
 		mIsDragMode = false;
 	}
-	if (g != mCurrentGuide){
+	if (giude != -1 && giude != mCurrentGuide){
+		mCurrentGuide = giude;
 		for (int i = 0; i < 3; i++){
 			if (mCurrentGuide == i){
 				mEditGuide[i]->Enable();
@@ -621,9 +716,15 @@ void SelectActor::Update(){
 				mEditGuide[i]->Disable();
 			}
 		}
+	}else if (giude != -1) {
+		mEditGuide[mCurrentGuide]->ChangeTransformMode();
 	}
 
-	auto tar = mSelects.GetPosition();
+	auto tarpos = mSelects.GetPosition();
+	auto tarquat = XMQuaternionIdentity();
+	if (mEditGuide[mCurrentGuide]->IsTransformModeLocal()) {
+		tarquat = mSelects.GetQuaternion();
+	}
 	//mVectorBox[0]->mTransform->Position(tar);
 	//mVectorBox[1]->mTransform->Position(tar);
 	//mVectorBox[2]->mTransform->Position(tar);
@@ -647,7 +748,7 @@ void SelectActor::Update(){
 	//}
 
 	mEditGuide[mCurrentGuide]->Update();
-	mEditGuide[mCurrentGuide]->UpdateGuideTransform(tar, XMQuaternionIdentity());
+	mEditGuide[mCurrentGuide]->UpdateGuideTransform(tarpos, tarquat);
 
 	static float mBeforePow = 0.0f;
 	float pow = 0.0f;
@@ -669,55 +770,54 @@ void SelectActor::Update(){
 			mSelects.SetUndo();
 			mIsDragMode = false;
 		}
+		//右クリックでキャンセル
+		else if (Input::Trigger(MouseCode::Right)) {
+			mEditGuide[mCurrentGuide]->GuideDrag(mBeforePow);
+			mEditGuide[mCurrentGuide]->UpdateTransform(mSelects.GetSelects());
+			mIsDragMode = false;
+		}
 	}
 	mBeforePow = pow;
 
-	SelectActorDraw();
-}
-void SelectActor::SelectActorDraw(){
-
-	if (mSelectAsset)return;
-
-	//メッシュ描画
-	for (auto select : mSelects.GetSelects()){
-		Game::AddDrawList(DrawStage::Engine, std::function<void()>([&, select](){
-			if (!select)return;
-			auto mModel = select->GetComponent<ModelComponent>();
-			if (!mModel)return;
-			Model& model = *mModel->mModel;
-
-			auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-
-			render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
-			render->PushSet(Rasterizer::Preset::RS_Back_Wireframe);
-
-			mModel->SetMatrix();
-			model.Draw(render->m_Context, mSelectWireMaterial);
-
-
-			render->PopRS();
-			render->PopDS();
-		}));
+	//ドローモード変更
+	if (EngineInput::Trigger(KeyCode::Key_V)) {
+		m_DrawMode = (SelectObjectDrawMode::Enum) ((m_DrawMode+1) % SelectObjectDrawMode::Count);
 	}
-	//Physxメッシュ描画
-	for (auto select : mSelects.GetSelects()){
-		Game::AddDrawList(DrawStage::Engine, std::function<void()>([&, select](){
-			if (!select)return;
-			auto com = select->GetComponent<PhysXColliderComponent>();
-			if (!com)return;
 
-			auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	//描画
+	Draw();
 
-			render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
-			render->PushSet(Rasterizer::Preset::RS_Back_Wireframe);
+}
+void SelectActor::Draw(){
 
-			
-			com->DrawMesh(render->m_Context, mSelectPhysxWireMaterial);
-
-
-			render->PopRS();
-			render->PopDS();
-		}));
+	switch (m_DrawMode)
+	{
+	case SelectObjectDrawMode::None:
+		break;
+	case SelectObjectDrawMode::Wire:
+		for (auto select : mSelects.GetSelects()) {
+			DrawMeshWire(select->shared_from_this());
+			DrawPhysxWire(select->shared_from_this());
+		}
+		break;
+	case SelectObjectDrawMode::ChildrenWire: {
+		//再帰
+		std::function<void(GameObject)> re = [&](GameObject object) {
+			DrawMeshWire(object);
+			DrawPhysxWire(object);
+			for (auto child : object->mTransform->Children()) {
+				re(child);
+			}
+		};
+		for (auto select : mSelects.GetSelects()) {
+			re(select->shared_from_this());
+		}
+		break;
+	}
+	case SelectObjectDrawMode::Count:
+		break;
+	default:
+		break;
 	}
 }
 
@@ -785,10 +885,54 @@ void SelectActor::ReCreateInspector(){
 
 }
 
+void SelectActor::DrawMeshWire(weak_ptr<Actor> object)
+{
+	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&, object]() {
+		if (!object)return;
+		auto mModel = object->GetComponent<ModelComponent>();
+		if (!mModel)return;
+		Model& model = *mModel->mModel;
 
-bool SelectActor::ChackHitRay(PhysX3Main* physx, EditorCamera* camera){
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+		render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+		render->PushSet(Rasterizer::Preset::RS_Back_Wireframe);
+
+		mModel->SetMatrix();
+		model.Draw(render->m_Context, mSelectWireMaterial);
+
+
+		render->PopRS();
+		render->PopDS();
+	}));
+}
+
+void SelectActor::DrawPhysxWire(weak_ptr<Actor> object)
+{
+	Game::AddDrawList(DrawStage::Engine, std::function<void()>([&, object]() {
+		if (!object)return;
+		auto com = object->GetComponent<PhysXColliderComponent>();
+		if (!com)return;
+
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+		render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+		render->PushSet(Rasterizer::Preset::RS_Back_Wireframe);
+
+
+		com->DrawMesh(render->m_Context, mSelectPhysxWireMaterial);
+
+
+		render->PopRS();
+		render->PopDS();
+	}));
+}
+
+
+bool SelectActor::ChackHitRay(){
 
 	if (!mSelects.SelectNum() || mSelectAsset)return false;
+	auto camera = Game::Get()->GetEditorCamera();
 
 	int x, y;
 	Input::MousePosition(&x, &y);
@@ -796,12 +940,12 @@ bool SelectActor::ChackHitRay(PhysX3Main* physx, EditorCamera* camera){
 	XMVECTOR vect = camera->PointRayVector(point);
 	XMVECTOR pos = camera->GetPosition();
 
-	auto act = physx->EngineSceneRaycast(pos, vect);
+	auto act = Game::GetPhysX()->EngineSceneRaycast(pos, vect);
 	if (!act)return false;
 
 	if (mEditGuide[mCurrentGuide]->SetGuideHit(act.Get()) == -1) return false;
 	auto p = mSelects.GetPosition();
-	mEditGuide[mCurrentGuide]->SetGuideTransform(p, XMQuaternionIdentity());
+	mEditGuide[mCurrentGuide]->SetGuideTransform(p);
 	mIsDragMode = true;
 	return true;
 	

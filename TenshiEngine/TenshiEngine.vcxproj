@@ -545,6 +545,7 @@
     <ClCompile Include="Source\Engine\AssetDataBase.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Animation\AnimationFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Bone\BoneFileData.cpp" />
+    <ClCompile Include="Source\Engine\AssetFile\Material\MaterialFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Material\TextureFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshBufferData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Mesh\MeshFileData.cpp" />
@@ -661,6 +662,7 @@
     <ClInclude Include="lua\include\lua.hpp" />
     <ClInclude Include="lua\include\luaconf.h" />
     <ClInclude Include="lua\include\lualib.h" />
+    <ClInclude Include="Source\Engine\AssetFile\Material\MaterialFileData.h" />
     <ClInclude Include="Source\Engine\ScriptingSystem\ScriptCompiler.h" />
     <ClInclude Include="Source\Application\BuildVersion.h" />
     <ClInclude Include="Source\Application\Define.h" />

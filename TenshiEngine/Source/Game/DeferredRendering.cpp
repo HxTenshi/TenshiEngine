@@ -239,7 +239,170 @@ XMMATRIX CascadeShadow::CreateCropMatrix(const XMVECTOR& mini, const XMVECTOR& m
 		offsetX, offsetY, offsetZ, 1.0f);
 }
 
+
+void CascadeShadow::OrthographicSize(XMMATRIX& matrix, XMVECTOR& mini, XMVECTOR& maxi) {
+
+	float ratio = float(mWidth) / float(mHeight);
+	float fovy = XM_PIDIV4;
+
+	auto cam = Game::GetMainCamera();
+	if (!cam)return;
+	
+	float near_distance = cam->GetNear();
+	float far_distance = cam->GetFar();
+
+
+	float tang = (float)tan(fovy* XM_PI / 180.0 * 0.5);//もしかしたら定数のほうが速いかも 
+	float half_near_height = near_distance * tang;
+	float half_near_width = half_near_height * ratio;
+	float half_far_height = far_distance  * tang;
+	float half_far_width = half_far_height *ratio;
+
+	XMVECTOR _p = cam->gameObject->mTransform->WorldPosition();
+	XMVECTOR X = cam->gameObject->mTransform->Left();
+	XMVECTOR Y = cam->gameObject->mTransform->Up();
+	XMVECTOR Z = cam->gameObject->mTransform->Forward();
+
+ 	//世界座標基準 
+    XMVECTOR near_center = _p + Z * near_distance;
+    XMVECTOR far_center = _p + Z * far_distance;
+
+	XMVECTOR point[8];
+	point[0] = near_center + Y * half_near_height - X * half_near_width;//near top left 
+    point[1] = near_center + Y * half_near_height + X * half_near_width;//near top right 
+	point[2] = near_center - Y * half_near_height - X * half_near_width;//near bottom left 
+	point[3] = near_center - Y * half_near_height + X * half_near_width;//near bottom right 
+    point[4] = far_center + Y * half_far_height - X * half_far_width;//far top left 
+    point[5] = far_center + Y * half_far_height + X * half_far_width;//far top right 
+    point[6] = far_center - Y * half_far_height - X * half_far_width;//far bottom left 
+    point[7] = far_center - Y * half_far_height + X * half_far_width;//far bottom right 
+
+	XMVECTOR p = XMVector3TransformCoord(point[0], matrix);
+	mini = p;
+	maxi = p;
+	{
+		for (int i = 1; i<8; ++i)
+		{
+			p = XMVector3TransformCoord(point[i], matrix);
+			mini.x = min(mini.x, p.x);
+			mini.y = min(mini.y, p.y);
+			mini.z = min(mini.z, p.z);
+			maxi.x = max(maxi.x, p.x);
+			maxi.y = max(maxi.y, p.y);
+			maxi.z = max(maxi.z, p.z);
+		}
+	}
+}
+
+
 void CascadeShadow::CascadeUpdate(){
+
+	//---------------------------------------
+	// ライトのビュー行列と射影行列を求める.
+	//---------------------------------------
+	{
+		XMVECTOR LightBasisW;
+		XMVECTOR LightBasisV;
+		{
+			XMVECTOR n = XMVectorSet(1.0f, 0.0f, 0.0f, 1.0f);
+			XMVECTOR m = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+
+			XMVECTOR w = XMVector3Normalize(mLightVect);
+			XMVECTOR u = XMVector3Cross(w, n);
+			if (XMVector3Length(u).x < FLT_EPSILON)
+			{
+				u = XMVector3Cross(w, m);
+			}
+			u = XMVector3Normalize(u);
+
+			XMVECTOR v = XMVector3Cross(u, w);
+			v = XMVector3Normalize(v);
+			LightBasisW = w;
+			LightBasisV = v;
+		}
+		// ライトのビュー行列を生成.
+		m_LightView = XMMatrixLookToLH(
+			XMVectorSet(0.0f,0.0f,0.0f,1.0f),
+			LightBasisW,
+			LightBasisV);
+
+
+		// ライトビュー空間でのAABBを求める.
+		XMVECTOR mini;
+		XMVECTOR maxi;
+		OrthographicSize(m_LightView, mini, maxi);
+
+		// ライトビュー空間での中心を求める.
+		XMVECTOR center = (mini + maxi) * 0.5f;
+
+		// ニアクリップ平面とファークリップ平面の距離を求める.
+		float nearClip = 0.1f;
+		float farClip = fabs(maxi.z - mini.z) * 1.001f + nearClip + 100.0f;
+
+		// 後退量を求める.
+		//float slideBack = fabs(center.z - mini.z) + nearClip;
+		float slideBack = farClip/2.0f + nearClip;
+
+		// 正しいライト位置を求める.
+		XMVECTOR lightPos = center - (LightBasisW * slideBack);
+
+		// ライトのビュー行列を算出し直す.
+		m_LightView = XMMatrixLookToLH(
+			lightPos,
+			LightBasisW,
+			LightBasisV);
+
+		// 求め直したライトのビュー行列を使ってAABBを求める.
+		OrthographicSize(m_LightView, mini, maxi);
+
+		// サイズを求める.
+		float size = XMVector3Length(maxi - mini).x;
+
+		// ライトの射影行列.
+		m_LightProj = XMMatrixOrthographicLH(
+			size,
+			size,
+			nearClip,
+			farClip);
+
+		// ライトのビュー射影行列を求める.
+		XMMATRIX lightViewProj = m_LightView * m_LightProj;
+		//----------------------------------
+		//　単位キューブクリッピング.
+		//----------------------------------
+		{
+			OrthographicSize(lightViewProj, mini, maxi);
+
+			XMMATRIX clip;
+			{
+				// 単位キューブクリップ行列を求める.
+				clip._11 = 2.0f / (maxi.x - mini.x);
+				clip._12 = 0.0f;
+				clip._13 = 0.0f;
+				clip._14 = 0.0f;
+
+				clip._21 = 0.0f;
+				clip._22 = 2.0f / (maxi.y - mini.y);
+				clip._23 = 0.0f;
+				clip._24 = 0.0f;
+
+				clip._31 = 0.0f;
+				clip._32 = 0.0f;
+				clip._33 = 1.0f / (maxi.z - mini.z);
+				clip._34 = 0.0f;
+
+				clip._41 = -(maxi.x + mini.x) / (maxi.x - mini.x);
+				clip._42 = -(maxi.y + mini.y) / (maxi.y - mini.y);
+				clip._43 = -mini.z / (maxi.z - mini.z);
+				clip._44 = 1.0f;
+
+			}
+
+			// シャドウマップめいっぱいに映るようにフィッティング.
+			m_LightProj = m_LightProj * clip;
+		}
+	}
+
 
 	//メインシーンのクリップ
 	auto cam = Game::GetMainCamera();
@@ -250,11 +413,11 @@ void CascadeShadow::CascadeUpdate(){
 		farClip = cam->GetFar();
 	}
 	//デプスシーンのクリップ
-	float DnearClip = 0.01f;
-	float DfarClip = 1000.0f;
-	float SlideBack = DfarClip/2;
+	//float DnearClip = 0.01f;
+	//float DfarClip = 1000.0f;
+	//float SlideBack = DfarClip/2;
 
-	float m_Lamda = 0.75f;
+	float m_Lamda = 0.9f;
 
 	// 平行分割処理.
 	float splitPositions[MAX_CASCADE + 1];
@@ -268,21 +431,22 @@ void CascadeShadow::CascadeUpdate(){
 	// カスケード処理.
 	for (int i = 0; i<MAX_CASCADE; ++i)
 	{
-		float size = splitPositions[i + 1] - splitPositions[i + 0];
+		//float size = splitPositions[i + 1] - splitPositions[i + 0];
+		//
+		//auto lightPos = campos + camvec * (forward + size / 2) + mLightVect * -SlideBack;
+		//
+		//m_LightView = XMMatrixLookToLH(lightPos, mLightVect, XMVectorSet(0, 1, 0, 1));
+		//
+		//forward += size;
 
-		auto lightPos = campos + camvec * (forward + size / 2) + mLightVect * -SlideBack;
-
-		m_LightView = XMMatrixLookToLH(lightPos, mLightVect, XMVectorSet(0, 1, 0, 1));
-
-		forward += size;
-
-		float aspect = float(mWidth) / float(mHeight);
-		float fov = XM_PIDIV4;
-		float farHeight = tanf(fov) * splitPositions[i + 1];
-		float farWidth = farHeight * aspect;
-
-		size = farWidth * 1.41421356f * 1.41421356f;
-		m_LightProj = XMMatrixOrthographicLH(size, size, DnearClip, DfarClip);
+		//float aspect = float(mWidth) / float(mHeight);
+		//float fov = XM_PIDIV4;
+		//float farHeight = tanf(fov) * splitPositions[i + 1];
+		//float farWidth = farHeight * aspect;
+		//
+		//size = farWidth * 1.41421356f * 1.41421356f;
+		//size = OrthographicSize(splitPositions[i + 0] , splitPositions[i + 1]);
+		//m_LightProj = XMMatrixOrthographicLH(size, size, DnearClip, DfarClip);
 
 		// ライトのビュー射影行列.
 		m_ShadowMatrix[i] = m_LightView * m_LightProj;
