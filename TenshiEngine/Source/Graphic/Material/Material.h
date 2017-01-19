@@ -30,6 +30,9 @@ struct ForcedMaterialFilter{
 class IMaterial{
 public:
 	virtual ~IMaterial(){};
+	virtual void CreateShader(ShaderAsset& asset) = 0;
+	virtual void SetTexture(const TextureAsset& Tex, UINT Slot = 0) = 0;
+	virtual void ParamUpdate() = 0;
 };
 
 class I_ioHelper;
@@ -50,7 +53,9 @@ public:
 	void SetTexture(const char* FileName, UINT Slot = 0);
 	void SetTexture(const MD5::MD5HashCode& hash, UINT Slot = 0);
 	void SetTexture(const Texture& Tex, UINT Slot = 0);
-	void SetTexture(const TextureAsset& Tex, UINT Slot = 0);
+	void SetTexture(const TextureAsset& Tex, UINT Slot = 0) override;
+	
+	void ParamUpdate() override;
 
 	void IO_Data(I_ioHelper* io, const std::string& materialPath = "");
 
@@ -59,7 +64,7 @@ public:
 	}
 
 	void CreateShader(const char* shaderFileName);
-	void CreateShader(ShaderAsset& asset);
+	void CreateShader(ShaderAsset& asset) override;
 
 public:
 

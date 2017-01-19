@@ -92,8 +92,15 @@ void TextureModelComponent::Update(){
 
 		if (mate){
 			auto material= mate->GetMaterial(0);
-			mMaterial->SetTexture(material.mTexture[0]);
-			mMaterial->mCBMaterial.mParam.Diffuse = material.mCBMaterial.mParam.Diffuse;
+			mMaterial->SetTexture(material.mTexture[0],0);
+			mMaterial->SetTexture(material.mTexture[1],1);
+			mMaterial->SetTexture(material.mTexture[2],2);
+			mMaterial->SetTexture(material.mTexture[3],3);
+			mMaterial->SetTexture(material.mTexture[4],4);
+			mMaterial->SetTexture(material.mTexture[5], 5);
+			mMaterial->SetTexture(material.mTexture[6], 6);
+			mMaterial->SetTexture(material.mTexture[7], 7);
+			mMaterial->mCBMaterial.mParam = material.mCBMaterial.mParam;
 			//mTextureName = "";
 		}
 		if (movie){

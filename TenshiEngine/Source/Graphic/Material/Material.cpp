@@ -285,6 +285,19 @@ void Material::SetTexture(const TextureAsset& Tex, UINT Slot){
 	//mCBUseTexture->UpdateSubresource();
 }
 
+void Material::ParamUpdate()
+{
+	mCBMaterial.mParam.Diffuse = mDiffuse;
+	mCBMaterial.mParam.Specular = mSpecular;
+	mCBMaterial.mParam.Ambient = mAmbient;
+	mCBMaterial.mParam.TexScale = mTexScale;
+	mCBMaterial.mParam.HeightPower = mHeightPower;
+	mCBMaterial.mParam.MNormaleScale = mNormalScale;
+	mCBMaterial.mParam.MOffset = mOffset;
+	mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
+	mCBMaterial.mParam.MNULL = 0.0f;
+}
+
 #include "MySTL/ioHelper.h"
 void Material::IO_Data(I_ioHelper* io, const std::string& materialPath) {
 #define _KEY(x) io->func( x , #x)
