@@ -159,6 +159,6 @@ float4 PS(PS_INPUT input) : SV_Target
 	//l = abs(l);
 	//col = float4(l,l,l, 1);
 
-	col.rgb = pow(col.rgb, (1 / 2.2));
+	//col.rgb = pow(col.rgb, (1 / 2.2));
 	return col;
 }

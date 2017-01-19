@@ -82,10 +82,10 @@ public:
 
 	std::string Prefab(){ return mPrefab; }
 
-	UniqueID GetUniqueID(){
+	UniqueID GetUniqueID() const{
 		return mUniqueHash;
 	}
-	UniqueID GetBeforeUniqueID() {
+	UniqueID GetBeforeUniqueID() const{
 		return mBeforeUniqueHash;
 	}
 

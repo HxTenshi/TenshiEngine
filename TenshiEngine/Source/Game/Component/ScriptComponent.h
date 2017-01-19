@@ -57,6 +57,8 @@ public:
 
 	std::unordered_map<int, ColliderStateData> mCollideMap;
 private:
+
+	void InitParam();
 	bool mEndInitialize;
 	bool mEndStart;
 

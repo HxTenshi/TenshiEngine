@@ -16,6 +16,25 @@ void ioGameObjectHelper::func(GameObject* target, const char* name, I_ioHelper* 
 	}
 }
 
+void ioGameObjectHelper::func(std::vector<GameObject>* target, const char* name, I_ioHelper* io, GameObject* This) {
+	//if (io->isInput()) {
+	//	std::vector<UniqueID> ids;
+	//	io->func(ids, name);
+	//	target->resize(ids.size());
+	//	for (int i = 0; i < ids.size(); i++) {
+	//		UniqueID id = ids[i];
+	//		auto tar = &(*target)[i];
+	//		(*This)->SetInitializeStageCollQueue([id, tar, This]() {
+	//			*tar = (*This)->InspectorFindGameObject(id);
+	//		});
+	//	}
+	//}
+	//else {
+	//	//io->func(target, name);
+	//}
+}
+
+
 //テンプレートの特殊化
 #define _DOUBLE(x) \
 template<> \
@@ -45,10 +64,12 @@ template<>
 void I_InputHelper::get(const picojson::value& value, picojson::object* out){
 	*out = (picojson::object)value.get<picojson::object>();
 }
+//呼ばれない
 template<>
 void I_InputHelper::get(const picojson::value& value, picojson::value* out){
 	(void)value;
 	*out = picojson::value();
+	//*out = (picojson::value)value.get<picojson::value>();
 }
 //template<>
 //void I_InputHelper::get(const picojson::value& value, MD5::MD5HashCoord* out){
@@ -100,3 +121,8 @@ void I_OutputHelper::_func_out(const picojson::value* value, const char* name){
 //void I_OutputHelper::_func_out(const IAsset* value, const char* name){
 //	o->insert(std::make_pair(name, picojson::value((std::string)value->m_Hash.GetString())));
 //}
+
+MD5::MD5HashCode I_OutputHelper::GetUniqueID(const wp<Actor>* out)
+{
+	return ((bool)*out) ? (*out)->GetUniqueID() : "";
+}

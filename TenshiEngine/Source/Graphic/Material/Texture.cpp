@@ -7,7 +7,6 @@
 #include <locale.h>
 
 #include "Engine/AssetFile/Material/TextureFileData.h"
-#include "Engine/SystemLog.h"
 
 //Texture Texture::mNullTexture;
 

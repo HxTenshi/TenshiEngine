@@ -185,6 +185,8 @@ void TextComponent::IO_Data(I_ioHelper* io){
 	_KEY(impl->mText);
 	_KEY(m_Center.x);
 	_KEY(m_Center.y);
+	_KEY(mCenter);
+	_KEY(mFontSize);
 #undef _KEY
 }
 

@@ -28,6 +28,8 @@
 
 #include "Application\Shutdown.h"
 
+#include "Debug/exception.h"
+
 
 //#pragma comment(lib,"lib/Debug/sqlite3.lib")
 //#include "Library\sqlite3.h"
@@ -168,7 +170,19 @@ public:
 
 #if _DRAW_MULTI_THREAD
 
-	void UpdateThread(){
+	void UpdateThread() {
+
+		__try {
+			_UpdateThread();
+		}
+		__except (Debug::filter(GetExceptionCode(), GetExceptionInformation())) {
+		}
+
+		SetEvent(mDrawEvent);
+	}
+
+	void _UpdateThread(){
+
 		while (!mDestory)
 		{
 			{
@@ -205,8 +219,15 @@ public:
 		SetEvent(mDrawEvent);
 	}
 
-
 	void Render()
+	{
+		__try {
+			_Render();
+		}
+		__except (Debug::filter(GetExceptionCode(), GetExceptionInformation())) {
+		}
+	}
+	void _Render()
 	{
 
 		while (!App::IsShutdown()){
@@ -524,7 +545,6 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			return 0;
 		}
 
-		
 		App.Render();
 
 		App.CleanupDevice();

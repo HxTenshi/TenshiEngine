@@ -1050,7 +1050,7 @@ void Game::Draw(){
 #endif
 
 
-	mPostEffectRendering.Flip(render);
+	//mPostEffectRendering.Flip(render);
 
 	render->PopDS();
 
@@ -1063,6 +1063,8 @@ void Game::Draw(){
 		render->PopBS();
 		render->PopDS();
 	}
+
+	mPostEffectRendering.Flip(render);
 
 	render->PopRS();
 
@@ -1103,7 +1105,7 @@ void Game::Update(){
 #ifdef _ENGINE_MODE
 	mSelectActor.UpdateInspector();
 
-	mProfileViewer.Update();
+	//mProfileViewer.Update();
 	if (mIsPlay){
 		static float forceStop = 0.0f;
 		if (Input::Down(KeyCode::Key_ESCAPE)) {
