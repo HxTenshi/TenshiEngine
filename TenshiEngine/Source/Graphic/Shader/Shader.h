@@ -29,10 +29,9 @@ public:
 	void SetShader_VS(bool UseAnime, ID3D11DeviceContext* context) const;
 	void SetShader_PS(ID3D11DeviceContext* context) const;
 
-	MD5::MD5HashCode GetHash()const { return m_Hash; }
+	ShaderAsset& GetAsset();
 
 
 private:
-	MD5::MD5HashCode m_Hash;
-	ShaderAssetDataPtr m_ShaderAssetData;
+	ShaderAsset m_ShaderAsset;
 };

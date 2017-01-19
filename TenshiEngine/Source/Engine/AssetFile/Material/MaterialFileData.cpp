@@ -34,8 +34,8 @@ bool MaterialFileData::Create(const char* filename) {
 	m_Material->IO_Data(&io, dir);
 
 	ShaderAsset shader;
-	if (!m_Material->mShader.GetHash().IsNull()) {
-		AssetLoad::Instance(m_Material->mShader.GetHash(), shader);
+	if (!m_Material->mShader.GetAsset().m_Hash.IsNull()) {
+		AssetLoad::Instance(m_Material->mShader.GetAsset().m_Hash, shader);
 	}
 	if (shader.IsLoad()) {
 		m_Material->Create(shader);

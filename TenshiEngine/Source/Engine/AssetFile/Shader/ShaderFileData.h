@@ -18,21 +18,38 @@ public:
 	}
 
 	void Create(const char* fileName){
-		mVertexShader = make_shared<VertexShader>();
-		mVertexShaderAnime = make_shared<VertexShader>();
-		mPixelShader = make_shared<PixelShader>();
+		if (mVertexShader) {
+			mVertexShader->Release();
+		}
+		if (mVertexShaderAnime) {
+			mVertexShaderAnime->Release();
+		}
+		if (mPixelShader) {
+			mPixelShader->Release();
+		}
+		if (!mVertexShader) {
+			mVertexShader = make_shared<VertexShader>();
+		}
+		if (!mVertexShaderAnime) {
+			mVertexShaderAnime = make_shared<VertexShader>();
+		}
+		if (!mPixelShader) {
+			mPixelShader = make_shared<PixelShader>();
+		}
 
 		if (FAILED(mVertexShader->Create(fileName, "VS"))){
+			mVertexShader->Create("EngineResource/ErrorShader.fx", "VS");
 			Window::AddLog(std::string(fileName)+":VS作成失敗");
 			_SYSTEM_LOG_ERROR("シェーダー[" + fileName + ":VS]の作成");
 		}
 		
 		if (FAILED(mVertexShaderAnime->Create(fileName, "VSSkin"))){
+			mVertexShaderAnime->Create("EngineResource/ErrorShader.fx","VS");
 			Window::AddLog(std::string(fileName) + ":VSSkin作成失敗");
 			_SYSTEM_LOG_ERROR("シェーダー[" + fileName + ":VSSkin]の作成");
 		}
 		if (FAILED(mPixelShader->Create(fileName))){
-			mPixelShader->Create("EngineResource/ErrorShader.fx");
+			mPixelShader->Create("EngineResource/ErrorShader.fx", "PS");
 			Window::AddLog(std::string(fileName) + ":PS作成失敗");
 			_SYSTEM_LOG_ERROR("シェーダー[" + fileName + ":PS]の作成");
 		};

@@ -638,9 +638,13 @@ void TransformComponent::CreateInspector(){
 	mInspectorRotateDegree.w = 1;
 
 	Inspector ins("Transform", this);
-	auto p = Vector3(mPosition);
-	auto r = Vector3(mInspectorRotateDegree);
-	auto s = Vector3(mScale);
+	static XMFLOAT4 v4(0,0,0,1);
+	static auto p = Vector3(v4);
+	static auto r = Vector3(v4);
+	static auto s = Vector3(v4);
+	p = Vector3(mPosition);
+	r = Vector3(mInspectorRotateDegree);
+	s = Vector3(mScale);
 	ins.Add("Position", &p, collbackp);
 	ins.Add("Rotate", &r, collbackr);
 	ins.Add("Scale", &s, collbacks);

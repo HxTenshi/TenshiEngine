@@ -26,8 +26,6 @@ TextComponent::TextComponent()
 {
 	impl = new TextComponentMember();
 
-	impl->mTexMaterial.Create("EngineResource/texture.fx");
-
 	mFontSize = 48.0f;
 	mCenter = false;
 	m_Center = XMFLOAT2(0.5f, 0.5f);
@@ -40,6 +38,7 @@ TextComponent::~TextComponent()
 
 void TextComponent::Initialize(){
 
+	impl->mTexMaterial.Create("EngineResource/texture.fx");
 	impl->mFont.CreateFont_("", mFontSize);
 	
 	auto mBackScale = gameObject->mTransform->Scale();
@@ -108,7 +107,7 @@ void TextComponent::DrawTextUI(){
 		auto mate = gameObject->GetComponent<MaterialComponent>();
 		if (mate){
 			auto material = mate->GetMaterial(0);
-			impl->mTexMaterial.mCBMaterial.mParam.Diffuse = material.mCBMaterial.mParam.Diffuse;
+			impl->mTexMaterial.SetAlbedo(material.GetAlbedo());
 		}
 
 		Model& model = impl->mModel;

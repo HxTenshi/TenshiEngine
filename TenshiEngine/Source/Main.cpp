@@ -28,7 +28,7 @@
 
 #include "Application\Shutdown.h"
 
-#include "Debug/exception.h"
+#include "DebugSource/exception.h"
 
 
 //#pragma comment(lib,"lib/Debug/sqlite3.lib")

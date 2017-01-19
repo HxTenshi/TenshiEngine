@@ -34,7 +34,7 @@ void GizumoComponent::Initialize()
 	AssetLoad::Instance(m_TextureAsset.m_Hash, m_TextureAsset);
 
 	if (!m_Material.IsCreate()) {
-		m_Material.mDiffuse = XMFLOAT4(0.47f, 0.4f, 0.4f, 1.0f);
+		m_Material.SetAlbedo(XMFLOAT4(0.47f, 0.4f, 0.4f, 1.0f));
 		m_Material.Create("EngineResource/Billboard.fx");
 		m_Material.SetTexture(m_TextureAsset, 0);
 	}

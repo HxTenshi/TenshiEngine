@@ -75,7 +75,6 @@ public:
 		mInputLayout.SetInputLayout(context);
 	}
 
-private:
 	void Release(){
 
 		if (mpVertexShader){

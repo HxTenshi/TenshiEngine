@@ -33,7 +33,7 @@ void DebugNaviMesh::EngineUpdate(){
 		Init = true;
 		mShader.Create("EngineResource/DebugLine.fx");
 
-		mMaterial.mDiffuse = XMFLOAT4{ 1.0f, 0.2f, 0.2f, 1 };
+		mMaterial.SetAlbedo(XMFLOAT4{ 1.0f, 0.2f, 0.2f, 1 });
 		mMaterial.Create();
 
 

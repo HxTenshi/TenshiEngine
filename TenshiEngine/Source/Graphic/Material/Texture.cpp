@@ -138,3 +138,11 @@ shared_ptr<Release_self<ID3D11Resource>> Texture::GetResource(){
 	(*temp) = res;
 	return temp;
 }
+
+TextureAsset Texture::GetAsset()
+{
+	TextureAsset tex;
+	tex.m_Ptr = mTextureAssetData;
+	tex.m_Hash = mHash;
+	return tex;
+}

@@ -364,7 +364,7 @@ void AssetDataTemplate<MaterialFileData>::CreateInspector() {
 	ins.Add("Thickness", &mate->mAmbient.w, collbackThick);
 
 	static ShaderAsset shader;
-	shader.m_Hash = mate->mShader.GetHash();
+	shader.m_Hash = mate->mShader.GetAsset().m_Hash;
 	ins.Add("Shader", &shader, [&]() {
 		auto mate = m_FileData->GetMaterial();
 		if (!mate)return;

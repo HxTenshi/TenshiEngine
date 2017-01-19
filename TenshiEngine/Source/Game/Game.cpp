@@ -241,6 +241,7 @@ Game::Game() {
 
 	mCamera.Initialize();
 	mSelectActor.Initialize();
+	mFPS.Initialize();
 #endif
 
 #ifdef _ENGINE_MODE

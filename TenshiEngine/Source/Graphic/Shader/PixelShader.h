@@ -41,7 +41,6 @@ public:
 			context->PSSetShader(mpPixelShader, NULL, 0);
 	}
 
-private:
 	void Release(){
 
 		if (mpPixelShader){

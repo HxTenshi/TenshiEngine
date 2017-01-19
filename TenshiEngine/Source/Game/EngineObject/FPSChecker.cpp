@@ -36,11 +36,15 @@ FPSChecker::FPSChecker()
 	: mFPSObject(make_shared<Text>())
 	, mFrameNum(60)
 {
-	mFPSObject->Initialize();
-	mFPSObject->Start();
 }
 FPSChecker::~FPSChecker(){
 	//delete mFPSObject;
+}
+
+void FPSChecker::Initialize()
+{
+	mFPSObject->Initialize();
+	mFPSObject->Start();
 }
 
 void FPSChecker::Update(){

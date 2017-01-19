@@ -231,7 +231,7 @@ public:
 			if (mate){
 				auto m = mate->GetMaterial(0);
 				m.Create("EngineResource/NoLighting.fx");
-				m.mCBMaterial.mParam.Diffuse = color[i];
+				m.SetAlbedo(color[i]);
 				mate->SetMaterial(0, m);
 			}
 
@@ -291,7 +291,7 @@ public:
 			if (mate){
 				auto m = mate->GetMaterial(0);
 				m.Create("EngineResource/NoLighting.fx");
-				m.mCBMaterial.mParam.Diffuse = color[i];
+				m.SetAlbedo(color[i]);
 				mate->SetMaterial(0, m);
 			}
 
@@ -353,7 +353,7 @@ public:
 			if (mate){
 				auto m = mate->GetMaterial(0);
 				m.Create("EngineResource/NoLighting.fx");
-				m.mCBMaterial.mParam.Diffuse = color[i];
+				m.SetAlbedo(color[i]);
 				mate->SetMaterial(0, m);
 			}
 
@@ -543,14 +543,10 @@ SelectActor::SelectActor()
 	for (int i = 0; i < 3; i++){
 		mEditGuide[i] = NULL;
 	}
-	mSelectWireMaterial.mDiffuse.x = 0.95f;
-	mSelectWireMaterial.mDiffuse.y = 0.6f;
-	mSelectWireMaterial.mDiffuse.z = 0.1f;
+	mSelectWireMaterial.SetAlbedo(XMFLOAT4(0.95f, 0.6f, 0.1f, 1.0f));
 	mSelectWireMaterial.Create("EngineResource/NoLighting.fx");
-	
-	mSelectPhysxWireMaterial.mDiffuse.x = 0.1f;
-	mSelectPhysxWireMaterial.mDiffuse.y = 0.95f;
-	mSelectPhysxWireMaterial.mDiffuse.z = 0.6f;
+
+	mSelectPhysxWireMaterial.SetAlbedo(XMFLOAT4(0.1f, 0.95f, 0.6f, 1.0f));
 	mSelectPhysxWireMaterial.Create("EngineResource/NoLighting.fx");
 }
 

@@ -13,9 +13,10 @@ void MaterialComponent::LoadAssetResource(){
 
 	if (!mMaterialAsset.IsLoad()) {
 		AssetLoad::Instance(mMaterialAsset.m_Hash, mMaterialAsset);
+	}
+	if (mMaterialAsset.IsLoad()) {
 		return;
 	}
-
 	AssetLoad::Instance(mShaderAsset.m_Hash, mShaderAsset);
 	if (mShaderAsset.IsLoad()) {
 		mMaterials[0].CreateShader(mShaderAsset);
@@ -51,37 +52,39 @@ void MaterialComponent::MaterialAssetCopy()
 	if (!mate)return;
 
 	mShaderAsset.Free();
-	mShaderAsset.m_Hash = mate->mShader.GetHash();
+	mShaderAsset.m_Hash = mate->GetShader().m_Hash;
 	AssetLoad::Instance(mShaderAsset.m_Hash, mShaderAsset);
 	if (mShaderAsset.IsLoad()) {
 		mMaterials[0].CreateShader(mShaderAsset);
 	}
 
-	mAlbedo = mate->mDiffuse;
-	mSpecular = mate->mSpecular;
-	mTexScale = mate->mTexScale;
-	mHeightPower = mate->mHeightPower;
-	mThickness = mate->mAmbient.w;
-	mNormalScale = mate->mNormalScale;
-	mOffset = mate->mOffset;
-	mEmissivePowor = mate->mEmissivePowor;
+	mAlbedo = mate->GetAlbedo();
+	mSpecular = mate->GetSpecular();
+	mTexScale = mate->GetTextureScale();
+	mHeightPower = mate->GetHeightPower();
+	mThickness = mate->GetAmbient().w;
+	mNormalScale = mate->GetNormalScale();
+	mOffset = mate->GetOffset();
+	mEmissivePowor = mate->GetEmissivePowor();
 
-	mAlbedoTexture.m_Hash = mate->mTexture[0].GetHash();
-	mNormalTexture.m_Hash = mate->mTexture[1].GetHash();
-	mHeightTexture.m_Hash = mate->mTexture[2].GetHash();
-	mSpecularTexture.m_Hash = mate->mTexture[3].GetHash();
-	mRoughnessTexture.m_Hash = mate->mTexture[4].GetHash();
-	mEmissiveTexture.m_Hash = mate->mTexture[5].GetHash();
+	mAlbedoTexture.m_Hash =		mate->GetTexture(0).m_Hash;
+	mNormalTexture.m_Hash =		mate->GetTexture(1).m_Hash;
+	mHeightTexture.m_Hash =		mate->GetTexture(2).m_Hash;
+	mSpecularTexture.m_Hash =	mate->GetTexture(3).m_Hash;
+	mRoughnessTexture.m_Hash =	mate->GetTexture(4).m_Hash;
+	mEmissiveTexture.m_Hash =	mate->GetTexture(5).m_Hash;
 
 
-	mMaterials[0].mCBMaterial.mParam.Diffuse = mAlbedo;
-	mMaterials[0].mCBMaterial.mParam.Specular = mSpecular;
-	mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
-	mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
-	mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
-	mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormalScale;
-	mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
-	mMaterials[0].mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
+	mMaterials[0].SetAlbedo(mAlbedo);
+	mMaterials[0].SetSpecular(mSpecular);
+	mMaterials[0].SetTextureScale(mTexScale);
+	mMaterials[0].SetHeightPower(mHeightPower);
+	auto amb = mMaterials[0].GetAmbient();
+	amb.w = mThickness;
+	mMaterials[0].SetAmbient(amb);
+	mMaterials[0].SetNormalScale(mNormalScale);
+	mMaterials[0].SetOffset(mOffset);
+	mMaterials[0].SetEmissivePowor(mEmissivePowor);
 
 	//mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
 	//mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
@@ -127,7 +130,12 @@ void MaterialComponent::Initialize(){
 			MaterialAssetCopy();
 			for (auto& m : mMaterials){
 				if (!m.IsCreate()){
-					m.Create();
+					if (mShaderAsset.IsLoad()) {
+						m.Create(mShaderAsset);
+					}
+					else {
+						m.Create();
+					}
 				}
 			}
 		//}
@@ -149,14 +157,16 @@ void MaterialComponent::Initialize(){
 	//	mMaterials[0].CreateShader(mShaderAsset);
 	//}
 
-	mMaterials[0].mCBMaterial.mParam.Diffuse = mAlbedo;
-	mMaterials[0].mCBMaterial.mParam.Specular = mSpecular;
-	mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
-	mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
-	mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
-	mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormalScale;
-	mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
-	mMaterials[0].mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
+	mMaterials[0].SetAlbedo(mAlbedo);
+	mMaterials[0].SetSpecular ( mSpecular);
+	mMaterials[0].SetTextureScale ( mTexScale);
+	mMaterials[0].SetHeightPower ( mHeightPower);
+	auto amb = mMaterials[0].GetAmbient();
+	amb.w = mThickness;
+	mMaterials[0].SetAmbient(amb);
+	mMaterials[0].SetNormalScale (mNormalScale);
+	mMaterials[0].SetOffset ( mOffset);
+	mMaterials[0].SetEmissivePowor ( mEmissivePowor);
 
 	AssetLoad::Instance(mAlbedoTexture.m_Hash, mAlbedoTexture);
 	AssetLoad::Instance(mNormalTexture.m_Hash, mNormalTexture);
@@ -178,7 +188,7 @@ void MaterialComponent::SetMaterial(UINT SetNo, Material& material){
 	mMaterials[SetNo] = material;
 
 }
-Material* MaterialComponent::GetMaterialPtr(UINT GetNo) const{
+Material* MaterialComponent::GetMaterialPtr(UINT GetNo){
 	if (mMaterialAsset.IsLoad()) {
 		return mMaterialAsset.Get()->GetMaterial();
 	}
@@ -186,7 +196,8 @@ Material* MaterialComponent::GetMaterialPtr(UINT GetNo) const{
 	if (mMaterials.size() <= GetNo){
 		return NULL;
 	}
-	return const_cast<Material*>(&mMaterials[GetNo]);
+	//return const_cast<Material*>();
+	return &(mMaterials.data()[GetNo]);
 }
 const Material& MaterialComponent::GetMaterial(UINT GetNo) const{
 	if (mMaterialAsset.IsLoad()) {
@@ -200,6 +211,9 @@ const Material& MaterialComponent::GetMaterial(UINT GetNo) const{
 }
 #ifdef _ENGINE_MODE
 void MaterialComponent::CreateInspector(){
+
+
+	static XMFLOAT4 col(0, 0,0,1);
 
 	std::function<void(Color)> collbackAlb = [&](Color f){
 		mAlbedo.x = f.r;
@@ -227,30 +241,33 @@ void MaterialComponent::CreateInspector(){
 		MaterialAssetCopy(); mMaterialAsset.Free();
 		mTexScale.x = f.x;
 		mTexScale.y = f.y;
-		mMaterials[0].mCBMaterial.mParam.TexScale = mTexScale;
+		mMaterials[0].SetTextureScale(mTexScale);
 	};
 
 	std::function<void(Vector2)> collbackOffset = [&](Vector2 f){
 		MaterialAssetCopy(); mMaterialAsset.Free();
 		mOffset.x = f.x;
 		mOffset.y = f.y;
-		mMaterials[0].mCBMaterial.mParam.MOffset = mOffset;
+		mMaterials[0].SetOffset(mOffset);
 	};
 
 	std::function<void(float)> collbackH = [&](float f){
 		MaterialAssetCopy(); mMaterialAsset.Free();
 		mHeightPower.x = f;
-		mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
+		mMaterials[0].SetHeightPower(mHeightPower);
 	};
 	std::function<void(float)> collbackHDR = [&](float f){
 		MaterialAssetCopy(); mMaterialAsset.Free();
 		mHeightPower.y = f;
-		mMaterials[0].mCBMaterial.mParam.HeightPower = mHeightPower;
+		mMaterials[0].SetHeightPower(mHeightPower);
 	};
 	std::function<void(float)> collbackThick = [&](float f){
 		MaterialAssetCopy(); mMaterialAsset.Free();
 		mThickness = f;
-		mMaterials[0].mCBMaterial.mParam.Ambient.w = mThickness;
+
+		auto amb = mMaterials[0].GetAmbient();
+		amb.w = mThickness;
+		mMaterials[0].SetAmbient(amb);
 	};
 
 	std::function<void(Vector3)> collbackNormalScale = [&](Vector3 f){
@@ -259,7 +276,7 @@ void MaterialComponent::CreateInspector(){
 		mNormalScale.x = f.x;
 		mNormalScale.y = f.y;
 		mNormalScale.z = f.z;
-		mMaterials[0].mCBMaterial.mParam.MNormaleScale = mNormalScale;
+		mMaterials[0].SetNormalScale(mNormalScale);
 	};
 
 	Inspector ins("Material",this);
@@ -278,10 +295,12 @@ void MaterialComponent::CreateInspector(){
 
 	});
 
-	auto alb = Color(mAlbedo);
+	static Color alb(col);
+	alb = Color(mAlbedo);
 	ins.Add("Albedo", &alb, collbackAlb);
 
-	auto spec = Color(mSpecular);
+	static Color spec(col);
+	spec = Color(mSpecular);
 	ins.Add("Specular", &spec, collbackSpec);
 	ins.AddSlideBar("Roughness", 0, 1, &mSpecular.w, collbackas);
 	ins.Add("AlbedoTextre", &mAlbedoTexture, [&]() {
@@ -310,16 +329,22 @@ void MaterialComponent::CreateInspector(){
 });
 	ins.Add("EmissivePowor", &mEmissivePowor, [&](float f){
 		MaterialAssetCopy(); mMaterialAsset.Free();
-		mEmissivePowor = f; mMaterials[0].mCBMaterial.mParam.EmissivePowor = f;
+		mEmissivePowor = f;
+		mMaterials[0].SetEmissivePowor(mEmissivePowor);
 	});
 
-	auto tex = Vector2(mTexScale);
+	static XMFLOAT2 v2(0,0);
+	static Vector2 tex(v2);
+	tex = Vector2(mTexScale);
 	ins.Add("TextureScale", &tex, collbackTex);
 
-	auto texNormal = Vector3(mNormalScale);
+	static XMFLOAT4 v3(0, 0,0,1);
+	static Vector3 texNormal(v3);
+	texNormal = Vector3(mNormalScale);
 	ins.Add("NormaleScale", &texNormal, collbackNormalScale);
 
-	auto off = Vector2(mOffset);
+	static Vector2 off(v2);
+	off = Vector2(mOffset);
 	ins.Add("Offset", &off, collbackOffset);
 
 	ins.AddSlideBar("HightPower", -10, 10, &mHeightPower.x, collbackH);
@@ -327,7 +352,12 @@ void MaterialComponent::CreateInspector(){
 	ins.Add("Thickness", &mThickness, collbackThick);
 	ins.Add("Shader", &mShaderAsset, [&]() {
 		MaterialAssetCopy(); mMaterialAsset.Free();
-		mMaterials[0].CreateShader(mShaderAsset);
+		if (mShaderAsset.IsLoad()) {
+			mMaterials[0].CreateShader(mShaderAsset);
+		}
+		else {
+			mMaterials[0].CreateShader();
+		}
 	});
 	ins.Complete();
 
@@ -337,12 +367,12 @@ void MaterialComponent::CreateInspector(){
 void MaterialComponent::SetAlbedoColor(const XMFLOAT4& col){
 	MaterialAssetCopy(); mMaterialAsset.Free();
 	mAlbedo = col;
-	mMaterials[0].mCBMaterial.mParam.Diffuse = mAlbedo;
+	mMaterials[0].SetAlbedo(mAlbedo);
 }
 void MaterialComponent::SetSpecularColor(const XMFLOAT4& col){
 	MaterialAssetCopy(); mMaterialAsset.Free();
 	mSpecular = col;
-	mMaterials[0].mCBMaterial.mParam.Specular = mSpecular;
+	mMaterials[0].SetSpecular(mSpecular);
 }
 
 void MaterialComponent::IO_Data(I_ioHelper* io){

@@ -14,7 +14,7 @@ public:
 
 	virtual void SetAlbedoColor(const XMFLOAT4& col) = 0;
 	virtual void SetSpecularColor(const XMFLOAT4& col) = 0;
-	virtual Material* GetMaterialPtr(UINT GetNo) const =0;
+	virtual Material* GetMaterialPtr(UINT GetNo) =0;
 };
 
 class MaterialComponent :public IMaterialComponent{
@@ -32,7 +32,7 @@ public:
 #ifdef _ENGINE_MODE
 	void CreateInspector() override;
 #endif
-	Material* GetMaterialPtr(UINT GetNo) const override;
+	Material* GetMaterialPtr(UINT GetNo) override;
 	const Material& GetMaterial(UINT GetNo) const;
 
 	void SetAlbedoColor(const XMFLOAT4& col) override;

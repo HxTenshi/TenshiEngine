@@ -91,16 +91,22 @@ void TextureModelComponent::Update(){
 	Game::AddDrawList(DrawStage::UI, std::function<void()>([mate, movie, this](){
 
 		if (mate){
-			auto material= mate->GetMaterial(0);
-			mMaterial->SetTexture(material.mTexture[0],0);
-			mMaterial->SetTexture(material.mTexture[1],1);
-			mMaterial->SetTexture(material.mTexture[2],2);
-			mMaterial->SetTexture(material.mTexture[3],3);
-			mMaterial->SetTexture(material.mTexture[4],4);
-			mMaterial->SetTexture(material.mTexture[5], 5);
-			mMaterial->SetTexture(material.mTexture[6], 6);
-			mMaterial->SetTexture(material.mTexture[7], 7);
-			mMaterial->mCBMaterial.mParam = material.mCBMaterial.mParam;
+			auto material = mate->GetMaterial(0);
+			mMaterial->SetTexture(material.GetTexture(0), 0);
+			mMaterial->SetTexture(material.GetTexture(1), 1);
+			mMaterial->SetTexture(material.GetTexture(2), 2);
+			mMaterial->SetTexture(material.GetTexture(3), 3);
+			mMaterial->SetTexture(material.GetTexture(4), 4);
+			mMaterial->SetTexture(material.GetTexture(5), 5);
+			mMaterial->SetTexture(material.GetTexture(6), 6);
+			mMaterial->SetTexture(material.GetTexture(7), 7);
+			mMaterial->SetAlbedo(material.GetAlbedo());
+			mMaterial->SetSpecular(material.GetSpecular());
+			mMaterial->SetAmbient(material.GetAmbient());
+			mMaterial->SetTextureScale(material.GetTextureScale());
+			mMaterial->SetHeightPower(material.GetHeightPower());
+			mMaterial->SetNormalScale(material.GetNormalScale());
+			mMaterial->SetOffset(material.GetOffset());
 			//mTextureName = "";
 		}
 		if (movie){

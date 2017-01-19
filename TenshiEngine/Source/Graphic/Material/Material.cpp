@@ -84,6 +84,161 @@ void Material::CreateShader(ShaderAsset& asset) {
 	mShader.Create(asset);
 }
 
+ShaderAsset Material::GetShader()
+{
+	return mShader.GetAsset();
+}
+
+TextureAsset Material::GetTexture(UINT Slot)
+{
+	if(Slot<0||Slot>=8)return TextureAsset();
+	return mTexture[Slot].GetAsset();
+}
+
+XMFLOAT4 Material::GetAlbedo()
+{
+	if (!mCBMaterial.mBuffer) {
+		return mDiffuse;
+	}
+	return mCBMaterial.mParam.Diffuse;
+}
+
+XMFLOAT4 Material::GetSpecular()
+{
+	if (!mCBMaterial.mBuffer) {
+		return mSpecular;
+	}
+	return mCBMaterial.mParam.Specular;
+}
+
+XMFLOAT4 Material::GetAmbient()
+{
+	if (!mCBMaterial.mBuffer) {
+		return mAmbient;
+	}
+	return mCBMaterial.mParam.Ambient;
+}
+
+XMFLOAT2 Material::GetTextureScale()
+{
+	if (!mCBMaterial.mBuffer) {
+		return mTexScale;
+	}
+	return mCBMaterial.mParam.TexScale;
+}
+
+XMFLOAT2 Material::GetHeightPower()
+{
+	if (!mCBMaterial.mBuffer) {
+		return mHeightPower;
+	}
+	return mCBMaterial.mParam.HeightPower;
+}
+
+XMFLOAT4 Material::GetNormalScale()
+{
+	if (!mCBMaterial.mBuffer) {
+		return mNormalScale;
+	}
+	return mCBMaterial.mParam.MNormaleScale;
+}
+
+XMFLOAT2 Material::GetOffset()
+{
+	if (!mCBMaterial.mBuffer) {
+		return mOffset;
+	}
+	return mCBMaterial.mParam.MOffset;
+}
+
+float Material::GetEmissivePowor()
+{
+	if (!mCBMaterial.mBuffer) {
+		return mEmissivePowor;
+	}
+	return mCBMaterial.mParam.EmissivePowor;
+}
+
+void Material::SetAlbedo(const XMFLOAT4 & value)
+{
+	if (!mCBMaterial.mBuffer) {
+		mDiffuse = value;
+	}
+	else {
+		mCBMaterial.mParam.Diffuse = value;
+	}
+}
+
+void Material::SetSpecular(const XMFLOAT4 & value)
+{
+	if (!mCBMaterial.mBuffer) {
+		mSpecular = value;
+	}
+	else {
+		mCBMaterial.mParam.Specular = value;
+	}
+}
+
+void Material::SetAmbient(const XMFLOAT4 & value)
+{
+	if (!mCBMaterial.mBuffer) {
+		mAmbient = value;
+	}
+	else {
+		mCBMaterial.mParam.Ambient = value;
+	}
+}
+
+void Material::SetTextureScale(const XMFLOAT2 & value)
+{
+	if (!mCBMaterial.mBuffer) {
+		mTexScale = value;
+	}
+	else {
+		mCBMaterial.mParam.TexScale = value;
+	}
+}
+
+void Material::SetHeightPower(const XMFLOAT2 & value)
+{
+	if (!mCBMaterial.mBuffer) {
+		mHeightPower = value;
+	}
+	else {
+		mCBMaterial.mParam.HeightPower = value;
+	}
+}
+
+void Material::SetNormalScale(const XMFLOAT4 & value)
+{
+	if (!mCBMaterial.mBuffer) {
+		mNormalScale = value;
+	}
+	else {
+		mCBMaterial.mParam.MNormaleScale = value;
+	}
+}
+
+void Material::SetOffset(const XMFLOAT2 & value)
+{
+	if (!mCBMaterial.mBuffer) {
+		mOffset = value;
+	}
+	else {
+		mCBMaterial.mParam.MOffset = value;
+	}
+}
+
+void Material::SetEmissivePowor(float value)
+{
+	if (!mCBMaterial.mBuffer) {
+		mEmissivePowor = value;
+	}
+	else {
+		mCBMaterial.mParam.EmissivePowor = value;
+	}
+}
+
 //HRESULT Material::Create(const ConstantBuffer<cbChangesMaterial>& cbMaterial,const ConstantBuffer<cbChangesUseTexture>& cbUseTexture){
 //	HRESULT hr = S_OK;
 //	mCBMaterial = cbMaterial.Duplicate();
@@ -285,18 +440,6 @@ void Material::SetTexture(const TextureAsset& Tex, UINT Slot){
 	//mCBUseTexture->UpdateSubresource();
 }
 
-void Material::ParamUpdate()
-{
-	mCBMaterial.mParam.Diffuse = mDiffuse;
-	mCBMaterial.mParam.Specular = mSpecular;
-	mCBMaterial.mParam.Ambient = mAmbient;
-	mCBMaterial.mParam.TexScale = mTexScale;
-	mCBMaterial.mParam.HeightPower = mHeightPower;
-	mCBMaterial.mParam.MNormaleScale = mNormalScale;
-	mCBMaterial.mParam.MOffset = mOffset;
-	mCBMaterial.mParam.EmissivePowor = mEmissivePowor;
-	mCBMaterial.mParam.MNULL = 0.0f;
-}
 
 #include "MySTL/ioHelper.h"
 void Material::IO_Data(I_ioHelper* io, const std::string& materialPath) {
@@ -382,7 +525,7 @@ void Material::IO_Data(I_ioHelper* io, const std::string& materialPath) {
 		if (!hash.IsNull())SetTexture(hash, 7);
 	}
 	else {
-		io->func(mShader.GetHash(), "Shader");
+		io->func(mShader.GetAsset().m_Hash, "Shader");
 
 		io->func(mTexture[0].GetHash(), "AlbedoTextureHash");
 		io->func(mTexture[1].GetHash(), "NormalTextureHash");

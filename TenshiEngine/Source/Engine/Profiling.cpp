@@ -11,7 +11,7 @@ Profiling::Profiling(){
 	QueryPerformanceFrequency(&mFreq);
 }
 void Profiling::TimeStamp(const std::string& str, double tick){
-	mTickMap[str] = tick / (double)mFreq.QuadPart;
+	//mTickMap[str] = tick / (double)mFreq.QuadPart;
 }
 Counter Profiling::Start(const std::string& str){
 	return Counter(str);

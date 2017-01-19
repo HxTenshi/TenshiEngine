@@ -38,7 +38,7 @@ public:
 		Start();
 		auto mate = GetComponent<MaterialComponent>();
 		Material material;
-		material.mDiffuse = color;
+		material.SetAlbedo(color);
 		material.Create();
 		material.SetTexture("EngineResource/null4.png");
 		mate->SetMaterial(0, material);

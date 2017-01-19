@@ -37,6 +37,7 @@ public:
 		return mHash;
 	}
 
+	TextureAsset GetAsset();
 	std::string mFileName;
 private:
 	MD5::MD5HashCode mHash;

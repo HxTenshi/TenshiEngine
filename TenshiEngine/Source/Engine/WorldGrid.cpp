@@ -27,17 +27,17 @@ void WorldGrid::Initialize()
 
 	mShader.Create("EngineResource/Line.fx");
 
-	mMaterial.mDiffuse = XMFLOAT4{ 0.2f, 0.2f, 0.2f, 1 };
+	mMaterial.SetAlbedo(XMFLOAT4{ 0.2f, 0.2f, 0.2f, 1 });
 	mMaterial.Create();
 
 	int xyz = 0;
-	mMaterialXYZ[xyz].mDiffuse = XMFLOAT4{ 0.4f, 0.0f, 0.0f, 1 };
+	mMaterialXYZ[xyz].SetAlbedo(XMFLOAT4{ 0.4f, 0.0f, 0.0f, 1 });
 	mMaterialXYZ[xyz].Create();
 	xyz = 1;
-	mMaterialXYZ[xyz].mDiffuse = XMFLOAT4{ 0.0f, 0.0f, 0.4f, 1 };
+	mMaterialXYZ[xyz].SetAlbedo(XMFLOAT4{ 0.0f, 0.0f, 0.4f, 1 });
 	mMaterialXYZ[xyz].Create();
 	xyz = 2;
-	mMaterialXYZ[xyz].mDiffuse = XMFLOAT4{ 0.0f, 0.4f, 0.0f, 1 };
+	mMaterialXYZ[xyz].SetAlbedo(XMFLOAT4{ 0.0f, 0.4f, 0.0f, 1 });
 	mMaterialXYZ[xyz].Create();
 
 
