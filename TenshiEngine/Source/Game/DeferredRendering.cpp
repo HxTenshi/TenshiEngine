@@ -336,7 +336,7 @@ void CascadeShadow::CascadeUpdate(){
 		XMVECTOR center = (mini + maxi) * 0.5f;
 
 		// ニアクリップ平面とファークリップ平面の距離を求める.
-		float nearClip = 0.1f;
+		float nearClip = 0.01f;
 		float farClip = fabs(maxi.z - mini.z) * 1.001f + nearClip + 100.0f;
 
 		// 後退量を求める.
@@ -1084,6 +1084,20 @@ void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::
 void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 
 
+	D3D11_VIEWPORT backvp;
+	UINT num = 1;
+	render->m_Context->RSGetViewports(&num, &backvp);
+
+	// Setup the viewport
+	D3D11_VIEWPORT vp;
+	vp.Width = (FLOAT)mCascadeShadow.GetWidth();
+	vp.Height = (FLOAT)mCascadeShadow.GetHeight();
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	render->m_Context->RSSetViewports(1, &vp);
+
 	render->PushSet(Rasterizer::Preset::RS_Back_Solid);
 	mCascadeShadow.Update(render);
 
@@ -1102,6 +1116,8 @@ void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, c
 	mCascadeShadow.SetupShadowCB(render, 0);
 
 	render->PopRS();
+
+	render->m_Context->RSSetViewports(1, &backvp);
 }
 
 void DeferredRendering::Light_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
@@ -1175,8 +1191,6 @@ void DeferredRendering::Forward_Rendering(IRenderingEngine* render, RenderTarget
 	render->PopBS();
 	render->PopDS();
 }
-
-
 
 void DeferredRendering::Debug_G_Buffer_Rendering(IRenderingEngine* render, const std::function<void(void)>& func){
 	const RenderTarget* r[1] = { &m_AlbedoRT};

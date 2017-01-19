@@ -252,7 +252,7 @@ public:
 		//SetGuideTransform(mGuidePosition + mMove);
 
 		for (auto& act : actors){
-			auto move = mMove * act->mTransform->GetParent()->mTransform->LossyScale();
+			auto move = mMove / act->mTransform->GetParent()->mTransform->LossyScale();
 			auto pos = act->mTransform->WorldPosition();
 			act->mTransform->WorldPosition(pos + move);
 		}
@@ -758,10 +758,14 @@ void SelectActor::Update(){
 			Input::MouseLeftDragVector(&x, &y);
 			//float l = XMVector2Length(XMVectorSet(x,-y,0,1)).x;
 			pow = y *0.05f;
-			if (Input::Down(KeyCode::Key_LSHIFT)){
+			if (Input::Down(KeyCode::Key_LCONTROL)) {
+				pow *= 0.1f;
+			}
+			else if (Input::Down(KeyCode::Key_LSHIFT)){
 				pow += 0.5f;
 				pow = (float)(int)pow;
 			}
+			
 			mEditGuide[mCurrentGuide]->GuideDrag(mBeforePow-pow);
 			mEditGuide[mCurrentGuide]->UpdateTransform(mSelects.GetSelects());
 		}

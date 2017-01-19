@@ -541,6 +541,7 @@
   <ItemGroup>
     <ClCompile Include="Source\Application\DrawThreadQueue.cpp" />
     <ClCompile Include="Source\Application\Shutdown.cpp" />
+    <ClCompile Include="Source\Debug\exception.cpp" />
     <ClCompile Include="Source\Device\DirectX11Device.cpp" />
     <ClCompile Include="Source\Engine\AssetDataBase.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Animation\AnimationFileData.cpp" />
@@ -567,7 +568,7 @@
     <ClCompile Include="Source\Engine\ModelConverter.cpp" />
     <ClCompile Include="Source\Engine\Profiling.cpp" />
     <ClCompile Include="Source\Engine\SelectActor.cpp" />
-    <ClCompile Include="Source\Engine\SystemLog.cpp" />
+    <ClCompile Include="Source\Debug\SystemLog.cpp" />
     <ClCompile Include="Source\Engine\WorldGrid.cpp" />
     <ClCompile Include="Source\Game\Actor.cpp" />
     <ClCompile Include="Source\Game\Component\AnimationComponent.cpp" />
@@ -662,6 +663,7 @@
     <ClInclude Include="lua\include\lua.hpp" />
     <ClInclude Include="lua\include\luaconf.h" />
     <ClInclude Include="lua\include\lualib.h" />
+    <ClInclude Include="Source\Debug\exception.h" />
     <ClInclude Include="Source\Engine\AssetFile\Material\MaterialFileData.h" />
     <ClInclude Include="Source\Engine\ScriptingSystem\ScriptCompiler.h" />
     <ClInclude Include="Source\Application\BuildVersion.h" />
@@ -703,7 +705,7 @@
     <ClInclude Include="Source\Engine\Asset\GenerateMetaFile.h" />
     <ClInclude Include="Source\Engine\ICommand.h" />
     <ClInclude Include="Source\Engine\ModelConverter.h" />
-    <ClInclude Include="Source\Engine\SystemLog.h" />
+    <ClInclude Include="Source\Debug\SystemLog.h" />
     <ClInclude Include="Source\Game\Component\BoneMirrorComponent.h" />
     <ClInclude Include="Source\Game\Component\CharacterControllerComponent.h" />
     <ClInclude Include="Source\Game\Component\DebugEngineScriptComponent.h" />

@@ -17,11 +17,13 @@ bool ShaderFileData::Create(const char* filename){
 
 
 	m_FileName = filename;
-	if (m_Shader){
-		delete m_Shader;
-		m_Shader = NULL;
+	//if (m_Shader){
+	//	delete m_Shader;
+	//	m_Shader = NULL;
+	//}
+	if (!m_Shader) {
+		m_Shader = new ShaderData();
 	}
-	m_Shader = new ShaderData();
 
 	m_Shader->Create(m_FileName.c_str());
 

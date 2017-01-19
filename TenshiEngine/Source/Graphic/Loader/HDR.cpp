@@ -110,9 +110,9 @@ void workOnRGBE(RGBE *scan, int len, float *cols)
 		cols[1] = convertComponent(expo, scan[0][G]);
 		cols[2] = convertComponent(expo, scan[0][B]);
 		cols[3] = 1.0f;
-		cols[0] = pow(cols[0], 1.0/2.2);
-		cols[1] = pow(cols[1], 1.0/2.2);
-		cols[2] = pow(cols[2], 1.0/2.2);
+		//cols[0] = pow(cols[0], 1.0/2.2);
+		//cols[1] = pow(cols[1], 1.0/2.2);
+		//cols[2] = pow(cols[2], 1.0/2.2);
 		//for (int i = 0; i < 3; i++){
 		//	auto byte = (BYTE*)&cols[i];
 		//	std::swap(byte[0], byte[3]);

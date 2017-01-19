@@ -45,7 +45,15 @@ void CharacterControllerComponent::Start(){
 	mController->setPosition(setpos);
 }
 void CharacterControllerComponent::Finish(){
+
 	if (mController){
+
+		auto act = mController->getActor();
+		mController->setUserData(NULL);
+		act->userData = NULL;
+		act->getShapes(&mShape, 1);
+		mShape->userData = NULL;
+
 		mController->release();
 		mController = NULL;
 	}

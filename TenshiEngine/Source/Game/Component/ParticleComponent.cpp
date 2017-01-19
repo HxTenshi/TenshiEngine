@@ -147,6 +147,9 @@ void ParticleComponent::ParticleCapacityChange(UINT num){
 void ParticleComponent::Initialize(){
 	mTimer = 0.0f;
 	ParticleCapacityChange((UINT)mParticleCapacity);
+
+	mCBuffer.mParam.mBeforeWorld = XMMatrixTranspose(gameObject->mTransform->GetMatrix());
+	mCBuffer.mParam.mWorld = XMMatrixTranspose(gameObject->mTransform->GetMatrix());
 }
 
 #ifdef _ENGINE_MODE

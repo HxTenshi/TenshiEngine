@@ -46,8 +46,11 @@ public:
 				_x = x - mBitmapState.x;
 				_y = y - mBitmapState.y;
 				int _pos = _x + _y * mBitmapState.w;
-				int Alpha =
-					(255 * mBitmapByte[_pos]) / (mBitmapState.Level - 1);
+				int Alpha = 0;
+				if (mBitmapByte.size() > _pos) {
+					Alpha =
+						(255 * mBitmapByte[_pos]) / (mBitmapState.Level - 1);
+				}
 				int Color = 0x00ffffff | (Alpha << 24);
 
 
@@ -133,7 +136,7 @@ public:
 
 				auto c1 = (BYTE)text[i];
 				auto c2 = (BYTE)text[i + 1];
-				code = (UINT)((c1) << 8 | (c2));
+				code = (UINT)(((UINT)c1) << 8 | ((UINT)c2));
 				i++;
 			}
 

@@ -80,6 +80,13 @@ public:
 
 	static void SetLightVect(const XMVECTOR& vect);
 
+	UINT GetWidth() {
+		return mWidth;
+	}
+	UINT GetHeight() {
+		return mHeight;
+	}
+
 private:
 	void OrthographicSize(XMMATRIX& matrix, XMVECTOR& mini, XMVECTOR& maxi);
 	void CascadeUpdate();

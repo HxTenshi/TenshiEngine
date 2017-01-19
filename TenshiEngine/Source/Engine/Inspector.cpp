@@ -1,3 +1,7 @@
+#pragma warning( push )
+#pragma warning ( disable : 4458 )
+
+
 #include "Inspector.h"
 
 #ifdef _ENGINE_MODE
@@ -225,3 +229,6 @@ void Inspector::Complete(){
 
 #endif
 #pragma pop_macro("new")
+
+
+#pragma warning( pop )
