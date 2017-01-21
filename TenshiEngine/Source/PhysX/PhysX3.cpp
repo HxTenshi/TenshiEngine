@@ -738,7 +738,7 @@ void PhysX3Main::DisplayInitialize() {
 	{
 		//gScene->setFlag(PxSceneFlag::eENABLE_STABILIZATION, false);
 		//gScene->setFlag(PxSceneFlag::eENABLE_STABILIZATION, true);
-		gScene->flushSimulation(false);
+		//gScene->flushSimulation(false);
 	}
 
 }

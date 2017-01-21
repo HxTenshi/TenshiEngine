@@ -560,7 +560,8 @@ public:
 		//}
 		if (out->size() == 0)return;
 		auto back = o;
-		picojson::array ar(out->size());
+		size_t s = out->size();
+		picojson::array ar(s);
 		int i = 0;
 		for (int i = 0; i < out->size(); i++) {
 			picojson::object newO;

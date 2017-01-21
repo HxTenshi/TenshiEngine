@@ -543,11 +543,6 @@ SelectActor::SelectActor()
 	for (int i = 0; i < 3; i++){
 		mEditGuide[i] = NULL;
 	}
-	mSelectWireMaterial.SetAlbedo(XMFLOAT4(0.95f, 0.6f, 0.1f, 1.0f));
-	mSelectWireMaterial.Create("EngineResource/NoLighting.fx");
-
-	mSelectPhysxWireMaterial.SetAlbedo(XMFLOAT4(0.1f, 0.95f, 0.6f, 1.0f));
-	mSelectPhysxWireMaterial.Create("EngineResource/NoLighting.fx");
 }
 
 void SelectActor::Finish(){
@@ -561,6 +556,12 @@ void SelectActor::Initialize(){
 	mEditGuide[0] = new MoveEditGuide();
 	mEditGuide[1] = new ScaleEditGuide();
 	mEditGuide[2] = new RotateEditGuide();
+
+	mSelectWireMaterial.SetAlbedo(XMFLOAT4(0.95f, 0.6f, 0.1f, 1.0f));
+	mSelectWireMaterial.Create("EngineResource/NoLighting.fx");
+
+	mSelectPhysxWireMaterial.SetAlbedo(XMFLOAT4(0.1f, 0.95f, 0.6f, 1.0f));
+	mSelectPhysxWireMaterial.Create("EngineResource/NoLighting.fx");
 }
 
 Actor* SelectActor::GetSelectOne(){

@@ -25,7 +25,6 @@ int Debug::filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 	//
 	//Hx::Debug()->Log(" ExceptÉGÉâÅ[ Address[" + oss.str() + "]");
 
-	std::ostringstream oss;
 
 	{
 		STACKFRAME sf;
@@ -88,9 +87,9 @@ int Debug::filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 					}
 				}
 
+				std::ostringstream oss;
 				oss << c << ":line(" << line.LineNumber << "):" << pSym->Name << "()";
 				_SYSTEM_LOG(oss.str());
-				oss.clear();
 				//printf("0x%08x %s() + 0x%x\n", sf.AddrPC.Offset, pSym->Name, Disp);
 				//Hx::Debug()->Log(oss.str());
 			}
@@ -123,13 +122,13 @@ int Debug::filter(unsigned int code, struct _EXCEPTION_POINTERS *ep) {
 		//Hx::Debug()->Log(" +-- Code[" + os.str() + "]");
 	}
 	if (code == EXCEPTION_FLT_DIVIDE_BY_ZERO) {
-		oss << "[É[ÉçèúéZ]";
+		//oss << "[É[ÉçèúéZ]";
 	}
 	else if (code == EXCEPTION_INT_DIVIDE_BY_ZERO) {
-		oss << "[É[ÉçèúéZ]";
+		//oss << "[É[ÉçèúéZ]";
 	}
 	else if (code == EXCEPTION_ACCESS_VIOLATION) {
-		oss << "[ÉAÉNÉZÉXà·îΩ]";
+		//oss << "[ÉAÉNÉZÉXà·îΩ]";
 	}
 
 	return EXCEPTION_EXECUTE_HANDLER;

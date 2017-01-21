@@ -78,6 +78,11 @@ void TextureModelComponent::EngineUpdate(){
 #endif
 void TextureModelComponent::Update(){
 
+	if (Input::Trigger(KeyCode::Key_J)) {
+		Window::AddLog(std::to_string((int)mMaterial->GetShader().m_Ptr.Get()));
+		Window::AddLog(std::to_string((int)mMaterial->GetShader().m_Hash.key_i[0]));
+		Window::AddLog(mMaterial->GetShader().m_Name);
+	}
 
 	if (!mModel)return;
 

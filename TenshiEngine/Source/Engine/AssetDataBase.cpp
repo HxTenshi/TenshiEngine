@@ -169,6 +169,7 @@ void AssetDataTemplate<PrefabFileData>::CreateInspector(){
 
 void AssetDataTemplate<ShaderFileData>::CreateInspector(){
 
+	Window::AddLog(std::to_string((int)this));
 	std::function<void()> collback = [&](){
 		m_FileData->Create(m_FileData->GetFileName().c_str());
 
