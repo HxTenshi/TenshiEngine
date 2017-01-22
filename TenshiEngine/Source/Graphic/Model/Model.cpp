@@ -228,13 +228,13 @@ void Model::Draw(ID3D11DeviceContext* context, const shared_ptr<MaterialComponen
 	for (const auto& m : mesh){
 		{
 			if (filter & ForcedMaterialFilter::Shader_PS){
-				material->GetMaterial(i).SetShader_PS(context);
+				material->GetMaterial(0).SetShader_PS(context);
 			}
 			if (filter & ForcedMaterialFilter::Shader_VS){
-				material->GetMaterial(i).SetShader_VS((bool)(mBoneModel != NULL), context);
+				material->GetMaterial(0).SetShader_VS((bool)(mBoneModel != NULL), context);
 			}
-			material->GetMaterial(i).VSSetShaderResources(context,filter);
-			material->GetMaterial(i).PSSetShaderResources(context,filter);
+			material->GetMaterial(0).VSSetShaderResources(context,filter);
+			material->GetMaterial(0).PSSetShaderResources(context,filter);
 		}
 		context->DrawIndexed(m.m_IndexNum, m.m_StartIndex, 0);
 		i++;

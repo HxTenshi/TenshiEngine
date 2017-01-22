@@ -1102,7 +1102,7 @@ void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, c
 	mCascadeShadow.Update(render);
 
 	Model::mForcedMaterial = &mMaterialDepthShadow;
-	Model::mForcedMaterialFilter = (ForcedMaterialFilter::Enum)(ForcedMaterialFilter::Shader_PS | ForcedMaterialFilter::Texture_ALL | ForcedMaterialFilter::Color);
+	Model::mForcedMaterialFilter = (ForcedMaterialFilter::Enum)(ForcedMaterialFilter::Shader_PS | ForcedMaterialFilter::Texture_ALL | ForcedMaterialFilter::Color ^ ForcedMaterialFilter::Texture_0);
 
 	for (int i = 0; i < 4; i++){
 		mCascadeShadow.ClearView(render, i);
