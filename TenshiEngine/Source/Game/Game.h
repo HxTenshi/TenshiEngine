@@ -157,7 +157,7 @@ private:
 	EditorCamera mCamera;
 	WorldGrid mWorldGrid;
 	FPSChecker mFPS;
-	ProfileViewer mProfileViewer;
+	//ProfileViewer mProfileViewer;
 	CommandManager mCommandManager;
 
 	bool mIsPlay;

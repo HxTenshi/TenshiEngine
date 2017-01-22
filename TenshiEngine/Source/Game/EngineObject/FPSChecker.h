@@ -9,6 +9,7 @@ class FPSChecker : public GameEngineObject{
 public:
 	FPSChecker();
 	~FPSChecker();
+	void Initialize();
 	void Update() override;
 
 private:

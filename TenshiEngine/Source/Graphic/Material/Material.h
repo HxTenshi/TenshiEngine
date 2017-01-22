@@ -7,7 +7,7 @@
 #include "ConstantBuffer/ConstantBuffer.h"
 #include "ConstantBuffer/ConstantBufferDif.h"
 #include "Graphic/Shader/Shader.h"
-
+class AssetLoader;
 struct ForcedMaterialFilter{
 	enum Enum{
 		None = 0,
@@ -30,6 +30,28 @@ struct ForcedMaterialFilter{
 class IMaterial{
 public:
 	virtual ~IMaterial(){};
+	virtual void CreateShader(ShaderAsset& asset) = 0;
+	virtual void SetTexture(const TextureAsset& Tex, UINT Slot = 0) = 0;
+	virtual ShaderAsset GetShader() = 0;
+	virtual TextureAsset GetTexture(UINT Slot = 0) = 0;
+
+	virtual XMFLOAT4 GetAlbedo() = 0;
+	virtual XMFLOAT4 GetSpecular() = 0;
+	virtual XMFLOAT4 GetAmbient() = 0;
+	virtual XMFLOAT2 GetTextureScale() = 0;
+	virtual XMFLOAT2 GetHeightPower() = 0;
+	virtual XMFLOAT4 GetNormalScale() = 0;
+	virtual XMFLOAT2 GetOffset() = 0;
+	virtual float GetEmissivePowor() = 0;
+
+	virtual void SetAlbedo(const XMFLOAT4& value) = 0;
+	virtual void SetSpecular(const XMFLOAT4& value) = 0;
+	virtual void SetAmbient(const XMFLOAT4& value) = 0;
+	virtual void SetTextureScale(const XMFLOAT2& value) = 0;
+	virtual void SetHeightPower(const XMFLOAT2& value) = 0;
+	virtual void SetNormalScale(const XMFLOAT4& value) = 0;
+	virtual void SetOffset(const XMFLOAT2& value) = 0;
+	virtual void SetEmissivePowor(float value) = 0;
 };
 
 class I_ioHelper;
@@ -50,7 +72,8 @@ public:
 	void SetTexture(const char* FileName, UINT Slot = 0);
 	void SetTexture(const MD5::MD5HashCode& hash, UINT Slot = 0);
 	void SetTexture(const Texture& Tex, UINT Slot = 0);
-	void SetTexture(const TextureAsset& Tex, UINT Slot = 0);
+	void SetTexture(const TextureAsset& Tex, UINT Slot = 0) override;
+	
 
 	void IO_Data(I_ioHelper* io, const std::string& materialPath = "");
 
@@ -58,10 +81,31 @@ public:
 		return mCBMaterial.mBuffer != NULL;
 	}
 
-	void CreateShader(const char* shaderFileName);
-	void CreateShader(ShaderAsset& asset);
+	void CreateShader(const char* shaderFileName = "EngineResource/DeferredPrePass.fx");
+	void CreateShader(ShaderAsset& asset) override;
 
-public:
+	ShaderAsset GetShader() override;
+	TextureAsset GetTexture(UINT Slot = 0) override;
+
+	XMFLOAT4 GetAlbedo() override;
+	XMFLOAT4 GetSpecular() override;
+	XMFLOAT4 GetAmbient() override;
+	XMFLOAT2 GetTextureScale() override;
+	XMFLOAT2 GetHeightPower() override;
+	XMFLOAT4 GetNormalScale() override;
+	XMFLOAT2 GetOffset() override;
+	float GetEmissivePowor() override;
+
+	void SetAlbedo(const XMFLOAT4& value) override;
+	void SetSpecular(const XMFLOAT4& value) override;
+	void SetAmbient(const XMFLOAT4& value) override;
+	void SetTextureScale(const XMFLOAT2& value) override;
+	void SetHeightPower(const XMFLOAT2& value) override;
+	void SetNormalScale(const XMFLOAT4& value) override;
+	void SetOffset(const XMFLOAT2& value) override;
+	void SetEmissivePowor(float value) override;
+
+private:
 
 	XMFLOAT4 mDiffuse;
 	XMFLOAT4 mSpecular;
@@ -74,10 +118,12 @@ public:
 	//unsigned char toon_index;
 	//unsigned char edge_flag;//	—ÖŠsƒtƒ‰ƒO
 
-private:
-public:
 	Shader mShader;
 	ConstantBuffer<cbChangesMaterial> mCBMaterial;
 	ConstantBuffer<cbChangesUseTexture> mCBUseTexture;
 	Texture mTexture[8];
+
+	friend AssetLoader;
+	friend AssetDataTemplate<MaterialFileData>;
+	friend MaterialFileData;
 };

@@ -21,7 +21,7 @@
 #include "XNAMath/XNAMath.h"
 
 
-#include "Engine/SystemLog.h"
+#include "DebugSource/SystemLog.h"
 
 // デバッグ時のSTLのアロケーターをリリース仕様にする
 //#define _NO_DEBUG_HEAP 1

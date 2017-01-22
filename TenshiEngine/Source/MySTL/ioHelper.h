@@ -7,6 +7,7 @@
 #include "MySTL/Utility.h"
 
 #include "Engine/IAsset.h"
+#include "Game/Script/GameObject.h"
 
 class I_InputHelper;
 class I_OutputHelper;
@@ -15,6 +16,7 @@ class I_ioHelper;
 class Actor;
 namespace ioGameObjectHelper {
 	void func(wp<Actor>* target, const char* name, I_ioHelper* io, wp<Actor>* This);
+	void func(std::vector<wp<Actor>>* target, const char* name, I_ioHelper* io, wp<Actor>* This);
 };
 
 //json読み書き
@@ -226,6 +228,71 @@ public:
 		f = f&&_func(&out->m_Hash.key_i[3], (std::string(name) + "3").c_str());
 		return f;
 	}
+
+	template<class T>
+	bool _func(std::vector<T>* out, const char* name) {
+		auto v = o->find(name);
+		if (v == o->end())return false;
+
+		//std::vector<T> temp;
+		//if (prefab) {
+		//	if (!prefab->func(temp, name)) {
+		//		return false;
+		//	}
+		//}
+
+		picojson::array ar;
+
+		get<picojson::array>(v->second, &ar);
+		if (ar.size() == 0)return false;
+		auto back = o;
+		out->resize(ar.size());
+		int i = 0;
+		for (auto& value : ar) {
+			
+			o = &value.get<picojson::object>();
+			//T b;
+			//_func(&b, "a");
+			//(*out)[i] = b;
+			_func(&(*out).data()[i], "a");
+			i++;
+		}
+		o = back;
+		return true;
+	}
+
+	template<>
+	bool _func(std::vector<bool>* out, const char* name) {
+		auto v = o->find(name);
+		if (v == o->end())return false;
+
+		//std::vector<bool> temp;
+		//if (prefab) {
+		//	if (!prefab->func(temp, name)) {
+		//		return false;
+		//	}
+		//}
+
+		picojson::array ar;
+
+		get<picojson::array>(v->second, &ar);
+		if (ar.size() == 0)return false;
+		auto back = o;
+		out->resize(ar.size());
+		int i = 0;
+		for (auto& value : ar) {
+
+			o = &value.get<picojson::object>();
+			bool b;
+			_func(&b, "a");
+			(*out)[i] = b;
+			i++;
+		}
+		o = back;
+		return true;
+	}
+
+
 private:
 	template<class T>
 	void get(const picojson::value& value, T* out);
@@ -244,6 +311,10 @@ private:
 private:
 
 	I_InputHelper* prefab;
+	template<>
+	void get(const picojson::value & value, picojson::array * out) {
+		*out = (picojson::array)value.get<picojson::array>();
+	}
 };
 //ファイル読み込み処理
 class FileInputHelper : public I_InputHelper{
@@ -312,6 +383,10 @@ protected:
 	{
 	}
 public:
+	MD5::MD5HashCode GetUniqueID(const wp<Actor>* out);
+	void _func(const GameObject* out, const char* name, bool compel) {
+		func(GetUniqueID(out), name, compel);
+	}
 	template<class T>
 	void _func(const T* out, const char* name, bool compel){
 
@@ -470,12 +545,89 @@ public:
 		o->insert(std::make_pair((std::string(name) + "3").c_str(), picojson::value((double)out->m_Hash.key_i[3])));
 	}
 	template<class T>
+	void _func(const std::vector<T>* out, const char* name, bool compel) {
+		//std::vector<T> temp;
+		//if (mOutputFilterRebirth) {
+		//	if (compel)return;
+		//	if (prefab && prefab->func(temp, name)) {
+		//		if (temp != *out)return;
+		//	}
+		//}
+		//else {
+		//	if (!compel && prefab && prefab->func(temp, name)) {
+		//		if (temp == *out)return;
+		//	}
+		//}
+		if (out->size() == 0)return;
+		auto back = o;
+		size_t s = out->size();
+		picojson::array ar(s);
+		int i = 0;
+		for (int i = 0; i < out->size(); i++) {
+			picojson::object newO;
+			o = &newO;
+			
+			_func(&(*out)[i], "a", compel);
+			ar[i] = picojson::value(newO);
+		}
+		//for (auto value : *out) {
+		//	picojson::object newO;
+		//	o = &newO;
+		//	_func(&value, "a", compel);
+		//	ar[i] = picojson::value(newO);
+		//	i++;
+		//}
+		o = back;
+		_func_out(&ar, name);
+	}
+
+	template<>
+	void _func(const std::vector<bool>* out, const char* name, bool compel) {
+		//std::vector<bool> temp;
+		//if (mOutputFilterRebirth) {
+		//	if (compel)return;
+		//	if (prefab && prefab->func(temp, name)) {
+		//		if (temp != *out)return;
+		//	}
+		//}
+		//else {
+		//	if (!compel && prefab && prefab->func(temp, name)) {
+		//		if (temp == *out)return;
+		//	}
+		//}
+		if (out->size() == 0)return;
+		auto back = o;
+		picojson::array ar(out->size());
+		int i = 0;
+		for (int i = 0; i < out->size(); i++) {
+			picojson::object newO;
+			o = &newO;
+			const bool v = (*out)[i];
+
+			_func(&v, "a", compel);
+			ar[i] = picojson::value(newO);
+		}
+		//for (auto value : *out) {
+		//	picojson::object newO;
+		//	o = &newO;
+		//	_func(&value, "a", compel);
+		//	ar[i] = picojson::value(newO);
+		//	i++;
+		//}
+		o = back;
+		_func_out(&ar, name);
+	}
+	template<class T>
 	void _func_out(const T* out, const char* name);
 private:
 
 	I_InputHelper* prefab;
 
 	bool mOutputFilterRebirth;
+	template<>
+	void _func_out(const picojson::array * value, const char * name) {
+		o->insert(std::make_pair(name, (picojson::array)*value));
+	}
 };
 
 //ファイル書き込み処理
