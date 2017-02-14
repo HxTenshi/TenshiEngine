@@ -626,10 +626,12 @@ private:
 	I_InputHelper* prefab;
 
 	bool mOutputFilterRebirth;
-	template<>
-	void _func_out(const picojson::array * value, const char * name) {
-		o->insert(std::make_pair(name, (picojson::array)*value));
-	}
+	//template<>
+	//void _func_out(const picojson::array * value, const char * name) {
+	//	o->insert(std::make_pair(name, (picojson::array)*value));
+	//}
+
+	void _func_out(const picojson::array * value, const char * name);
 };
 
 //ƒtƒ@ƒCƒ‹‘‚«‚İˆ—

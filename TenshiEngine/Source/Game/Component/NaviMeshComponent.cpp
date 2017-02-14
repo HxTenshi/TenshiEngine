@@ -15,7 +15,9 @@ NaviMeshComponent::NaviMeshComponent() {
 	mEndTarget = NULL;
 
 #ifdef _ENGINE_MODE
-	m_EngineView = false;
+	m_EngineRouteView=false;
+	m_EngineMeshView =false;
+	m_EngineWallView =false;
 #endif
 }
 NaviMeshComponent::~NaviMeshComponent() {
@@ -28,7 +30,6 @@ void NaviMeshComponent::Initialize() {
 
 #ifdef _ENGINE_MODE
 void NaviMeshComponent::EngineUpdate() {
-	if (!m_EngineView)return;
 	static bool Init = false;
 	static Shader mShader;
 	static Material mMaterial;
@@ -83,8 +84,8 @@ void NaviMeshComponent::EngineUpdate() {
 		}
 
 	}
-
-	if (mNavigatePtr) {
+	
+	if (mNavigatePtr &&m_EngineRouteView) {
 
 		for (auto& navi : mNavigatePtr->GetRoute()) {
 
@@ -121,6 +122,83 @@ void NaviMeshComponent::EngineUpdate() {
 		}
 
 	}
+	if (mNaviMesh.GetNaviMeshNum() != 0&& m_EngineMeshView) {
+
+		for (auto& navi : mNaviMesh.GetNaviMeshData()) {
+
+			auto pos = navi.GetData().CenterPosition;
+
+			for (int i = 0; i < 3; i++) {
+				auto link = navi.GetLink()[i];
+				if (link == NULL)continue;
+				auto v = link->GetData().CenterPosition;
+
+				Game::AddDrawList(DrawStage::Engine, [&, pos, v]() {
+
+					auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+					render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+					render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+
+					mShader.SetShader(false, render->m_Context);
+					mMaterial.PSSetShaderResources(render->m_Context);
+					UINT mStride = sizeof(XMFLOAT4);
+					UINT offset = 0;
+					render->m_Context->IASetVertexBuffers(0, 1, &mpVertexBuffer, &mStride, &offset);
+					render->m_Context->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+					mLineCBuffer.mParam.mWorld.r[0] = pos;
+					mLineCBuffer.mParam.mWorld.r[1] = v;
+					mLineCBuffer.UpdateSubresource(render->m_Context);
+					mLineCBuffer.VSSetConstantBuffers(render->m_Context);
+
+					render->m_Context->DrawIndexed(2, 0, 0);
+
+					render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+					render->PopDS();
+				});
+
+			}
+		}
+	}
+
+	if (mNaviMesh.GetNaviMeshNum() != 0 && m_EngineWallView) {
+
+		for (auto& navi : mNaviMesh.GetNaviMeshWallData()) {
+
+			auto pos = navi.GetData().Vertex[0];
+			auto v = navi.GetData().Vertex[1];
+
+			Game::AddDrawList(DrawStage::Engine, [&, pos, v]() {
+
+				auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+				render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+				render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+
+				mShader.SetShader(false, render->m_Context);
+				mMaterial.PSSetShaderResources(render->m_Context);
+				UINT mStride = sizeof(XMFLOAT4);
+				UINT offset = 0;
+				render->m_Context->IASetVertexBuffers(0, 1, &mpVertexBuffer, &mStride, &offset);
+				render->m_Context->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+				mLineCBuffer.mParam.mWorld.r[0] = pos;
+				mLineCBuffer.mParam.mWorld.r[1] = v;
+				mLineCBuffer.UpdateSubresource(render->m_Context);
+				mLineCBuffer.VSSetConstantBuffers(render->m_Context);
+
+				render->m_Context->DrawIndexed(2, 0, 0);
+
+				render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+				render->PopDS();
+			});
+		}
+	}
 
 }
 #endif
@@ -146,15 +224,25 @@ void NaviMeshComponent::CreateInspector() {
 	ins.Add("NaviMesh", &m_Mesh, [&]() {
 		SetNaviMesh(m_Mesh);
 	});
+	ins.Add("BaseNaviMeshObject", &mBaseNaviMeshObject, [&]() {
+		SetBaseNaviMeshObject(mBaseNaviMeshObject);
+	});
 	ins.Add("StartPoint", &mStartTarget, [&]() {
 		RootCreate(mStartTarget, mEndTarget);
 	});
 	ins.Add("EndPoint", &mEndTarget, [&]() {
 		RootCreate(mStartTarget, mEndTarget);
 	});
-	ins.Add("DebugRouteView", &m_EngineView, [&](bool f) {
-		m_EngineView = f;
+	ins.Add("DebugRouteView", &m_EngineRouteView, [&](bool f) {
+		m_EngineRouteView = f;
 	});
+	ins.Add("DebugConectView", &m_EngineMeshView, [&](bool f) {
+		m_EngineMeshView = f;
+	});
+	ins.Add("DebugWallView", &m_EngineWallView, [&](bool f) {
+		m_EngineWallView = f;
+	});
+
 	ins.Complete();
 
 
@@ -164,9 +252,18 @@ void NaviMeshComponent::CreateInspector() {
 void NaviMeshComponent::IO_Data(I_ioHelper* io) {
 #define _KEY(x) io->func( x , #x)
 	_KEY(m_Mesh);
+	ioGameObjectHelper::func(&mBaseNaviMeshObject, "mBaseNaviMeshObject", io, &gameObject);
 	ioGameObjectHelper::func(&mStartTarget, "mStartTarget", io, &gameObject);
 	ioGameObjectHelper::func(&mEndTarget, "mEndTarget", io, &gameObject);
 #undef _KEY
+}
+
+void NaviMeshComponent::SetBaseNaviMeshObject(GameObject obj)
+{
+	if (obj == gameObject) {
+		return;
+	}
+	mBaseNaviMeshObject = obj;
 }
 
 void NaviMeshComponent::SetNaviMesh(MeshAsset mesh)
@@ -174,8 +271,11 @@ void NaviMeshComponent::SetNaviMesh(MeshAsset mesh)
 	m_Mesh = mesh;
 	if(!m_Mesh.IsLoad())
 		AssetLoad::Instance(m_Mesh.m_Hash, m_Mesh);
-	mNaviMesh.Create(mesh.m_Ptr);
-	RootCreate(mStartTarget, mEndTarget);
+	if(m_Mesh.IsLoad()){
+		mNaviMesh.Create(mesh.m_Ptr);
+		RootCreate(mStartTarget, mEndTarget);
+		mBaseNaviMeshObject = NULL;
+	}
 }
 
 void NaviMeshComponent::RootCreate(GameObject start, GameObject end)
@@ -190,14 +290,32 @@ void NaviMeshComponent::RootCreate(GameObject start, GameObject end)
 
 	if (!mStartTarget || !mEndTarget)return;
 
-	mStart = mNaviMesh.FindNaviPosition(mStartTarget->mTransform->WorldPosition());
-	mEnd = mNaviMesh.FindNaviPosition(mEndTarget->mTransform->WorldPosition());
+	if (mBaseNaviMeshObject) {
+		if (auto com = mBaseNaviMeshObject->GetComponent<NaviMeshComponent>()) {
+			mStart = com->mNaviMesh.FindNaviPosition(mStartTarget->mTransform->WorldPosition());
+			mEnd = com->mNaviMesh.FindNaviPosition(mEndTarget->mTransform->WorldPosition());
 
-	if (!mStart || !mEnd)return;
 
-	mNaviMeshCreatorPtr = make_shared<NavigateCreator>(mStart, mEnd, &mNaviMesh);
-	mNaviMeshCreatorPtr->N2();
-	mNavigatePtr = mNaviMeshCreatorPtr->Result();
+			if (!mStart || !mEnd)return;
+
+			mNaviMeshCreatorPtr = make_shared<NavigateCreator>(mStart, mEnd, &com->mNaviMesh);
+
+			mNaviMeshCreatorPtr->N2();
+			mNavigatePtr = mNaviMeshCreatorPtr->Result();
+		}
+	}
+	else {
+
+		mStart = mNaviMesh.FindNaviPosition(mStartTarget->mTransform->WorldPosition());
+		mEnd = mNaviMesh.FindNaviPosition(mEndTarget->mTransform->WorldPosition());
+
+		if (!mStart || !mEnd)return;
+
+		mNaviMeshCreatorPtr = make_shared<NavigateCreator>(mStart, mEnd, &mNaviMesh);
+
+		mNaviMeshCreatorPtr->N2();
+		mNavigatePtr = mNaviMeshCreatorPtr->Result();
+	}
 }
 
 void NaviMeshComponent::Move(float speed)

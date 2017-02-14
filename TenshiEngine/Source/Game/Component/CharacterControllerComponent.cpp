@@ -282,6 +282,12 @@ void CharacterControllerComponent::OnEnabled() {
 }
 void CharacterControllerComponent::OnDisabled() {
 	if (mController) {
+		auto act = mController->getActor();
+		mController->setUserData(NULL);
+		act->userData = NULL;
+		act->getShapes(&mShape, 1);
+		mShape->userData = NULL;
+
 		mController->release();
 		mController = NULL;
 	}

@@ -112,6 +112,10 @@ void I_OutputHelper::_func_out(const picojson::value* value, const char* name){
 	o->insert(std::make_pair(name, (picojson::value)*value));
 }
 
+
+void I_OutputHelper::_func_out(const picojson::array * value, const char * name) {
+	o->insert(std::make_pair(name, (picojson::array)*value));
+}
 //template<>
 //void I_OutputHelper::_func_out(const MD5::MD5HashCoord* value, const char* name){
 //	o->insert(std::make_pair(name, picojson::value((std::string)value->GetString())));
