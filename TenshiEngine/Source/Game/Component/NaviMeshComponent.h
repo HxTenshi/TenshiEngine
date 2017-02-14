@@ -8,6 +8,7 @@ public:
 	INaviMeshComponent() {}
 	virtual ~INaviMeshComponent(){}
 
+	virtual void SetBaseNaviMeshObject(GameObject obj) = 0;
 	virtual void SetNaviMesh(MeshAsset mesh) = 0;
 	virtual void RootCreate(GameObject start, GameObject end) = 0;
 	virtual void Move(float speed) = 0;
@@ -33,7 +34,11 @@ public:
 	void CreateInspector() override;
 #endif
 	void IO_Data(I_ioHelper* io) override;
-
+	//生成済みのナビメッシュを参照する設定　
+	//設定するとSetNaviMeshで生成したナビメッシュが無効化
+	void SetBaseNaviMeshObject(GameObject obj) override;
+	//MeshAssetからナビメッシュを生成する
+	//設定するとSetBaseNaviMeshComponentで設定した参照が切れる
 	void SetNaviMesh(MeshAsset mesh) override;
 	void RootCreate(GameObject start, GameObject goal) override;
 	//現在の位置を進める
@@ -51,11 +56,14 @@ public:
 private:
 
 #ifdef _ENGINE_MODE
-	bool m_EngineView;
+	bool m_EngineRouteView;
+	bool m_EngineMeshView;
+	bool m_EngineWallView;
 #endif
 
 	MeshAsset m_Mesh;
 	NaviMesh mNaviMesh;
+	GameObject mBaseNaviMeshObject;
 	shared_ptr<NavigateCreator> mNaviMeshCreatorPtr;
 	shared_ptr<Navigate> mNavigatePtr;
 	NaviMeshPolygon* mStart;

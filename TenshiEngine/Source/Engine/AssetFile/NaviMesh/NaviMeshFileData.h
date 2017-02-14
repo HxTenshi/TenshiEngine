@@ -60,6 +60,10 @@ public:
 		return mLinkPolygon;
 	}
 
+	NaviMeshPolygonData* GetDataPtr(){
+		return &mNaviMeshPolygonData;
+	}
+
 	float GetLinkLength(int id) const{
 		return mLinkPolygonLength[id];
 	}
@@ -242,6 +246,27 @@ public:
 
 			mNaviMeshDataBase[i] = NaviMeshPolygon(polydata);
 		}
+		const auto VEPS = XMVectorSet(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON);
+
+		for (int i = 0; i < polynum; i++) {
+
+			auto base = &mNaviMeshDataBase[i];
+			for (int j = i + 1; j < polynum; j++) {
+
+				auto target = &mNaviMeshDataBase[j];
+				for (int l = 0; l < 3; l++) {
+					for (int k = 0; k < 3; k++) {
+
+						if (XMVector3NearEqual(base->GetData().Vertex[l], target->GetData().Vertex[k], VEPS)) {
+
+							target->GetDataPtr()->Index[k] = base->GetData().Index[l];
+						}
+					}
+				}
+			}
+		}
+
+
 
 		for (int i = 0; i < polynum; i++) {
 
@@ -262,7 +287,6 @@ public:
 						unsigned int linetarget[2];
 						auto target = &mNaviMeshDataBase[j];
 						target->GetLine(lineTarID, &linetarget[0], &linetarget[1]);
-
 						//ƒ‰ƒCƒ“‚ªˆê’v
 						if ((line[0] == linetarget[0] && line[1] == linetarget[1]) ||
 							(line[0] == linetarget[1] && line[1] == linetarget[0])) {
@@ -348,6 +372,9 @@ public:
 		return id == -1 ? NULL : &mNaviMeshDataBase[id];
 
 	}
+
+	const std::vector<NaviMeshPolygon>& GetNaviMeshData() { return mNaviMeshDataBase; }
+	const std::vector<NaviMeshWall>& GetNaviMeshWallData() { return mNaviMeshWallDataBase; };
 private:
 	std::vector<NaviMeshPolygon> mNaviMeshDataBase;
 	std::vector<NaviMeshWall> mNaviMeshWallDataBase;

@@ -115,21 +115,27 @@ public:
 		auto v = o->find(name);
 		if (v != o->end()) {
 
-			MD5::MD5HashCode temp;
+			XMVECTOR temp;
 			if (prefab) {
-				if (!prefab->func((MD5::MD5HashCode)temp, name)) {
+				if (!prefab->func((XMVECTOR)temp, name)) {
 					return false;
 				}
 			}
-			get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
-			return true;
 		}
 
 		bool f = true;
 		f = f&&_func(&out->x, (std::string(name) + ".x").c_str());
-		f = f&&_func(&out->y, (std::string(name) + ".y").c_str());
-		f = f&&_func(&out->z, (std::string(name) + ".z").c_str());
-		f = f&&_func(&out->w, (std::string(name) + ".w").c_str());
+		if (f) {
+			f = f&&_func(&out->y, (std::string(name) + ".y").c_str());
+			f = f&&_func(&out->z, (std::string(name) + ".z").c_str());
+			f = f&&_func(&out->w, (std::string(name) + ".w").c_str());
+		}
+		else {
+			f = _func(&out->x, (std::string(name) + "x").c_str());
+			f = f&&_func(&out->y, (std::string(name) + "y").c_str());
+			f = f&&_func(&out->z, (std::string(name) + "z").c_str());
+			f = f&&_func(&out->w, (std::string(name) + "w").c_str());
+		}
 		return f;
 	}
 	template<>
@@ -137,14 +143,12 @@ public:
 		auto v = o->find(name);
 		if (v != o->end()) {
 
-			MD5::MD5HashCode temp;
+			XMFLOAT2 temp;
 			if (prefab) {
-				if (!prefab->func((MD5::MD5HashCode)temp, name)) {
+				if (!prefab->func((XMFLOAT2)temp, name)) {
 					return false;
 				}
 			}
-			get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
-			return true;
 		}
 
 		bool f = true;
@@ -157,14 +161,12 @@ public:
 		auto v = o->find(name);
 		if (v != o->end()) {
 
-			MD5::MD5HashCode temp;
+			XMFLOAT4 temp;
 			if (prefab) {
-				if (!prefab->func((MD5::MD5HashCode)temp, name)) {
+				if (!prefab->func((XMFLOAT4)temp, name)) {
 					return false;
 				}
 			}
-			get<MD5::MD5HashCode>(v->second, (MD5::MD5HashCode*)out);
-			return true;
 		}
 
 		bool f = true;
@@ -624,10 +626,12 @@ private:
 	I_InputHelper* prefab;
 
 	bool mOutputFilterRebirth;
-	template<>
-	void _func_out(const picojson::array * value, const char * name) {
-		o->insert(std::make_pair(name, (picojson::array)*value));
-	}
+	//template<>
+	//void _func_out(const picojson::array * value, const char * name) {
+	//	o->insert(std::make_pair(name, (picojson::array)*value));
+	//}
+
+	void _func_out(const picojson::array * value, const char * name);
 };
 
 //ƒtƒ@ƒCƒ‹‘‚«‚İˆ—
