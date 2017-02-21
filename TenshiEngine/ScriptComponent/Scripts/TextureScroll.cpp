@@ -18,8 +18,8 @@ void TextureScroll::Update(){
 	auto mate = gameObject->GetComponent<MaterialComponent>();
 	if (mate){
 		auto material = mate->GetMaterialPtr(0);
-		material->mCBMaterial.mParam.MOffset.x += x;
-		material->mCBMaterial.mParam.MOffset.y += y;
+		//material->mCBMaterial.mParam.MOffset.x += x;
+		//material->mCBMaterial.mParam.MOffset.y += y;
 	}
 }
 

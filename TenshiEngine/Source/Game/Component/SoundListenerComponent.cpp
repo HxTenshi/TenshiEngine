@@ -19,6 +19,10 @@ SoundListenerComponent::~SoundListenerComponent()
 
 void SoundListenerComponent::Initialize()
 {
+}
+
+void SoundListenerComponent::Start()
+{
 
 	if (mIsCreate)return;
 
@@ -70,10 +74,6 @@ void SoundListenerComponent::Initialize()
 
 	mIsCreate = true;
 
-}
-
-void SoundListenerComponent::Start()
-{
 }
 
 #ifdef _ENGINE_MODE

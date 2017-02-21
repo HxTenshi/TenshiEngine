@@ -23,6 +23,12 @@ void BulletEmiter::Update(){
 		actor->mTransform->Position(gameObject->mTransform->Position());
 		actor->mTransform->Rotate(gameObject->mTransform->Rotate());
 	}
+	if (Input::Down(KeyCode::Key_X)) {
+		auto actor = Hx::Instance(mBulletObject);
+		if (!actor)return;
+		actor->mTransform->Position(gameObject->mTransform->Position());
+		actor->mTransform->Rotate(gameObject->mTransform->Rotate());
+	}
 }
 
 //開放時に呼ばれます（Initialize１回に対してFinish１回呼ばれます）（エディター中も呼ばれます）

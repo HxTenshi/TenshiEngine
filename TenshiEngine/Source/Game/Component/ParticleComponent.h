@@ -27,6 +27,7 @@ public:
 	ParticleComponent();
 	~ParticleComponent();
 	void Initialize() override;
+	void Start() override;
 #ifdef _ENGINE_MODE
 	void EngineUpdate() override;
 #endif

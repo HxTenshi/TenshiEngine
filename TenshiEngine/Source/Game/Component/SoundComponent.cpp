@@ -88,6 +88,7 @@ void SoundComponent::IO_Data(I_ioHelper* io){
 
 #define _KEY(x) io->func( x , #x)
 	_KEY(mSoundFileSource);
+	_KEY(mIs3DSound);
 	_KEY(mIsLoop);
 	_KEY(mVolume);
 	_KEY(mAutoPlay);
