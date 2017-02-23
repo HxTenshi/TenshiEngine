@@ -40,26 +40,30 @@ void MeshDrawComponent::Update(){
 		mModel->SetMatrix();
 	}));
 
-	bool alf = mMaterial->GetUseAlpha();
-
-	auto stage = alf ? DrawStage::Forward : DrawStage::Diffuse;
-
-	Game::AddDrawList(stage, std::function<void()>([&](){
+	auto drawfanc = std::function<void()>([&]() {
 		Model& model = *mModel->mModel;
 
 		auto& meshvec = mModel->GetMeshComVector();
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 
-		if (meshvec.size() > 0){
+		if (meshvec.size() > 0) {
 			model.Draw(render->m_Context, meshvec);
 		}
-		else{
+		else {
 			model.Draw(render->m_Context, mMaterial);
 		}
 
 
-	}));
+	});
+
+	bool alf = mMaterial->GetUseAlpha();
+	if (alf) {
+		Game::AddDrawListZ(DrawStage::Forward, gameObject, drawfanc);
+	}
+	else {
+		Game::AddDrawList(DrawStage::Diffuse, drawfanc);
+	}
 
 }
 #ifdef _ENGINE_MODE

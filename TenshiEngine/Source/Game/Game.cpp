@@ -51,6 +51,7 @@ static std::stack<int> gIntPtrStack;
 
 static Game::ListMapType* gpList;
 static Game::DrawListMapType *gDrawList;
+static Game::DrawListZSortMapType *gZDrawList;
 static PhysX3Main* gpPhysX3Main;
 static CommandManager* gCommandManager;
 static CameraComponent** gMainCamera;
@@ -213,6 +214,7 @@ Game::Game() {
 
 	gpList = &mList;
 	gDrawList = &mDrawList;
+	gZDrawList = &mZSortDrawList;
 	gMainCamera = &mMainCamera;
 
 #ifdef _ENGINE_MODE
@@ -781,6 +783,11 @@ void Game::AddDrawList(DrawStage stage, std::function<void()> func){
 	(*gDrawList)[stage].push_back(func);
 }
 
+void Game::AddDrawListZ(DrawStage stage, GameObject gameobject, std::function<void()> func)
+{
+	(*gZDrawList)[stage].push_back(std::make_pair(gameobject,func));
+}
+
 void Game::SetUndo(Actor* actor){
 #ifdef _ENGINE_MODE
 	gSelectActor->PushUndo();
@@ -961,11 +968,16 @@ void Game::Draw(){
 	mCBScreen.PSSetConstantBuffers(render->m_Context);
 
 
+
+	DrawListZSort();
+
+
 	//const RenderTarget* r[1] = { &mMainViewRenderTarget };
 	//RenderTarget::SetRendererTarget((UINT)1, r[0], Device::mRenderTargetBack);
 
 	//¡‚ÍˆÓ–¡‚È‚µ
 	PlayDrawList(DrawStage::Depth);
+	PlayDrawListZSort(DrawStage::Depth);
 
 
 	ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
@@ -974,6 +986,8 @@ void Game::Draw(){
 	render->m_Context->PSSetSamplers(0, 4, pSNULL);
 
 	PlayDrawList(DrawStage::Init);
+	PlayDrawListZSort(DrawStage::Init);
+
 
 #ifdef _ENGINE_MODE
 	static bool g_DebugRender = false;
@@ -987,6 +1001,7 @@ void Game::Draw(){
 
 		m_DeferredRendering.ShadowDepth_Buffer_Rendering(render, [&](){
 			PlayDrawList(DrawStage::Diffuse);
+			PlayDrawListZSort(DrawStage::Diffuse);
 		});
 
 		mMainCamera->VSSetConstantBuffers(render->m_Context);
@@ -996,20 +1011,24 @@ void Game::Draw(){
 		m_DeferredRendering.G_Buffer_Rendering(render, [&](){
 			//mMainCamera->ScreenClear();
 			PlayDrawList(DrawStage::Diffuse);
+			PlayDrawListZSort(DrawStage::Diffuse);
 		});
 
 		m_DeferredRendering.Light_Rendering(render, [&](){
 			PlayDrawList(DrawStage::Light);
+			PlayDrawListZSort(DrawStage::Light);
 		});
 
 		m_DeferredRendering.Deferred_Rendering(render, &mMainViewRenderTarget);
 		
 		m_DeferredRendering.Forward_Rendering(render, &mMainViewRenderTarget, [&](){
 			PlayDrawList(DrawStage::Forward);
+			PlayDrawListZSort(DrawStage::Forward);
 		});
 		
 		m_DeferredRendering.Particle_Rendering(render, &mMainViewRenderTarget, [&](){
 			PlayDrawList(DrawStage::Particle);
+			PlayDrawListZSort(DrawStage::Particle);
 		});
 
 		m_DeferredRendering.HDR_Rendering(render);
@@ -1022,6 +1041,7 @@ void Game::Draw(){
 			[&](){
 			//mMainCamera->ScreenClear();
 			PlayDrawList(DrawStage::Diffuse);
+			PlayDrawListZSort(DrawStage::Diffuse);
 		});
 
 		m_DeferredRendering.Debug_AlbedoOnly_Rendering(render,&mMainViewRenderTarget);
@@ -1029,10 +1049,12 @@ void Game::Draw(){
 		
 		m_DeferredRendering.Forward_Rendering(render, &mMainViewRenderTarget, [&](){
 			PlayDrawList(DrawStage::Forward);
+			PlayDrawListZSort(DrawStage::Forward);
 		});
 		
 		m_DeferredRendering.Particle_Rendering(render, &mMainViewRenderTarget, [&](){
 			PlayDrawList(DrawStage::Particle);
+			PlayDrawListZSort(DrawStage::Particle);
 		});
 	}
 
@@ -1040,14 +1062,18 @@ void Game::Draw(){
 
 	mPostEffectRendering.Rendering(render, [&](){
 		PlayDrawList(DrawStage::PostEffect);
+		PlayDrawListZSort(DrawStage::PostEffect);
 	});
 
 
 #ifdef _ENGINE_MODE
 	PlayDrawList(DrawStage::Engine);
+	PlayDrawListZSort(DrawStage::Engine);
 
-	if (g_IsGameStopFrame)
+	if (g_IsGameStopFrame) {
 		mDrawList[DrawStage::Engine].clear();
+		mZSortDrawList[DrawStage::Engine].clear();
+	}
 #endif
 
 
@@ -1060,6 +1086,7 @@ void Game::Draw(){
 		render->PushSet(BlendState::Preset::BS_Alpha, 0xFFFFFFFF);
 
 		PlayDrawList(DrawStage::UI);
+		PlayDrawListZSort(DrawStage::UI);
 
 		render->PopBS();
 		render->PopDS();
@@ -1180,11 +1207,56 @@ void Game::ClearDrawList(){
 	for (auto &list : mDrawList) {
 		list.second.clear();
 	}
+	for (auto &list : mZSortDrawList) {
+		list.second.clear();
+	}
+}
+void Game::DrawListZSort() {
+#ifdef _ENGINE_MODE
+	if (g_IsGameStopFrame)return;
+#endif
+	for (auto &list : mZSortDrawList) {
+		if (list.first == DrawStage::UI) {
+			std::sort(list.second.begin(), list.second.end(),
+				[](const std::pair<GameObject, std::function<void()>>& left, const std::pair<GameObject, std::function<void()>>& right)->bool
+			{
+				if (left.first && right.first) {
+					return left.first->mTransform->Position().z < right.first->mTransform->Position().z;
+				}
+				return false;
+			});
+		}
+		else
+		{
+			if (auto cam = GetMainCamera()) {
+				XMVECTOR null;
+				auto v = cam->GetViewMatrix();
+				std::sort(list.second.begin(), list.second.end(),
+					[&](const std::pair<GameObject, std::function<void()>>& left, const std::pair<GameObject, std::function<void()>>& right)->bool
+				{
+					if (left.first && right.first) {
+
+						return XMMatrixMultiply(left.first->mTransform->GetMatrix(), v).r[3].z > XMMatrixMultiply(right.first->mTransform->GetMatrix(), v).r[3].z;
+					}
+					return false;
+				});
+			}
+			
+		}
+	}
 }
 void Game::PlayDrawList(DrawStage Stage){
 	auto &list = mDrawList[Stage];
 	for (auto &p : list){
 		p();
+	}
+}
+
+void Game::PlayDrawListZSort(DrawStage Stage)
+{
+	auto &list = mZSortDrawList[Stage];
+	for (auto &p : list) {
+		p.second();
 	}
 }
 

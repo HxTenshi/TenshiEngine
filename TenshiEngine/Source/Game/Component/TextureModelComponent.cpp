@@ -93,7 +93,7 @@ void TextureModelComponent::Update(){
 	Game::AddDrawList(DrawStage::Init, std::function<void()>([&](){
 		SetMatrix();
 	}));
-	Game::AddDrawList(DrawStage::UI, std::function<void()>([mate, movie, this](){
+	Game::AddDrawListZ(DrawStage::UI,gameObject,std::function<void()>([mate, movie, this](){
 
 		if (mate){
 			auto material = mate->GetMaterial(0);

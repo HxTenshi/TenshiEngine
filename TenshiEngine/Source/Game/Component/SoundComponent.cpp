@@ -123,6 +123,12 @@ void SoundComponent::Play(){
 	auto sound = file->GetSoundFile();
 	if (!sound)return;
 	sound->Volume(mVolume);
+
+	if (mIs3DSound) {
+		auto pos = gameObject->mTransform->WorldPosition();
+		sound->Set3DPosition(pos.x, pos.y, pos.z);
+	}
+
 	sound->Play(mIsLoop);
 }
 void SoundComponent::Stop(){

@@ -29,6 +29,8 @@ TextComponent::TextComponent()
 	mFontSize = 48.0f;
 	mCenter = false;
 	m_Center = XMFLOAT2(0.5f, 0.5f);
+	m_FontName = "ƒƒCƒŠƒI";
+	m_FonstSelect = 0;
 }
 TextComponent::~TextComponent()
 {
@@ -39,7 +41,8 @@ TextComponent::~TextComponent()
 void TextComponent::Initialize(){
 
 	impl->mTexMaterial.Create("EngineResource/texture.fx");
-	impl->mFont.CreateFont_("", mFontSize);
+	AddFont(m_FontFile);
+	ChangeFont(m_FontName);
 	
 	auto mBackScale = gameObject->mTransform->Scale();
 	impl->mFont.CreateTexture_((UINT)mBackScale.x, (UINT)mBackScale.y);
@@ -102,7 +105,7 @@ void TextComponent::DrawTextUI(){
 
 	});
 
-	Game::AddDrawList(DrawStage::UI, [&](){
+	Game::AddDrawListZ(DrawStage::UI,gameObject, [&](){
 
 		auto mate = gameObject->GetComponent<MaterialComponent>();
 		if (mate){
@@ -160,6 +163,18 @@ void TextComponent::CreateInspector(){
 	};
 	Inspector ins("Text",this);
 	ins.AddEnableButton(this);
+
+	ins.Add("FontFile", &m_FontFile, [&](std::string s) {
+		AddFont(s);
+	});
+	ins.Add("FontName", &m_FontName, [&](std::string s) {
+		ChangeFont(s);
+	});
+	auto fonts = FontFileData::GetFonts();
+	ins.AddSelect("Fonts", &m_FonstSelect,fonts, [&](int s) {
+		auto fonts = FontFileData::GetFonts();
+		ChangeFont(fonts[s]);
+	});
 	ins.Add("Text", &impl->mText, collback);
 	ins.Add("FontSize", &mFontSize, [&](float f){
 		ChangeFontSize(f);
@@ -181,6 +196,10 @@ void TextComponent::IO_Data(I_ioHelper* io){
 	Enabled::IO_Data(io);
 
 #define _KEY(x) io->func( x , #x)
+
+
+	_KEY(m_FontFile);
+	_KEY(m_FontName);
 	_KEY(impl->mText);
 	_KEY(m_Center.x);
 	_KEY(m_Center.y);
@@ -189,13 +208,36 @@ void TextComponent::IO_Data(I_ioHelper* io){
 #undef _KEY
 }
 
+void TextComponent::AddFont(const std::string & filePath)
+{
+	bool f = false;
+	if (m_FontFile != "") {
+		f = true;
+	}
+	m_FontFile = filePath;
+	impl->mFont.AddFont(m_FontFile.c_str());
+	if (m_FontFile != "" || f) {
+		FontFileData::ClearFonts();
+#ifdef _ENGINE_MODE
+		Window::ClearInspector();
+#endif
+	}
+}
+
+void TextComponent::ChangeFont(const std::string & fontName)
+{
+	m_FontName = fontName;
+	impl->mFont.CreateFont_(m_FontName.c_str(), mFontSize);
+	ChangeText(impl->mText);
+}
+
 void TextComponent::ChangeText(const std::string& text){
 	impl->mText = text;
 	impl->mFont.SetText(impl->mText, mCenter);
 }
 void TextComponent::ChangeFontSize(float size){
 	mFontSize = size;
-	impl->mFont.CreateFont_("", mFontSize);
+	impl->mFont.CreateFont_(m_FontName.c_str(), mFontSize);
 	ChangeText(impl->mText);
 }
 void TextComponent::ChangeCenter(bool center){

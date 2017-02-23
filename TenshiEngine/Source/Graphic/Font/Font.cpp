@@ -76,6 +76,16 @@ public:
 
 
 		UINT code = Code;     // テクスチャに書き込む文字
+		bool kuuhaku = false;
+		//空白処理
+		if (code == 32) {
+			kuuhaku = true;
+			code = (UINT)'t';
+		}
+		if (code == 33088) {
+			kuuhaku = true;
+			code = (UINT)'あ';
+		}
 
 		// フォントビットマップ取得
 		TEXTMETRIC TM;
@@ -90,9 +100,30 @@ public:
 			0,
 			NULL,
 			&Mat);
-		mBitmapByte.resize(size);
-		GetGlyphOutline(
-			hdc, code, GGO_GRAY4_BITMAP, &GM, size, mBitmapByte.data(), &Mat);
+		if(size == GDI_ERROR) {
+			//エラー処理。
+			//スペースの場合もここが呼ばれるらしいのでその処理
+			//スペースの代わり
+			//code = (UINT)'t';
+			//DWORD size = GetGlyphOutline(
+			//	hdc,
+			//	code,
+			//	GGO_GRAY4_BITMAP,
+			//	&GM,
+			//	0,
+			//	NULL,
+			//	&Mat);
+			//mBitmapByte.resize(size);
+			return;
+		}
+		else {
+			mBitmapByte.resize(size);
+
+		}
+		if (!kuuhaku) {
+			GetGlyphOutline(
+				hdc, code, GGO_GRAY4_BITMAP, &GM, size, mBitmapByte.data(), &Mat);
+		}
 
 		mBitmapState.x = GM.gmptGlyphOrigin.x;
 		mBitmapState.y = TM.tmAscent - GM.gmptGlyphOrigin.y;
@@ -129,11 +160,12 @@ public:
 
 			if (IsDBCSLeadByte(c) == 0)
 			{
+				//32空白
 				code = (UINT)c;
 			}
 			else
 			{
-
+				//33088空白
 				auto c1 = (BYTE)text[i];
 				auto c2 = (BYTE)text[i + 1];
 				code = (UINT)(((UINT)c1) << 8 | ((UINT)c2));
@@ -172,6 +204,8 @@ private:
 };
 
 
+//static 
+std::vector<std::string> FontFileData::m_Fonts;
 
 FontFileData::FontFileData()
 	:hFont(NULL)
@@ -209,36 +243,85 @@ void FontFileData::Release(){
 	}
 }
 
-void FontFileData::CreateFont_(const char* fileName, float FontSize){
+// 日本語フォントの列挙
+int CALLBACK EnumJFontProc(
+	ENUMLOGFONTEX *lpelfe, // 論理的なフォントデータ
+	NEWTEXTMETRICEX *lpntme, // 物理的なフォントデータ
+	DWORD dwFontType, // フォントの種類
+	LPARAM lParam // アプリケーション定義のデータ
+)
+{
+	// truetype 以外は除外
+	if (dwFontType != TRUETYPE_FONTTYPE)return TRUE; // 続けるときは 0 以外を返す
+													 // 先頭に @ が付くものは除外
+	if (lpelfe->elfLogFont.lfFaceName[0] == '@')return TRUE;
+	// 先頭に $ が付くものは除外
+	if (lpelfe->elfLogFont.lfFaceName[0] == '$')return TRUE;
+	// 日本語以外は除外
+	if (lstrcmp((LPCSTR)lpelfe->elfScript, TEXT("日本語")) != 0)return TRUE;
+	// リストに登録
+	//SendMessage((HWND)lParam, LB_ADDSTRING, 0, (LPARAM)lpelfe->elfLogFont.lfFaceName);
 
+	auto v = (std::vector<std::string>*)lParam;
+	v->push_back(lpelfe->elfLogFont.lfFaceName);
+
+	return TRUE;
+
+}
+
+// 英語フォントの列挙
+int CALLBACK EnumEFontProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD dwFontType, LPARAM lParam)
+{
+	// truetype 以外は除外
+	if (dwFontType != TRUETYPE_FONTTYPE)return TRUE; // 続けるときは 0 以外を返す
+													 // 先頭に @ が付くものは除外
+	if (lpelfe->elfLogFont.lfFaceName[0] == '@')return TRUE;
+	// 先頭に $ が付くものは除外
+	if (lpelfe->elfLogFont.lfFaceName[0] == '$')return TRUE;
+	// 欧文以外は除外
+	if (lstrcmp((LPCSTR)lpelfe->elfScript, TEXT("欧文")) != 0)return TRUE;
+	// スタイルに「標準」があるのは日本語フォントなので除外。これはかなりの決め手になった
+	if (lstrcmp((LPCSTR)lpelfe->elfStyle, TEXT("標準")) == 0)return TRUE;
+	// メイリオフォントのスタイルに「レギュラー」があるので除外。
+	if (lstrcmp((LPCSTR)lpelfe->elfStyle, TEXT("レギュラー")) == 0)return TRUE;
+	// リストに登録
+	//SendMessage((HWND)lParam, LB_ADDSTRING, 0, (LPARAM)lpelfe->elfLogFont.lfFaceName);
+
+	auto v = (std::vector<std::string>*)lParam;
+	v->push_back(lpelfe->elfLogFont.lfFaceName);
+
+	return TRUE;
+}
+
+
+void FontFileData::AddFont(const char * fileName)
+{
+	if (mFileName != "") {
+		// リソース削除
+		RemoveFontResourceEx(
+			mFileName.c_str(), //ttfファイルへのパス
+			FR_PRIVATE,
+			&mDesign
+		);
+		mFileName = "";
+	}
+
+	AddFontResourceEx(
+		mFileName.c_str(), //ttfファイルへのパス
+		FR_PRIVATE,
+		&mDesign
+	);
+}
+
+void FontFileData::CreateFont_(const char* fontName, float FontSize){
 	{
-		if (mFileName != ""){
-			// リソース削除
-			RemoveFontResourceEx(
-				mFileName.c_str(), //ttfファイルへのパス
-				FR_PRIVATE,
-				&mDesign
-				);
-			mFileName = "";
-		}
-
-
 		if (hFont){
 			DeleteObject(hFont);
 			hFont = NULL;
 			mFontName = "";
 		}
 	}
-
-	mFileName = "EngineResource/meiryo.ttc";
-	//mFileName = "APJapanesefontF.ttf";
-	// フォントを使えるようにする
-	AddFontResourceEx(
-		mFileName.c_str(), //ttfファイルへのパス
-		FR_PRIVATE,
-		&mDesign
-		);
-	mFontName = "メイリオ";
+	mFontName = fontName;// "メイリオ";
 	//mFontName = "あんずもじ湛";
 	// フォントの生成
 	LOGFONT lf = {
@@ -347,4 +430,36 @@ void FontFileData::SetText(const std::string& text, bool center){
 
 Texture FontFileData::GetTexture(){
 	return mTexture;
+}
+
+std::vector<std::string>& FontFileData::GetFonts()
+{
+	if (m_Fonts.size() == 0) {
+		// switch 文に入る前に変数宣言
+		LOGFONT lf; // LOGFONT 構造体
+		HDC hDC;
+		auto hwnd = Window::GetMainHWND();
+
+		hDC = GetDC(hwnd);
+		lf.lfFaceName[0] = '\0'; // 全てのフォント名
+		lf.lfPitchAndFamily = DEFAULT_PITCH; // 必ずこれ（= 0）を選ばなければならない
+
+		// 日本語選択リストにフォントを表示するための処理
+		lf.lfCharSet = SHIFTJIS_CHARSET /*DEFAULT_CHARSET*/; //DEFAULT_CHARSETでも挙動は一緒
+															 //列挙プロシージャ関数はフォントを 1 つ列挙するたびに 1 度ずつ呼び出されます
+		EnumFontFamiliesEx(hDC, &lf, (FONTENUMPROC)EnumJFontProc, (LPARAM)&m_Fonts, 0);
+
+		// 英語選択リストにフォントを表示するための処理
+		lf.lfCharSet = ANSI_CHARSET/*DEFAULT_CHARSET*/;
+		//列挙プロシージャ関数はフォントを 1 つ列挙するたびに 1 度ずつ呼び出されます
+		EnumFontFamiliesEx(hDC, &lf, (FONTENUMPROC)EnumEFontProc, (LPARAM)&m_Fonts, 0);
+
+		ReleaseDC(hwnd, hDC);
+	}
+	return m_Fonts;
+}
+
+void FontFileData::ClearFonts()
+{
+	m_Fonts.clear();
 }
