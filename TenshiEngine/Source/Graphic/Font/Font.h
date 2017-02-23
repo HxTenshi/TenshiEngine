@@ -9,13 +9,19 @@ public:
 	FontFileData();
 	~FontFileData();
 
-	void CreateFont_(const char* fileName, float FontSize);
+	void AddFont(const char* fileName);
+	void CreateFont_(const char* fontName, float FontSize);
 	void CreateTexture_(UINT width, UINT height);
 	void SetText(const std::string& text, bool center);
 	Texture GetTexture();
 
+	static std::vector<std::string>& GetFonts();
+	static void ClearFonts();
+
 private:
 	void Release();
+
+	static std::vector<std::string> m_Fonts;
 
 	HFONT hFont;
 	DESIGNVECTOR mDesign;

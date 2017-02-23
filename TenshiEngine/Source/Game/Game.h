@@ -59,6 +59,7 @@ public:
 	typedef shared_ptr<Actor> GameObjectPtr;
 	typedef std::map<UniqueID, GameObjectPtr> ListMapType;
 	typedef std::map<DrawStage, std::vector<std::function<void()>>> DrawListMapType;
+	typedef std::map<DrawStage, std::vector<std::pair<GameObject, std::function<void()>>>> DrawListZSortMapType;
 
 
 	Game();
@@ -91,6 +92,7 @@ public:
 	static GameObject FindNameActor(const char* name);
 	static GameObject FindUID(UniqueID uid);
 	static void AddDrawList(DrawStage stage, std::function<void()> func);
+	static void AddDrawListZ(DrawStage stage,GameObject gameobject, std::function<void()> func);
 	static void SetUndo(Actor* actor);
 	static void SetUndo(ICommand* command);
 	static void SetMainCamera(CameraComponent* Camera);
@@ -122,7 +124,9 @@ public:
 	void GamePlay();
 
 	void ClearDrawList();
+	void DrawListZSort();
 	void PlayDrawList(DrawStage Stage);
+	void PlayDrawListZSort(DrawStage Stage);
 
 
 private:
@@ -140,6 +144,7 @@ private:
 	//ゲームオブジェクトのリスト
 	ListMapType mList;
 	DrawListMapType mDrawList;
+	DrawListZSortMapType mZSortDrawList;
 	static GameObjectPtr mRootObject;
 
 	EngineDeltaTime mDeltaTime;
