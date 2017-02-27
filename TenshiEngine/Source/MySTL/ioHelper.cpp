@@ -17,21 +17,32 @@ void ioGameObjectHelper::func(GameObject* target, const char* name, I_ioHelper* 
 }
 
 void ioGameObjectHelper::func(std::vector<GameObject>* target, const char* name, I_ioHelper* io, GameObject* This) {
-	//if (io->isInput()) {
-	//	std::vector<UniqueID> ids;
-	//	io->func(ids, name);
-	//	target->resize(ids.size());
-	//	for (int i = 0; i < ids.size(); i++) {
-	//		UniqueID id = ids[i];
-	//		auto tar = &(*target)[i];
-	//		(*This)->SetInitializeStageCollQueue([id, tar, This]() {
-	//			*tar = (*This)->InspectorFindGameObject(id);
-	//		});
-	//	}
-	//}
-	//else {
-	//	//io->func(target, name);
-	//}
+	if (io->isInput()) {
+		std::vector<UniqueID> ids;
+		io->func(ids, name);
+		target->resize(ids.size());
+		for (int i = 0; i < ids.size(); i++) {
+			UniqueID id = ids[i];
+			auto tar = &(*target)[i];
+			(*This)->SetInitializeStageCollQueue([id, tar, This]() {
+				*tar = (*This)->InspectorFindGameObject(id);
+			});
+		}
+	}
+	else {
+		std::vector<UniqueID> ids(target->size());
+		//ids.resize(target->size());
+		for (int i = 0; i < ids.size(); i++) {
+			if ((*target)[i]) {
+				ids[i] = (*target)[i]->GetUniqueID();
+			}
+			else {
+				ids[i].clear();
+			}
+		}
+		
+		io->func(ids, name);
+	}
 }
 
 

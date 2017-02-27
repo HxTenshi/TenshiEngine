@@ -302,6 +302,10 @@ void initparam(T* p) {
 //	}
 //}
 
+
+static int VectorSizes[256];
+static int VectorSizeIndex = 0;
+
 template<class T>
 bool reflect(MemberInfo& info, Inspector& ins){
 
@@ -332,9 +336,8 @@ bool reflectv(MemberInfo& info, Inspector& ins) {
 		Window::ClearInspector();
 		(*paramdata).resize(val);
 	};
-	static int num = 0;
-	num = paramdata->size();
-	ins.Add(info.GetName(), &num, collbackn);
+	VectorSizes[VectorSizeIndex] = paramdata->size();
+	ins.Add(info.GetName(), &VectorSizes[VectorSizeIndex], collbackn);
 	for (int i = 0; i < paramdata->size(); i++) {
 		std::function<void(T)> collback = [paramdata, i](T val) {
 			(*paramdata)[i] = val;
@@ -344,6 +347,7 @@ bool reflectv(MemberInfo& info, Inspector& ins) {
 
 	//std::vector<int> a;
 	
+	VectorSizeIndex++;
 
 	return true;
 }
@@ -382,9 +386,8 @@ bool reflectv_v(MemberInfo& info, Inspector& ins) {
 		//}
 	};
 
-	static int num = 0;
-	num = ((std::vector<XMVECTOR>*)paramdata)->size();
-	ins.Add(info.GetName(), &num, collbackn);
+	VectorSizes[VectorSizeIndex] = ((std::vector<XMVECTOR>*)paramdata)->size();
+	ins.Add(info.GetName(), &VectorSizes[VectorSizeIndex], collbackn);
 	for (int i = 0; i < ((std::vector<XMVECTOR>*)paramdata)->size(); i++) {
 
 		Vector3 v((*(std::vector<XMVECTOR>*)paramdata)[i]);
@@ -394,6 +397,8 @@ bool reflectv_v(MemberInfo& info, Inspector& ins) {
 			(*(std::vector<XMVECTOR>*)paramdata)[i].z = f.z;
 		});
 	}
+
+	VectorSizeIndex++;
 
 	return true;
 }
@@ -423,13 +428,13 @@ bool reflectv_g(MemberInfo& info, Inspector& ins) {
 		(*paramdata).resize(val,NULL);
 	};
 
-	static int num = 0;
-	num = paramdata->size();
-	ins.Add(info.GetName(), &num, collbackn);
+	VectorSizes[VectorSizeIndex] = paramdata->size();
+	ins.Add(info.GetName(), &VectorSizes[VectorSizeIndex], collbackn);
 	for (int i = 0; i < paramdata->size(); i++) {
 		ins.Add(std::to_string(i), (GameObject*)&(*paramdata)[i], []() {});
 	}
 
+	VectorSizeIndex++;
 
 	return true;
 }
@@ -463,12 +468,13 @@ bool reflectv_a(MemberInfo& info, Inspector& ins) {
 		(*paramdata).resize(val);
 	};
 
-	static int num = 0;
-	num = paramdata->size();
-	ins.Add(info.GetName(), &num, collbackn);
+	VectorSizes[VectorSizeIndex] = paramdata->size();
+	ins.Add(info.GetName(), &VectorSizes[VectorSizeIndex], collbackn);
 	for (int i = 0; i < paramdata->size(); i++) {
 		ins.Add(std::to_string(i), (T*)&(*paramdata)[i], []() {});
 	}
+
+	VectorSizeIndex++;
 
 	return true;
 }
@@ -610,6 +616,7 @@ bool reflectv_io_a(MemberInfo& info, I_ioHelper* io, Component* com) {
 
 void ScriptComponent::CreateInspector() {
 
+	VectorSizeIndex = 0;
 
 	std::function<void(std::string)> collback = [&](std::string name) {
 		Window::ClearInspector();

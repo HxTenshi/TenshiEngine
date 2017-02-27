@@ -18,6 +18,8 @@ CascadeShadow::CascadeShadow(){
 	}
 	
 	m_ShadowDepthDS.CreateDepth(mWidth, mHeight);
+	mWidth = 1920;
+	mHeight = 1080;
 
 
 	mCBNeverChanges = ConstantBuffer<CBNeverChanges>::create(0);
@@ -149,13 +151,12 @@ XMVECTOR* maxPos
 )
 {
 	auto camera = Game::GetMainCamera();
-	XMVECTOR Up = XMVectorSet(0, 1, 0, 1);
-	XMVECTOR vZ = XMVector3Normalize(camera->gameObject->mTransform->Forward());
-	XMVECTOR vX = XMVector3Normalize(XMVector3Cross(Up, vZ));
-	XMVECTOR vY = XMVector3Normalize(XMVector3Cross(vZ, vX));
+	XMVECTOR vZ = camera->gameObject->mTransform->Forward();
+	XMVECTOR vX = camera->gameObject->mTransform->Left();
+	XMVECTOR vY = camera->gameObject->mTransform->Up();
 
 
-	float aspect = float(mWidth) / float(mHeight);
+	float aspect = float(WindowState::mWidth) / float(WindowState::mHeight);
 	float fov = XM_PIDIV4;
 
 	float nearPlaneHalfHeight = tanf(fov * 0.5f) * nearClip;
@@ -170,15 +171,15 @@ XMVECTOR* maxPos
 
 	XMVECTOR corners[8];
 
-	corners[0] = nearPlaneCenter - vX * nearPlaneHalfWidth - vY * nearPlaneHalfHeight;
-	corners[1] = nearPlaneCenter - vX * nearPlaneHalfWidth + vY * nearPlaneHalfHeight;
-	corners[2] = nearPlaneCenter + vX * nearPlaneHalfWidth + vY * nearPlaneHalfHeight;
-	corners[3] = nearPlaneCenter + vX * nearPlaneHalfWidth - vY * nearPlaneHalfHeight;
+	corners[0] = nearPlaneCenter - vX * nearPlaneHalfWidth - vY * nearPlaneHalfHeight - mLightVect*50.0f;
+	corners[1] = nearPlaneCenter - vX * nearPlaneHalfWidth + vY * nearPlaneHalfHeight - mLightVect*50.0f;
+	corners[2] = nearPlaneCenter + vX * nearPlaneHalfWidth + vY * nearPlaneHalfHeight - mLightVect*50.0f;
+	corners[3] = nearPlaneCenter + vX * nearPlaneHalfWidth - vY * nearPlaneHalfHeight - mLightVect*50.0f;
 
-	corners[4] = farPlaneCenter - vX * farPlaneHalfWidth - vY * farPlaneHalfHeight;
-	corners[5] = farPlaneCenter - vX * farPlaneHalfWidth + vY * farPlaneHalfHeight;
-	corners[6] = farPlaneCenter + vX * farPlaneHalfWidth + vY * farPlaneHalfHeight;
-	corners[7] = farPlaneCenter + vX * farPlaneHalfWidth - vY * farPlaneHalfHeight;
+	corners[4] = farPlaneCenter - vX * farPlaneHalfWidth - vY * farPlaneHalfHeight + mLightVect*50.0f;
+	corners[5] = farPlaneCenter - vX * farPlaneHalfWidth + vY * farPlaneHalfHeight + mLightVect*50.0f;
+	corners[6] = farPlaneCenter + vX * farPlaneHalfWidth + vY * farPlaneHalfHeight + mLightVect*50.0f;
+	corners[7] = farPlaneCenter + vX * farPlaneHalfWidth - vY * farPlaneHalfHeight + mLightVect*50.0f;
 
 
 	XMVECTOR point = XMVector3TransformCoord(corners[0], viewProj);
@@ -222,11 +223,11 @@ XMMATRIX CascadeShadow::CreateCropMatrix(const XMVECTOR& mini, const XMVECTOR& m
 	// 制限をかける.
 	scaleX = max(1.0f, scaleX);
 	scaleY = max(1.0f, scaleY);
-#if 0
+#if 1
 	// GPU Gems 3の実装では下記処理を行っている.
 	// maxi.zの値が0近づくことがあり, シャドウマップが真っ黒になるなどおかしくなることが発生するので,
 	// この実装はZ成分については何も処理を行わない.
-	mini.z = 0.0f;
+	//mini.z = 0.0f;
 
 	scaleZ = 1.0f / (maxi.z - mini.z);
 	offsetZ = -mini.z * scaleZ;
@@ -242,7 +243,7 @@ XMMATRIX CascadeShadow::CreateCropMatrix(const XMVECTOR& mini, const XMVECTOR& m
 
 void CascadeShadow::OrthographicSize(XMMATRIX& matrix, XMVECTOR& mini, XMVECTOR& maxi) {
 
-	float ratio = float(mWidth) / float(mHeight);
+	float ratio = float(WindowState::mWidth) / float(WindowState::mHeight);
 	float fovy = XM_PIDIV4;
 
 	auto cam = Game::GetMainCamera();
@@ -251,8 +252,8 @@ void CascadeShadow::OrthographicSize(XMMATRIX& matrix, XMVECTOR& mini, XMVECTOR&
 	float near_distance = cam->GetNear();
 	float far_distance = cam->GetFar();
 
-
-	float tang = (float)tan(fovy* XM_PI / 180.0 * 0.5);//もしかしたら定数のほうが速いかも 
+	//XM_PI / 180.0
+	float tang = tanf(fovy * 0.5f);//もしかしたら定数のほうが速いかも 
 	float half_near_height = near_distance * tang;
 	float half_near_width = half_near_height * ratio;
 	float half_far_height = far_distance  * tang;
@@ -318,7 +319,7 @@ void CascadeShadow::CascadeUpdate(){
 			XMVECTOR v = XMVector3Cross(u, w);
 			v = XMVector3Normalize(v);
 			LightBasisW = w;
-			LightBasisV = v;
+			LightBasisV = u;
 		}
 		// ライトのビュー行列を生成.
 		m_LightView = XMMatrixLookToLH(
@@ -336,12 +337,13 @@ void CascadeShadow::CascadeUpdate(){
 		XMVECTOR center = (mini + maxi) * 0.5f;
 
 		// ニアクリップ平面とファークリップ平面の距離を求める.
+		float addfar = 100.0f;
 		float nearClip = 0.01f;
-		float farClip = fabs(maxi.z - mini.z) * 1.001f + nearClip + 100.0f;
+		float farClip = fabs(maxi.z - mini.z) * 1.001f + nearClip + addfar;
 
 		// 後退量を求める.
-		//float slideBack = fabs(center.z - mini.z) + nearClip;
-		float slideBack = farClip/2.0f + nearClip;
+		float slideBack = fabs(center.z - mini.z) + nearClip + addfar;
+		//float slideBack = farClip/2.0f + nearClip;
 
 		// 正しいライト位置を求める.
 		XMVECTOR lightPos = center - (LightBasisW * slideBack);
@@ -372,7 +374,14 @@ void CascadeShadow::CascadeUpdate(){
 		//----------------------------------
 		{
 			OrthographicSize(lightViewProj, mini, maxi);
-
+			
+			
+			// 極端にゆがまないように制限を掛ける.
+			mini.x = min(max(mini.x, -1.0f), 1.0f);
+			maxi.x = min(max(maxi.x, -1.0f), 1.0f);
+			mini.y = min(max(mini.y, -1.0f), 1.0f);
+			maxi.y = min(max(maxi.y, -1.0f), 1.0f);
+			
 			XMMATRIX clip;
 			{
 				// 単位キューブクリップ行列を求める.
@@ -380,24 +389,24 @@ void CascadeShadow::CascadeUpdate(){
 				clip._12 = 0.0f;
 				clip._13 = 0.0f;
 				clip._14 = 0.0f;
-
+			
 				clip._21 = 0.0f;
 				clip._22 = 2.0f / (maxi.y - mini.y);
 				clip._23 = 0.0f;
 				clip._24 = 0.0f;
-
+			
 				clip._31 = 0.0f;
 				clip._32 = 0.0f;
 				clip._33 = 1.0f / (maxi.z - mini.z);
 				clip._34 = 0.0f;
-
+			
 				clip._41 = -(maxi.x + mini.x) / (maxi.x - mini.x);
 				clip._42 = -(maxi.y + mini.y) / (maxi.y - mini.y);
 				clip._43 = -mini.z / (maxi.z - mini.z);
 				clip._44 = 1.0f;
-
+			
 			}
-
+			
 			// シャドウマップめいっぱいに映るようにフィッティング.
 			m_LightProj = m_LightProj * clip;
 		}
@@ -408,14 +417,14 @@ void CascadeShadow::CascadeUpdate(){
 	auto cam = Game::GetMainCamera();
 	float nearClip = 0.01f;
 	float farClip = 100.0f;
-	if (cam){
+	if (cam) {
 		nearClip = cam->GetNear();
 		farClip = cam->GetFar();
+		//デプスシーンのクリップ
+		//float DnearClip = 0.01f;
+		//float DfarClip = 1000.0f;
+		//float SlideBack = DfarClip/2;
 	}
-	//デプスシーンのクリップ
-	//float DnearClip = 0.01f;
-	//float DfarClip = 1000.0f;
-	//float SlideBack = DfarClip/2;
 
 	float m_Lamda = 0.9f;
 
@@ -423,30 +432,28 @@ void CascadeShadow::CascadeUpdate(){
 	float splitPositions[MAX_CASCADE + 1];
 	ComputeSplitPositions(MAX_CASCADE, m_Lamda, nearClip, farClip, splitPositions);
 
-	auto camera = Game::GetMainCamera();
-	auto campos = camera->gameObject->mTransform->WorldPosition();
-	auto camvec = camera->gameObject->mTransform->Forward();
 	float forward = splitPositions[0];
 
 	// カスケード処理.
 	for (int i = 0; i<MAX_CASCADE; ++i)
 	{
+		//auto campos = cam->gameObject->mTransform->WorldPosition();
+		//auto camvec = cam->gameObject->mTransform->Forward();
 		//float size = splitPositions[i + 1] - splitPositions[i + 0];
-		//
-		//auto lightPos = campos + camvec * (forward + size / 2) + mLightVect * -SlideBack;
+		//float slideBack = farClip / 2.0f;
+		//auto lightPos = campos + camvec * (forward + size / 2) + mLightVect * -slideBack;
 		//
 		//m_LightView = XMMatrixLookToLH(lightPos, mLightVect, XMVectorSet(0, 1, 0, 1));
 		//
 		//forward += size;
-
+		//
 		//float aspect = float(mWidth) / float(mHeight);
 		//float fov = XM_PIDIV4;
 		//float farHeight = tanf(fov) * splitPositions[i + 1];
 		//float farWidth = farHeight * aspect;
 		//
 		//size = farWidth * 1.41421356f * 1.41421356f;
-		//size = OrthographicSize(splitPositions[i + 0] , splitPositions[i + 1]);
-		//m_LightProj = XMMatrixOrthographicLH(size, size, DnearClip, DfarClip);
+		//m_LightProj = XMMatrixOrthographicLH(size, size, nearClip, farClip);
 
 		// ライトのビュー射影行列.
 		m_ShadowMatrix[i] = m_LightView * m_LightProj;
@@ -1003,10 +1010,9 @@ void DeferredRendering::Initialize(){
 	mMaterialLight.SetTexture(m_NormalRT.GetTexture(), 0);
 	mMaterialLight.SetTexture(m_DepthRT.GetTexture(), 1);
 	mMaterialLight.SetTexture(m_SpecularRT.GetTexture(), 2);
-	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(0), 3);
-	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(1), 4);
-	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(2), 5);
-	mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(3), 6);
+	for (int i = 0; i < mCascadeShadow.MAX_CASCADE; i++) {
+		mMaterialLight.SetTexture(mCascadeShadow.GetRTTexture(i), i+3);
+	}
 
 	mMaterialSkyLight.Create("EngineResource/SkyLightRendering.fx");
 	mMaterialSkyLight.SetTexture(m_NormalRT.GetTexture(), 0);
@@ -1104,7 +1110,7 @@ void DeferredRendering::ShadowDepth_Buffer_Rendering(IRenderingEngine* render, c
 	Model::mForcedMaterial = &mMaterialDepthShadow;
 	Model::mForcedMaterialFilter = (ForcedMaterialFilter::Enum)(ForcedMaterialFilter::Shader_PS | ForcedMaterialFilter::Texture_ALL | ForcedMaterialFilter::Color ^ ForcedMaterialFilter::Texture_0);
 
-	for (int i = 0; i < 4; i++){
+	for (int i = 0; i < mCascadeShadow.MAX_CASCADE; i++){
 		mCascadeShadow.ClearView(render, i);
 		mCascadeShadow.SetRT(render, i);
 		mCascadeShadow.SetupShadowCB(render, i);
@@ -1280,18 +1286,41 @@ void DeferredRendering::HDR_Rendering(IRenderingEngine* render){
 	RenderTarget::NullSetRendererTarget(render->m_Context);
 	mMaterialPostEffect.PSSetShaderResources(render->m_Context);
 
-	//Game::AddDrawList(DrawStage::UI, [&](){
-	//
-	//	auto rend = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-	//
-	//	rend->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
-	//	rend->PushSet(Rasterizer::Preset::RS_None_Solid);
-	//
-	//	mModelTexture.Draw(rend->m_Context, mHDLDownSample[0].GetResultMaterial());
-	//
-	//	rend->PopRS();
-	//	rend->PopDS();
-	//});
+
+	//		if (Input::Trigger(KeyCode::Key_6)) {
+	//			mMaterialLight.CreateShader("EngineResource/DeferredLightRendering.fx");
+	//		}
+	//if (Input::Down(KeyCode::Key_1)) {
+	//	Game::AddDrawList(DrawStage::UI, [&]() {
+
+
+	//		auto rend = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+	//		rend->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+	//		rend->PushSet(Rasterizer::Preset::RS_None_Solid);
+	//		if (Input::Trigger(KeyCode::Key_2)) {
+	//			mMaterialDebugDraw.SetTexture(mCascadeShadow.GetRTTexture(0));
+	//		}
+	//		if (Input::Trigger(KeyCode::Key_3)) {
+	//			mMaterialDebugDraw.SetTexture(mCascadeShadow.GetRTTexture(1));
+	//		}
+	//		if (Input::Trigger(KeyCode::Key_4)) {
+	//			mMaterialDebugDraw.SetTexture(mCascadeShadow.GetRTTexture(2));
+	//		}
+	//		if (Input::Trigger(KeyCode::Key_5)) {
+	//			mMaterialDebugDraw.SetTexture(mCascadeShadow.GetRTTexture(3));
+	//		}
+	//		auto s = XMMatrixScaling(512.0f/1920.0f, 512.0f / 1080.0f, 1);
+	//		auto t = XMMatrixTranslation(-0.5, -0.5, 0);
+	//		mModelTexture.mWorld = XMMatrixMultiply(s, t);
+	//		mModelTexture.Update();
+
+	//		mModelTexture.Draw(rend->m_Context, mMaterialDebugDraw);
+
+	//		rend->PopRS();
+	//		rend->PopDS();
+	//	});
+	//}
 	
 }
 

@@ -26,4 +26,5 @@ public:
 private:
 
 	IDirectSound3DListener *mListener;
+	float m_Rolloff;
 };

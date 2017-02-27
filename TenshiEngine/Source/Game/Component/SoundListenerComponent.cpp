@@ -11,6 +11,7 @@ bool mIsCreate = false;
 SoundListenerComponent::SoundListenerComponent()
 {
 	mListener = NULL;
+	m_Rolloff = 1.0f;
 }
 
 SoundListenerComponent::~SoundListenerComponent()
@@ -24,7 +25,10 @@ void SoundListenerComponent::Initialize()
 void SoundListenerComponent::Start()
 {
 
-	if (mIsCreate)return;
+	if (mIsCreate) {
+		Window::AddLog(gameObject->Name()+"> 複数のサウンドリスナーが使用されています。");
+		return;
+	}
 
 
 	//WAVEFORMATEX	wfex;
@@ -53,6 +57,15 @@ void SoundListenerComponent::Start()
 	if (mListener == 0) {
 		return;
 	}
+
+
+	auto pos = gameObject->mTransform->WorldPosition();
+	auto up = XMVector3Normalize(gameObject->mTransform->Up());
+	auto forward = XMVector3Normalize(gameObject->mTransform->Forward());
+	mListener->SetPosition(pos.x, pos.y, pos.z, DS3D_DEFERRED);
+	mListener->SetOrientation(forward.x, forward.y, forward.z, up.x, up.y, up.z, DS3D_DEFERRED);
+	mListener->SetRolloffFactor(m_Rolloff, DS3D_DEFERRED);
+	mListener->CommitDeferredSettings();
 
 	//DS3DLISTENER lis;
 	////memset(&lis, 0, sizeof(DS3DLISTENER));
@@ -96,6 +109,7 @@ void SoundListenerComponent::Update()
 	mListener->SetOrientation(forward.x, forward.y, forward.z, up.x, up.y, up.z, DS3D_DEFERRED);
 
 
+
 	mListener->CommitDeferredSettings();
 }
 
@@ -113,11 +127,27 @@ void SoundListenerComponent::CreateInspector()
 {
 	Inspector ins("SoundListener", this);
 	ins.AddEnableButton(this);
+
+	static float dis = 1.0f;
+	ins.Add("Rolloff", &m_Rolloff, [&](float value) {
+		m_Rolloff = value;
+		if (!mListener)return;
+		//mListener->SetDistanceFactor(dis, DS3D_DEFERRED);
+		mListener->SetRolloffFactor(m_Rolloff, DS3D_DEFERRED);
+	});
+
+
 	ins.Complete();
 }
 #endif
 
 void SoundListenerComponent::IO_Data(I_ioHelper * io)
 {
-	Enabled::IO_Data(io);
+	//Enabled::IO_Data(io);
+
+#define _KEY(x) io->func( x , #x)
+
+	_KEY(m_Rolloff);
+
+#undef _KEY
 }

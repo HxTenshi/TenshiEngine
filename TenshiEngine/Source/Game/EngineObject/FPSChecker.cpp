@@ -22,7 +22,7 @@ public:
 		mTransform = mComponents.AddComponent<TransformComponent>();
 		mComponents.AddComponent<TextComponent>();
 
-		mTransform->Position(XMVectorSet(0, Canvas::GetHeight(),0, 1));
+		mTransform->Position(XMVectorSet(0, Canvas::GetHeight(),9999999.0f, 1));
 		mTransform->Scale(XMVectorSet(512, 512,0,1));
 		weak_ptr<TextComponent> mFPSText = GetComponent<TextComponent>();
 		mFPSText->SetTextureCenter(XMFLOAT2(0.0f,0.0f));
