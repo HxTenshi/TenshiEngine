@@ -86,6 +86,7 @@ public:
 	UINT GetHeight() {
 		return mHeight;
 	}
+	static const int MAX_CASCADE = 4;
 
 private:
 	void OrthographicSize(XMMATRIX& matrix, XMVECTOR& mini, XMVECTOR& maxi);
@@ -94,7 +95,6 @@ private:
 	void CalculateFrustum(float nearClip, float farClip, const XMMATRIX& viewProj, XMVECTOR* minPos, XMVECTOR* maxPos);
 	XMMATRIX CreateCropMatrix(const XMVECTOR& mini, const XMVECTOR& maxi);
 
-	static const int MAX_CASCADE = 4;
 	XMMATRIX m_ShadowMatrix[MAX_CASCADE];
 	float m_SplitPos[MAX_CASCADE];
 	XMMATRIX m_LightView;
