@@ -161,7 +161,9 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 				//l = min(max(l, 0.0), 1.0);
 				//Out.time.x‚É‚Íƒ‰[ƒv‚Ìƒ^ƒCƒ€—p”’l‚ªƒ}ƒCƒiƒX‚Å“ü‚Á‚Ä‚¢‚é
 				float l = abs(Out.time.x);
-				Out.pos = lerp(World._41_42_43, BeforeWorld._41_42_43, l);
+
+				float4x4 newmat = lerp(World, BeforeWorld, l);
+				Out.pos = newmat._41_42_43;// lerp(World._41_42_43, BeforeWorld._41_42_43, l);
 				//Out.pos = lerp(World._41_42_43, float3(0,0,0), l);
 
 			float px = GetRandomNumber(rand2, 353 + ID);
@@ -172,7 +174,9 @@ void GS0_Main(point GS_IN In[1],                   // ƒ|ƒCƒ“ƒg ƒvƒŠƒ~ƒeƒBƒu‚Ì“ü—
 				if (length(posv) != 0){
 				nposv = normalize(posv);
 				}
-			Out.pos += lerp(nposv, posv, Point.w) * Point.xyz;
+
+			//float3x3 rotmat = lerp((float3x3)World, (float3x3)BeforeWorld, l);
+			Out.pos += mul(lerp(nposv, posv, Point.w) * Point.xyz, (float3x3)newmat);
 
 
 			float scale = GetRandomNumber(rand2, 355 + ID);

@@ -89,7 +89,7 @@ public:
 #ifdef _ENGINE_MODE
 	template<class T>
 	static void Deleter(T* ptr){
-		mMainWindow_WPF.Deleter<T>(ptr);
+		mMainWindow_WPF.Deleter(ptr);
 	}
 	static void AddTreeViewItem(const std::string& name, void* ptr){
 		mMainWindow_WPF.AddTreeViewItem(name, ptr);
