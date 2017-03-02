@@ -145,9 +145,10 @@ void TextureModelComponent::SetMatrix(){
 	auto centerMatrix = XMMatrixTranslation(center.x, center.y, 0.0f);
 
 
-	s.x /= Canvas::GetWidth();
-	s.y /= Canvas::GetHeight();
 	auto scaleMatrix = XMMatrixScaling(s.x, s.y, 0.0f);
+	s.x = 1.0f / Canvas::GetWidth();
+	s.y = 1.0f / Canvas::GetHeight();
+	auto scaleProjMatrix = XMMatrixScaling(s.x, s.y, 0.0f);
 
 
 	auto rotateMatrix = XMMatrixRotationRollPitchYawFromVector(r);
@@ -160,6 +161,7 @@ void TextureModelComponent::SetMatrix(){
 
 	auto mat = XMMatrixMultiply(centerMatrix, scaleMatrix);
 	mat = XMMatrixMultiply(mat, rotateMatrix);
+	mat = XMMatrixMultiply(mat, scaleProjMatrix);
 	mat = XMMatrixMultiply(mat, transMatrix);
 
 

@@ -634,6 +634,8 @@ void Game::DestroyObject(GameObjectPtr actor, bool undoFlag){
 		gCommandManager->SetUndo(new ActorDestroyUndoCommand(actor.Get()));
 	}
 #endif
+	TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
+	t->AllChildrenDestroy();
 }
 
 //static
@@ -666,8 +668,6 @@ void Game::ActorMoveStage(){
 			}
 			actor->mTreeViewPtr = NULL;
 #endif
-			TransformComponent* t = (TransformComponent*)actor->mTransform.Get();
-			t->AllChildrenDestroy();
 			actor->Finish();
 
 			//delete actor;

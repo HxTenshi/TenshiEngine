@@ -40,10 +40,7 @@ public:
 	void Initialize();
 	void Release();
 
-	template<class T>
-	void Deleter(T* ptr){
-		delete ptr;
-	}
+	void Deleter(std::string* ptr);
 
 	void ChangeTreeViewName(void* ptr, std::string& name);
 	void CreateComponentWindow(const std::string& ComponentName, void* comptr, std::vector<InspectorDataSet>& data);

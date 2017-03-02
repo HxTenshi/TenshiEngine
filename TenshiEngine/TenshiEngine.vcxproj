@@ -183,7 +183,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <OpenMPSupport>false</OpenMPSupport>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -276,7 +276,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <OpenMPSupport>false</OpenMPSupport>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -325,7 +325,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <OpenMPSupport>false</OpenMPSupport>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -557,6 +557,7 @@
     <ClCompile Include="Source\Engine\AssetFile\Shader\ShaderFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetFile\Sound\SoundFileData.cpp" />
     <ClCompile Include="Source\Engine\AssetTypes.cpp" />
+    <ClCompile Include="Source\Engine\EnginLoading.cpp" />
     <ClCompile Include="Source\Engine\IAsset.cpp" />
     <ClCompile Include="Source\Engine\Inspector.cpp" />
     <ClCompile Include="Source\Engine\ScriptingSystem\ScriptCompiler.cpp" />
@@ -665,6 +666,7 @@
     <ClInclude Include="lua\include\lualib.h" />
     <ClInclude Include="Source\DebugSource\exception.h" />
     <ClInclude Include="Source\Engine\AssetFile\Material\MaterialFileData.h" />
+    <ClInclude Include="Source\Engine\EnginLoading.h" />
     <ClInclude Include="Source\Engine\ScriptingSystem\ScriptCompiler.h" />
     <ClInclude Include="Source\Application\BuildVersion.h" />
     <ClInclude Include="Source\Application\Define.h" />

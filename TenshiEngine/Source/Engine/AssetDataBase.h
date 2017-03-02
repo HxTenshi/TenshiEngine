@@ -106,6 +106,23 @@ public:
 		}
 	}
 
+	template <class T>
+	static void DirectLoad(const char* filename, shared_ptr<T>& out) {
+		std::string x(filename);
+		if (x.empty())return;
+		std::transform(x.begin(), x.end(), x.begin(), [](int x) { return (char)std::tolower(x); });
+		auto _filename = x.c_str();
+
+		AssetDataTemplatePtr data;
+
+		data = AssetFactory::Create(_filename);
+		if (data &&
+			(T::_AssetFileType == data->m_AssetFileType) ||
+			T::_AssetFileType == AssetFileType::None) {
+			out = data;
+		}
+	}
+
 
 	static bool FilePath2Hash(const char* filename, MD5::MD5HashCode& hash){
 

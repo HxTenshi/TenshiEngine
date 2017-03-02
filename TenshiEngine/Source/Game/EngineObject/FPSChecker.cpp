@@ -49,7 +49,6 @@ void FPSChecker::Initialize()
 
 void FPSChecker::Update(){
 
-
 	mFPSObject->mTransform->Position(XMVectorSet(0, Canvas::GetHeight(), 0, 1));
 
 	static int mCorrentVectorPos = 0;

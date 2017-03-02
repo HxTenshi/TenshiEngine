@@ -30,6 +30,8 @@
 
 #include "DebugSource/exception.h"
 
+#include "Engine/EnginLoading.h"
+
 
 //#pragma comment(lib,"lib/Debug/sqlite3.lib")
 //#include "Library\sqlite3.h"
@@ -134,6 +136,8 @@ public:
 		, mDestory(false)
 		, mCmdFlag(false)
 		, mCmdList(NULL)
+		, mLoadEnd(false)
+		, mDrawSync(1)
 	{
 	}
 
@@ -150,17 +154,19 @@ public:
 
 		//mInputManagerRapper.Initialize(window.GetMainHWND(), window.mhInstance);
 
-		mGame = new Game();
+		//mGame = new Game();
 
 #if _DRAW_MULTI_THREAD
 		mUpdateEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		mDrawEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		mLoadDrawEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		//mMessageEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 		ResetEvent(mDrawEvent);
 		ResetEvent(mUpdateEvent);
+		ResetEvent(mLoadDrawEvent);
 		//ResetEvent(mMessageEvent);
-
 		mDrawThread = std::thread(std::bind(std::mem_fn(&Application::UpdateThread), this));
+		mLoadDrawThread = std::thread(std::bind(std::mem_fn(&Application::LoadDrawThread), this));
 #else
 #endif
 
@@ -170,8 +176,36 @@ public:
 
 #if _DRAW_MULTI_THREAD
 
-	void UpdateThread() {
+	void LoadDrawThread() {
 
+		EnginLoading load;
+
+		while (!mLoadEnd && !mDestory) {
+
+			mWindow->Update();
+			load.Update();
+
+			ID3D11CommandList* cmdList = NULL;
+			{
+				auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+				if (FAILED(render->m_Context->FinishCommandList(false, &cmdList))) {
+					cmdList = NULL;
+				}
+				SetEvent(mUpdateEvent);
+			}
+
+			WaitForSingleObject(mDrawEvent, INFINITE);
+			ResetEvent(mDrawEvent);
+
+			mCmdList = cmdList;
+			mCmdFlag = true;
+		}
+
+		SetEvent(mLoadDrawEvent);
+	}
+
+
+	void UpdateThread() {
 		__try {
 			_UpdateThread();
 		}
@@ -183,6 +217,10 @@ public:
 
 	void _UpdateThread(){
 
+		mGame = new Game();
+		mLoadEnd = true;
+		WaitForSingleObject(mLoadDrawEvent, INFINITE);
+		mDrawSync = 0;
 		while (!mDestory)
 		{
 			{
@@ -209,11 +247,9 @@ public:
 				auto tick = Profiling::Start("Main:wait");
 				WaitForSingleObject(mDrawEvent, INFINITE);
 			}
-				ResetEvent(mDrawEvent);
-				if (cmdList){
-					mCmdList = cmdList;
-					mCmdFlag = true;
-				}
+			ResetEvent(mDrawEvent);
+			mCmdList = cmdList;
+			mCmdFlag = true;
 		}
 
 		SetEvent(mDrawEvent);
@@ -287,7 +323,7 @@ public:
 			{
 				auto tick = Profiling::Start("Draw:swap");
 
-				Device::mpSwapChain->Present(0, 0);
+				Device::mpSwapChain->Present(mDrawSync, 0);
 
 			}
 		}
@@ -400,6 +436,7 @@ public:
 		//スレッド終了
 		CloseHandle(mUpdateEvent);
 		CloseHandle(mDrawEvent);
+		CloseHandle(mLoadDrawEvent);
 #else
 #endif
 
@@ -459,13 +496,17 @@ private:
 	Game* mGame;
 
 public:
-	volatile bool mDestory;
-	volatile bool mCmdFlag;
-	volatile ID3D11CommandList* mCmdList;
+	UINT mDrawSync;
+	bool mDestory;
+	bool mCmdFlag;
+	ID3D11CommandList* mCmdList;
 	HANDLE mUpdateEvent;
 	//HANDLE mMessageEvent;
 	HANDLE mDrawEvent;
+	HANDLE mLoadDrawEvent;
+	bool mLoadEnd;
 	std::thread mDrawThread;
+	std::thread mLoadDrawThread;
 
 	Window* mWindow;
 

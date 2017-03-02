@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TenshiEngine", "TenshiEngine.vcxproj", "{D29C6982-A589-4081-89B1-91E78D7C41E2}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -101,7 +101,6 @@ Global
 		{9FA7E639-E0D3-4E56-9288-B56497A8309C}.ExeCompile|Mixed Platforms.ActiveCfg = ExeCompile|Win32
 		{9FA7E639-E0D3-4E56-9288-B56497A8309C}.ExeCompile|Mixed Platforms.Build.0 = ExeCompile|Win32
 		{9FA7E639-E0D3-4E56-9288-B56497A8309C}.ExeCompile|Win32.ActiveCfg = ExeCompile|Win32
-		{9FA7E639-E0D3-4E56-9288-B56497A8309C}.ExeCompile|Win32.Build.0 = ExeCompile|Win32
 		{9FA7E639-E0D3-4E56-9288-B56497A8309C}.ExeCompile|x64.ActiveCfg = ExeCompile|Win32
 		{9FA7E639-E0D3-4E56-9288-B56497A8309C}.Profile|Any CPU.ActiveCfg = Release|Win32
 		{9FA7E639-E0D3-4E56-9288-B56497A8309C}.Profile|Mixed Platforms.ActiveCfg = Release|Win32
@@ -150,7 +149,6 @@ Global
 		{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}.ExeCompile|Mixed Platforms.ActiveCfg = ExeCompile|Win32
 		{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}.ExeCompile|Mixed Platforms.Build.0 = ExeCompile|Win32
 		{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}.ExeCompile|Win32.ActiveCfg = ExeCompile|Win32
-		{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}.ExeCompile|Win32.Build.0 = ExeCompile|Win32
 		{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}.ExeCompile|x64.ActiveCfg = ExeCompile|Win32
 		{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}.Profile|Any CPU.ActiveCfg = Release|Win32
 		{EF80AF75-97DE-49EA-804C-2C9F4FDAF88C}.Profile|Mixed Platforms.ActiveCfg = Release|Win32

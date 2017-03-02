@@ -426,6 +426,11 @@ namespace Test {
 		delete mWindowThread;
 	}
 
+	void NativeFraction::Deleter(std::string * ptr)
+	{
+		delete ptr;
+	}
+
 
 	//template<>
 	//void NativeFraction::Deleter(std::string* ptr){

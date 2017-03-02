@@ -17,6 +17,7 @@ public:
 
 	FontFileData mFont;
 	std::string mText;
+	bool ChangeText = false;
 
 	Material mTexMaterial;
 
@@ -117,6 +118,10 @@ void TextComponent::DrawTextUI(){
 
 		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
 
+
+		if (impl->ChangeText) {
+			impl->mFont.SetText(impl->mText, mCenter);
+		}
 		impl->mTexMaterial.SetTexture(impl->mFont.GetTexture(),0);
 
 		model.Draw(render->m_Context, impl->mTexMaterial);
@@ -233,7 +238,7 @@ void TextComponent::ChangeFont(const std::string & fontName)
 
 void TextComponent::ChangeText(const std::string& text){
 	impl->mText = text;
-	impl->mFont.SetText(impl->mText, mCenter);
+	impl->ChangeText = true;
 }
 void TextComponent::ChangeFontSize(float size){
 	mFontSize = size;

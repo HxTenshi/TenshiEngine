@@ -595,7 +595,7 @@ void TransformComponent::AllChildrenDestroy(){
 		if (!child)continue;
 		//親と子が同時に死ぬとエラーが出る
 		Game::DestroyObject(child);
-		child->mTransform->AllChildrenDestroy();
+		//child->mTransform->AllChildrenDestroy();
 	}
 }
 

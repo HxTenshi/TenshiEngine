@@ -1,4 +1,4 @@
-
+#undef _XM_SSE_INTRINSICS_
 #include "DeferredRendering.h"
 
 

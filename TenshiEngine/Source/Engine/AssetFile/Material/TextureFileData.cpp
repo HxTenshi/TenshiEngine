@@ -55,6 +55,7 @@ bool TextureFileData::Create(const char* filename){
 
 }
 
+#undef _XM_SSE_INTRINSICS_
 #include "../DirectXTex/DirectXTex.h"
 #ifndef _DEBUG
 #pragma comment(lib, "DirectXTex/DirectXTex.lib")
