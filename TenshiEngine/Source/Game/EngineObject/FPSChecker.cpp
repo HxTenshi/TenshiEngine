@@ -23,7 +23,7 @@ public:
 		mComponents.AddComponent<TextComponent>();
 
 		mTransform->Position(XMVectorSet(0, Canvas::GetHeight(),9999999.0f, 1));
-		mTransform->Scale(XMVectorSet(512, 512,0,1));
+		mTransform->Scale(XMVectorSet(300, 50,0,1));
 		weak_ptr<TextComponent> mFPSText = GetComponent<TextComponent>();
 		mFPSText->SetTextureCenter(XMFLOAT2(0.0f,0.0f));
 	}
@@ -49,7 +49,7 @@ void FPSChecker::Initialize()
 
 void FPSChecker::Update(){
 
-	mFPSObject->mTransform->Position(XMVectorSet(0, Canvas::GetHeight(), 0, 1));
+	//mFPSObject->mTransform->Position(XMVectorSet(0, Canvas::GetHeight(), 0, 1));
 
 	static int mCorrentVectorPos = 0;
 	weak_ptr<TextComponent> mFPSText = mFPSObject->GetComponent<TextComponent>();

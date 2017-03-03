@@ -788,6 +788,7 @@
     <ClInclude Include="Source\Input\Input.h" />
     <ClInclude Include="Source\Input\InputManagerRapper.h" />
     <ClInclude Include="Source\Library\easing.h" />
+    <ClInclude Include="Source\MySTL\Math.h" />
     <ClInclude Include="Source\Library\MD5.h" />
     <ClInclude Include="Source\Library\movie\hwndMovie.h" />
     <ClInclude Include="Source\Library\movie\MovieTexture.h" />

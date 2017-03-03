@@ -13,6 +13,7 @@
 
 #include "Game/RenderingSystem.h"
 #include "Engine/Inspector.h"
+#include "Game/Component/CameraComponent.h"
 
 MeshDrawComponent::MeshDrawComponent(){
 }
@@ -42,6 +43,15 @@ void MeshDrawComponent::Update(){
 
 	auto drawfanc = std::function<void()>([&]() {
 		Model& model = *mModel->mModel;
+
+		if (!Input::Down(KeyCode::Key_M)) {
+			if (auto cam = Game::GetMainCamera()) {
+				if (!cam->Looking(model.GetBoundingSphere(), gameObject)) {
+					//Window::AddLog("Œ©‚¦‚Ä‚È‚¢‚æ:"+gameObject->Name());
+					return;
+				}
+			}
+		}
 
 		auto& meshvec = mModel->GetMeshComVector();
 

@@ -121,6 +121,7 @@ void TextComponent::DrawTextUI(){
 
 		if (impl->ChangeText) {
 			impl->mFont.SetText(impl->mText, mCenter);
+			impl->ChangeText = false;
 		}
 		impl->mTexMaterial.SetTexture(impl->mFont.GetTexture(),0);
 

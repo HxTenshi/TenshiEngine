@@ -8,6 +8,7 @@
 #include "Game/Component/MaterialComponent.h"
 #include "Graphic/Material/Material.h"
 #include "Graphic/Model/Model.h"
+#include "MySTL/Math.h"
 
 class EditorCamera;
 
@@ -57,6 +58,9 @@ public:
 
 	XMVECTOR Project(const XMVECTOR& position) override;
 	XMVECTOR UnProject(const XMVECTOR& position) override;
+
+
+	bool Looking(const BoundingSphere& bs, const GameObject objs);
 
 	enum class ScreenClearType{
 		Color,

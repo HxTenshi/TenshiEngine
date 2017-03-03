@@ -113,6 +113,7 @@ public:
 
 	GameObject GetEngineRootActor();
 	EditorCamera* GetEditorCamera();
+	static void DebugDrawLine(const XMVECTOR& pos, const XMVECTOR& v, const XMFLOAT4& col = {1.0f,1.0f,1.0f,1.0f });
 #endif
 
 	void ChangePlayGame(bool isPlay);

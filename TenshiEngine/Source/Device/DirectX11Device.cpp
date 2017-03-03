@@ -116,12 +116,22 @@ HRESULT Device::Init(const Window& window)
 		_SYSTEM_LOG_H_ERROR();
 		return hr;
 	}
+	ID3D11DeviceContext *context2;
+	hr = mpd3dDevice->CreateDeferredContext(NULL, &context2);
+	if (FAILED(hr)) {
+		Window::AddLog("デファードコンテキスト作成失敗");
+		_SYSTEM_LOG_ERROR("デファードコンテキストの作成");
+		_SYSTEM_LOG_H_ERROR();
+		return hr;
+	}
 
 	render->PushEngine(new RenderingEngine(mpImmediateContext), ContextType::Immediate);
 	render->PushEngine(new RenderingEngine(context), ContextType::MainDeferrd);
+	render->PushEngine(new RenderingEngine(context2), ContextType::Create);
 #else
 	render->PushEngine(new RenderingEngine(mpImmediateContext), ContextType::Immediate);
 	render->PushEngine(new RenderingEngine(mpImmediateContext), ContextType::MainDeferrd);
+	render->PushEngine(new RenderingEngine(mpImmediateContext), ContextType::Create);
 #endif
 
 

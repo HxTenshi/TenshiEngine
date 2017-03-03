@@ -275,6 +275,12 @@ void Model::Draw(ID3D11DeviceContext* context, const std::vector<weak_ptr<MeshCo
 	}
 }
 
+BoundingSphere Model::GetBoundingSphere()
+{
+	if (!m_MeshAssetDataPtr)return BoundingSphere();
+	return m_MeshAssetDataPtr->GetFileData()->GetBoundingSphere();
+}
+
 
 void ModelMesh::Create(MeshAsset& asset, int id){
 	m_MeshAssetDataPtr = asset.m_Ptr;

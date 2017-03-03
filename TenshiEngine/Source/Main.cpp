@@ -135,7 +135,8 @@ public:
 		:mGame(NULL)
 		, mDestory(false)
 		, mCmdFlag(false)
-		, mCmdList(NULL)
+		, mCmdList1(NULL)
+		, mCmdList2(NULL)
 		, mLoadEnd(false)
 		, mDrawSync(1)
 	{
@@ -197,7 +198,7 @@ public:
 			WaitForSingleObject(mDrawEvent, INFINITE);
 			ResetEvent(mDrawEvent);
 
-			mCmdList = cmdList;
+			mCmdList1 = cmdList;
 			mCmdFlag = true;
 		}
 
@@ -220,7 +221,7 @@ public:
 		mGame = new Game();
 		mLoadEnd = true;
 		WaitForSingleObject(mLoadDrawEvent, INFINITE);
-		mDrawSync = 0;
+		//mDrawSync = 0;
 		while (!mDestory)
 		{
 			{
@@ -234,21 +235,29 @@ public:
 				mGame->Draw();
 			}
 
-			ID3D11CommandList* cmdList = NULL;
+			ID3D11CommandList* cmdList1 = NULL;
 			{
 				auto tick = Profiling::Start("Main:etc");
-				auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
-				if (FAILED(render->m_Context->FinishCommandList(false, &cmdList))){
-					cmdList = NULL;
+				auto render = RenderingEngine::GetEngine(ContextType::Create);
+				if (FAILED(render->m_Context->FinishCommandList(false, &cmdList1))){
+					cmdList1 = NULL;
 				}
-				SetEvent(mUpdateEvent);
 			}
+			ID3D11CommandList* cmdList2 = NULL;
+			{
+				auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+				if (FAILED(render->m_Context->FinishCommandList(false, &cmdList2))) {
+					cmdList2 = NULL;
+				}
+			}
+			SetEvent(mUpdateEvent);
 			{
 				auto tick = Profiling::Start("Main:wait");
 				WaitForSingleObject(mDrawEvent, INFINITE);
 			}
 			ResetEvent(mDrawEvent);
-			mCmdList = cmdList;
+			mCmdList1 = cmdList1;
+			mCmdList2 = cmdList2;
 			mCmdFlag = true;
 		}
 
@@ -296,7 +305,8 @@ public:
 				}
 			}
 
-			ID3D11CommandList* cmdList;
+			ID3D11CommandList* cmdList1;
+			ID3D11CommandList* cmdList2;
 			{
 				auto tick = Profiling::Start("Draw:etc");
 				SetEvent(mDrawEvent);
@@ -306,7 +316,8 @@ public:
 					Sleep(1);
 				}
 
-				cmdList = (ID3D11CommandList*)mCmdList;
+				cmdList1 = (ID3D11CommandList*)mCmdList1;
+				cmdList2 = (ID3D11CommandList*)mCmdList2;
 				mCmdFlag = false;
 
 				//auto size = DrawThreadQueue::size();
@@ -317,8 +328,14 @@ public:
 			}
 			{
 				auto tick = Profiling::Start("Draw:execute");
-				Device::mpImmediateContext->ExecuteCommandList(cmdList, false);
-				cmdList->Release();
+				if (cmdList1) {
+					Device::mpImmediateContext->ExecuteCommandList(cmdList1, false);
+					cmdList1->Release();
+				}
+				if (cmdList2) {
+					Device::mpImmediateContext->ExecuteCommandList(cmdList2, false);
+					cmdList2->Release();
+				}
 			}
 			{
 				auto tick = Profiling::Start("Draw:swap");
@@ -499,7 +516,8 @@ public:
 	UINT mDrawSync;
 	bool mDestory;
 	bool mCmdFlag;
-	ID3D11CommandList* mCmdList;
+	ID3D11CommandList* mCmdList1;
+	ID3D11CommandList* mCmdList2;
 	HANDLE mUpdateEvent;
 	//HANDLE mMessageEvent;
 	HANDLE mDrawEvent;

@@ -151,6 +151,30 @@ void CalcTangentAndBinormal(
 	p2.Tangent = XMFLOAT3(tan.x, tan.y, tan.z);
 }
 
+XMVECTOR tov(const XMFLOAT3& f3) {
+	return XMVectorSet(f3.x, f3.y, f3.z, 0.0f);
+}
+void tobb(BoundingBox& bb,const XMFLOAT3& f3) {
+	bb.Min = tov(f3);
+	bb.Max = tov(f3);
+}
+
+void vmin(XMVECTOR& v, const XMFLOAT3& f3) {
+	v.x = min(v.x, f3.x);
+	v.y = min(v.y, f3.y);
+	v.z = min(v.z, f3.z);
+}
+
+void vmax(XMVECTOR& v, const XMFLOAT3& f3) {
+	v.x = max(v.x, f3.x);
+	v.y = max(v.y, f3.y);
+	v.z = max(v.z, f3.z);
+}
+
+void bb(BoundingBox& bb, const XMFLOAT3& f3) {
+	vmin(bb.Min, f3);
+	vmax(bb.Max, f3);
+}
 
 bool MeshFileData::Create(const char* filename){
 	m_FileName = filename;
@@ -174,6 +198,13 @@ bool MeshFileData::Create(const char* filename){
 		fstd::r_vector(buf->Vertexs, hFP);
 		fstd::r_vector(buf->Indices, hFP);
 		fstd::r_vector(buf->Meshs, hFP);
+
+		tobb(m_BoundingBox, buf->Vertexs[0].Pos);
+		for (auto v : buf->Vertexs) {
+			bb(m_BoundingBox, v.Pos);
+		}
+		m_BoundingSphere.Center = m_BoundingBox.GetCenter();
+		m_BoundingSphere.Radius = m_BoundingBox.GetLength() / 2.0f;
 
 		auto data = new PolygonsData<SimpleVertexNormal, unsigned short, int>();
 
@@ -221,6 +252,13 @@ bool MeshFileData::Create(const char* filename){
 		fstd::r_vector(buf->Vertexs, hFP);
 		fstd::r_vector(buf->Indices, hFP);
 		fstd::r_vector(buf->Meshs, hFP);
+
+		tobb(m_BoundingBox, buf->Vertexs[0].Pos);
+		for (auto v : buf->Vertexs) {
+			bb(m_BoundingBox, v.Pos);
+		}
+		m_BoundingSphere.Center = m_BoundingBox.GetCenter();
+		m_BoundingSphere.Radius = m_BoundingBox.GetLength() / 2.0f;
 
 
 		auto data = new PolygonsData<SimpleBoneVertexNormal, unsigned short, int>();
@@ -282,6 +320,13 @@ bool MeshFileData::Create(const char* filename){
 		fstd::r_vector(buf->Indices, hFP);
 		fstd::r_vector(buf->Meshs, hFP);
 
+		tobb(m_BoundingBox, buf->Vertexs[0].Pos);
+		for (auto v : buf->Vertexs) {
+			bb(m_BoundingBox, v.Pos);
+		}
+		m_BoundingSphere.Center = m_BoundingBox.GetCenter();
+		m_BoundingSphere.Radius = m_BoundingBox.GetLength()/2.0f;
+
 		_data = buf;
 
 	}
@@ -297,6 +342,16 @@ bool MeshFileData::Create(const char* filename){
 
 const IPolygonsData* MeshFileData::GetPolygonsData() const{
 	return m_Polygons;
+}
+
+const BoundingBox & MeshFileData::GetBoundingBox() const
+{
+	return m_BoundingBox;
+}
+
+const BoundingSphere & MeshFileData::GetBoundingSphere() const
+{
+	return m_BoundingSphere;
 }
 
 

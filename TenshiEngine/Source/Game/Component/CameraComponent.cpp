@@ -177,6 +177,35 @@ XMVECTOR CameraComponent::UnProject(const XMVECTOR & position)
 	return XMVector3Unproject(position, 0, 0, (FLOAT)WindowState::mWidth, (FLOAT)WindowState::mHeight, 0.0f, 1.0f, mProjection, mView, XMMatrixIdentity());
 }
 
+// “_a,b‚ğ’Ê‚é’¼ü‚Æ“_c‚Æ‚Ì‹——£
+float distance_l_p(const XMVECTOR& a, const XMVECTOR& b, const XMVECTOR& c) {
+	return XMVector3Length(XMVector3Cross(b - a, c - a)).x / XMVector3Length(b - a).x;
+}
+
+bool CameraComponent::Looking(const BoundingSphere & bs, const GameObject obj)
+{
+	auto world = obj->mTransform->GetMatrix();
+	auto bsP = XMVector3Transform(bs.Center, world);
+	auto camP = gameObject->mTransform->WorldPosition();
+	auto camF = gameObject->mTransform->Forward();
+	auto bsF = XMVector3Normalize(camP - bsP);
+	float dot = XMVector3Dot(bsF, camF).x;
+	auto bsL = bsF - camF * dot;
+	bsL = XMVector3Normalize(bsL);
+	auto l = distance_l_p(camP, camP + camF * m_Far, bsP);
+
+	auto ws = obj->mTransform->WorldScale();
+	auto rmax = bs.Radius * max(max(ws.x, ws.y), ws.z);
+	auto r = min(rmax,l);
+	auto pos = bsP + bsL * r;
+
+	auto res = Project(pos);
+	//Game::DebugDrawLine(bsP, bsL*r, {1,0,0,1});
+
+
+	return res.x >= 0.0f && res.x <= (float)WindowState::mWidth && res.y >= 0.0f && res.y <= (float)WindowState::mHeight;
+}
+
 
 void CameraComponent::UpdateView(){
 

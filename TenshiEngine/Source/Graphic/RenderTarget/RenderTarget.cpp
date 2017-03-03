@@ -48,7 +48,7 @@ RenderTarget::~RenderTarget()
 
 		if (!_CreateTexture())return E_FAIL;
 
-		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		auto render = RenderingEngine::GetEngine(ContextType::Create);
 		ClearView(render->m_Context);
 
 		return S_OK;
@@ -91,7 +91,7 @@ RenderTarget::~RenderTarget()
 
 		if (!_CreateTexture())return E_FAIL;
 
-		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		auto render = RenderingEngine::GetEngine(ContextType::Create);
 		ClearView(render->m_Context);
 
 		return S_OK;
@@ -144,7 +144,7 @@ RenderTarget::~RenderTarget()
 		// デプスバッファ
 		if (!_CreateDepthStencilView(&descDSV))return E_FAIL;
 
-		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		auto render = RenderingEngine::GetEngine(ContextType::Create);
 		ClearDepth(render->m_Context);
 
 		//ID3D11ShaderResourceView* pShaderResourceView;
@@ -459,7 +459,7 @@ RenderTarget::~RenderTarget()
 		Device::mpd3dDevice->CreateUnorderedAccessView(mpTexture2D, &uavDesc, &m_UAV);
 
 
-		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+		auto render = RenderingEngine::GetEngine(ContextType::Create);
 		ClearView(render->m_Context);
 
 		return S_OK;

@@ -470,6 +470,9 @@ Game::Game() {
 		Window::Deleter(s);
 	});
 #endif
+
+
+	ActorMoveStage();
 }
 
 Game::~Game(){
@@ -738,6 +741,91 @@ GameObject Game::GetEngineRootActor() {
 EditorCamera * Game::GetEditorCamera()
 {
 	return &mCamera;
+}
+void Game::DebugDrawLine(const XMVECTOR & pos, const XMVECTOR & v, const XMFLOAT4& col)
+{
+	static bool Init = false;
+	static Shader mShader;
+	static Material mMaterial;
+	static ConstantBuffer<CBChangesEveryFrame> mLineCBuffer;
+	static ID3D11Buffer*	mpVertexBuffer;
+	static ID3D11Buffer*	mpIndexBuffer;
+
+	if (!Init) {
+		Init = true;
+		mShader.Create("EngineResource/DebugLine.fx");
+
+		mMaterial.SetAlbedo(col);
+		mMaterial.Create();
+
+
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+		mLineCBuffer = ConstantBuffer<CBChangesEveryFrame>::create(2);
+		mLineCBuffer.mParam.mWorld = XMMatrixIdentity();
+		mLineCBuffer.UpdateSubresource(render->m_Context);
+
+		{
+			XMFLOAT4 Vertices[] = { { 0.0f, 0.0f, 0.0f, 1.0f },{ 0.0f, 0.0f, 1.0f, 1.0f } };
+			UINT TypeSize = sizeof(XMFLOAT4);
+			UINT VertexNum = 2;
+
+			D3D11_BUFFER_DESC bd;
+			ZeroMemory(&bd, sizeof(bd));
+			bd.Usage = D3D11_USAGE_DEFAULT;
+			bd.ByteWidth = TypeSize * VertexNum;
+			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			bd.CPUAccessFlags = 0;
+			D3D11_SUBRESOURCE_DATA InitData;
+			ZeroMemory(&InitData, sizeof(InitData));
+			InitData.pSysMem = Vertices;
+			Device::mpd3dDevice->CreateBuffer(&bd, &InitData, &mpVertexBuffer);
+		}
+		{
+			WORD Indices[] = { 0, 1 };
+			UINT IndexNum = 2;
+
+			D3D11_BUFFER_DESC bd;
+			ZeroMemory(&bd, sizeof(bd));
+			bd.Usage = D3D11_USAGE_DEFAULT;
+			bd.ByteWidth = sizeof(WORD) * IndexNum;
+			bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+			bd.CPUAccessFlags = 0;
+			D3D11_SUBRESOURCE_DATA InitData;
+			ZeroMemory(&InitData, sizeof(InitData));
+			InitData.pSysMem = Indices;
+			Device::mpd3dDevice->CreateBuffer(&bd, &InitData, &mpIndexBuffer);
+		}
+
+	}
+
+	Game::AddDrawList(DrawStage::Engine, [&, pos, v, col]() {
+
+		mMaterial.SetAlbedo(col);
+		auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+		render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+		render->PushSet(DepthStencil::Preset::DS_Zero_Alawys);
+
+		mShader.SetShader(false, render->m_Context);
+		mMaterial.PSSetShaderResources(render->m_Context);
+		UINT mStride = sizeof(XMFLOAT4);
+		UINT offset = 0;
+		render->m_Context->IASetVertexBuffers(0, 1, &mpVertexBuffer, &mStride, &offset);
+		render->m_Context->IASetIndexBuffer(mpIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+		mLineCBuffer.mParam.mWorld.r[0] = pos;
+		mLineCBuffer.mParam.mWorld.r[1] = pos + v;
+		mLineCBuffer.UpdateSubresource(render->m_Context);
+		mLineCBuffer.VSSetConstantBuffers(render->m_Context);
+
+		render->m_Context->DrawIndexed(2, 0, 0);
+
+		render->m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		render->PopDS();
+	});
 }
 #endif
 GameObject Game::FindActor(Actor* actor){
