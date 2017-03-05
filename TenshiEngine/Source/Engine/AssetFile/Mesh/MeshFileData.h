@@ -2,6 +2,7 @@
 #include "../AssetFileData.h"
 #include"MeshBufferData.h"
 
+#include "MySTL/Math.h"
 
 class IPolygonsData;
 
@@ -15,6 +16,8 @@ public:
 	const MeshBufferData& GetBufferData() const;
 
 	const IPolygonsData* GetPolygonsData() const;
+	const BoundingBox& GetBoundingBox() const;
+	const BoundingSphere& GetBoundingSphere() const;
 
 private:
 	//コピー禁止
@@ -23,4 +26,6 @@ private:
 
 	IPolygonsData* m_Polygons;	// 頂点とインデックスデータ
 	MeshBufferData m_MeshBufferData;
+	BoundingBox m_BoundingBox;
+	BoundingSphere m_BoundingSphere;
 };

@@ -8,6 +8,7 @@
 class PointLightComponent;
 
 #include "../Material/Material.h"
+#include "MySTL/Math.h"
 
 class MaterialComponent;
 
@@ -32,6 +33,7 @@ public:
 	void Draw(ID3D11DeviceContext* context, const shared_ptr<MaterialComponent> material) const;
 	void Draw(ID3D11DeviceContext* context, const std::vector<weak_ptr<MeshComponent>>& mesh) const;
 
+	BoundingSphere GetBoundingSphere();
 
 	int GetMeshNum();
 	//クリエイトされているか
