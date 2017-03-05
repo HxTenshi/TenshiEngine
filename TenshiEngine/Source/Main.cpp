@@ -221,7 +221,8 @@ public:
 		mGame = new Game();
 		mLoadEnd = true;
 		WaitForSingleObject(mLoadDrawEvent, INFINITE);
-		//mDrawSync = 0;
+		mLoadDrawThread.join();
+		mDrawSync = 0;
 		while (!mDestory)
 		{
 			{
@@ -283,7 +284,7 @@ public:
 				ResetEvent(mUpdateEvent);
 			}
 
-			{
+			if(mLoadEnd){
 				// Main message loop
 				MSG msg = { 0 };
 				while (WM_QUIT != msg.message)
@@ -343,6 +344,7 @@ public:
 				Device::mpSwapChain->Present(mDrawSync, 0);
 
 			}
+
 		}
 	}
 #else

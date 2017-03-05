@@ -51,7 +51,7 @@ PS_INPUT VS(VS_INPUT input)
 	output.Pos = input.Pos;
 	output.Pos.z = 0.9999999;
 	output.Tex = input.Tex;
-	output.WPos = mul(input.Pos, ProjectionInv);
+	output.WPos = mul(input.Pos, ProjectionInv).xyz;
 	output.WPos = mul(output.WPos, (float3x3)ViewInv);
 	return output;
 }

@@ -979,18 +979,18 @@ bool g_IsGameStopFrame = false;
 
 #include "../Engine/AssetFile/Material/TextureFileData.h"
 void Game::Draw(){
-	static UINT w = 1;
-	static UINT h = 1;
-	if (w != WindowState::mWidth || h != WindowState::mHeight){
-		w = WindowState::mWidth;
-		h = WindowState::mHeight;
-		Device::Resize(w, h);
-		m_DeferredRendering.Resize(w, h);
-		mMainViewRenderTarget.Resize(w, h);
-	}
-
 
 	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+
+	static UINT w = 1;
+	static UINT h = 1;
+	if ((w != WindowState::mWidth || h != WindowState::mHeight) && (WindowState::mWidth>0 && WindowState::mHeight>0)){
+		w = WindowState::mWidth;
+		h = WindowState::mHeight;
+		m_DeferredRendering.Resize(w, h);
+		mMainViewRenderTarget.Resize(w, h);
+		Device::Resize(w, h);
+	}
 
 	// Setup the viewport
 	D3D11_VIEWPORT vp;

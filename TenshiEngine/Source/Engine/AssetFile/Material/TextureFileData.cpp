@@ -187,7 +187,7 @@ ID3D11ShaderResourceView* TextureFileData::LoadRGBE(){
 	delete[] result.cols;
 
 
-	auto render = RenderingEngine::GetEngine(ContextType::MainDeferrd);
+	auto render = RenderingEngine::GetEngine(ContextType::Create);
 	render->m_Context->GenerateMips(pShaderResourceView);
 
 
