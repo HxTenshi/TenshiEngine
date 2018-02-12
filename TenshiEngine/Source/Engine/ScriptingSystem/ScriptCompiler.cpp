@@ -29,59 +29,47 @@ SGame gSGame;
 #define _SKIP_COMPILE 0
 
 #ifdef _ENGINE_MODE
-void IncludeScriptFileProject() {
+// プロジェクトファイルの生成
+void IncludeScriptFileProject()
+{
+	// ベースにするプロジェクトファイル（上）
+	std::fstream headFile;
+	auto headFilePath = "EngineResource/ScriptTemplate/ScriptTemplate.vcxproj";
+	headFile.open(headFilePath, std::ios::in);
+	// 開いたファイルを読み込む
+	const std::istreambuf_iterator<char> it(headFile);
+	const std::istreambuf_iterator<char> last;
+	const std::string head(it, last);
 
-	std::fstream file;
+	// ベースにするプロジェクトファイル（下）
+	const std::string bottom = "    <None Include=\"dll.def\" />\n  </ItemGroup>\n  <Import Project = \"$(VCTargetsPath)\Microsoft.Cpp.targets\" />\n  <ImportGroup Label = \"ExtensionTargets\">\n</ImportGroup>\n</Project>";
 
-	auto srcname = "EngineResource/ScriptTemplate/ScriptTemplate.vcxproj";
-	file.open(srcname, std::ios::in | std::ios::ate);
-
-	std::fstream outFile;
-	auto outfilename = "ScriptComponent/ScriptComponent.vcxproj";
-	outFile.open(outfilename, std::ios::out);
-
-	int length = (int)file.tellg();
-	file.seekg(0, file.beg);//ファイルポインタを最初に戻す
-	char * buf = new char[length + 1];
-
-	memset(buf, 0, (length + 1) * sizeof(char));
-	file.read(buf, length);
-
-	std::string buffer = buf;
-
-	std::string add = "\n";
-
+	// 指定パスからファイルを再帰的に検索
 	namespace sys = std::tr2::sys;
-	sys::path p("./ScriptComponent/Scripts/"); // 列挙の起点
-											   //std::for_each(sys::directory_iterator(p), sys::directory_iterator(),
-											   //  再帰的に走査するならコチラ↓
-	std::for_each(sys::recursive_directory_iterator(p), sys::recursive_directory_iterator(),
-		[&](const sys::path& p) {
-		if (sys::is_regular_file(p)) { // ファイルなら...
-			if (p.extension() == ".h") {
-				add += "    <ClInclude Include=\"Scripts\\" + p.stem().string() + ".h\" />\n";
-			}
-			else if (p.extension() == ".cpp") {
-				add += "    <ClCompile Include=\"Scripts\\" + p.stem().string() + ".cpp\" />\n";
+	std::string addScript = "\n";
+	const sys::path scriptPath("./ScriptComponent/Scripts/");
+	std::for_each(sys::recursive_directory_iterator(scriptPath), sys::recursive_directory_iterator(),
+		[&](const sys::path& path)
+		{
+			// ファイルなら
+			if( sys::is_regular_file(path) ) {
+				if( path.extension() == ".h" )			addScript += "    <ClInclude Include=\"Scripts\\" + path.stem().string() + ".h\" />\n";
+				else if( path.extension() == ".cpp" )	addScript += "    <ClCompile Include=\"Scripts\\" + path.stem().string() + ".cpp\" />\n";
 			}
 		}
-		else if (sys::is_directory(p)) { // ディレクトリなら...a
-										 //std::cout << "dir.: " << p.string() << std::endl;
-		}
-	});
-	const std::string end = "    <None Include=\"dll.def\" />\n  </ItemGroup>\n  <Import Project = \"$(VCTargetsPath)\Microsoft.Cpp.targets\" />\n  <ImportGroup Label = \"ExtensionTargets\">\n</ImportGroup>\n</Project>";
+	);
 
+	// 出力先プロジェクトファイル
+	std::fstream destFile;
+	auto destFilePath = "ScriptComponent/ScriptComponent.vcxproj";
+	destFile.open(destFilePath, std::ios::out);
 
-	outFile.write(buffer.c_str(), buffer.size());
-	outFile.write(add.c_str(), add.size());
-	outFile.write(end.c_str(), end.size());
+	// 書き込み
+	destFile << head << addScript << bottom << std::flush;
 
-	outFile << "";
-
-	file.close();
-	outFile.close();
-
-	delete[] buf;
+	// 後処理
+	headFile.close();
+	destFile.close();
 }
 
 
