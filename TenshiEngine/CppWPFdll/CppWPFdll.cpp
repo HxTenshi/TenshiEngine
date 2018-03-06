@@ -593,6 +593,13 @@ namespace Test {
 		ViewData::window->Dispatcher->BeginInvoke(System::Windows::Threading::DispatcherPriority::Render, del, gcnew String(log.c_str()));
 	}
 
+	void NativeFraction::VoidFunctionCall(void * call)
+	{
+		auto p = (std::function<void()>*)call;
+		(*p)();
+		delete p;
+	}
+
 
 	void* NativeFraction::GetGameScreenHWND() const {
 		void* temp = NULL;

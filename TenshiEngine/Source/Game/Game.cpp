@@ -211,6 +211,7 @@ Game::Game() {
 
 	m_DeferredRendering.Initialize();
 	mPostEffectRendering.Initialize();
+	m_SamplerStateSetting.Initialize();
 
 	gpList = &mList;
 	gDrawList = &mDrawList;
@@ -344,8 +345,9 @@ Game::Game() {
 
 	Window::SetWPFCollBack(MyWindowMessage::ChangeParamComponent, [&](void* p)
 	{
-		auto coll = (std::function<void()>*)p;
-		(*coll)();
+		Window::VoidFunctionCall(p);
+		//auto coll = (std::function<void()>*)p;
+		//(*coll)();
 		//delete coll;
 	});
 
@@ -1056,6 +1058,7 @@ void Game::Draw(){
 	mCBScreen.PSSetConstantBuffers(render->m_Context);
 
 
+	m_SamplerStateSetting.Setting(render->m_Context);
 
 	DrawListZSort();
 
@@ -1067,11 +1070,8 @@ void Game::Draw(){
 	PlayDrawList(DrawStage::Depth);
 	PlayDrawListZSort(DrawStage::Depth);
 
-
 	ID3D11ShaderResourceView *const pNULL[4] = { NULL, NULL, NULL, NULL };
 	render->m_Context->PSSetShaderResources(0, 4, pNULL);
-	ID3D11SamplerState *const pSNULL[4] = { NULL, NULL, NULL, NULL };
-	render->m_Context->PSSetSamplers(0, 4, pSNULL);
 
 	PlayDrawList(DrawStage::Init);
 	PlayDrawListZSort(DrawStage::Init);
@@ -1195,17 +1195,15 @@ void Game::Draw(){
 
 	{
 		ID3D11ShaderResourceView *const pNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-		ID3D11SamplerState *const pSNULL[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 		render->m_Context->PSSetShaderResources(0, 8, pNULL);
-		render->m_Context->PSSetSamplers(0, 8, pSNULL);
 		render->m_Context->VSSetShaderResources(0, 8, pNULL);
-		render->m_Context->VSSetSamplers(0, 8, pSNULL);
 		render->m_Context->GSSetShaderResources(0, 8, pNULL);
-		render->m_Context->GSSetSamplers(0, 8, pSNULL);
 		render->m_Context->PSSetShader(NULL, NULL, 0);
 		render->m_Context->VSSetShader(NULL, NULL, 0);
 		render->m_Context->GSSetShader(NULL, NULL, 0);
 		render->m_Context->CSSetShader(NULL, NULL, 0);
+
+		m_SamplerStateSetting.Free(render->m_Context);
 	}
 }
 

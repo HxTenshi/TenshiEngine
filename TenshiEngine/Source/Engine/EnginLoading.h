@@ -4,6 +4,7 @@ class Actor;
 class Model;
 class Material;
 struct Texs;
+class SamplerStateSetting;
 class EnginLoading {
 public:
 	EnginLoading();
@@ -14,4 +15,5 @@ private:
 	Model* mModel;
 	Material* mMaterial;
 	Texs* imp;
+	SamplerStateSetting* mSamplerStateSetting;
 };

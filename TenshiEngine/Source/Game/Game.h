@@ -16,6 +16,7 @@
 
 #include "PostEffectRendering.h"
 #include "DeferredRendering.h"
+#include "SamplerStateSetting.h"
 
 
 #include "Engine/SelectActor.h"
@@ -177,6 +178,8 @@ private:
 	RenderTarget mMainViewRenderTarget;
 	DeferredRendering m_DeferredRendering;
 	PostEffectRendering mPostEffectRendering;
+	public:
+	SamplerStateSetting m_SamplerStateSetting;
 
 	static Scene m_Scene;
 

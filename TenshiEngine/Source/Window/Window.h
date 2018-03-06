@@ -144,6 +144,10 @@ public:
 		mWPFCollBacks[(int)massage] = collback;
 	}
 
+	static void VoidFunctionCall(void* call) {
+		mMainWindow_WPF.VoidFunctionCall(call);
+	}
+
 #endif
 	
 

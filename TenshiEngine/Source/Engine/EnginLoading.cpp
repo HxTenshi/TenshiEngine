@@ -9,7 +9,7 @@
 #include "Game/RenderingSystem.h"
 #include "Graphic/RenderTarget/RenderTarget.h"
 #include "Graphic/Model/Model.h"
-
+#include "Game/SamplerStateSetting.h"
 struct Texs {
 	TextureAsset mLogo;
 	TextureAsset mLoadIco;
@@ -18,6 +18,10 @@ struct Texs {
 
 EnginLoading::EnginLoading()
 {
+
+	mSamplerStateSetting = new SamplerStateSetting();
+	mSamplerStateSetting->Initialize();
+
 	mModel = new Model();
 	MeshAsset mesh;
 	AssetDataBase::DirectLoad("EngineResource/TextureModel.tesmesh", mesh.m_Ptr);
@@ -39,6 +43,7 @@ EnginLoading::~EnginLoading()
 	delete mModel;
 	delete mMaterial;
 	delete imp;
+	delete mSamplerStateSetting;
 }
 
 void EnginLoading::Update()
@@ -61,6 +66,8 @@ void EnginLoading::Update()
 	Device::mRenderTargetBack->ClearDepth(render->m_Context);
 
 	Device::mRenderTargetBack->SetRendererTarget(render->m_Context);
+
+	mSamplerStateSetting->Setting(render->m_Context);
 
 	render->PushSet(Rasterizer::Preset::RS_Back_Solid);
 
@@ -98,6 +105,8 @@ void EnginLoading::Update()
 		render->m_Context->VSSetShader(NULL, NULL, 0);
 		render->m_Context->GSSetShader(NULL, NULL, 0);
 		render->m_Context->CSSetShader(NULL, NULL, 0);
+
+		mSamplerStateSetting->Free(render->m_Context);
 	}
 }
 

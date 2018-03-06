@@ -7,10 +7,10 @@ void TextureData::Release(){
 		mpTextureRV->Release();
 		mpTextureRV = NULL;
 	}
-	if (mpSamplerLinear){
-		mpSamplerLinear->Release();
-		mpSamplerLinear = NULL;
-	}
+	//if (mpSamplerLinear){
+	//	mpSamplerLinear->Release();
+	//	mpSamplerLinear = NULL;
+	//}
 }
 
 TextureFileData::TextureFileData(){
@@ -34,23 +34,24 @@ bool TextureFileData::Create(const char* filename){
 		return false;
 	}
 
-	// Create the sample state
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
-	sampDesc.MipLODBias = 0;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	//// Create the sample state
+	//D3D11_SAMPLER_DESC sampDesc;
+	//ZeroMemory(&sampDesc, sizeof(sampDesc));
+	////sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	//sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	//sampDesc.MipLODBias = 0;
+	//sampDesc.MinLOD = 0;
+	//sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	HRESULT hr;
-	hr = Device::mpd3dDevice->CreateSamplerState(&sampDesc, &m_TextureData.mpSamplerLinear);
-	if (FAILED(hr)){
-		return false;
-	}
+	//HRESULT hr;
+	//hr = Device::mpd3dDevice->CreateSamplerState(&sampDesc, &m_TextureData.mpSamplerLinear);
+	//if (FAILED(hr)){
+	//	return false;
+	//}
 	return true;
 
 }
@@ -58,9 +59,15 @@ bool TextureFileData::Create(const char* filename){
 #undef _XM_SSE_INTRINSICS_
 #include "../DirectXTex/DirectXTex.h"
 #ifndef _DEBUG
-#pragma comment(lib, "DirectXTex/DirectXTex.lib")
+
+#ifdef _ENGINE_MODE
+#pragma comment(lib, "DirectXTex/DirectXTex_MD.lib")
 #else
-#pragma comment(lib, "DirectXTex/DirectXTexD.lib")
+#pragma comment(lib, "DirectXTex/DirectXTex.lib")
+#endif
+
+#else
+#pragma comment(lib, "DirectXTex/DirectXTex_MDd.lib")
 #endif //_DEBUG
 
 #include "Device/DirectX11Device.h"

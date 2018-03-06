@@ -2,13 +2,13 @@
 #include "../AssetFileData.h"
 
 struct ID3D11ShaderResourceView;
-struct ID3D11SamplerState;
+//struct ID3D11SamplerState;
 
 class TextureData{
 public:
 	TextureData()
 		:mpTextureRV(NULL)
-		, mpSamplerLinear(NULL)
+		//, mpSamplerLinear(NULL)
 	{
 	}
 	~TextureData(){
@@ -17,7 +17,7 @@ public:
 	void Release();
 
 	ID3D11ShaderResourceView*	mpTextureRV;
-	ID3D11SamplerState*			mpSamplerLinear;
+	//ID3D11SamplerState*			mpSamplerLinear;
 
 private:
 	//ÉRÉsÅ[ã÷é~
@@ -32,12 +32,12 @@ public:
 
 	bool Create(const char* filename) override;
 
-	void SetTexture(ID3D11ShaderResourceView* TextureRV, ID3D11SamplerState* SamplerLinear){
+	void SetTexture(ID3D11ShaderResourceView* TextureRV/*, ID3D11SamplerState* SamplerLinear*/){
 
 		if (m_FileName == ""){
 			m_TextureData.Release();
 			m_TextureData.mpTextureRV = TextureRV;
-			m_TextureData.mpSamplerLinear = SamplerLinear;
+			//m_TextureData.mpSamplerLinear = SamplerLinear;
 		}
 	}
 

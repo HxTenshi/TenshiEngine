@@ -27,6 +27,7 @@ public:
 		, m_collback(collback){
 	}
 	~DataModel(){
+
 	}
 	T* get() {
 		return m_x;
@@ -34,8 +35,11 @@ public:
 
 	bool set(T value) {
 		if (*m_x == value)return false;
+
 		auto coll = new std::function<void()>();
-		*coll = [=](){ m_collback(value); delete coll; };
+		*coll = [=](){
+			m_collback(value);
+		};
 		Data::MyPostMessage(MyWindowMessage::ChangeParamComponent, coll);
 		return true;
 	}
@@ -43,7 +47,6 @@ public:
 private:
 	T* m_x;
 	Func m_collback;
-	//std::function<void()>* coll;
 };
 
 ref class IViewModel : public NofityPropertyChanged {

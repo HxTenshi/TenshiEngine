@@ -63,6 +63,8 @@ public:
 
 
 	void AddLog(const std::string& log);
+
+	void VoidFunctionCall(void* call);
 	
 	void* GetGameScreenHWND() const;
 	void* GetEditorHWND() const;

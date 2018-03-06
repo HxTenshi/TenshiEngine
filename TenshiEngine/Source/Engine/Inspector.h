@@ -119,6 +119,10 @@ public:
 		}
 		Add<T>(text, (IAsset*)data, std::function<void()>(collback));
 	}
+	static void VoidFunctionCall(void* call) {
+		auto p = (std::function<void(void)>*)call;
+		(*p)();
+	}
 	template<class T>
 	void Add(const std::string& text, IAsset* data, const std::function<void(void)>& collback) {
 
@@ -130,7 +134,7 @@ public:
 			else {
 				data->Free();
 			}
-			collback();
+			VoidFunctionCall((void*)&collback);
 		};
 		auto dataset = new TemplateInspectorDataSet<std::string>(text, &data->m_Name, loadcoll);
 		m_DataSet.push_back(InspectorDataSet(InspectorDataFormat::String, dataset));

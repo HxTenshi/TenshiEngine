@@ -52,6 +52,8 @@ namespace AssetsWindow{
 			std::string* s = (std::string*)p;
 			Replace(*s, "\\", "/");
 
+			Window::AddLog("DeleteFile:" + *s);
+
 			//テンプファイル上書き保存処理？で誤認される
 			//std::tr2::sys::path path(*s);
 			//if (path.extension() == ".cpp" || path.extension() == ".h") {
@@ -68,13 +70,25 @@ namespace AssetsWindow{
 			if (!p)return;
 			std::string* s = (std::string*)p;
 			Replace(*s, "\\", "/");
+
+			Window::AddLog("CreateFile:"+*s);
+
 			std::tr2::sys::path path(*s);
 			if (path.extension() == ".meta"){
 				Window::Deleter(s);
 				return;
 			}
+			if (path.extension() == ".TMP") {
+				Window::Deleter(s);
+				return;
+			}
+			if (path.extension().string().find('~') != std::string::npos) {
+				Window::Deleter(s);
+				return;
+			}
+
 			if (path.extension() == ".cpp" || path.extension() == ".h") {
-				IncludeScriptFileProject();
+				GenerateScriptProjectFile();
 				Window::Deleter(s);
 				return;
 			}
@@ -100,6 +114,8 @@ namespace AssetsWindow{
 			if (!p)return;
 			std::string* s = (std::string*)p;
 			Replace(*s, "\\", "/");
+
+			Window::AddLog("ChangeFile:" + *s);
 			//AssetDataTemplatePtr temp;
 			//temp = AssetDataBase::GetAssetFile(*s);
 			AssetDataBase::FileUpdate(s->c_str());
@@ -111,6 +127,8 @@ namespace AssetsWindow{
 			if (!p)return;
 			std::string* s = (std::string*)p;
 			Replace(*s, "\\", "/");
+
+			Window::AddLog("ReneameFile:" + *s);
 			m_RenameStack = *s;
 			Window::Deleter(s);
 		});
@@ -120,11 +138,27 @@ namespace AssetsWindow{
 			std::string* s = (std::string*)p;
 			Replace(*s, "\\", "/");
 
-			AssetDataBase::AssetFileRename(m_RenameStack, *s);
+			Window::AddLog("RenameToFile:" + *s);
 
-			auto old = m_RenameStack + ".meta";
-			auto New = *s + ".meta";
-			MoveFile(old.c_str(), New.c_str());
+			std::tr2::sys::path path(m_RenameStack);
+			//ビジュアルスタジオでファイルを上書き保存？した場合
+			//一時ファイルからのリネームになる
+			//一時ファイルに保存 -> 元ファイル削除 -> 元ファイルにリネームの処理が走る
+
+			//一時ファイルからのリネーム
+			if (path.extension().string().find('~') != std::string::npos) {
+				AssetDataBase::MoveAssetFile(*s, m_Back);
+				AssetDataBase::FileUpdate(s->c_str());
+				MoveFileCheck::Set("");
+			}
+			//普通のリネーム
+			else {
+				AssetDataBase::AssetFileRename(m_RenameStack, *s);
+
+				auto old = m_RenameStack + ".meta";
+				auto New = *s + ".meta";
+				MoveFile(old.c_str(), New.c_str());
+			}
 
 			Window::Deleter(s);
 			m_RenameStack = "";
