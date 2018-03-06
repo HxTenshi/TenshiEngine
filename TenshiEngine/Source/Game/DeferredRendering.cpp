@@ -223,7 +223,7 @@ XMMATRIX CascadeShadow::CreateCropMatrix(const XMVECTOR& mini, const XMVECTOR& m
 	// 制限をかける.
 	scaleX = max(1.0f, scaleX);
 	scaleY = max(1.0f, scaleY);
-#if 1
+#if 0
 	// GPU Gems 3の実装では下記処理を行っている.
 	// maxi.zの値が0近づくことがあり, シャドウマップが真っ黒になるなどおかしくなることが発生するので,
 	// この実装はZ成分については何も処理を行わない.
@@ -1072,7 +1072,6 @@ void DeferredRendering::G_Buffer_Rendering(IRenderingEngine* render, const std::
 
 	const RenderTarget* r[5] = { &m_AlbedoRT, &m_SpecularRT, &m_NormalRT, &m_DepthRT, &m_VelocityRT };
 	RenderTarget::SetRendererTarget(render->m_Context, (UINT)5, r[0], &Game::GetMainViewRenderTarget());
-
 
 	mMaterialPrePassEnv.PSSetShaderResources(render->m_Context);
 
