@@ -183,7 +183,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <OpenMPSupport>false</OpenMPSupport>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -218,6 +218,8 @@
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <AdditionalManifestDependencies>
+      </AdditionalManifestDependencies>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -276,7 +278,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <OpenMPSupport>false</OpenMPSupport>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -308,6 +310,7 @@
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <ProgramDatabaseFile>$(Configuration)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(Configuration)$(TargetName).pgd</ProfileGuidedDatabase>
+      <AdditionalManifestDependencies>name='dll_MD' version='1.0.0.0'</AdditionalManifestDependencies>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -357,6 +360,7 @@
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <ProgramDatabaseFile>$(Configuration)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(Configuration)$(TargetName).pgd</ProfileGuidedDatabase>
+      <AdditionalManifestDependencies>name='dll' version='1.0.0.0'</AdditionalManifestDependencies>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -484,6 +488,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalManifestDependencies>name='dll' version='1.0.0.0'</AdditionalManifestDependencies>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -607,6 +612,7 @@
     <ClCompile Include="Source\Game\Parts\Enebled.cpp" />
     <ClCompile Include="Source\Game\PostEffectRendering.cpp" />
     <ClCompile Include="Source\Game\RenderingSystem.cpp" />
+    <ClCompile Include="Source\Game\SamplerStateSetting.cpp" />
     <ClCompile Include="Source\Game\Scene.cpp" />
     <ClCompile Include="Source\Game\Component\ScriptComponent.cpp" />
     <ClCompile Include="Source\Game\Component\TextComponent.cpp" />
@@ -748,6 +754,7 @@
     <ClInclude Include="Source\Game\Game.h" />
     <ClInclude Include="Source\Game\Component\IComponent.h" />
     <ClInclude Include="Source\Game\Parts\Enabled.h" />
+    <ClInclude Include="Source\Game\SamplerStateSetting.h" />
     <ClInclude Include="Source\Game\Script\GameObject.h" />
     <ClInclude Include="Source\Game\RenderingSystem.h" />
     <ClInclude Include="Source\Game\Script\IGame.h" />

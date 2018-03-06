@@ -1,0 +1,7 @@
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+    <file name = "PhysX_MT.dll"/>
+    <file name = "PhysXCharacterKinematic_MT.dll"/>
+    <file name = "PhysXCommon_MT.dll"/>
+    <file name = "PhysXCooking_MT.dll"/>
+    <file name = "D3Dcompiler_47.dll"/>
+</assembly>

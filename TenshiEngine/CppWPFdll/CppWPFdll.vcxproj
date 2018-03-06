@@ -108,7 +108,7 @@
       <ProgramDatabaseFile>$(Configuration)$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)$(TargetFileName)" "$(SolutionDir)"</Command>
+      <Command>copy "$(TargetDir)$(TargetFileName)" "$(SolutionDir)\dll_MD"</Command>
     </PostBuildEvent>
     <PreLinkEvent>
       <Command>

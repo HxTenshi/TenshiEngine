@@ -15,20 +15,31 @@
 //#pragma comment(lib,"PhysX3Gpu_x86.lib")
 //#pragma comment(lib,"PhysX3GpuDEBUG_x86.lib")
 //#pragma comment(lib,"PxTaskDEBUG.lib")
-#pragma comment(lib,"PhysX3DEBUG_x86.lib")
-#pragma comment(lib,"PhysX3CommonDEBUG_x86.lib")
-#pragma comment(lib,"PhysXProfileSDKDEBUG.lib")
-#pragma comment(lib,"PhysX3ExtensionsDEBUG.lib")
-#pragma comment(lib,"PhysX3CookingDEBUG_x86.lib")
-#pragma comment(lib,"PhysX3CharacterKinematicDEBUG_x86.lib")
+#pragma comment(lib,"PhysX_MDd.lib")
+#pragma comment(lib,"PhysXCommon_MDd.lib")
+#pragma comment(lib,"PhysXProfileSDK_MDd.lib")
+#pragma comment(lib,"PhysXExtensions_MDd.lib")
+#pragma comment(lib,"PhysXCooking_MDd.lib")
+#pragma comment(lib,"PhysXCharacterKinematic_MDd.lib")
 
 #else
-#pragma comment(lib,"PhysX3_x86.lib")
-#pragma comment(lib,"PhysX3Common_x86.lib")
-#pragma comment(lib,"PhysXProfileSDK.lib")
-#pragma comment(lib,"PhysX3Extensions.lib")
-#pragma comment(lib,"PhysX3Cooking_x86.lib")
-#pragma comment(lib,"PhysX3CharacterKinematic_x86.lib")
+
+#ifdef _ENGINE_MODE
+#pragma comment(lib,"PhysX_MD.lib")
+#pragma comment(lib,"PhysXCommon_MD.lib")
+#pragma comment(lib,"PhysXProfileSDK_MD.lib")
+#pragma comment(lib,"PhysXExtensions_MD.lib")
+#pragma comment(lib,"PhysXCooking_MD.lib")
+#pragma comment(lib,"PhysXCharacterKinematic_MD.lib")
+#else
+#pragma comment(lib,"PhysX_MT.lib")
+#pragma comment(lib,"PhysXCommon_MT.lib")
+#pragma comment(lib,"PhysXProfileSDK_MT.lib")
+#pragma comment(lib,"PhysXExtensions_MT.lib")
+#pragma comment(lib,"PhysXCooking_MT.lib")
+#pragma comment(lib,"PhysXCharacterKinematic_MT.lib")
+#endif
+
 #endif
 
 //bool g_SimulationInitialize = false;

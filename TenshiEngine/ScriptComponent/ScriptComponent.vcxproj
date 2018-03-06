@@ -73,6 +73,7 @@
       <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_" /D "_ENGINE_MODE" %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -90,6 +91,7 @@
       <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_" /D "_ENGINE_MODE" /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
@@ -109,6 +111,7 @@
       <AdditionalIncludeDirectories>.\Scripts;.\;..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_XM_NO_INTRINSICS_" /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -131,10 +134,8 @@
     <ClInclude Include="Script.h" />
     <ClInclude Include="h_component.h" />
     <ClInclude Include="h_standard.h" />
-    <ClInclude Include="System\factory.h"/>
-    <ClInclude Include="System\include.h"/>
-    <ClInclude Include="System\reflection.h"/>
-    <ClCompile Include="Scripts\Bullet.cpp" />
+    <ClInclude Include="System\factory.h" />
+    <ClInclude Include="System\include.h" />    <ClInclude Include="System\reflection.h" />   <ClCompile Include="Scripts\Bullet.cpp" />
     <ClInclude Include="Scripts\Bullet.h" />
     <ClCompile Include="Scripts\BulletEmiter.cpp" />
     <ClInclude Include="Scripts\BulletEmiter.h" />
@@ -162,7 +163,7 @@
     <ClInclude Include="Scripts\WeaponHand.h" />
     <None Include="dll.def" />
   </ItemGroup>
-  <Import Project = "$(VCTargetsPath)Microsoft.Cpp.targets" />
-  <ImportGroup Label = "ExtensionTargets">
-</ImportGroup>
+  <Import Project="$(VCTargetsPath)Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
 </Project>

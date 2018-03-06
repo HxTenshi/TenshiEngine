@@ -1,0 +1,9 @@
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <file name = "PhysX_MD.dll"/>
+  <file name = "PhysXCharacterKinematic_MD.dll"/>
+  <file name = "PhysXCommon_MD.dll"/>
+  <file name = "PhysXCooking_MD.dll"/>
+  <file name = "CppWPFdll.dll"/>
+  <file name = "MyInput.dll"/>
+  <file name = "D3Dcompiler_47.dll"/>
+</assembly>
