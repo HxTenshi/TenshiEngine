@@ -1,6 +1,8 @@
 #include "ScriptManager.h"
 #include "ScriptCompiler.h"
 
+#include "Application/Settings.h"
+
 #ifdef _ENGINE_MODE
 
 
@@ -75,9 +77,9 @@ public:
 
 		if (threadVS)return;
 		threadVS = new std::thread([&]() {
-			char cdir[255];
-			GetCurrentDirectory(255, cdir);
-			std::string  pass = cdir;
+			//char cdir[255];
+			//GetCurrentDirectory(255, cdir);
+			std::string  pass = Settings::ProjectDirectory;
 			pass += "/ScriptComponent/ScriptComponent.sln";
 
 			SHELLEXECUTEINFO	sei = { 0 };
@@ -114,9 +116,10 @@ public:
 
 		if (threadFile)return;
 		threadFile = new std::thread([&, filename, line]() {
-			char cdir[255];
-			GetCurrentDirectory(255, cdir);
-			std::string  pass = cdir;
+			//char cdir[255];
+			//GetCurrentDirectory(255, cdir);
+
+			std::string  pass = Settings::EngineDirectory;
 			pass += "/tool/VisualStudioFileOpenTool.exe";
 
 			SHELLEXECUTEINFO	sei = { 0 };

@@ -1569,10 +1569,10 @@ private:
 		fsWatcher->NotifyFilter = static_cast<System::IO::NotifyFilters>
 			(System::IO::NotifyFilters::FileName |
 			System::IO::NotifyFilters::DirectoryName |
-			System::IO::NotifyFilters::Attributes |
-			System::IO::NotifyFilters::LastAccess |
+			//System::IO::NotifyFilters::Attributes |
+			//System::IO::NotifyFilters::LastAccess |
 			System::IO::NotifyFilters::LastWrite |
-			System::IO::NotifyFilters::Security |
+			//System::IO::NotifyFilters::Security |
 			System::IO::NotifyFilters::Size);
 
 		fsWatcher->Changed += gcnew System::IO::FileSystemEventHandler(

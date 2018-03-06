@@ -10,4 +10,6 @@ public:
 	Settings();
 public:
 	static InitParams mParams;
+	static const char* EngineDirectory;		// エンジンのディレクトリ
+	static const char* ProjectDirectory;	// プロジェクトのディレクトリ
 };

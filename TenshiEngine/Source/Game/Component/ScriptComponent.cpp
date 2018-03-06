@@ -204,6 +204,8 @@ void ScriptComponent::Update(){
 			++ite;
 		}
 
+		// ‚±‚ÌŒÄ‚Ñ•û‚Å‚à‚æ‚¢
+		//pDllClass->Update();
 		if (!UseScriptActors::Get()->Function(pDllClass, &IDllScriptComponent::Update)) {
 			//Window::AddLog("[" + gameObject->Name() + "][" + mClassName + "]" + "Update()");
 			Disable();

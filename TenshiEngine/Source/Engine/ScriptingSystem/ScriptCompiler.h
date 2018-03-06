@@ -24,7 +24,7 @@ private:
 	void ReCompile();
 
 	void CreateIncludeClassFile();
-	void findSerialize(File* file, const std::string& classname);
+	void findSerialize(File* file, const std::string& filePath, const std::string& classname);
 
 	void findMember(std::string&& pickstr, File* file, const std::string& classname);
 	void reflect(const std::string& member, File* file, const std::string& classname);

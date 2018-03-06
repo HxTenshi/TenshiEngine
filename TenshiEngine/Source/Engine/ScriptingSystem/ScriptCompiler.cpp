@@ -6,6 +6,7 @@
 #include <filesystem> // std::tr2::sys::path etc.
 
 #include "Application/BuildVersion.h"
+#include "Application/Settings.h"
 
 #include "Game/Component/ScriptComponent.h"
 #include "MySTL/Reflection/Reflection.h"
@@ -30,10 +31,10 @@ SGame gSGame;
 
 #ifdef _ENGINE_MODE
 // プロジェクトファイルの生成
-void IncludeScriptFileProject()
+void GenerateScriptProjectFile()
 {
 	// ベースにするプロジェクトファイル（上）
-	std::fstream headFile;
+	std::ifstream headFile;
 	auto headFilePath = "EngineResource/ScriptTemplate/ScriptTemplate.vcxproj";
 	headFile.open(headFilePath, std::ios::in);
 	// 開いたファイルを読み込む
@@ -47,20 +48,22 @@ void IncludeScriptFileProject()
 	// 指定パスからファイルを再帰的に検索
 	namespace sys = std::tr2::sys;
 	std::string addScript = "\n";
-	const sys::path scriptPath("./ScriptComponent/Scripts/");
+	const std::string	scriptPathName		= "./ScriptComponent/Scripts/";
+	const auto			scriptPathLength	= scriptPathName.length();
+	const sys::path		scriptPath(scriptPathName);
 	std::for_each(sys::recursive_directory_iterator(scriptPath), sys::recursive_directory_iterator(),
 		[&](const sys::path& path)
 		{
 			// ファイルなら
 			if( sys::is_regular_file(path) ) {
-				if( path.extension() == ".h" )			addScript += "    <ClInclude Include=\"Scripts\\" + path.stem().string() + ".h\" />\n";
-				else if( path.extension() == ".cpp" )	addScript += "    <ClCompile Include=\"Scripts\\" + path.stem().string() + ".cpp\" />\n";
+				if( path.extension() == ".h" )			addScript += "    <ClInclude Include=\"Scripts\\" + path.relative_path().string().substr(scriptPathLength) + "\" />\n";
+				else if( path.extension() == ".cpp" )	addScript += "    <ClCompile Include=\"Scripts\\" + path.relative_path().string().substr(scriptPathLength) + "\" />\n";
 			}
 		}
 	);
 
 	// 出力先プロジェクトファイル
-	std::fstream destFile;
+	std::ofstream destFile;
 	auto destFilePath = "ScriptComponent/ScriptComponent.vcxproj";
 	destFile.open(destFilePath, std::ios::out);
 
@@ -149,7 +152,7 @@ bool create_cmd_process() {
 	char cmd[] = "cmd.exe /K \".\\ScriptComponent\\createdll_auto.bat\"";
 #endif
 
-	if (!PathFileExists("ScriptComponent\\createdll_auto.bat")) {
+	if (!PathFileExistsA("ScriptComponent\\createdll_auto.bat")) {
 		Window::AddLog("内蔵コンパイル失敗");
 		return false;
 	}
@@ -311,6 +314,7 @@ bool create_cmd_process() {
 
 			CloseHandle(sei.hProcess);
 
+			// エンジンをビルドから実行するとpdbのプロセスが解除されなくて２回目のコンパイルができない
 			Window::AddLog("コンパイル終了");
 		}
 
@@ -360,7 +364,7 @@ bool create_cmd_process() {
 					auto outf = "\n_ADD(" + p.stem().string() + ");";
 					factorysFile.Out(outf);
 
-					findSerialize(&reflectionsFile, p.stem().string());
+					findSerialize(&reflectionsFile, p.generic_string(), p.stem().string());
 				}
 			}
 			else if (sys::is_directory(p)) { // ディレクトリなら...
@@ -368,7 +372,7 @@ bool create_cmd_process() {
 			}
 		});
 
-		IncludeScriptFileProject();
+		GenerateScriptProjectFile();
 	}
 	//void ReplaceEnter(std::string& targetStr) {
 
@@ -432,10 +436,9 @@ bool create_cmd_process() {
 	//	}
 	//}
 
-	void UseScriptActors::findSerialize(File* file, const std::string& classname) {
+	void UseScriptActors::findSerialize(File* file, const std::string& filePath, const std::string& classname) {
 
-		auto filepath = "./ScriptComponent/Scripts/" + classname + ".h";
-		std::ifstream classfile(filepath, std::ios::in);
+		std::ifstream classfile(filePath, std::ios::in);
 
 		if (classfile.fail())
 		{
@@ -634,16 +637,20 @@ bool create_cmd_process() {
 #ifdef _ENGINE_MODE
 		// DLLのロード
 #ifdef _DEBUG
-		hModule = LoadLibrary("../ScriptComponent/Debug/ScriptComponent.dll");
+		//hModule = LoadLibrary("../ScriptComponent/Debug/ScriptComponent.dll");
+		hModule = LoadLibrary((std::string(Settings::ProjectDirectory) + "/ScriptComponent/Debug/ScriptComponent.dll").c_str());
 #else
-		hModule = LoadLibrary("../ScriptComponent/Release/ScriptComponent.dll");
+		//hModule = LoadLibrary("../ScriptComponent/Release/ScriptComponent.dll");
+		hModule = LoadLibrary((std::string(Settings::ProjectDirectory) + "/ScriptComponent/Release/ScriptComponent.dll").c_str());
 #endif
 		if (hModule == NULL)
 		{
 #ifdef _DEBUG
-			hModule = LoadLibrary("ScriptComponent/Debug/ScriptComponent.dll");
+			//hModule = LoadLibrary("ScriptComponent/Debug/ScriptComponent.dll");
+			hModule = LoadLibrary((std::string(Settings::ProjectDirectory) + "/ScriptComponent/Debug/ScriptComponent.dll").c_str());
 #else
-			hModule = LoadLibrary("ScriptComponent/Release/ScriptComponent.dll");
+			//hModule = LoadLibrary("ScriptComponent/Release/ScriptComponent.dll");
+			hModule = LoadLibrary((std::string(Settings::ProjectDirectory) + "/ScriptComponent/Release/ScriptComponent.dll").c_str());
 #endif
 		}
 
