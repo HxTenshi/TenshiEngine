@@ -279,20 +279,24 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 	//ray.z = -ray.z;
 	ray = normalize(ray);
 
-	if (UseTexture.z != 0.0){
-	
-		float3 x = normalize(float3(World._m11, World._m21, World._m31));
-		float3 y = normalize(float3(World._m12, World._m22, World._m32));
-		float3 z = normalize(float3(World._m13, World._m23, World._m33));
-		float3x3 NoScale = float3x3(x, y, z);
-	
-		float3 nor = mul(input.Normal, NoScale);
-		nor = mul(nor, (float3x3)View);
-		nor = normalize(nor);
-	
-		float pow = 1 -HeightTex.Sample(HeightSamLinear, input.Tex).r ;
-		float2 h = nor.xy * pow *  MHightPower.x / 100;
-		texcood += h *float2(1, -1);
+	const int Count = 8;
+	const int HightPowerDiv = Count * 100;
+	[unroll]
+	for( int i = 0; i < Count; i++ ) {
+		if( UseTexture.z != 0.0 ) {
+
+			const float3x3 TangentMat = float3x3(normalize(input.Tan),
+				normalize(input.Bin),
+				normalize(input.Normal));
+			//TangentMat = transpose(TangentMat);
+			const float3 TangentRay = mul(TangentMat, ray);
+
+			const float pow = HeightTex.Sample(HeightSamLinear, texcood).r;
+			const float2 h = TangentRay.xy * pow * (MHightPower.x / HightPowerDiv);
+			//i.uv += ray * height.r * _HeightFactor
+			//texcood += h;
+			texcood += h * float2(-1, 1);
+		}
 	}
 
 
@@ -332,7 +336,7 @@ PS_OUTPUT_1 PS(PS_INPUT input)
 		bump *= MNormaleScale.xyz;
 
 		//視線ベクトルを頂点座標系に変換する
-		float3x3 normat = float3x3(normalize(input.Tan),
+		const float3x3 normat = float3x3(normalize(input.Tan),
 		normalize(input.Bin),
 		normalize(input.Normal));
 		N = mul(bump, normat);
